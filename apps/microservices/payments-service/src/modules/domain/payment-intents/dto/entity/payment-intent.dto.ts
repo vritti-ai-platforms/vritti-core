@@ -9,7 +9,8 @@ export class PaymentIntentDto {
   partyId: string | null;
   reference: { type: string; id: string };
   // The commerce checkout this payment pays for, when it pays one
-  checkoutId: string | null;
+  // The record this payment settles: a checkout, a point-of-sale sale
+  targetId: string | null;
   description: string | null;
   configId: string;
   gatewayCode: string;
@@ -33,6 +34,11 @@ export class PaymentIntentDto {
   failureCode: string | null;
   failureMessage: string | null;
   succeededAt: Date | null;
+  refundedAt: Date | null;
+  // The gateway's id for the refund
+  refundReference: string | null;
+  // Why the gateway refused the last refund
+  refundFailureMessage: string | null;
   expiresAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -45,7 +51,7 @@ export class PaymentIntentDto {
     dto.appId = entity.appId ?? null;
     dto.partyId = entity.partyId ?? null;
     dto.reference = { type: entity.referenceType, id: entity.referenceId };
-    dto.checkoutId = entity.checkoutId ?? null;
+    dto.targetId = entity.targetId ?? null;
     dto.description = entity.description ?? null;
     dto.configId = entity.configId;
     dto.gatewayCode = entity.gatewayCode;
@@ -67,6 +73,9 @@ export class PaymentIntentDto {
     dto.failureCode = entity.failureCode ?? null;
     dto.failureMessage = entity.failureMessage ?? null;
     dto.succeededAt = entity.succeededAt ?? null;
+    dto.refundedAt = entity.refundedAt ?? null;
+    dto.refundReference = entity.refundReference ?? null;
+    dto.refundFailureMessage = entity.refundFailureMessage ?? null;
     dto.expiresAt = entity.expiresAt ?? null;
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;

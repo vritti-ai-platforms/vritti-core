@@ -1,5 +1,6 @@
 import { AppDomainModule } from '@domain/app/app.module';
 import { LegalEntityDomainModule } from '@domain/legal-entity/legal-entity.module';
+import { PaymentGatewayConfigDomainModule } from '@domain/payment-gateway-config/payment-gateway-config.module';
 import { PayoutChannelDomainModule } from '@domain/payout-channel/payout-channel.module';
 import { SiteDomainModule } from '@domain/site/site.module';
 import { Module } from '@nestjs/common';
@@ -119,7 +120,13 @@ const services = [
 
 // Every commerce gateway service, and nothing else
 @Module({
-  imports: [SiteDomainModule, LegalEntityDomainModule, AppDomainModule, PayoutChannelDomainModule],
+  imports: [
+    SiteDomainModule,
+    LegalEntityDomainModule,
+    AppDomainModule,
+    PayoutChannelDomainModule,
+    PaymentGatewayConfigDomainModule,
+  ],
   providers: services,
   exports: services,
 })

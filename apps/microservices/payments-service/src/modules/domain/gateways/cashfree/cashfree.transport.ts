@@ -8,8 +8,13 @@ import {
   GatewayCodeValues,
   type NormalizedPayment,
   type NormalizedPaymentStatus,
+  type NormalizedRefund,
+  type NormalizedRefundStatus,
   type NormalizedWebhookEvent,
   type PaymentGatewayTransport,
+  type RefundLookup,
+  type RefundRequest,
+  type RefundResult,
   type VerifyCredentialsResult,
 } from '../gateway-transport';
 import { pickOrderPayment } from '../order-payment-pick';
@@ -58,12 +63,23 @@ interface CashfreeErrorDetails {
   error_description?: string | null;
 }
 
+interface CashfreeRefund {
+  cf_refund_id?: string | number;
+  cf_payment_id?: string | number;
+  refund_id: string;
+  order_id?: string;
+  refund_amount?: number;
+  refund_status?: string;
+  status_description?: string | null;
+}
+
 interface CashfreeWebhookBody {
   type?: string;
   event_time?: string;
   data?: {
     order?: { order_id?: string; order_amount?: number; order_currency?: string };
     payment?: CashfreePayment;
+    refund?: CashfreeRefund;
     error_details?: CashfreeErrorDetails | null;
   };
 }
@@ -86,6 +102,15 @@ const PAYMENT_STATUSES: Readonly<Record<string, NormalizedPaymentStatus>> = {
   VOID: 'failed',
   PENDING: 'created',
   NOT_ATTEMPTED: 'created',
+};
+
+// Cashfree's refund states, as the platform's: SUCCESS is processed, CANCELLED is a refund that did not go through,
+// and PENDING / ONHOLD are still with Cashfree
+const REFUND_STATUSES: Readonly<Record<string, NormalizedRefundStatus>> = {
+  SUCCESS: 'processed',
+  CANCELLED: 'failed',
+  PENDING: 'pending',
+  ONHOLD: 'pending',
 };
 
 // Cashfree Payments. A payment is split with Easy Split: the vendors' shares travel on the order as order_splits and
@@ -173,7 +198,6 @@ export class CashfreeTransport implements PaymentGatewayTransport {
         // Cashfree's page in the store's tab, or its popup on the store's page
         checkout_mode: input.checkoutMode ?? 'HOSTED',
       },
-      transfers: this.split.sentTransfers(order.order_id, input.transfers),
     };
   }
 
@@ -195,6 +219,46 @@ export class CashfreeTransport implements PaymentGatewayTransport {
         at: payment.payment_time ? Date.parse(payment.payment_time) || 0 : 0,
       })),
     );
+  }
+
+  // Refunds a payment under its order — POST /orders/{order_id}/refunds, amount in rupees, keyed on the merchant's
+  // refund id. Cashfree answers PENDING and settles the refund later; its refund webhook or `fetchRefund` says how it ended
+  async refundPayment(credentials: Record<string, string>, request: RefundRequest): Promise<RefundResult> {
+    const orderId = requireOrderId(request.providerOrderId);
+    const auth = this.auth(credentials);
+    const refund = await this.http.post<CashfreeRefund>(auth, `/orders/${encodeURIComponent(orderId)}/refunds`, {
+      refund_amount: toMajorUnits(request.amount),
+      refund_id: request.refundId,
+      refund_note: 'Refund from Vritti',
+    });
+    if (!refund) {
+      throw new BadRequestException({
+        label: 'Refund Refused',
+        detail: `Cashfree did not accept the refund of order ${orderId}.`,
+      });
+    }
+    const normalized = normalizeRefund(refund, request.providerPaymentId);
+    this.logger.log(`Refund ${refund.refund_id} of order ${orderId} is ${refund.refund_status ?? 'unknown'}`);
+    return { providerRefundId: refund.refund_id, status: normalized.status };
+  }
+
+  // Reads one refund back — GET /orders/{order_id}/refunds/{refund_id} — for a refund whose webhook never arrived
+  async fetchRefund(credentials: Record<string, string>, lookup: RefundLookup): Promise<NormalizedRefund> {
+    const orderId = requireOrderId(lookup.providerOrderId);
+    const refund = await this.http.get<CashfreeRefund>(
+      this.auth(credentials),
+      `/orders/${encodeURIComponent(orderId)}/refunds/${encodeURIComponent(lookup.providerRefundId)}`,
+    );
+    if (!refund) {
+      return {
+        providerRefundId: lookup.providerRefundId,
+        providerPaymentId: lookup.providerPaymentId,
+        amount: null,
+        status: 'pending',
+        errorDescription: null,
+      };
+    }
+    return normalizeRefund(refund, lookup.providerPaymentId);
   }
 
   // Cashfree reads a payment only under its order, which this call is not given; its payments arrive by webhook
@@ -220,8 +284,8 @@ export class CashfreeTransport implements PaymentGatewayTransport {
     return safeEqual(expected, signature);
   }
 
-  // One event per delivery, deduped on a hash of the signed body. Only payment events carry a payment; refund,
-  // settlement and split events are recorded and left alone
+  // One event per delivery, deduped on a hash of the signed body. Payment events carry a payment and refund events a
+  // refund; settlement and split events are recorded and left alone
   parseWebhook(rawBody: string): NormalizedWebhookEvent[] {
     const body = parseBody(rawBody);
     if (!body.type) {
@@ -236,6 +300,8 @@ export class CashfreeTransport implements PaymentGatewayTransport {
       body.data?.payment?.cf_payment_id !== undefined && orderId
         ? this.normalizePayment(body.data.payment, orderId, body.data.error_details ?? null)
         : null;
+    const refundEntity = body.data?.refund;
+    const refund = refundEntity?.refund_id ? normalizeRefund(refundEntity, refundEntity.cf_payment_id) : null;
     const dedupeKey = sha256Hex(rawBody);
 
     return [
@@ -244,8 +310,8 @@ export class CashfreeTransport implements PaymentGatewayTransport {
         providerEventId: payment ? `${body.type}:${payment.providerPaymentId}` : dedupeKey,
         eventType: body.type,
         payment,
-        transfer: null,
-        providerOrderId: orderId,
+        refund,
+        providerOrderId: orderId ?? refundEntity?.order_id ?? null,
         raw: body,
       },
     ];
@@ -366,4 +432,26 @@ function safeEqual(expected: string, actual: string): boolean {
   const actualBuffer = Buffer.from(actual, 'utf8');
   if (expectedBuffer.length !== actualBuffer.length) return false;
   return timingSafeEqual(expectedBuffer, actualBuffer);
+}
+
+// A Cashfree refund onto the gateway-neutral shape. The payment id comes from the refund when it names one, else from
+// the payment the platform asked to refund
+function normalizeRefund(refund: CashfreeRefund, paymentId: string | number | undefined): NormalizedRefund {
+  const status = (refund.refund_status && REFUND_STATUSES[refund.refund_status]) || 'pending';
+  return {
+    providerRefundId: refund.refund_id,
+    providerPaymentId: String(refund.cf_payment_id ?? paymentId ?? ''),
+    amount: refund.refund_amount === undefined ? null : toMinorUnits(refund.refund_amount),
+    status,
+    errorDescription: status === 'failed' ? (refund.status_description ?? 'Cashfree cancelled the refund.') : null,
+  };
+}
+
+// Cashfree refunds under the order, so a payment without its order cannot be refunded
+function requireOrderId(orderId: string | null): string {
+  if (orderId) return orderId;
+  throw new BadRequestException({
+    label: 'Order Missing',
+    detail: 'Cashfree refunds a payment under its order, and this payment has no Cashfree order.',
+  });
 }

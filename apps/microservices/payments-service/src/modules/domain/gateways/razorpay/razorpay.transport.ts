@@ -9,15 +9,18 @@ import {
   type GatewaySplitCapability,
   type NormalizedPayment,
   type NormalizedPaymentStatus,
+  type NormalizedRefund,
   type NormalizedWebhookEvent,
   type PaymentGatewayTransport,
+  type RefundLookup,
+  type RefundRequest,
   type RefundResult,
   type VerifyCheckoutSignatureInput,
   type VerifyCredentialsResult,
 } from '../gateway-transport';
 import { pickOrderPayment } from '../order-payment-pick';
 import { toMinorUnitsNumber } from './razorpay-amount';
-import { RazorpaySplit, type RazorpayTransfer } from './razorpay-split';
+import { RazorpaySplit } from './razorpay-split';
 
 const KEY_ID_FIELD = 'key_id';
 const KEY_SECRET_FIELD = 'key_secret';
@@ -33,7 +36,6 @@ interface RazorpayOrder {
   currency: string;
   receipt?: string | null;
   status?: string;
-  transfers?: RazorpayTransfer[];
 }
 
 interface RazorpayPayment {
@@ -50,13 +52,20 @@ interface RazorpayPayment {
   error_description?: string | null;
 }
 
+interface RazorpayRefund {
+  id: string;
+  payment_id: string;
+  amount?: number;
+  status?: string;
+}
+
 interface RazorpayWebhookBody {
   entity?: string;
   event?: string;
   payload?: {
     payment?: { entity?: RazorpayPayment };
     order?: { entity?: RazorpayOrder };
-    transfer?: { entity?: RazorpayTransfer };
+    refund?: { entity?: RazorpayRefund };
   };
 }
 
@@ -123,9 +132,6 @@ export class RazorpayTransport implements PaymentGatewayTransport {
         ...razorpayPrefill(input),
         ...razorpayOpening(input),
       },
-      transfers: (order.transfers ?? []).map((item, index) =>
-        this.route.toTransferResult(item, input.transfers?.[index]),
-      ),
     };
   }
 
@@ -154,8 +160,7 @@ export class RazorpayTransport implements PaymentGatewayTransport {
   // Refunds a captured payment, in full or for part of it — POST /payments/:id/refund, amount in paise
   async refundPayment(
     credentials: Record<string, string>,
-    providerPaymentId: string,
-    amount: bigint,
+    { providerPaymentId, amount }: RefundRequest,
   ): Promise<RefundResult> {
     const auth = this.auth(credentials);
     const refund = await this.http.post<{ id: string; status?: string }>(
@@ -165,6 +170,19 @@ export class RazorpayTransport implements PaymentGatewayTransport {
     );
     this.logger.log(`Refunded ${amount} of payment ${providerPaymentId} as ${refund.id}`);
     return { providerRefundId: refund.id, status: refund.status ?? 'pending' };
+  }
+
+  // Reads one refund back, for a refund whose webhook never arrived — GET /payments/:id/refunds/:refund_id
+  async fetchRefund(
+    credentials: Record<string, string>,
+    { providerPaymentId, providerRefundId }: RefundLookup,
+  ): Promise<NormalizedRefund> {
+    const auth = this.auth(credentials);
+    const refund = await this.http.get<RazorpayRefund>(
+      auth,
+      `/payments/${encodeURIComponent(providerPaymentId)}/refunds/${encodeURIComponent(providerRefundId)}`,
+    );
+    return normalizeRefund(refund);
   }
 
   // Checks the signature the checkout widget hands back: HMAC-SHA256(`order_id|payment_id`, key_secret)
@@ -192,10 +210,12 @@ export class RazorpayTransport implements PaymentGatewayTransport {
       });
     }
 
-    const paymentEntity = body.payload?.payment?.entity;
+    // A Route transfer event reports how a split settled, which the gateway keeps; it is stored and never applied, so
+    // whatever payment it carries along is not read as a payment update
+    const paymentEntity = body.event.startsWith(TRANSFER_EVENT_PREFIX) ? undefined : body.payload?.payment?.entity;
     const payment = paymentEntity ? this.normalizePayment(paymentEntity) : null;
-    const transferEntity = body.event.startsWith(TRANSFER_EVENT_PREFIX) ? body.payload?.transfer?.entity : undefined;
-    const transfer = transferEntity ? this.route.normalizeTransfer(transferEntity) : null;
+    const refundEntity = body.payload?.refund?.entity;
+    const refund = refundEntity ? normalizeRefund(refundEntity) : null;
 
     return [
       {
@@ -204,7 +224,7 @@ export class RazorpayTransport implements PaymentGatewayTransport {
         providerEventId: headerValue(headers, EVENT_ID_HEADER) ?? sha256Hex(rawBody),
         eventType: body.event,
         payment,
-        transfer,
+        refund,
         providerOrderId: body.payload?.order?.entity?.id ?? payment?.providerOrderId ?? null,
         raw: body,
       },
@@ -213,7 +233,7 @@ export class RazorpayTransport implements PaymentGatewayTransport {
 
   // Builds the Route (split payment) capability over this transport's own client
   protected createRoute(): RazorpaySplit {
-    return new RazorpaySplit(this.http, (credentials) => this.auth(credentials), this.logger);
+    return new RazorpaySplit(this.http, (credentials) => this.auth(credentials));
   }
 
   // Maps a Razorpay payment entity onto the gateway-neutral shape; amounts come back as bigint
@@ -329,4 +349,16 @@ function razorpayPrefill(input: CreateOrderInput): { prefill?: Record<string, st
     ...(input.method ? { method: input.method } : {}),
   };
   return Object.keys(prefill).length > 0 ? { prefill } : {};
+}
+
+// A Razorpay refund onto the gateway-neutral shape: processed and failed are final, anything else is still pending
+function normalizeRefund(refund: RazorpayRefund): NormalizedRefund {
+  const status = refund.status === 'processed' ? 'processed' : refund.status === 'failed' ? 'failed' : 'pending';
+  return {
+    providerRefundId: refund.id,
+    providerPaymentId: refund.payment_id,
+    amount: refund.amount === undefined ? null : BigInt(refund.amount),
+    status,
+    errorDescription: status === 'failed' ? 'The gateway could not process the refund.' : null,
+  };
 }

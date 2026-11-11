@@ -1,12 +1,5 @@
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
-import type {
-  CreateLinkedAccountResult,
-  CreateOrderInput,
-  CreateTransferResult,
-  GatewaySplitCapability,
-  LinkedAccountLookup,
-  LinkedAccountStatusResult,
-} from '../gateway-transport';
+import type { CreateOrderInput, GatewayAccountLookup, GatewaySplitCapability } from '../gateway-transport';
 import { toRupees } from './easebuzz-amount';
 
 // Easebuzz names a split label in letters, digits and underscores; anything else cannot be one
@@ -19,22 +12,7 @@ const SPLIT_LABEL = /^[A-Za-z0-9_-]{1,100}$/;
 // checks labels, and opening a payment does not check them either: a payout account's label is stored as entered,
 // and a wrong one only fails when someone pays
 export class EasebuzzSplit implements GatewaySplitCapability {
-  async createLinkedAccount(): Promise<CreateLinkedAccountResult> {
-    throw labelsSetUpByEasebuzz();
-  }
-
-  async createTransfers(): Promise<CreateTransferResult[]> {
-    throw new BadRequestException({
-      label: 'Split Sent With Payment',
-      detail: 'Easebuzz splits a payment with the shares sent when it is opened, so there is nothing to transfer now.',
-    });
-  }
-
-  async fetchLinkedAccount(): Promise<LinkedAccountLookup | null> {
-    throw labelsNotLookedUp();
-  }
-
-  async fetchLinkedAccountStatus(): Promise<LinkedAccountStatusResult> {
+  async lookupAccount(): Promise<GatewayAccountLookup | null> {
     throw labelsNotLookedUp();
   }
 
@@ -74,17 +52,6 @@ export class EasebuzzSplit implements GatewaySplitCapability {
 
     return Object.fromEntries([...shares.entries()].map(([label, share]) => [label, toRupees(share)]));
   }
-
-  // Easebuzz gives the shares no ids of their own; each is named after its payment and label so its leg is marked
-  // sent and never sent again
-  sentTransfers(txnid: string, transfers: CreateOrderInput['transfers']): CreateTransferResult[] {
-    return (transfers ?? []).map((transfer) => ({
-      providerTransferId: `${txnid}:${transfer.providerAccountId}`,
-      providerAccountId: transfer.providerAccountId,
-      amount: transfer.amount,
-      status: 'PENDING' as const,
-    }));
-  }
 }
 
 function assertLabel(label: string, field: string): string {
@@ -97,13 +64,6 @@ function assertLabel(label: string, field: string): string {
     });
   }
   return trimmed;
-}
-
-function labelsSetUpByEasebuzz(): BadRequestException {
-  return new BadRequestException({
-    label: 'Ask Easebuzz For A Split Label',
-    detail: 'Easebuzz sets up split labels for a bank account on request. Enter the label as the payout account.',
-  });
 }
 
 function labelsNotLookedUp(): BadRequestException {

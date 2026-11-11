@@ -39,9 +39,11 @@ export const paymentIntents = paymentsSchema.table(
     // it is handed back on every event so the owner can act on it
     referenceType: varchar('reference_type', { length: 100 }).notNull(),
     referenceId: varchar('reference_id', { length: 200 }).notNull(),
-    // The commerce checkout this payment pays for, when it pays one. No foreign key — the row lives in commerce. A
-    // checkout can have several payments (a failed one, a retry, another gateway); only one of them can pay it
-    checkoutId: uuid('checkout_id'),
+    // The record this payment settles, as a uuid for the caller to look its payments up by — a commerce checkout
+    // today, a point-of-sale sale next. No foreign key: the row lives in the caller's service, and `reference_type`
+    // says what kind it is. A target can have several payments (a failed one, a retry, another gateway); only one of
+    // them can pay it
+    targetId: uuid('target_id'),
     description: varchar('description', { length: 500 }),
     idempotencyKey: varchar('idempotency_key', { length: 100 }).notNull(),
     receipt: varchar('receipt', { length: 40 }).notNull(),
@@ -64,6 +66,9 @@ export const paymentIntents = paymentsSchema.table(
     failureCode: varchar('failure_code', { length: 100 }),
     failureMessage: text('failure_message'),
     succeededAt: timestamp('succeeded_at', { withTimezone: true }),
+    refundedAt: timestamp('refunded_at', { withTimezone: true }),
+    refundReference: varchar('refund_reference', { length: 100 }),
+    refundFailureMessage: text('refund_failure_message'),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -81,11 +86,11 @@ export const paymentIntents = paymentsSchema.table(
       .where(sql`provider_order_id IS NOT NULL`),
     index('idx_payment_intents_config').on(table.configId),
     index('idx_payment_intents_reference').on(table.organizationId, table.referenceType, table.referenceId),
-    index('idx_payment_intents_checkout').on(table.organizationId, table.checkoutId),
-    // A checkout has at most one active payment: Pay cancels the one still waiting before it opens another
-    uniqueIndex('uq_payment_intents_one_active_per_checkout')
-      .on(table.organizationId, table.checkoutId)
-      .where(sql`checkout_id IS NOT NULL AND status IN ('CREATED', 'REQUIRES_ACTION', 'PROCESSING')`),
+    index('idx_payment_intents_target').on(table.organizationId, table.targetId),
+    // A target has at most one active payment: paying again cancels the one still waiting before it opens another
+    uniqueIndex('uq_payment_intents_one_active_per_target')
+      .on(table.organizationId, table.targetId)
+      .where(sql`target_id IS NOT NULL AND status IN ('CREATED', 'REQUIRES_ACTION', 'PROCESSING')`),
     // Whatever is paid for has at most one active payment: paying again for the same reference replaces the waiting one
     uniqueIndex('uq_payment_intents_one_active_per_reference')
       .on(table.organizationId, table.referenceType, table.referenceId)

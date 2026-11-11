@@ -58,7 +58,7 @@ export class WebhookEventsDomainService {
     await this.repository.markProcessed(id);
   }
 
-  // Marks an event that needs no action (e.g. a transfer this platform never created)
+  // Marks an event that needs no action (e.g. a settlement or transfer event, which the gateway keeps)
   async markIgnored(id: string, reason: string): Promise<void> {
     await this.repository.markIgnored(id, reason);
   }

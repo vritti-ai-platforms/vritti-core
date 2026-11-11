@@ -11,8 +11,11 @@ import {
   GatewayCodeValues,
   type NormalizedPayment,
   type NormalizedPaymentStatus,
+  type NormalizedRefund,
   type NormalizedWebhookEvent,
   type PaymentGatewayTransport,
+  type RefundLookup,
+  type RefundRequest,
   type RefundResult,
   type VerifyCheckoutSignatureInput,
   type VerifyCredentialsResult,
@@ -49,12 +52,20 @@ interface HdfcRazorpayPayment {
   error_description?: string | null;
 }
 
+interface HdfcRazorpayRefund {
+  id: string;
+  payment_id: string;
+  amount?: number;
+  status?: string;
+}
+
 interface HdfcRazorpayWebhookBody {
   entity?: string;
   event?: string;
   payload?: {
     payment?: { entity?: HdfcRazorpayPayment };
     order?: { entity?: HdfcRazorpayOrder };
+    refund?: { entity?: HdfcRazorpayRefund };
   };
 }
 
@@ -122,7 +133,6 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
         currency: order.currency,
         ...hdfcPrefill(input),
       },
-      transfers: [],
     };
   }
 
@@ -154,8 +164,7 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
   // Refunds a captured payment, in full or for part of it — POST /payments/:id/refund, amount in paise
   async refundPayment(
     credentials: Record<string, string>,
-    providerPaymentId: string,
-    amount: bigint,
+    { providerPaymentId, amount }: RefundRequest,
   ): Promise<RefundResult> {
     const auth = this.auth(credentials);
     const refund = await this.http.post<{ id: string; status?: string }>(
@@ -165,6 +174,19 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
     );
     this.logger.log(`Refunded ${amount} of payment ${providerPaymentId} as ${refund.id}`);
     return { providerRefundId: refund.id, status: refund.status ?? 'pending' };
+  }
+
+  // Reads one refund back, for a refund whose webhook never arrived — GET /payments/:id/refunds/:refund_id
+  async fetchRefund(
+    credentials: Record<string, string>,
+    { providerPaymentId, providerRefundId }: RefundLookup,
+  ): Promise<NormalizedRefund> {
+    const auth = this.auth(credentials);
+    const refund = await this.http.get<HdfcRazorpayRefund>(
+      auth,
+      `/payments/${encodeURIComponent(providerPaymentId)}/refunds/${encodeURIComponent(providerRefundId)}`,
+    );
+    return normalizeRefund(refund);
   }
 
   // Checks the signature the checkout widget hands back: HMAC-SHA256(`order_id|payment_id`, key_secret)
@@ -194,6 +216,8 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
 
     const paymentEntity = body.payload?.payment?.entity;
     const payment = paymentEntity ? this.normalizePayment(paymentEntity) : null;
+    const refundEntity = body.payload?.refund?.entity;
+    const refund = refundEntity ? normalizeRefund(refundEntity) : null;
 
     return [
       {
@@ -202,8 +226,7 @@ export class HdfcRazorpayTransport implements PaymentGatewayTransport {
         providerEventId: headerValue(headers, EVENT_ID_HEADER) ?? sha256Hex(rawBody),
         eventType: body.event,
         payment,
-        // HDFC's edition has no Route, so no event ever names a transfer
-        transfer: null,
+        refund,
         providerOrderId: body.payload?.order?.entity?.id ?? payment?.providerOrderId ?? null,
         raw: body,
       },
@@ -305,4 +328,16 @@ function hdfcPrefill(input: CreateOrderInput): { prefill?: Record<string, string
     ...(input.method ? { method: input.method } : {}),
   };
   return Object.keys(prefill).length > 0 ? { prefill } : {};
+}
+
+// A Razorpay refund onto the gateway-neutral shape: processed and failed are final, anything else is still pending
+function normalizeRefund(refund: HdfcRazorpayRefund): NormalizedRefund {
+  const status = refund.status === 'processed' ? 'processed' : refund.status === 'failed' ? 'failed' : 'pending';
+  return {
+    providerRefundId: refund.id,
+    providerPaymentId: refund.payment_id,
+    amount: refund.amount === undefined ? null : BigInt(refund.amount),
+    status,
+    errorDescription: status === 'failed' ? 'The gateway could not process the refund.' : null,
+  };
 }

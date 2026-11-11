@@ -8,10 +8,8 @@ import { DB_SCHEMA } from '@/db/schema/payments-schema';
 import { relations } from '@/db/schema/relations';
 import { RlsInterceptor } from './common/interceptors/rls.interceptor';
 import { validate } from './config/env.validation';
+import { InternalGatewaysModule } from './modules/internal/gateways/gateways.module';
 import { InternalWebhooksModule } from './modules/internal/webhooks/webhooks.module';
-import { OrgGatewaysModule } from './modules/organization/gateways/gateways.module';
-import { OrgLinkedAccountsModule } from './modules/organization/linked-accounts/linked-accounts.module';
-import { OrgPaymentEventsModule } from './modules/organization/payment-events/payment-events.module';
 import { OrgPaymentIntentsModule } from './modules/organization/payment-intents/payment-intents.module';
 
 @Module({
@@ -71,10 +69,8 @@ import { OrgPaymentIntentsModule } from './modules/organization/payment-intents/
         runInOrgContext: <T>(orgId: string, run: () => Promise<T>) => db.runWithRlsContext({ orgId }, run),
       }),
     }),
-    OrgGatewaysModule,
-    OrgLinkedAccountsModule,
     OrgPaymentIntentsModule,
-    OrgPaymentEventsModule,
+    InternalGatewaysModule,
     InternalWebhooksModule,
   ],
   providers: [

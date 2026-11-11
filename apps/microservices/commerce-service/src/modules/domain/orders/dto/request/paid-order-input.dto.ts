@@ -22,9 +22,8 @@ export interface PaidOrderInput {
   lines: PaidOrderLine[];
   checkoutId: string;
   paymentIntentId: string;
+  // When the money landed: the moment the order is placed in the store's queue
   paidAt: Date;
-  paymentMethod: string | null;
-  paymentReference: string | null;
   // True when the checkout had been cancelled before its payment landed — the order is flagged for staff review
   needsReview: boolean;
 }

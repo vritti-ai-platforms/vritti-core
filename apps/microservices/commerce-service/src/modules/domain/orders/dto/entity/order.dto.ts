@@ -43,8 +43,7 @@ export class OrderDto {
   deliveryCharge: string;
   discountAmount: string;
   totalAmount: string;
-  currencyCode: string | null;
-  paidAt: string | null;
+  currencyCode: string;
   // Set when a payment landed on an order that had already been cancelled
   needsReview: boolean;
   placedAt: string;
@@ -66,8 +65,7 @@ export class OrderDto {
     dto.deliveryCharge = entity.deliveryCharge.toString();
     dto.discountAmount = entity.discountAmount.toString();
     dto.totalAmount = entity.totalAmount.toString();
-    dto.currencyCode = entity.currencyCode ?? null;
-    dto.paidAt = entity.paidAt?.toISOString() ?? null;
+    dto.currencyCode = entity.currencyCode;
     dto.needsReview = entity.needsReview;
     dto.placedAt = entity.placedAt.toISOString();
     dto.createdAt = entity.createdAt.toISOString();
@@ -79,16 +77,14 @@ export class OrderDto {
 export class OrderDetailDto extends OrderDto {
   deliveryAddress: string | null;
   notes: string | null;
-  externalOrderId: string | null;
   confirmedAt: string | null;
   readyAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
-  cancellationReason: string | null;
   partyId: string | null;
   paymentIntentId: string | null;
-  paymentMethod: string | null;
-  paymentReference: string | null;
+  // The checkout it was paid through, whose payments the order's payments tab lists
+  checkoutId: string | null;
   items: OrderItemDto[];
 
   static fromDetail(entity: Order, items: OrderItemDto[]): OrderDetailDto {
@@ -96,16 +92,13 @@ export class OrderDetailDto extends OrderDto {
     Object.assign(dto, OrderDto.from(entity));
     dto.deliveryAddress = entity.deliveryAddress ?? null;
     dto.notes = entity.notes ?? null;
-    dto.externalOrderId = entity.externalOrderId ?? null;
     dto.confirmedAt = entity.confirmedAt?.toISOString() ?? null;
     dto.readyAt = entity.readyAt?.toISOString() ?? null;
     dto.completedAt = entity.completedAt?.toISOString() ?? null;
     dto.cancelledAt = entity.cancelledAt?.toISOString() ?? null;
-    dto.cancellationReason = entity.cancellationReason ?? null;
     dto.partyId = entity.partyId ?? null;
     dto.paymentIntentId = entity.paymentIntentId ?? null;
-    dto.paymentMethod = entity.paymentMethod ?? null;
-    dto.paymentReference = entity.paymentReference ?? null;
+    dto.checkoutId = entity.checkoutId ?? null;
     dto.items = items;
     return dto;
   }

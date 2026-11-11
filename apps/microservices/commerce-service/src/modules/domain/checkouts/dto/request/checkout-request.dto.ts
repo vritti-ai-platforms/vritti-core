@@ -86,17 +86,6 @@ export class CompleteCheckoutDto {
   @IsUUID()
   paymentIntentId: string;
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(30)
-  method?: string;
-
-  // The payment provider's own id for the captured payment
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  providerPaymentId?: string;
-
   // Minor units as a decimal string, so it survives JSON without a float
   @Matches(/^\d+$/, { message: 'amountMinor must be a non-negative integer string' })
   amountMinor: string;

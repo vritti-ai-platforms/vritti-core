@@ -5,6 +5,9 @@ export const PaymentEventTypeValues = {
   PAYMENT_FAILED: 'payment_intent.payment_failed',
   EXPIRED: 'payment_intent.expired',
   CANCELED: 'payment_intent.canceled',
+  REFUND_PENDING: 'payment_intent.refund_pending',
+  REFUNDED: 'payment_intent.refunded',
+  REFUND_FAILED: 'payment_intent.refund_failed',
 } as const;
 
 export interface PaymentEventPayloadDto {

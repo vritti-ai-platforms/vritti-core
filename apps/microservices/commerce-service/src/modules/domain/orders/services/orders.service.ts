@@ -61,8 +61,9 @@ export class OrdersDomainService {
     return { result: rows.map(OrderDto.from), count };
   }
 
-  // Creates a new order with items, denormalizing catalog data
-  async create(data: CreateOrderDto): Promise<OrderDto> {
+  // Creates a new order with items, denormalizing catalog data. Priced in the store's currency, which the caller
+  // reads from the request's site context
+  async create(data: CreateOrderDto, currencyCode: string): Promise<OrderDto> {
     const orderNumber = await this.repository.generateOrderNumber();
 
     // Build order items using the variant's own price
@@ -82,6 +83,7 @@ export class OrdersDomainService {
       customerPhone: data.customerPhone ?? null,
       deliveryAddress: data.deliveryAddress ?? null,
       notes: data.notes ?? null,
+      currencyCode,
       subtotal: toMinorBigInt(subtotal),
       taxAmount: toMinorBigInt(taxAmount),
       serviceCharge: toMinorBigInt(serviceCharge),
@@ -116,7 +118,6 @@ export class OrdersDomainService {
   async createPaid(input: PaidOrderInput): Promise<Order> {
     const lines = input.lines.map((line) => ({ ...line, lineTotal: line.unitPrice * BigInt(line.quantity) }));
     const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0n);
-    const reviewNote = 'Paid after the checkout was cancelled — review.';
 
     const entity = await this.repository.transaction(async () => {
       const orderNumber = await this.repository.generateOrderNumber();
@@ -129,7 +130,7 @@ export class OrdersDomainService {
         customerName: input.customerName,
         customerPhone: input.customerPhone,
         deliveryAddress: input.deliveryAddress,
-        notes: input.needsReview ? [input.notes, reviewNote].filter(Boolean).join('\n') : input.notes,
+        notes: input.notes,
         checkoutId: input.checkoutId,
         currencyCode: input.currencyCode,
         subtotal,
@@ -139,11 +140,8 @@ export class OrdersDomainService {
         discountAmount: 0n,
         totalAmount: subtotal,
         paymentIntentId: input.paymentIntentId,
-        paidAt: input.paidAt,
         // The store's queue orders by placement — a paid checkout becomes an order when the money lands
         placedAt: input.paidAt,
-        paymentMethod: input.paymentMethod,
-        paymentReference: input.paymentReference,
         needsReview: input.needsReview,
       });
 
@@ -205,7 +203,6 @@ export class OrdersDomainService {
       // TODO: Create RECEIVABLE invoice when invoice module integration is ready
     } else if (data.status === OrderStatusValues.CANCELLED) {
       updatePayload.cancelledAt = now;
-      updatePayload.cancellationReason = data.cancellationReason ?? null;
     }
 
     const entity = await this.repository.update(id, updatePayload);

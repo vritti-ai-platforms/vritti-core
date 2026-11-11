@@ -8,8 +8,12 @@ import {
   GatewayCodeValues,
   type NormalizedPayment,
   type NormalizedPaymentStatus,
+  type NormalizedRefund,
+  type NormalizedRefundStatus,
   type NormalizedWebhookEvent,
   type PaymentGatewayTransport,
+  type RefundLookup,
+  type RefundRequest,
   type RefundResult,
   type VerifyCredentialsResult,
 } from '../gateway-transport';
@@ -18,6 +22,7 @@ import {
   EASEBUZZ_UDF_COUNT,
   type EasebuzzTransactionFields,
   refundHash,
+  refundStatusHash,
   requestHash,
   transactionHash,
   verifyReverseHash,
@@ -70,6 +75,33 @@ interface EasebuzzRefundResponse {
   reason?: string;
   message?: string;
 }
+
+// One refund as the Refund Status API lists it
+interface EasebuzzRefundEntry {
+  refund_id?: string;
+  merchant_refund_id?: string;
+  refund_status?: string;
+  refund_amount?: string | number;
+}
+
+// The Refund Status API's answer: the refunds raised on one payment
+interface EasebuzzRefundStatusResponse {
+  status?: boolean;
+  refunds?: EasebuzzRefundEntry[];
+  reason?: string;
+  message?: string;
+}
+
+// Easebuzz's refund states, as the platform's: `queued` is raised, `accepted` is held at Easebuzz, `refunded` went
+// through with its ARN. Anything unrecognised stays pending rather than guessed either way
+const REFUND_STATUSES: Readonly<Record<string, NormalizedRefundStatus>> = {
+  queued: 'pending',
+  accepted: 'pending',
+  refunded: 'processed',
+  failed: 'failed',
+  rejected: 'failed',
+  cancelled: 'failed',
+};
 
 // The platform's methods as Easebuzz's show_payment_mode lists them; wallets are its `MW`
 const EASEBUZZ_MODES: Readonly<Record<NonNullable<CreateOrderInput['method']>, string>> = {
@@ -200,7 +232,6 @@ export class EasebuzzTransport implements PaymentGatewayTransport {
         // Easebuzz's popup script is opened with the merchant key beside the access key
         ...(input.checkoutMode === 'MODAL' ? { key: auth.key } : {}),
       },
-      transfers: this.split.sentTransfers(txnid, input.transfers),
     };
   }
 
@@ -245,8 +276,7 @@ export class EasebuzzTransport implements PaymentGatewayTransport {
   // and refuses a second refund under the same refund id — so a repeat of the same refund is harmless
   async refundPayment(
     credentials: Record<string, string>,
-    providerPaymentId: string,
-    amount: bigint,
+    { providerPaymentId, amount }: RefundRequest,
   ): Promise<RefundResult> {
     const auth = this.auth(credentials);
     const refundAmount = toRupees(amount);
@@ -271,6 +301,33 @@ export class EasebuzzTransport implements PaymentGatewayTransport {
     }
     this.logger.log(`Refunded ${amount} of payment ${providerPaymentId} as ${response.refund_id}`);
     return { providerRefundId: response.refund_id, status: 'pending' };
+  }
+
+  // Reads one refund back — POST /refund/v1/retrieve lists the refunds raised on a payment — for a refund whose
+  // notification never arrived. A refund Easebuzz does not list yet is answered as still pending
+  async fetchRefund(credentials: Record<string, string>, lookup: RefundLookup): Promise<NormalizedRefund> {
+    const auth = this.auth(credentials);
+    const response = await this.http.postForm<EasebuzzRefundStatusResponse>(
+      auth.environment,
+      'dashboard',
+      '/refund/v1/retrieve',
+      {
+        key: auth.key,
+        easebuzz_id: lookup.providerPaymentId,
+        hash: refundStatusHash(auth.key, lookup.providerPaymentId, auth.salt),
+      },
+    );
+    const refund = (response.refunds ?? []).find(
+      (entry) => entry.refund_id === lookup.providerRefundId || entry.merchant_refund_id === lookup.providerRefundId,
+    );
+    const status = (refund?.refund_status && REFUND_STATUSES[refund.refund_status.toLowerCase()]) || 'pending';
+    return {
+      providerRefundId: lookup.providerRefundId,
+      providerPaymentId: lookup.providerPaymentId,
+      amount: refund?.refund_amount === undefined ? null : toPaise(refund.refund_amount),
+      status,
+      errorDescription: status === 'failed' ? 'Easebuzz could not process the refund.' : null,
+    };
   }
 
   // The hosted callback is completed by reading the transaction back, never by what the browser posted
@@ -302,7 +359,6 @@ export class EasebuzzTransport implements PaymentGatewayTransport {
         providerEventId: payment ? `${status}:${payment.providerPaymentId}` : dedupeKey,
         eventType: `transaction.${status}`,
         payment,
-        transfer: null,
         providerOrderId: fields.txnid ?? null,
         raw: redactHash(fields),
       },

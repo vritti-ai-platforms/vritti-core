@@ -1,13 +1,12 @@
 import { GatewaysDomainModule } from '@domain/gateways/gateways.module';
-import { PaymentTransfersDomainModule } from '@domain/payment-transfers/payment-transfers.module';
 import { WebhookEventsDomainModule } from '@domain/webhook-events/webhook-events.module';
 import { Module } from '@nestjs/common';
-import { PaymentLifecycleModule } from '@/modules/payment-lifecycle/payment-lifecycle.module';
+import { OrgPaymentIntentsModule } from '@/modules/organization/payment-intents/payment-intents.module';
 import { WebhooksService } from './root/services/webhooks.service';
 import { WebhooksController } from './root/webhooks.controller';
 
 @Module({
-  imports: [GatewaysDomainModule, WebhookEventsDomainModule, PaymentTransfersDomainModule, PaymentLifecycleModule],
+  imports: [GatewaysDomainModule, WebhookEventsDomainModule, OrgPaymentIntentsModule],
   controllers: [WebhooksController],
   providers: [WebhooksService],
 })

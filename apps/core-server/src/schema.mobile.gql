@@ -681,6 +681,9 @@ enum PaymentIntentStatus {
   FAILED
   CANCELED
   EXPIRED
+  REFUND_PENDING
+  REFUNDED
+  REFUND_FAILED
 }
 
 type CheckoutStoreShare {

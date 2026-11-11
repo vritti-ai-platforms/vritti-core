@@ -1,15 +1,15 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { bigint, boolean, char, index, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { paymentIntents } from './payment-intents';
-import { paymentTransfers } from './payment-transfers';
 import { paymentsSchema } from './payments-schema';
 import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 // One store's share of a payment, and where it was paid out — written with the intent, never changed after. A payment
 // across several stores has one row per store, and a payment for one store has one row, so every payment says whose
 // sale each part of it was. The payout fields are snapshots taken when the payment opened: a payout account edited
-// or removed later does not rewrite which bank a past payment went to. A share kept in the gateway's main account has
-// no transfer; one paid to a linked account names the leg it travelled on, which may carry other stores' shares too
+// or removed later does not rewrite which bank a past payment went to. A share kept in the gateway's main account
+// stays there; one paid to a linked account is split out by the gateway, which is told so with the order. How the
+// gateway then settles it is the gateway's record, not kept here
 export const paymentAllocations = paymentsSchema.table(
   'payment_allocations',
   {
@@ -24,7 +24,7 @@ export const paymentAllocations = paymentsSchema.table(
     // Core's payout account the share was routed by, and the bank and gateway account it named at the time
     payoutAccountId: uuid('payout_account_id').notNull(),
     bankAccountId: uuid('bank_account_id').notNull(),
-    // Matches payment_transfers.provider_account_id width
+    // The account at the gateway the share is paid to: a linked account, vendor or split label
     gatewayAccountId: varchar('gateway_account_id', { length: 100 }).notNull(),
     // True when the share stays in the gateway's main account and nothing is transferred
     isMainAccount: boolean('is_main_account').notNull(),
@@ -33,8 +33,6 @@ export const paymentAllocations = paymentsSchema.table(
     platformFeeAmount: bigint('platform_fee_amount', { mode: 'bigint' }).notNull(),
     netAmount: bigint('net_amount', { mode: 'bigint' }).notNull(),
     currency: char('currency', { length: 3 }).notNull(),
-    // The split leg that carried the share; null for a main-account share
-    transferId: uuid('transfer_id').references(() => paymentTransfers.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

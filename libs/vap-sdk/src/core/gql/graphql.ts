@@ -172,6 +172,9 @@ export type PaymentIntentStatus =
   | 'EXPIRED'
   | 'FAILED'
   | 'PROCESSING'
+  | 'REFUNDED'
+  | 'REFUND_FAILED'
+  | 'REFUND_PENDING'
   | 'REQUIRES_ACTION'
   | 'SUCCEEDED';
 

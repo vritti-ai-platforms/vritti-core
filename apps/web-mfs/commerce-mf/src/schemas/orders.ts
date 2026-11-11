@@ -33,6 +33,9 @@ export interface OrderData {
   deliveryCharge: string;
   discountAmount: string;
   totalAmount: string;
+  currencyCode: string;
+  // A payment landed after the order or its checkout was cancelled
+  needsReview: boolean;
   placedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -42,12 +45,49 @@ export interface OrderDetail extends OrderData {
   items: OrderItemData[];
   deliveryAddress: string | null;
   notes: string | null;
-  externalOrderId: string | null;
   confirmedAt: string | null;
   readyAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
-  cancellationReason: string | null;
+  // The payment the order was paid with, and the checkout it was paid through
+  paymentIntentId: string | null;
+  checkoutId: string | null;
+}
+
+export type OrderPaymentStatus =
+  | 'CREATED'
+  | 'REQUIRES_ACTION'
+  | 'PROCESSING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'CANCELED'
+  | 'EXPIRED'
+  | 'REFUND_PENDING'
+  | 'REFUNDED'
+  | 'REFUND_FAILED';
+
+// One payment of the order's checkout
+export interface OrderPayment {
+  id: string;
+  gatewayCode: string;
+  method: string | null;
+  amount: { currency: string; value: string };
+  status: OrderPaymentStatus;
+  providerOrderId: string | null;
+  providerPaymentId: string | null;
+  succeededAt: string | null;
+  // When the gateway confirmed the refund
+  refundedAt: string | null;
+  // The gateway's id for the refund, and why it refused the last one
+  refundReference: string | null;
+  refundFailureMessage: string | null;
+  // The payment the order was paid with
+  usedForOrder: boolean;
+  // Received but used by no order, or its refund failed — staff may refund it
+  refundable: boolean;
+  // The payment is for more than this order: a checkout across stores is paid once for all of them
+  coversOtherOrders: boolean;
+  createdAt: string;
 }
 
 export type OrdersTableResponse = TableResponse<OrderData>;

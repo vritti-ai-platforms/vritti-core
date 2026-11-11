@@ -14,8 +14,8 @@ export const COMMERCE_CHECKOUT_REFERENCE_TYPE = 'commerce.checkout';
 // Settles a commerce checkout from its payments: a success turns it into one paid order per store. A checkout may
 // have several payments (a retry, another gateway), so one payment expiring, failing or being cancelled leaves the
 // checkout alone — it ends by its own deadline. A success commerce refuses for good (the checkout was already paid by
-// another payment, or the amount does not match) is refunded in full, so no money is kept without an order.
-// Organization-scoped, since a checkout reaches across stores
+// another payment, it was replaced, or the amount does not match) is refunded in full, so no money is kept without an
+// order; staff follow the refund on the order's payments. Organization-scoped, since a checkout reaches across stores
 @Injectable()
 export class CheckoutPaymentHandlerService implements PaymentEventHandler {
   readonly referenceType = COMMERCE_CHECKOUT_REFERENCE_TYPE;
@@ -48,8 +48,6 @@ export class CheckoutPaymentHandlerService implements PaymentEventHandler {
     await this.nats.send({ orgId }, 'commerce', 'org.checkouts.complete', {
       checkoutId: payload.reference.id,
       paymentIntentId: payload.paymentIntentId,
-      method: payload.method,
-      providerPaymentId: payload.providerPaymentId,
       amountMinor,
       currency: payload.amount.currency,
       paidAt: payload.paidAt,

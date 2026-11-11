@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { SITE_ORDERS } from '@vritti/commerce-permissions/orders';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
   DataTable,
   DateTimeCell,
-  NumberCell,
   RowActions,
   StringCell,
   useDataTable,
@@ -17,32 +17,12 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, Plus, ShoppingCart } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { ORDERS_TABLE_KEY, useOrdersTable } from '@/hooks/site/orders';
-import type { OrderChannel, OrderData, OrderStatus, OrderType } from '@/schemas/orders';
+import type { OrderData } from '@/schemas/orders';
+import { OrderAmount } from './components/OrderAmount';
+import { ORDER_CHANNEL_LABELS, ORDER_STATUS, ORDER_TYPE_LABELS } from './components/order-labels';
 import { CreateOrderDialog } from './forms/CreateOrderDialog';
-
-const statusConfig: Record<
-  OrderStatus,
-  { label: string; variant: 'secondary' | 'outline' | 'destructive'; className?: string }
-> = {
-  PENDING: { label: 'Pending', variant: 'outline' },
-  ACCEPTED: { label: 'Accepted', variant: 'secondary' },
-  PREPARING: { label: 'Preparing', variant: 'secondary', className: 'bg-warning/15 text-warning' },
-  READY: { label: 'Ready', variant: 'secondary', className: 'bg-success/15 text-success' },
-  COMPLETED: { label: 'Completed', variant: 'secondary', className: 'bg-success/15 text-success' },
-  CANCELLED: { label: 'Cancelled', variant: 'destructive' },
-};
-
-const typeLabels: Record<OrderType, string> = {
-  DINE_IN: 'Dine In',
-  TAKEAWAY: 'Takeaway',
-  DELIVERY: 'Delivery',
-};
-
-const channelLabels: Record<OrderChannel, string> = {
-  ONLINE: 'Online',
-  WALK_IN: 'Walk-in',
-};
 
 export const OrdersPage = () => {
   const navigate = useNavigate();
@@ -61,22 +41,30 @@ export const OrdersPage = () => {
       {
         accessorKey: 'type',
         header: 'Type',
-        cell: ({ row }) => <Badge variant="outline">{typeLabels[row.original.type]}</Badge>,
+        cell: ({ row }) => <Badge variant="outline">{ORDER_TYPE_LABELS[row.original.type]}</Badge>,
       },
       {
         accessorKey: 'channel',
         header: 'Channel',
-        cell: ({ row }) => channelLabels[row.original.channel],
+        cell: ({ row }) => ORDER_CHANNEL_LABELS[row.original.channel],
       },
       {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-          const config = statusConfig[row.original.status];
+          const config = ORDER_STATUS[row.original.status];
           return (
-            <Badge variant={config.variant} className={config.className}>
-              {config.label}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant={config.variant} className={config.className}>
+                {config.label}
+              </Badge>
+              {/* Paid after it was cancelled: staff check with the shopper before preparing it */}
+              {row.original.needsReview && (
+                <Badge variant="secondary" className="bg-warning/15 text-warning">
+                  Review
+                </Badge>
+              )}
+            </div>
           );
         },
       },
@@ -89,7 +77,11 @@ export const OrdersPage = () => {
       {
         accessorKey: 'totalAmount',
         header: 'Total',
-        cell: ({ row }) => <NumberCell value={row.original.totalAmount} />,
+        cell: ({ row }) => (
+          <span className="font-mono">
+            <OrderAmount minor={row.original.totalAmount} currencyCode={row.original.currencyCode} />
+          </span>
+        ),
       },
       {
         accessorKey: 'placedAt',
@@ -145,7 +137,7 @@ export const OrdersPage = () => {
         }}
         toolbarActions={{
           actions: (
-            <Button size="sm" onClick={addDialog.open}>
+            <Button size="sm" permission={SITE_ORDERS.add} onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               New Order
             </Button>
@@ -156,7 +148,7 @@ export const OrdersPage = () => {
           title: 'No orders',
           description: 'Orders will appear here once they are placed.',
           action: (
-            <Button onClick={addDialog.open}>
+            <Button permission={SITE_ORDERS.add} onClick={addDialog.open}>
               <Plus className="mr-2 size-4" />
               New Order
             </Button>

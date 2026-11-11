@@ -282,8 +282,6 @@ export class CheckoutsDomainService {
           checkoutId: checkout.id,
           paymentIntentId: dto.paymentIntentId,
           paidAt,
-          paymentMethod: dto.method ?? null,
-          paymentReference: dto.providerPaymentId ?? null,
           needsReview: wasCancelled,
         });
         // The paid-for quantities leave the store's cart; anything added since stays

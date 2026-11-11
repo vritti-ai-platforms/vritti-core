@@ -5,6 +5,7 @@ import { OrdersDomainService } from '@domain/orders/services/orders.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
 
 @Controller()
 export class OrdersRootController {
@@ -19,9 +20,9 @@ export class OrdersRootController {
   }
 
   @MessagePattern({ cmd: 'site.orders.create' })
-  async create(@Payload() dto: CreateOrderDto): Promise<OrderDto> {
+  async create(@Payload() dto: CreateOrderDto, @RpcSiteCurrencyCode() currencyCode: string): Promise<OrderDto> {
     this.logger.log(`orders.create — type: ${dto.type}, channel: ${dto.channel}`);
-    return this.service.create(dto);
+    return this.service.create(dto, currencyCode);
   }
 
   @MessagePattern({ cmd: 'site.orders.findById' })

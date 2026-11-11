@@ -27,4 +27,18 @@ export class PaymentIntentsDomainService {
     this.logger.log(`Created payment intent ${entity.id} (${entity.gatewayCode}, receipt ${entity.receipt})`);
     return { success: true, message: 'Payment intent created successfully.', data: PaymentIntentDto.from(entity) };
   }
+
+  // The intent row, or a 404 — for an app-layer service about to act on it
+  async require(id: string): Promise<PaymentIntent> {
+    const intent = await this.repository.findById(id);
+    if (!intent) throw new NotFoundException('Payment intent not found.');
+    return intent;
+  }
+
+  // The intent row locked for update inside the caller's transaction, or a 404
+  async lock(id: string): Promise<PaymentIntent> {
+    const intent = await this.repository.lockById(id);
+    if (!intent) throw new NotFoundException('Payment intent not found.');
+    return intent;
+  }
 }

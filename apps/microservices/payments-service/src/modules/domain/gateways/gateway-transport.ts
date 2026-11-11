@@ -31,20 +31,7 @@ export interface NormalizedPayment {
 }
 
 // Provider-neutral onboarding state of a linked account; each transport maps its provider's states onto these
-export type LinkedAccountStatus = 'PENDING' | 'IN_REVIEW' | 'ACTION_REQUIRED' | 'ACTIVE' | 'SUSPENDED';
-
-export type TransferStatus = 'CREATED' | 'PENDING' | 'PROCESSED' | 'FAILED' | 'REVERSED' | 'PARTIALLY_REVERSED';
-
-export interface NormalizedTransfer {
-  providerTransferId: string;
-  providerAccountId: string | null;
-  providerPaymentId: string | null;
-  amount: bigint;
-  status: TransferStatus;
-  errorCode: string | null;
-  errorDescription: string | null;
-  raw: unknown;
-}
+export type GatewayAccountStatus = 'PENDING' | 'IN_REVIEW' | 'ACTION_REQUIRED' | 'ACTIVE' | 'SUSPENDED';
 
 export interface NormalizedWebhookEvent {
   // Dedupe key derived ONLY from signed content, so a replayed body cannot pose as a new event by changing an
@@ -54,9 +41,23 @@ export interface NormalizedWebhookEvent {
   providerEventId: string;
   eventType: string;
   payment: NormalizedPayment | null;
-  transfer: NormalizedTransfer | null;
+  // A refund event's refund: its outcome moves the refunded intent
+  refund?: NormalizedRefund | null;
   providerOrderId: string | null;
   raw: unknown;
+}
+
+export type NormalizedRefundStatus = 'pending' | 'processed' | 'failed';
+
+// A refund as the gateway reports it, by the payment it refunds
+export interface NormalizedRefund {
+  providerRefundId: string;
+  providerPaymentId: string;
+  // What the refund returns, in minor units; null when the gateway does not say. Less than the payment is a partial
+  // refund
+  amount: bigint | null;
+  status: NormalizedRefundStatus;
+  errorDescription: string | null;
 }
 
 export interface GatewayCustomer {
@@ -94,8 +95,6 @@ export interface CreateOrderInput {
 export interface CreateOrderResult {
   providerOrderId: string;
   checkout: Record<string, unknown>;
-  // The transfers the gateway created with the order, in the order they were asked for
-  transfers: CreateTransferResult[];
 }
 
 export interface VerifyCheckoutSignatureInput {
@@ -115,75 +114,9 @@ export interface GatewayDescriptor {
   methods: PaymentMethodCode[];
 }
 
-export interface LinkedAccountAddress {
-  street1: string;
-  street2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-}
-
-export interface LinkedAccountBank {
-  accountNumber: string;
-  ifscCode: string;
-  beneficiaryName: string;
-}
-
-export interface CreateLinkedAccountInput {
-  referenceId: string;
-  email: string;
-  phone: string;
-  legalBusinessName: string;
-  businessType: string;
-  contactName: string;
-  // Business classification; only some providers need it, and a transport that does rejects a missing one
-  category?: string;
-  subcategory?: string;
-  address: LinkedAccountAddress;
-  pan?: string;
-  gst?: string;
-  bank: LinkedAccountBank;
-}
-
-// Opaque provider references the transport needs again later (e.g. Razorpay's stakeholder and product ids).
-// Core stores it as-is and sends it back; nothing outside the transport reads it.
-export type LinkedAccountProviderData = Record<string, string>;
-
-export interface CreateLinkedAccountResult {
-  providerAccountId: string;
-  providerData: LinkedAccountProviderData;
-  status: LinkedAccountStatus;
-  // When the provider first accepts transfers to the account; null when it accepts them straight away
-  transfersAllowedAt: string | null;
-  // Set when the account was created at the provider but a later setup step failed. The ids gathered so far are
-  // still returned so the caller can keep them and resume the setup instead of creating a second account.
-  setupError: LinkedAccountSetupError | null;
-}
-
-export interface LinkedAccountSetupError {
-  label: string;
-  detail: string;
-}
-
-// What an earlier, partly completed creation left at the provider — passed back to finish the remaining steps
-export interface ResumeLinkedAccountInput {
-  providerAccountId: string;
-  providerData: LinkedAccountProviderData;
-}
-
-export interface FetchLinkedAccountStatusInput {
-  providerAccountId: string;
-  providerData: LinkedAccountProviderData;
-}
-
-export interface LinkedAccountLookup {
-  status: LinkedAccountStatus;
-}
-
-export interface LinkedAccountStatusResult {
-  status: LinkedAccountStatus;
-  requirements: string[];
+// What a gateway says of a seller's account under the merchant's keys — a linked account, a vendor
+export interface GatewayAccountLookup {
+  status: GatewayAccountStatus;
 }
 
 export interface CreateTransferInput {
@@ -195,33 +128,26 @@ export interface CreateTransferInput {
   onHoldUntil?: Date | null;
 }
 
-export interface CreateTransferResult {
-  providerTransferId: string;
-  providerAccountId: string;
-  amount: bigint;
-  status: TransferStatus;
+// What a gateway that splits payments can be asked besides taking the split on an order
+export interface GatewaySplitCapability {
+  // Looks a seller's account up by id under the given keys; null when the gateway has none
+  lookupAccount(credentials: Record<string, string>, providerAccountId: string): Promise<GatewayAccountLookup | null>;
 }
 
-export interface GatewaySplitCapability {
-  createLinkedAccount(
-    credentials: Record<string, string>,
-    input: CreateLinkedAccountInput,
-    resume?: ResumeLinkedAccountInput,
-  ): Promise<CreateLinkedAccountResult>;
-  fetchLinkedAccountStatus(
-    credentials: Record<string, string>,
-    input: FetchLinkedAccountStatusInput,
-  ): Promise<LinkedAccountStatusResult>;
-  // Looks an existing linked account up by id under the given keys; null when the gateway has none
-  fetchLinkedAccount(
-    credentials: Record<string, string>,
-    providerAccountId: string,
-  ): Promise<LinkedAccountLookup | null>;
-  createTransfers(
-    credentials: Record<string, string>,
-    providerPaymentId: string,
-    transfers: CreateTransferInput[],
-  ): Promise<CreateTransferResult[]>;
+// One refund to ask a gateway for. Razorpay and Easebuzz refund the payment; Cashfree refunds under the order and
+// keys the refund on the merchant's own id, which is new on every attempt so a retry after a failure is a new refund
+export interface RefundRequest {
+  providerPaymentId: string;
+  providerOrderId: string | null;
+  amount: bigint;
+  refundId: string;
+}
+
+// One refund to read back: the payment and order it refunds, and the gateway's id for it
+export interface RefundLookup {
+  providerPaymentId: string;
+  providerOrderId: string | null;
+  providerRefundId: string;
 }
 
 // What a gateway answered a refund with
@@ -240,7 +166,9 @@ export interface PaymentGatewayTransport {
   createOrder(credentials: Record<string, string>, input: CreateOrderInput): Promise<CreateOrderResult>;
   fetchPayment(credentials: Record<string, string>, providerPaymentId: string): Promise<NormalizedPayment>;
   // Returns a captured payment's money, whole or in part; a gateway without it cannot refund through the platform yet
-  refundPayment?(credentials: Record<string, string>, providerPaymentId: string, amount: bigint): Promise<RefundResult>;
+  refundPayment?(credentials: Record<string, string>, request: RefundRequest): Promise<RefundResult>;
+  // Reads one refund back, for a refund whose webhook never arrived. A gateway without it leaves the refund pending
+  fetchRefund?(credentials: Record<string, string>, lookup: RefundLookup): Promise<NormalizedRefund>;
   verifyCheckoutSignature(credentials: Record<string, string>, input: VerifyCheckoutSignatureInput): boolean;
   // Reads an order's payment back from the gateway, null while it has none. A gateway with it completes a browser
   // return by this server-side read alone, so nothing the browser posted is trusted, signature included

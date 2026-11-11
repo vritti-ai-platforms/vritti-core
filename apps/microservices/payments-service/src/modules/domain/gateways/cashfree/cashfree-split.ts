@@ -1,15 +1,10 @@
 import type { Logger } from '@nestjs/common';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import type { CashfreeAuth, CashfreeHttpService } from '@/gateways/cashfree/services/cashfree-http.service';
 import type {
-  CreateLinkedAccountResult,
   CreateOrderInput,
-  CreateTransferResult,
-  FetchLinkedAccountStatusInput,
+  GatewayAccountLookup,
+  GatewayAccountStatus,
   GatewaySplitCapability,
-  LinkedAccountLookup,
-  LinkedAccountStatus,
-  LinkedAccountStatusResult,
 } from '../gateway-transport';
 import { toMajorUnits } from './cashfree-amount';
 
@@ -29,7 +24,7 @@ export interface CashfreeOrderSplit {
 // Cashfree's vendor states onto the neutral set. Only an ACTIVE vendor is settled to: Easy Split keeps the share of
 // any other in the merchant's own account, so a vendor whose bank details failed validation is one the merchant has
 // to fix, not one still on its way
-const VENDOR_STATUSES: Readonly<Record<string, LinkedAccountStatus>> = {
+const VENDOR_STATUSES: Readonly<Record<string, GatewayAccountStatus>> = {
   ACTIVE: 'ACTIVE',
   BLOCKED: 'SUSPENDED',
   DELETED: 'SUSPENDED',
@@ -50,22 +45,8 @@ export class CashfreeSplit implements GatewaySplitCapability {
     private readonly logger: Logger,
   ) {}
 
-  async createLinkedAccount(): Promise<CreateLinkedAccountResult> {
-    throw new BadRequestException({
-      label: 'Add Vendor In Cashfree',
-      detail: 'Cashfree vendors are added in the Cashfree dashboard. Enter the vendor id as the payout account.',
-    });
-  }
-
-  async createTransfers(): Promise<CreateTransferResult[]> {
-    throw new BadRequestException({
-      label: 'Split Sent With Order',
-      detail: 'Cashfree splits a payment with the shares sent on its order, so there is nothing to transfer now.',
-    });
-  }
-
   // Looks an Easy Split vendor up by id; null when Cashfree has none under these keys
-  async fetchLinkedAccount(credentials: Record<string, string>, vendorId: string): Promise<LinkedAccountLookup | null> {
+  async lookupAccount(credentials: Record<string, string>, vendorId: string): Promise<GatewayAccountLookup | null> {
     const vendor = await this.http.get<CashfreeVendor>(
       this.resolveAuth(credentials),
       `/easy-split/vendors/${encodeURIComponent(vendorId)}`,
@@ -73,17 +54,6 @@ export class CashfreeSplit implements GatewaySplitCapability {
     );
     if (!vendor) return null;
     return { status: this.normalizeVendorStatus(vendor.status) };
-  }
-
-  async fetchLinkedAccountStatus(
-    credentials: Record<string, string>,
-    input: FetchLinkedAccountStatusInput,
-  ): Promise<LinkedAccountStatusResult> {
-    const vendor = await this.http.get<CashfreeVendor>(
-      this.resolveAuth(credentials),
-      `/easy-split/vendors/${encodeURIComponent(input.providerAccountId)}`,
-    );
-    return { status: this.normalizeVendorStatus(vendor?.status), requirements: [] };
   }
 
   // The order's `order_splits`: each leg as its vendor and rupee amount
@@ -94,19 +64,8 @@ export class CashfreeSplit implements GatewaySplitCapability {
     }));
   }
 
-  // Easy Split gives the shares no ids of their own; each is named after its order and vendor so its leg is marked
-  // sent and never sent again
-  sentTransfers(orderId: string, transfers: CreateOrderInput['transfers']): CreateTransferResult[] {
-    return (transfers ?? []).map((transfer) => ({
-      providerTransferId: `${orderId}:${transfer.providerAccountId}`,
-      providerAccountId: transfer.providerAccountId,
-      amount: transfer.amount,
-      status: 'PENDING' as const,
-    }));
-  }
-
   // An unrecognised vendor status is held at PENDING rather than guessed as active
-  private normalizeVendorStatus(status: string | undefined): LinkedAccountStatus {
+  private normalizeVendorStatus(status: string | undefined): GatewayAccountStatus {
     const mapped = status ? VENDOR_STATUSES[status] : undefined;
     if (mapped) return mapped;
     this.logger.warn(`Unrecognised Cashfree vendor status "${status ?? ''}" — treating as PENDING`);

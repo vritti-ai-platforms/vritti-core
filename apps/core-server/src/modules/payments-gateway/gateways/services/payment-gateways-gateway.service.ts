@@ -89,10 +89,10 @@ export class PaymentGatewaysGatewayService {
   async lookupLinkedAccount(configId: string, providerAccountId: string): Promise<LinkedAccountLookup | null> {
     const { gatewayCode, credentials } = await this.configService.getDecryptedCredentials(configId);
 
-    this.logger.log(`payments.linkedAccounts.lookup — config: ${configId} gateway: ${gatewayCode}`);
+    this.logger.log(`payments.gateways.lookupAccount — config: ${configId} gateway: ${gatewayCode}`);
     const { account } = await this.nats.send<{ account: LinkedAccountLookup | null }>(
       'payments',
-      'payments.linkedAccounts.lookup',
+      'payments.gateways.lookupAccount',
       { gatewayCode, credentials, providerAccountId },
     );
     return account;

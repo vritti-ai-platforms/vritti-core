@@ -17,7 +17,10 @@ export type PaymentIntentStatus =
   | 'SUCCEEDED'
   | 'FAILED'
   | 'CANCELED'
-  | 'EXPIRED';
+  | 'EXPIRED'
+  | 'REFUND_PENDING'
+  | 'REFUNDED'
+  | 'REFUND_FAILED';
 
 export type PaymentChannel = 'APP' | 'POS' | 'B2B';
 

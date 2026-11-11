@@ -13,4 +13,9 @@ export class PaymentAllocationsDomainRepository extends PrimaryBaseRepository<ty
     if (rows.length === 0) return [];
     return this.db.insert(paymentAllocations).values(rows).returning() as Promise<PaymentAllocation[]>;
   }
+
+  // Every store's share of an intent, in the order they were written
+  async findByIntent(intentId: string): Promise<PaymentAllocation[]> {
+    return this.model.findMany({ where: { intentId }, orderBy: { id: 'asc' } });
+  }
 }

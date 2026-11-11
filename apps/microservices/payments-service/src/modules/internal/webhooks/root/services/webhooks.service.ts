@@ -1,23 +1,20 @@
 import { GatewayRegistry } from '@domain/gateways/gateway-registry';
 import type { NormalizedWebhookEvent } from '@domain/gateways/gateway-transport';
 import type { PaymentEventDto } from '@domain/payment-events/dto/entity/payment-event.dto';
-import { PaymentTransfersDomainService } from '@domain/payment-transfers/services/payment-transfers.service';
 import type { WebhookIngestResultDto } from '@domain/webhook-events/dto/entity/webhook-ingest-result.dto';
 import type { IngestWebhookDto } from '@domain/webhook-events/dto/request/ingest-webhook.dto';
 import { WebhookEventsDomainService } from '@domain/webhook-events/services/webhook-events.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ServiceUnavailableException, UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import { type WebhookEventStatus, WebhookEventStatusValues } from '@/db/schema';
-import { PaymentLifecycleService } from '@/modules/payment-lifecycle/services/payment-lifecycle.service';
+import { PaymentIntentsRefundsService } from '@/modules/organization/payment-intents/refunds/services/payment-intents-refunds.service';
+import { PaymentIntentsRootService } from '@/modules/organization/payment-intents/root/services/payment-intents-root.service';
 
 // A stored event in one of these states has not been acted on to completion, so a redelivery acts on it again
 const RETRYABLE: readonly WebhookEventStatus[] = [WebhookEventStatusValues.RECEIVED, WebhookEventStatusValues.FAILED];
 
-// Thrown inside `handle` for an event that cannot be applied yet but will be once something in flight commits
-class RetryLaterError extends Error {}
-
 // Composes what a webhook touches — the gateway transport that verifies and parses it, the event store that
-// remembers it, the payment lifecycle it advances and the transfers it updates. Domain modules never import each other, so the handshake is
+// remembers it, and the payment intent it advances. Domain modules never import each other, so the handshake is
 // orchestrated here rather than inside any of them.
 @Injectable()
 export class WebhooksService {
@@ -26,8 +23,8 @@ export class WebhooksService {
   constructor(
     private readonly registry: GatewayRegistry,
     private readonly eventsService: WebhookEventsDomainService,
-    private readonly transfersService: PaymentTransfersDomainService,
-    private readonly lifecycle: PaymentLifecycleService,
+    private readonly intents: PaymentIntentsRootService,
+    private readonly refunds: PaymentIntentsRefundsService,
   ) {}
 
   // Verifies the signature with the secret core decrypted for this call, records the events it carries, then acts
@@ -85,21 +82,19 @@ export class WebhooksService {
   // gateway with an error and the gateway redelivers — the redelivery finds the event FAILED and acts on it again
   private async handle(eventId: string, event: NormalizedWebhookEvent): Promise<PaymentEventDto[]> {
     try {
-      if (event.transfer) {
-        const result = await this.transfersService.applyTransferEvent(event.transfer);
-        if (result.outcome === 'in_flight') {
-          throw new RetryLaterError('The transfer this event names is still being sent to the gateway.');
-        }
-        if (result.outcome === 'unknown') {
-          await this.eventsService.markIgnored(eventId, 'No transfer created by this platform carries this id.');
-        } else {
+      // A refund event also carries the payment it refunds; the refund is what moves the intent
+      if (event.refund) {
+        const result = await this.refunds.applyRefund(event.refund);
+        if (result) {
           await this.eventsService.markProcessed(eventId);
+          return result.events;
         }
+        await this.eventsService.markIgnored(eventId, 'No payment intent opened by this platform owns this refund.');
         return [];
       }
 
       if (event.payment) {
-        const result = await this.lifecycle.applyWebhookPayment(event);
+        const result = await this.intents.applyWebhookPayment(event);
         if (result) {
           await this.eventsService.markProcessed(eventId);
           return result.events;

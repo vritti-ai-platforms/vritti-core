@@ -73,6 +73,10 @@
       "types": "./dist/dimension-templates.d.ts",
       "default": "./dist/dimension-templates.js"
     },
+    "./orders": {
+      "types": "./dist/orders.d.ts",
+      "default": "./dist/orders.js"
+    },
     "./payment-terms": {
       "types": "./dist/payment-terms.d.ts",
       "default": "./dist/payment-terms.js"

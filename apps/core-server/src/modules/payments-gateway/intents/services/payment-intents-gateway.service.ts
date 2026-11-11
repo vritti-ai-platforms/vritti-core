@@ -454,8 +454,8 @@ export class PaymentIntentsGatewayService {
 
   // The payments the calling app opened for a checkout, newest first
   private async checkoutIntents(caller: PaymentCallerContext, checkoutId: string): Promise<PaymentIntentResponseDto[]> {
-    const intents = await this.nats.send<PaymentIntentResponseDto[]>('payments', 'payments.intents.listByCheckout', {
-      checkoutId,
+    const intents = await this.nats.send<PaymentIntentResponseDto[]>('payments', 'payments.intents.listByTarget', {
+      targetId: checkoutId,
     });
     return intents.filter(
       (intent) => intent.appId === caller.appId && (!intent.partyId || intent.partyId === caller.partyId),
@@ -546,7 +546,7 @@ export class PaymentIntentsGatewayService {
       currency: checkout.currencyCode,
       referenceType: COMMERCE_CHECKOUT_REFERENCE_TYPE,
       referenceId: checkout.checkoutId,
-      checkoutId: checkout.checkoutId,
+      targetId: checkout.checkoutId,
       description: `Order at ${siteNames.join(', ')}`.slice(0, 500),
       ...(customer && { customer }),
       ...(method && { paymentMethod: method }),
@@ -906,7 +906,7 @@ export function toPaymentIntent(intent: PaymentIntentResponseDto, orgId: string)
     description: intent.description,
     gatewayCode: intent.gatewayCode,
     method: intent.method,
-    checkoutId: intent.checkoutId ?? null,
+    checkoutId: intent.targetId ?? null,
     checkout: toCheckout(intent, orgId),
     failure:
       intent.failureCode || intent.failureMessage ? { code: intent.failureCode, message: intent.failureMessage } : null,

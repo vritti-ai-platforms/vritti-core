@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class UpdateOrderStatusDto {
   @IsUUID('7')
@@ -8,8 +8,4 @@ export class UpdateOrderStatusDto {
   @IsString()
   @IsNotEmpty()
   status: string;
-
-  @IsOptional()
-  @IsString()
-  cancellationReason?: string;
 }

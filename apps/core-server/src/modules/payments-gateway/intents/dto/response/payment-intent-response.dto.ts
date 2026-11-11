@@ -8,6 +8,9 @@ export const PaymentIntentStatusValues = {
   FAILED: 'FAILED',
   CANCELED: 'CANCELED',
   EXPIRED: 'EXPIRED',
+  REFUND_PENDING: 'REFUND_PENDING',
+  REFUNDED: 'REFUNDED',
+  REFUND_FAILED: 'REFUND_FAILED',
 } as const;
 export type PaymentIntentStatusValue = (typeof PaymentIntentStatusValues)[keyof typeof PaymentIntentStatusValues];
 
@@ -23,7 +26,8 @@ export interface PaymentIntentResponseDto {
   appId: string | null;
   partyId: string | null;
   reference: { type: string; id: string };
-  checkoutId?: string | null;
+  // The record the payment settles: the commerce checkout for a checkout payment
+  targetId?: string | null;
   description: string | null;
   configId: string;
   gatewayCode: string;
@@ -47,6 +51,10 @@ export interface PaymentIntentResponseDto {
   failureCode: string | null;
   failureMessage: string | null;
   succeededAt: string | null;
+  refundedAt?: string | null;
+  // The gateway's id for the refund, and why it refused the last one
+  refundReference?: string | null;
+  refundFailureMessage?: string | null;
   expiresAt: string | null;
   createdAt: string;
   updatedAt: string;

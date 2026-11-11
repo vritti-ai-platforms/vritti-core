@@ -9,6 +9,9 @@ export enum PaymentIntentStatus {
   FAILED = 'FAILED',
   CANCELED = 'CANCELED',
   EXPIRED = 'EXPIRED',
+  REFUND_PENDING = 'REFUND_PENDING',
+  REFUNDED = 'REFUNDED',
+  REFUND_FAILED = 'REFUND_FAILED',
 }
 
 registerEnumType(PaymentIntentStatus, { name: 'PaymentIntentStatus' });

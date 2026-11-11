@@ -72,6 +72,14 @@ export class OrderResponseDto {
   @ApiProperty({ description: 'Final total amount in minor units (bigint serialized as string)' })
   totalAmount: string;
 
+  @ApiProperty({ description: 'Currency of the amounts', example: 'INR' })
+  currencyCode: string;
+
+  @ApiProperty({
+    description: 'True when a payment landed after the order or its checkout was cancelled — for staff to review',
+  })
+  needsReview: boolean;
+
   @ApiProperty({ description: 'ISO timestamp when order was placed' })
   placedAt: string;
 
@@ -89,9 +97,6 @@ export class OrderDetailResponseDto extends OrderResponseDto {
   @ApiPropertyOptional({ description: 'Order notes', nullable: true })
   notes: string | null;
 
-  @ApiPropertyOptional({ description: 'External order ID from aggregator', nullable: true })
-  externalOrderId: string | null;
-
   @ApiPropertyOptional({ description: 'ISO timestamp when order was confirmed', nullable: true })
   confirmedAt: string | null;
 
@@ -104,8 +109,11 @@ export class OrderDetailResponseDto extends OrderResponseDto {
   @ApiPropertyOptional({ description: 'ISO timestamp when order was cancelled', nullable: true })
   cancelledAt: string | null;
 
-  @ApiPropertyOptional({ description: 'Cancellation reason', nullable: true })
-  cancellationReason: string | null;
+  @ApiPropertyOptional({ description: 'The payment intent that paid the order', nullable: true })
+  paymentIntentId: string | null;
+
+  @ApiPropertyOptional({ description: 'The checkout the order was paid through', nullable: true })
+  checkoutId: string | null;
 
   @ApiProperty({ description: 'Order line items', type: [OrderItemResponseDto] })
   items: OrderItemResponseDto[];

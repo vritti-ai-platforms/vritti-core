@@ -24459,6 +24459,106 @@
         ]
       }
     },
+    "/commerce-api/orders/{id}/payments": {
+      "get": {
+        "operationId": "OrdersGatewayController_listPayments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/payments/{paymentIntentId}/refund": {
+      "post": {
+        "operationId": "OrdersGatewayController_refundPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentIntentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/orders/{id}/payments/{paymentIntentId}/refund/check": {
+      "post": {
+        "operationId": "OrdersGatewayController_checkRefund",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentIntentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
     "/commerce-api/orders/{id}/status": {
       "post": {
         "operationId": "OrdersGatewayController_updateStatus",
@@ -60108,10 +60208,6 @@
               "COMPLETED",
               "CANCELLED"
             ]
-          },
-          "cancellationReason": {
-            "type": "object",
-            "description": "Reason for cancellation (required when cancelling)"
           }
         },
         "required": [

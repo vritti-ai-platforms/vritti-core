@@ -28,6 +28,7 @@ export { LE_OFFERINGS, ORG_OFFERINGS, SITE_OFFERINGS } from './offerings';
 export { ORG_PAYMENT_TERMS } from './payment-terms';
 export { SITE_PAYMENTS } from './payments';
 export { ORG_PEOPLE } from './people';
+export { SITE_ORDERS } from './orders';
 export { LE_PURCHASE_ORDERS, SITE_PURCHASE_ORDERS } from './purchase-orders';
 export { LE_SUPPLIER_INVOICES } from './supplier-invoices';
 export { LE_SUPPLIERS, SITE_SUPPLIERS } from './suppliers';

@@ -1,9 +1,11 @@
 import { WebhookDeliveryDomainService } from '@domain/app-webhook/services/webhook-delivery.service';
 import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
+import { PaymentGatewayConfigDomainService } from '@domain/payment-gateway-config/services/payment-gateway-config.service';
 import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit, Optional } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ScopedNatsClientService } from '@/services/scoped-nats-client.service';
 import type { PaymentEventResponseDto } from '../../intents/dto/response/payment-event-response.dto';
+import type { PaymentIntentResponseDto } from '../../intents/dto/response/payment-intent-response.dto';
 import { PaymentEventDispatcherService } from './payment-event-dispatcher.service';
 
 export const PAYMENT_JOBS_OPTIONS = Symbol('PAYMENT_JOBS_OPTIONS');
@@ -14,6 +16,7 @@ export interface PaymentJobsOptions {
   expireSweepMs: number;
   deliveryWorkerMs: number;
   checkoutExpiryMs: number;
+  refundSyncMs: number;
   batchSize: number;
 }
 
@@ -24,10 +27,11 @@ const DEFAULT_OPTIONS: PaymentJobsOptions = {
   expireSweepMs: 5 * 60_000,
   deliveryWorkerMs: 30_000,
   checkoutExpiryMs: 5 * 60_000,
+  refundSyncMs: 10 * 60_000,
   batchSize: 100,
 };
 
-type JobName = 'event-sweep' | 'expire-sweep' | 'delivery-worker' | 'checkout-expiry';
+type JobName = 'event-sweep' | 'expire-sweep' | 'delivery-worker' | 'checkout-expiry' | 'refund-sync';
 
 // The payments safety nets, run in-process on timers: drain events payments-service still holds unacknowledged, expire
 // intents nobody completed, and send due outbound webhooks.
@@ -44,6 +48,7 @@ export class PaymentJobsService implements OnModuleInit, OnModuleDestroy {
     private readonly nats: ScopedNatsClientService,
     private readonly dispatcher: PaymentEventDispatcherService,
     private readonly deliveries: WebhookDeliveryDomainService,
+    private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
     @Optional() @Inject(PAYMENT_JOBS_OPTIONS) options?: Partial<PaymentJobsOptions>,
   ) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -55,6 +60,7 @@ export class PaymentJobsService implements OnModuleInit, OnModuleDestroy {
     this.schedule('expire-sweep', this.options.expireSweepMs, () => this.expireStaleIntents());
     this.schedule('delivery-worker', this.options.deliveryWorkerMs, () => this.deliverWebhooks());
     this.schedule('checkout-expiry', this.options.checkoutExpiryMs, () => this.expireStaleCheckouts());
+    this.schedule('refund-sync', this.options.refundSyncMs, () => this.syncPendingRefunds());
     this.logger.log('Payment background jobs started');
   }
 
@@ -98,6 +104,37 @@ export class PaymentJobsService implements OnModuleInit, OnModuleDestroy {
     return this.runExclusive('checkout-expiry', () =>
       this.forEachOrganization('checkout-expiry', true, async (orgId) => {
         await this.nats.send({ orgId }, 'commerce', 'org.checkouts.expireStale', { limit: this.options.batchSize });
+      }),
+    );
+  }
+
+  // Asks the gateway after each refund it accepted but never confirmed (its webhook lost or not sent) and dispatches
+  // the refunded / refund-failed events that produces
+  syncPendingRefunds(): Promise<void> {
+    return this.runExclusive('refund-sync', () =>
+      this.forEachOrganization('refund-sync', true, async (orgId) => {
+        const pending = await this.nats.send<PaymentIntentResponseDto[]>(
+          { orgId },
+          'payments',
+          'payments.intents.listRefundPending',
+          { limit: this.options.batchSize },
+        );
+        // One decryption per gateway config, however many of its refunds are pending
+        const credentialsByConfig = new Map<string, Record<string, string>>();
+        for (const intent of pending) {
+          let credentials = credentialsByConfig.get(intent.configId);
+          if (!credentials) {
+            credentials = (await this.gatewayConfigService.getDecryptedCredentials(intent.configId)).credentials;
+            credentialsByConfig.set(intent.configId, credentials);
+          }
+          const { events } = await this.nats.send<{ events: PaymentEventResponseDto[] }>(
+            { orgId },
+            'payments',
+            'payments.intents.syncRefund',
+            { paymentIntentId: intent.id, credentials },
+          );
+          await this.dispatcher.dispatch(orgId, events);
+        }
       }),
     );
   }

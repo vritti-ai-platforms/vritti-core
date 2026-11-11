@@ -38,7 +38,6 @@ export const checkoutStatusEnum = commerceSchema.enum('checkout_status', [
   'CANCELLED',
 ]);
 export const orderStatusEnum = commerceSchema.enum('order_status', [
-  'AWAITING_PAYMENT',
   'PENDING',
   'ACCEPTED',
   'PREPARING',
@@ -46,18 +45,10 @@ export const orderStatusEnum = commerceSchema.enum('order_status', [
   'COMPLETED',
   'CANCELLED',
 ]);
-export const orderItemStatusEnum = commerceSchema.enum('order_item_status', [
-  'PENDING',
-  'PREPARING',
-  'READY',
-  'SERVED',
-  'CANCELLED',
-]);
 
 export type OrderSource = (typeof orderSourceEnum.enumValues)[number];
 export type OrderStatus = (typeof orderStatusEnum.enumValues)[number];
 export type CheckoutStatus = (typeof checkoutStatusEnum.enumValues)[number];
-export type OrderItemStatus = (typeof orderItemStatusEnum.enumValues)[number];
 
 export const OrderSourceValues = {
   ONLINE: 'ONLINE' as const,
@@ -65,7 +56,6 @@ export const OrderSourceValues = {
 };
 
 export const OrderStatusValues = {
-  AWAITING_PAYMENT: 'AWAITING_PAYMENT' as const,
   PENDING: 'PENDING' as const,
   ACCEPTED: 'ACCEPTED' as const,
   PREPARING: 'PREPARING' as const,
@@ -79,14 +69,6 @@ export const CheckoutStatusValues = {
   PAID: 'PAID' as const,
   CONVERTED: 'CONVERTED' as const,
   EXPIRED: 'EXPIRED' as const,
-  CANCELLED: 'CANCELLED' as const,
-};
-
-export const OrderItemStatusValues = {
-  PENDING: 'PENDING' as const,
-  PREPARING: 'PREPARING' as const,
-  READY: 'READY' as const,
-  SERVED: 'SERVED' as const,
   CANCELLED: 'CANCELLED' as const,
 };
 

@@ -15,13 +15,23 @@ export class PaymentIntentsDomainRepository extends PrimaryBaseRepository<typeof
   }
 
   // The intent a caller already opened under this idempotency key; RLS scopes it to the organization
+  // The intent a gateway payment paid — how a refund event finds what it refunds
+  async findByProviderPaymentId(providerPaymentId: string): Promise<PaymentIntent | undefined> {
+    return this.model.findFirst({ where: { providerPaymentId } });
+  }
+
+  // Refunds the gateway has accepted but not yet confirmed, oldest first
+  async findRefundPending(limit: number): Promise<PaymentIntent[]> {
+    return this.model.findMany({ where: { status: 'REFUND_PENDING' }, orderBy: { updatedAt: 'asc' }, limit });
+  }
+
   async findByIdempotencyKey(idempotencyKey: string): Promise<PaymentIntent | undefined> {
     return this.model.findFirst({ where: { idempotencyKey } });
   }
 
-  // Every intent opened for a checkout, newest first; RLS scopes it to the organization
-  async findByCheckout(checkoutId: string): Promise<PaymentIntent[]> {
-    return this.model.findMany({ where: { checkoutId }, orderBy: { createdAt: 'desc' } });
+  // Every intent opened for a target, newest first; RLS scopes it to the organization
+  async findByTarget(targetId: string): Promise<PaymentIntent[]> {
+    return this.model.findMany({ where: { targetId }, orderBy: { createdAt: 'desc' } });
   }
 
   // The intents opened for one thing being paid for, newest first

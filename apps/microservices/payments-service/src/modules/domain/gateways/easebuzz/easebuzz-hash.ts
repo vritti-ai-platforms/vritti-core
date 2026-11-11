@@ -71,6 +71,11 @@ export function refundHash(key: string, refundId: string, easebuzzId: string, am
   return sha512Hex([key, refundId, easebuzzId, amount, salt]);
 }
 
+// Reading a payment's refunds: SHA-512 of key|easebuzz_id|salt
+export function refundStatusHash(key: string, easebuzzId: string, salt: string): string {
+  return sha512Hex([key, easebuzzId, salt]);
+}
+
 // Checks a reported transaction's hash against the salt, in constant time
 export function verifyReverseHash(fields: EasebuzzTransactionFields, salt: string): boolean {
   const received = fields.hash?.trim().toLowerCase();

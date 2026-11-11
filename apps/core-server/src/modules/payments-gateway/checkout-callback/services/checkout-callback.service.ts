@@ -89,12 +89,12 @@ export class CheckoutCallbackService {
       const context = await this.loadContext(request, orgId, paymentIntentId);
       if (context && isWebhookCheck(context.intent)) {
         const status = success ? await this.confirmWebhookCheckQuietly(orgId, context.intent, success) : null;
-        const paid = readBack ? status === 'SUCCEEDED' : Boolean(success);
+        const paid = readBack ? isPaidStatus(status) : Boolean(success);
         return { kind: 'page', html: paid ? WEBHOOK_CHECK_PAID_PAGE : WEBHOOK_CHECK_FAILED_PAGE };
       }
       if (success) {
         const status = context ? await this.confirmQuietly(orgId, context.intent, success) : null;
-        if (!readBack || status === 'SUCCEEDED') {
+        if (!readBack || isPaidStatus(status)) {
           return this.redirectOr(SUCCESS_PAGE, orgId, context, context?.intent.returnUrl, {
             intent: paymentIntentId,
             order: context?.intent.metadata?.orderNumber,
@@ -147,11 +147,11 @@ export class CheckoutCallbackService {
     this.logger.log(`[checkout-callback] GET callback — org=${orgId} intent=${paymentIntentId}`);
     try {
       const context = await this.loadContext(request, orgId, paymentIntentId);
-      const fallback = context?.intent.status === 'SUCCEEDED' ? SUCCESS_PAGE : FAILURE_PAGE;
+      const fallback = isPaidStatus(context?.intent.status) ? SUCCESS_PAGE : FAILURE_PAGE;
       if (context && isWebhookCheck(context.intent)) {
         return {
           kind: 'page',
-          html: context.intent.status === 'SUCCEEDED' ? WEBHOOK_CHECK_PAID_PAGE : WEBHOOK_CHECK_FAILED_PAGE,
+          html: isPaidStatus(context.intent.status) ? WEBHOOK_CHECK_PAID_PAGE : WEBHOOK_CHECK_FAILED_PAGE,
         };
       }
       const target = context?.intent.retryUrl ?? context?.intent.returnUrl;
@@ -369,4 +369,9 @@ function page(title: string, message: string): string {
 // A verification payment — the ₹10 that proves a gateway config's webhook — rather than a storefront's
 function isWebhookCheck(intent: PaymentIntentResponseDto): boolean {
   return intent.reference.type === GATEWAY_WEBHOOK_CHECK_REFERENCE_TYPE;
+}
+
+// Paid, including a payment refunded since (the webhook check refunds its own payment straight after it lands)
+function isPaidStatus(status: string | null | undefined): boolean {
+  return status === 'SUCCEEDED' || status === 'REFUND_PENDING' || status === 'REFUNDED' || status === 'REFUND_FAILED';
 }
