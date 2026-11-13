@@ -11,7 +11,7 @@
  * which is the drift this file exists to stop.
  */
 export const VERSIONS = {
-  payload: '3.88.0',
+  payload: '3.90.0',
   next: '16.3.3',
   react: '19.2.6',
   sharp: '0.34.2',
