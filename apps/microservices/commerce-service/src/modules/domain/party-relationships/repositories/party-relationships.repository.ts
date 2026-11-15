@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { alias } from '@vritti/api-sdk/drizzle-pg-core';
+import { alias, QueryBuilder } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   type FindForSelectJoin,
   type SelectOptionsQueryDto,
@@ -27,12 +27,12 @@ export type PersonCompanyRow = PartyRelationship & {
 const childEmailComm = alias(partyCommunications, 'child_email_comm');
 const childPhoneComm = alias(partyCommunications, 'child_phone_comm');
 
-const functionsSubquery = sql<RelationshipFunction[]>`COALESCE(
-  (SELECT json_agg(json_build_object('function', ${partyFunctions.function}, 'isPrimary', ${partyFunctions.isPrimary}))
-    FROM ${partyFunctions}
-    WHERE ${partyFunctions.partyRelationshipId} = ${partyRelationships.id}),
-  '[]'::json
-)`;
+const functionsSubquery = sql<RelationshipFunction[]>`COALESCE((${new QueryBuilder()
+  .select({
+    functions: sql`json_agg(json_build_object('function', ${partyFunctions.function}, 'isPrimary', ${partyFunctions.isPrimary}))`,
+  })
+  .from(partyFunctions)
+  .where(eq(partyFunctions.partyRelationshipId, partyRelationships.id))}), '[]'::json)`;
 
 @Injectable()
 export class PartyRelationshipsDomainRepository extends PrimaryBaseRepository<typeof partyRelationships> {

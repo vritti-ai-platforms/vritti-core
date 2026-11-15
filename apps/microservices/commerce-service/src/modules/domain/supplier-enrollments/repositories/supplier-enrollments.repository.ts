@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, exists, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
@@ -326,11 +326,17 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
         partyId: partyCommunications.partyId,
         channel: partyCommunications.channel,
         isActive: partyCommunications.isActive,
-        isOrdering: sql<boolean>`EXISTS (
-          SELECT 1 FROM ${partyFunctions}
-          WHERE ${partyFunctions.partyCommunicationId} = ${partyCommunications.id}
-            AND ${partyFunctions.function} = ${PartyFunctionTypeValues.ORDERING}
-        )`,
+        isOrdering: exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(partyFunctions)
+            .where(
+              and(
+                eq(partyFunctions.partyCommunicationId, partyCommunications.id),
+                eq(partyFunctions.function, PartyFunctionTypeValues.ORDERING),
+              ),
+            ),
+        ),
       })
       .from(partyCommunications)
       .where(eq(partyCommunications.id, communicationId))
@@ -439,11 +445,17 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
     const [relationship] = await this.db
       .select({
         parentPartyId: partyRelationships.parentPartyId,
-        hasOrderFunction: sql<boolean>`EXISTS (
-          SELECT 1 FROM ${partyFunctions}
-          WHERE ${partyFunctions.partyRelationshipId} = ${partyRelationships.id}
-            AND ${partyFunctions.function} = ${PartyFunctionTypeValues.ORDER}
-        )`,
+        hasOrderFunction: exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(partyFunctions)
+            .where(
+              and(
+                eq(partyFunctions.partyRelationshipId, partyRelationships.id),
+                eq(partyFunctions.function, PartyFunctionTypeValues.ORDER),
+              ),
+            ),
+        ),
       })
       .from(partyRelationships)
       .where(eq(partyRelationships.id, relationshipId))

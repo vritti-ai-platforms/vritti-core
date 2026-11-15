@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, exists, getColumns, inArray, ne, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { QueryBuilder } from '@vritti/api-sdk/drizzle-pg-core';
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   CONTACTABLE_CHANNELS,
@@ -25,18 +26,17 @@ export type PartyCommunicationRow = PartyCommunication & {
 // Restricts a read to channels that are an actual way to reach someone
 const contactableOnly = () => inArray(partyCommunications.channel, [...CONTACTABLE_CHANNELS]);
 
-const appsSubquery = sql<PartyCommunicationAppDto[]>`COALESCE(
-  (SELECT json_agg(json_build_object('app', ${partyCommunicationApps.app}, 'handle', ${partyCommunicationApps.handle}))
-    FROM ${partyCommunicationApps}
-    WHERE ${partyCommunicationApps.communicationId} = ${partyCommunications.id}),
-  '[]'::json
-)`;
+const appsSubquery = sql<PartyCommunicationAppDto[]>`COALESCE((${new QueryBuilder()
+  .select({
+    apps: sql`json_agg(json_build_object('app', ${partyCommunicationApps.app}, 'handle', ${partyCommunicationApps.handle}))`,
+  })
+  .from(partyCommunicationApps)
+  .where(eq(partyCommunicationApps.communicationId, partyCommunications.id))}), '[]'::json)`;
 
-const functionsSubquery = sql<PartyCommunicationFunction[]>`COALESCE(
-  (SELECT json_agg(${partyFunctions.function}) FROM ${partyFunctions}
-    WHERE ${partyFunctions.partyCommunicationId} = ${partyCommunications.id}),
-  '[]'::json
-)`;
+const functionsSubquery = sql<PartyCommunicationFunction[]>`COALESCE((${new QueryBuilder()
+  .select({ functions: sql`json_agg(${partyFunctions.function})` })
+  .from(partyFunctions)
+  .where(eq(partyFunctions.partyCommunicationId, partyCommunications.id))}), '[]'::json)`;
 
 @Injectable()
 export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<typeof partyCommunications> {
