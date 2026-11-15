@@ -16,10 +16,10 @@ export class LeSupplierEnrollmentsService {
   // Sets an enrollment's purchasing settings once the locations it names are at the enrollment's site
   async updatePurchasing(dto: UpdateEnrollmentPurchasingDto, leCurrencyCode: string): Promise<SuccessResponseDto> {
     if (dto.quarantineLocationId) {
-      await this.locations.assertAtSite(dto.siteId, dto.quarantineLocationId, 'quarantineLocationId');
+      await this.locations.assertAtSite(dto.quarantineLocationId, 'quarantineLocationId', dto.siteId);
     }
     if (dto.defaultReceiptLocationId) {
-      await this.locations.assertAtSite(dto.siteId, dto.defaultReceiptLocationId, 'defaultReceiptLocationId');
+      await this.locations.assertAtSite(dto.defaultReceiptLocationId, 'defaultReceiptLocationId', dto.siteId);
     }
     return this.enrollments.updatePurchasing(dto, leCurrencyCode);
   }

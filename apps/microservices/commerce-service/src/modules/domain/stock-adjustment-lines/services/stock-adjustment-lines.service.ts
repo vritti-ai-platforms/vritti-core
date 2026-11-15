@@ -98,7 +98,7 @@ export class StockAdjustmentLinesDomainService {
 
     const line = await this.repository.create({
       stockAdjustmentId: adjustment.id,
-      stockAdjustmentLotId: data.stockAdjustmentLotId ?? null,
+      stockAdjustmentLotId: data.stockAdjustmentLotId,
       locationId: data.locationId,
       quantId: null,
       uomId: data.uomId,

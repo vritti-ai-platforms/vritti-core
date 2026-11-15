@@ -7,7 +7,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
-import { RpcLeCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { InventoryItemSiteStockLevel } from '@/db/schema';
 import { SiteInventoryItemsService } from './services/inventory-items-root.service';
@@ -23,22 +23,16 @@ export class InventoryItemsRootController {
 
   // Updates an item's stock levels at the current site
   @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.update' })
-  async updateStockLevels(
-    @Payload() dto: UpdateStockLevelsDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<SuccessResponseDto> {
+  async updateStockLevels(@Payload() dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.stockLevels.update — inventoryItemId: ${dto.inventoryItemId}`);
-    return this.rootService.updateStockLevels(siteId, dto);
+    return this.rootService.updateStockLevels(dto);
   }
 
   // Sets a master item's stock levels at the current site
   @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.create' })
-  async setStockLevels(
-    @Payload() dto: SetStockLevelsDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
+  async setStockLevels(@Payload() dto: SetStockLevelsDto): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
     this.logger.log(`inventoryItems.stockLevels.create — inventoryItemId: ${dto.inventoryItemId}`);
-    return this.rootService.setStockLevels(siteId, dto);
+    return this.rootService.setStockLevels(dto);
   }
 
   // Returns a single master inventory item by ID (shared detail)
@@ -67,11 +61,8 @@ export class InventoryItemsRootController {
 
   // Removes an item's stock levels at the current site
   @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.delete' })
-  async removeStockLevels(
-    @Payload() data: { inventoryItemId: string },
-    @RpcSiteId() siteId: string,
-  ): Promise<SuccessResponseDto> {
+  async removeStockLevels(@Payload() data: { inventoryItemId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.stockLevels.delete — inventoryItemId: ${data.inventoryItemId}`);
-    return this.rootService.removeStockLevels(siteId, data.inventoryItemId);
+    return this.rootService.removeStockLevels(data.inventoryItemId);
   }
 }

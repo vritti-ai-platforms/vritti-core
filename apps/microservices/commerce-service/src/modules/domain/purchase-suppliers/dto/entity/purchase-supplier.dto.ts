@@ -53,6 +53,7 @@ export class PurchaseSupplierDto {
   status: PurchaseLegStatus;
   approvedBy: string | null;
   approvedAt: string | null;
+  closeReason: string | null;
 
   // Shapes a leg with its snapshot of the enrollment; the approval threshold is in the legal entity's currency, zero
   // when every leg needs approval
@@ -70,6 +71,7 @@ export class PurchaseSupplierDto {
     dto.status = row.status;
     dto.approvedBy = row.approvedBy;
     dto.approvedAt = row.approvedAt?.toISOString() ?? null;
+    dto.closeReason = row.closeReason;
     return dto;
   }
 }

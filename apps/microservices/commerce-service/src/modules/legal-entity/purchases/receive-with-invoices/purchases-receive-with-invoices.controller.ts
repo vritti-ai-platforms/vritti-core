@@ -1,4 +1,5 @@
 import { ReceiveWithInvoiceRefDto } from '@domain/purchases/dto/request/receive-with-invoice-ref.dto';
+import { UpdateReceiveWithInvoiceDto } from '@domain/purchases/dto/request/update-receive-with-invoice.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
@@ -8,7 +9,6 @@ import type { ReceiveWithInvoiceOpenLineDto } from '@/modules/site/purchases/rec
 import { PurchasesReceiveWithInvoicesService } from '@/modules/site/purchases/receive-with-invoices/services/purchases-receive-with-invoices.service';
 import { LeReceiveWithInvoiceDto } from './dto/request/le-receive-with-invoice.dto';
 import { LeReceiveWithInvoiceOpenLinesQueryDto } from './dto/request/le-receive-with-invoice-open-lines-query.dto';
-import { LeUpdateReceiveWithInvoiceDto } from './dto/request/le-update-receive-with-invoice.dto';
 
 @Controller()
 export class LePurchasesReceiveWithInvoicesController {
@@ -23,27 +23,18 @@ export class LePurchasesReceiveWithInvoicesController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ supplierInvoiceId: string }>> {
     this.logger.log(`le.purchases.receiveWithInvoices.create — site: ${dto.siteId}, supplier: ${dto.supplierId}`);
-    const { siteId, timezone, ...receiveWithInvoice } = dto;
-    return this.service.create(
-      receiveWithInvoice,
-      { siteId, timezone: timezone ?? null, leCurrencyCode: headers.leCurrencyCode },
-      headers,
-    );
+    const { siteId, ...receiveWithInvoice } = dto;
+    return this.service.create(receiveWithInvoice, { siteId, leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Replaces a draft Receive with Invoice, at the site it was drafted for
   @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.update' })
   update(
-    @Payload() dto: LeUpdateReceiveWithInvoiceDto,
+    @Payload() dto: UpdateReceiveWithInvoiceDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.receiveWithInvoices.update — invoice: ${dto.invoiceId}`);
-    const { timezone, ...receiveWithInvoice } = dto;
-    return this.service.update(
-      receiveWithInvoice,
-      { timezone: timezone ?? null, leCurrencyCode: headers.leCurrencyCode },
-      headers,
-    );
+    return this.service.update(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Posts a draft Receive with Invoice's receipts and posts its invoice in the legal entity's currency
@@ -75,11 +66,8 @@ export class LePurchasesReceiveWithInvoicesController {
 
   // Discards a draft Receive with Invoice and the documents it drafted
   @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.discard' })
-  discard(
-    @Payload() data: ReceiveWithInvoiceRefDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  discard(@Payload() data: ReceiveWithInvoiceRefDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.receiveWithInvoices.discard — invoice: ${data.invoiceId}`);
-    return this.service.discard(data.invoiceId, headers);
+    return this.service.discard(data.invoiceId);
   }
 }

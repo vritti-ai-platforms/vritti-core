@@ -65,7 +65,6 @@ export const supplierInvoices = commerceSchema.table(
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
     openHoldCount: integer('open_hold_count').notNull().default(0),
     notes: text('notes'),
-    createdBy: uuid('created_by'),
     postedBy: uuid('posted_by'),
     postedAt: timestamp('posted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

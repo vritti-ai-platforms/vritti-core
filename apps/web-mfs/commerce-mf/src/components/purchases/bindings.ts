@@ -19,7 +19,6 @@ import type {
   UseDeletePurchase,
   UsePurchase,
   UsePurchaseAction,
-  UsePurchaseEvents,
   UsePurchaseItems,
   UsePurchaseLegAction,
   UsePurchaseQuotations,
@@ -80,7 +79,6 @@ export interface PurchasesBinding {
   usePurchaseQuotations: UsePurchaseQuotations;
   usePurchaseSourcingItems: UsePurchaseSourcingItems;
   usePurchaseSuppliers: UsePurchaseSuppliers;
-  usePurchaseEvents: UsePurchaseEvents;
 
   useCreate: UseCreatePurchase;
   useUpdate: UseUpdatePurchase;

@@ -1,8 +1,3 @@
-import {
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
-import { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type { RequestPurchaseQuotationDto } from '@domain/purchases/dto/request/request-purchase-quotation.dto';
@@ -21,7 +16,6 @@ import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
-import { PurchaseStepValues } from '@/db/schema';
 import { PurchaseDetailQuotationDto } from '../dto/entity/purchase-detail-quotation.dto';
 
 export interface PurchaseQuotationCounts {
@@ -38,7 +32,6 @@ export class PurchasesQuotationsService {
     private readonly purchasesService: PurchasesDomainService,
     private readonly itemsService: PurchaseItemsDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
-    private readonly eventsService: PurchaseEventsDomainService,
     private readonly suppliersService: SuppliersDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
@@ -78,25 +71,15 @@ export class PurchasesQuotationsService {
     }
 
     const { quotationId } = await this.inLegalEntityWorkspace(headers, () =>
-      this.supplierQuotationsService.createDraftForPurchase(
-        {
-          purchaseId: purchase.id,
-          purchaseNumber: purchase.purchaseNumber,
-          supplierId: supplier.id,
-          currencyCode: supplier.currencyCode,
-          validFrom: formatISO(new Date(), { representation: 'date' }),
-          lines,
-        },
-        headers.userId || null,
-      ),
+      this.supplierQuotationsService.createDraftForPurchase({
+        purchaseId: purchase.id,
+        purchaseNumber: purchase.purchaseNumber,
+        supplierId: supplier.id,
+        currencyCode: supplier.currencyCode,
+        validFrom: formatISO(new Date(), { representation: 'date' }),
+        lines,
+      }),
     );
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      action: PurchaseEventActionValues.REQUEST_QUOTATION,
-      documentType: PurchaseEventDocumentTypeValues.SUPPLIER_QUOTATION,
-      documentId: quotationId,
-      actorId: headers.userId || null,
-    });
 
     const leftOutCount = items.length - lines.length;
     this.logger.log(`purchases.quotations.request — ${purchase.purchaseNumber}, supplier: ${supplier.id}`);
@@ -111,47 +94,35 @@ export class PurchasesQuotationsService {
   }
 
   // Moves a purchase to sourcing once enough suppliers have a quotation for it posted to its site or legal entity
-  async complete(id: string, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  async complete(id: string): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesService.findDetailOrThrow(id);
     const postedSupplierCount = await this.supplierQuotationsService.countPostedSuppliersForPurchase(
       purchase.id,
       purchase.siteId,
     );
-    await this.database.runInTransaction(async () => {
-      await this.purchasesService.completeQuotations(purchase, postedSupplierCount);
-      await this.eventsService.record({
-        purchaseId: purchase.id,
-        action: PurchaseEventActionValues.COMPLETE_QUOTATIONS,
-        stepBefore: PurchaseStepValues.QUOTING,
-        stepAfter: PurchaseStepValues.SOURCING,
-        actorId: headers.userId || null,
-      });
-    });
+    await this.purchasesService.completeQuotations(purchase, postedSupplierCount);
     this.logger.log(`purchases.quotations.complete — ${purchase.purchaseNumber}`);
     return { success: true, message: `Quotations of "${purchase.purchaseNumber}" completed; it is now sourcing.` };
   }
 
-  // Returns the quotations a purchase requested, read in its legal entity's workspace (drafts are the LE's), each line
-  // priced per primary unit
-  async findByPurchase(id: string, headers: NatsHeaders): Promise<PurchaseDetailQuotationDto[]> {
+  // Returns the quotations a purchase requested, drafts included, each line priced per primary unit
+  async findByPurchase(id: string): Promise<PurchaseDetailQuotationDto[]> {
     const purchase = await this.purchasesService.findDetailOrThrow(id);
-    const quotations = await this.inLegalEntityWorkspace(headers, () =>
-      this.supplierQuotationsService.findForPurchase(purchase.id, purchase.siteId),
-    );
+    const quotations = await this.supplierQuotationsService.findForPurchase(purchase.id, purchase.siteId);
     const primaryPerUnit = await this.findPrimaryPerUnit(quotations);
     return quotations.map((quotation) => PurchaseDetailQuotationDto.from(quotation, primaryPerUnit));
   }
 
   // Counts the quotations a purchase requested, drafts included, and the suppliers with one posted to its site or legal
-  // entity, read in its legal entity's workspace (drafts are the LE's)
-  countForPurchase(purchase: PurchaseRow, headers: NatsHeaders): Promise<PurchaseQuotationCounts> {
-    return this.inLegalEntityWorkspace(headers, async () => ({
+  // entity
+  async countForPurchase(purchase: PurchaseRow): Promise<PurchaseQuotationCounts> {
+    return {
       quotationCount: await this.supplierQuotationsService.countForPurchase(purchase.id),
       postedSupplierCount: await this.supplierQuotationsService.countPostedSuppliersForPurchase(
         purchase.id,
         purchase.siteId,
       ),
-    }));
+    };
   }
 
   // Runs a step in the legal entity's own workspace, which RLS requires to write or read its draft quotations

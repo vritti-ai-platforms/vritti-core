@@ -20,7 +20,6 @@ import { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/dto/re
 import { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import { PurchaseEventsPageResponseDto } from '@commerce/purchases/dto/response/purchase-events-page-response.dto';
 import { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
 import { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
@@ -118,20 +117,6 @@ export function ApiFindSuppliers() {
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
     ApiResponse({ status: 200, description: 'Supplier legs retrieved.', type: [PurchaseLegResponseDto] }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-  );
-}
-
-export function ApiFindEvents() {
-  return applyDecorators(
-    ApiOperation({
-      summary: "List a purchase's activity",
-      description:
-        'Returns a page of the actions taken on the purchase, newest first, optionally only one kind or one supplier leg — the Activity route.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Events retrieved.', type: PurchaseEventsPageResponseDto }),
-    ApiResponse({ status: 400, description: 'Invalid paging or filter.' }),
     ApiResponse({ status: 404, description: 'Purchase not found.' }),
   );
 }

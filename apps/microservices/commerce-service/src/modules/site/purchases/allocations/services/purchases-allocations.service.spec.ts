@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import type { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import type { PurchaseItemAllocationsDomainRepository } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import type { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
@@ -13,7 +12,6 @@ import type { SuppliersDomainService } from '@domain/suppliers/services/supplier
 import type { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Logger } from '@nestjs/common';
 import type { PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { PurchasesAllocationsService } from './purchases-allocations.service';
 
 beforeAll(() => Logger.overrideLogger(false));
@@ -35,7 +33,6 @@ const leg = {
   step: 'SOURCING',
   status: 'OPEN',
 };
-const headers = { userId: 'user-1' } as NatsHeaders;
 
 function setup(options: { existingLeg?: typeof leg; remainingAllocations?: number; purchasingBlocked?: boolean } = {}) {
   const legsRepository = {
@@ -80,7 +77,6 @@ function setup(options: { existingLeg?: typeof leg; remainingAllocations?: numbe
     findForItemAndLeg: allocationsRepository.findOne,
     countByLeg: allocationsRepository.count,
   } as unknown as PurchaseItemAllocationsDomainRepository);
-  const record = jest.fn();
   const service = new PurchasesAllocationsService(
     { runInTransaction: (fn: () => Promise<unknown>) => fn() } as unknown as PrimaryDatabaseService,
     { findDetailOrThrow: jest.fn().mockResolvedValue(purchase) } as unknown as PurchasesDomainService,
@@ -91,7 +87,6 @@ function setup(options: { existingLeg?: typeof leg; remainingAllocations?: numbe
     } as unknown as PurchaseItemsDomainService,
     legsService,
     allocationsService,
-    { record } as unknown as PurchaseEventsDomainService,
     {
       findByIdOrThrow: jest.fn().mockResolvedValue({ id: 'sup-1', currencyCode: 'INR', currencyCodes: ['INR'] }),
     } as unknown as SuppliersDomainService,
@@ -100,7 +95,7 @@ function setup(options: { existingLeg?: typeof leg; remainingAllocations?: numbe
     {} as SupplierQuotationsDomainService,
     { toPrimaryUomQuantity: jest.fn().mockResolvedValue(100) } as unknown as UomConversionsDomainService,
   );
-  return { service, legsRepository, allocationsRepository, findPurchasingSnapshot, record };
+  return { service, legsRepository, allocationsRepository, findPurchasingSnapshot };
 }
 
 const dto = {
@@ -114,18 +109,15 @@ const dto = {
 
 describe('PurchasesAllocationsService legs', () => {
   it('opens the supplier’s leg with its enrollment on the first allocation to it', async () => {
-    const { service, legsRepository, findPurchasingSnapshot, record } = setup();
-    await service.create(dto, headers);
+    const { service, legsRepository, findPurchasingSnapshot } = setup();
+    await service.create(dto);
     expect(findPurchasingSnapshot).toHaveBeenCalledWith('sup-1', 'site-1');
     expect(legsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ supplierEnrollmentId: 'enr-1' }));
-    expect(record).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'ADD_ALLOCATION', purchaseSupplierId: 'leg-1', actorId: 'user-1' }),
-    );
   });
 
   it('refuses the first allocation to a supplier blocked from purchasing', async () => {
     const { service, legsRepository, allocationsRepository } = setup({ purchasingBlocked: true });
-    await expect(service.create(dto, headers)).rejects.toMatchObject({
+    await expect(service.create(dto)).rejects.toMatchObject({
       response: expect.objectContaining({ label: 'Supplier Blocked' }),
     });
     expect(legsRepository.create).not.toHaveBeenCalled();
@@ -134,21 +126,21 @@ describe('PurchasesAllocationsService legs', () => {
 
   it('allocates to the leg already open for the supplier', async () => {
     const { service, legsRepository, findPurchasingSnapshot } = setup({ existingLeg: leg });
-    await service.create(dto, headers);
+    await service.create(dto);
     expect(findPurchasingSnapshot).not.toHaveBeenCalled();
     expect(legsRepository.create).not.toHaveBeenCalled();
   });
 
   it('deletes the leg with its last allocation', async () => {
     const { service, legsRepository } = setup({ remainingAllocations: 0 });
-    const result = await service.delete('pur-1', 'alloc-1', headers);
+    const result = await service.delete('pur-1', 'alloc-1');
     expect(legsRepository.delete).toHaveBeenCalledWith('leg-1');
     expect(result.message).toContain('Acme has no allocations left');
   });
 
   it('keeps the leg while it has other allocations', async () => {
     const { service, legsRepository, allocationsRepository } = setup({ remainingAllocations: 2 });
-    await service.delete('pur-1', 'alloc-1', headers);
+    await service.delete('pur-1', 'alloc-1');
     expect(allocationsRepository.delete).toHaveBeenCalledWith('alloc-1');
     expect(legsRepository.delete).not.toHaveBeenCalled();
   });

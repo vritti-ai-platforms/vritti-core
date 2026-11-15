@@ -46,7 +46,7 @@ export class PartyIdentifiersDomainService {
       partyId,
       idType: data.idType,
       idValue: data.idValue,
-      isPrimary: data.isPrimary ?? false,
+      isPrimary: data.isPrimary,
     });
 
     this.logger.log(`Added identifier ${data.idType} to party ${partyId}`);

@@ -4,6 +4,7 @@ import { and, desc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-s
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
+  currentSiteId,
   locations,
   type PartyCommunicationChannel,
   PartyCommunicationChannelValues,
@@ -92,6 +93,7 @@ const ENROLLMENT_REGISTRATION_TYPES: TaxRegistrationType[] = [
 
 export type SupplierEnrollmentRowRecord = {
   id: string | null;
+  siteId: string;
   supplierId: string;
   supplierCode: string;
   partyId: string;
@@ -229,8 +231,14 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Loads the supplier's enrollment at a site
-  async findBySupplierAndSite(supplierId: string, siteId: string): Promise<SupplierEnrollment | undefined> {
-    return this.model.findFirst({ where: { supplierId, siteId } }) as Promise<SupplierEnrollment | undefined>;
+  async findBySupplierAndSite(supplierId: string, siteId?: string): Promise<SupplierEnrollment | undefined> {
+    const [enrollment] = await this.findAllWithSelect<SupplierEnrollment>({
+      where: and(
+        eq(supplierEnrollments.supplierId, supplierId),
+        eq(supplierEnrollments.siteId, siteId ?? currentSiteId()),
+      ),
+    });
+    return enrollment;
   }
 
   // Loads an enrollment's purchasing settings with the names of its quarantine and default receipt locations
@@ -457,16 +465,19 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
   }
 
   // Throws when the supplier is already enrolled for the site
-  async assertNotEnrolled(supplierId: string, siteId: string): Promise<void> {
+  async assertNotEnrolled(supplierId: string, siteId?: string): Promise<void> {
     if (await this.isEnrolled(supplierId, siteId)) {
       throw new ConflictException('Supplier is already enrolled for this site.');
     }
   }
 
   // Returns true when the supplier is enrolled for the site
-  async isEnrolled(supplierId: string, siteId: string): Promise<boolean> {
+  async isEnrolled(supplierId: string, siteId?: string): Promise<boolean> {
     return this.exists(
-      and(eq(supplierEnrollments.supplierId, supplierId), eq(supplierEnrollments.siteId, siteId)) as SQL,
+      and(
+        eq(supplierEnrollments.supplierId, supplierId),
+        eq(supplierEnrollments.siteId, siteId ?? currentSiteId()),
+      ) as SQL,
     );
   }
 

@@ -51,9 +51,9 @@ export class StockTransfersService {
         throw new BadRequestException('A source quant is required to receive a stock transfer.');
       }
       await this.siteStockLevelsService.ensureStockLevels(
-        transfer.toSiteId,
         [transfer.inventoryItemId],
         'toLocationId',
+        transfer.toSiteId,
       );
 
       // Preserve the source quant's cost on the destination quant — a transfer does not change cost.

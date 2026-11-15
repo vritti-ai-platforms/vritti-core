@@ -37,7 +37,7 @@ export class TaxRegistrationsDomainService {
       jurisdictionId: registration.jurisdictionId,
       registrationNumber: data.registrationNumber,
       registrationType: data.registrationType,
-      isPrimary: data.isPrimary ?? false,
+      isPrimary: data.isPrimary,
     });
     if (created.isPrimary) await this.repository.clearPrimary(created.legalEntityId, created.id);
 

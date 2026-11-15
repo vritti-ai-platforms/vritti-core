@@ -11,6 +11,7 @@ export class PurchaseHeaderDto extends PurchaseDto {
   itemCount: number;
   quotationCount: number;
   supplierCount: number;
+  cancelReason: string | null;
   progress: PurchaseProgress;
   availableActions: PurchaseAction[];
 
@@ -20,6 +21,7 @@ export class PurchaseHeaderDto extends PurchaseDto {
     dto.itemCount = row.itemCount;
     dto.quotationCount = details.quotationCount;
     dto.supplierCount = row.supplierCount;
+    dto.cancelReason = row.cancelReason;
     dto.progress = purchaseProgress(row);
     dto.availableActions = details.availableActions;
     return dto;

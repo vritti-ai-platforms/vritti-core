@@ -38,7 +38,7 @@ export const CreateLegInboundDeliveryDialog: React.FC<CreateLegInboundDeliveryDi
   onCancel,
 }) => {
   const fmt = useFormatters();
-  const timeZone = useWorkspaceTimeZone();
+  const timeZone = useWorkspaceTimeZone(purchase.siteId);
   const orderedAllocations = useMemo(
     () =>
       new Map(

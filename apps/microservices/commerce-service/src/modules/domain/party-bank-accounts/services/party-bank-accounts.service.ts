@@ -64,9 +64,9 @@ export class PartyBankAccountsDomainService {
         partyId,
         accountName: data.accountName,
         accountNumber: data.accountNumber,
-        ifscCode: data.ifscCode ?? null,
-        upiId: data.upiId ?? null,
-        bankName: data.bankName ?? null,
+        ifscCode: data.ifscCode,
+        upiId: data.upiId,
+        bankName: data.bankName,
         isPrimary,
         isActive,
       });

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsBoolean, IsUUID } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class BulkSetSupplierSiteItemPreferredDto {
   @ApiProperty({ type: [String], description: 'Supplier item IDs to update.' })
@@ -12,6 +13,7 @@ export class BulkSetSupplierSiteItemPreferredDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID('7', { each: true })
+  @IsLeSite({ each: true })
   siteIds: string[];
 
   @ApiProperty({ description: 'Whether to mark the items as the preferred supplier at those sites.' })

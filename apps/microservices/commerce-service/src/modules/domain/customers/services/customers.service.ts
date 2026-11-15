@@ -30,8 +30,8 @@ export class CustomersDomainService {
     const entity = await this.repository.create({
       name: data.name,
       phone: data.phone,
-      email: data.email ?? null,
-      notes: data.notes ?? null,
+      email: data.email,
+      notes: data.notes,
     });
     this.logger.log(`Created customer: ${entity.name} (${entity.id})`);
     return CustomerDto.from(entity);

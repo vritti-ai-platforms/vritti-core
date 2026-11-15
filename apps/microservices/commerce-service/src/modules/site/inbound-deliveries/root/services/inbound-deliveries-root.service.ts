@@ -20,9 +20,9 @@ export class InboundDeliveriesService {
   ) {}
 
   // Creates a planned delivery of a supplier the site still buys from
-  async create(dto: CreateInboundDeliveryDto, siteId: string): Promise<CreateResponseDto<InboundDeliveryDto>> {
-    await this.supplierEnrollmentsService.assertPurchasable(dto.supplierId, siteId);
-    this.logger.log(`inboundDeliveries.create — supplier: ${dto.supplierId}, site: ${siteId}`);
+  async create(dto: CreateInboundDeliveryDto): Promise<CreateResponseDto<InboundDeliveryDto>> {
+    await this.supplierEnrollmentsService.assertPurchasable(dto.supplierId);
+    this.logger.log(`inboundDeliveries.create — supplier: ${dto.supplierId}`);
     return this.deliveriesService.create(dto);
   }
 

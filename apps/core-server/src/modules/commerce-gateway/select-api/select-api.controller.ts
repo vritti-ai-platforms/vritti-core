@@ -153,12 +153,9 @@ export class SelectApiController {
   // Returns location options for select dropdowns, only one of the legal entity's sites' when `atSiteId` is given
   @Get('locations')
   @ApiLocationsSelect()
-  selectLocations(
-    @Query() query: LocationsSelectQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SelectQueryResult> {
+  selectLocations(@Query() query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/select-api/locations');
-    return this.service.selectLocations(query, legalEntityId);
+    return this.service.selectLocations(query);
   }
 
   // Returns offering options for select dropdowns
@@ -262,12 +259,9 @@ export class SelectApiController {
   // Returns supplier options for select dropdowns, only those enrolled at one of the legal entity's sites when `enrolledAtSiteId` is given
   @Get('suppliers')
   @ApiSuppliersSelect()
-  selectSuppliers(
-    @Query() query: SuppliersSelectQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SelectQueryResult> {
+  selectSuppliers(@Query() query: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/select-api/suppliers');
-    return this.service.selectSuppliers(query, legalEntityId);
+    return this.service.selectSuppliers(query);
   }
 
   // Returns the options of the suppliers enrolled at the site for select dropdowns

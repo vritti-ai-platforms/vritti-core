@@ -26,6 +26,7 @@ function purchasing(overrides: Partial<UpdateEnrollmentPurchasingDto> = {}): Upd
 function setup() {
   const updatePurchasing = jest.fn().mockResolvedValue({ success: true, message: 'Purchasing settings updated.' });
   const repository = {
+    isAtSite: jest.fn((id: string, siteId?: string) => Promise.resolve(siteLocations[id]?.siteId === siteId)),
     findById: jest.fn((id: string) => Promise.resolve(siteLocations[id])),
   } as unknown as LocationsDomainRepository;
   const service = new LeSupplierEnrollmentsService(

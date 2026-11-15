@@ -1,6 +1,5 @@
 import { PaymentTermRulesDomainService } from '@domain/payment-term-rules/services/payment-term-rules.service';
 import { PaymentTermsDomainService } from '@domain/payment-terms/services/payment-terms.service';
-import { PurchaseEventActionValues } from '@domain/purchase-events/dto/entity/purchase-event.dto';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
@@ -22,9 +21,8 @@ import { PurchaseProgressService } from '@/modules/site/purchase-progress/servic
 import { SupplierInvoiceRecostingService } from './supplier-invoice-recosting.service';
 
 export interface SupplierInvoiceSite {
-  siteId: string;
+  siteId?: string;
   leCurrencyCode: string;
-  createdBy: string | null;
 }
 
 @Injectable()
@@ -56,7 +54,7 @@ export class SupplierInvoicesService {
     const paymentTerm = await this.paymentTermsService.findByIdOrThrow(enrollment.paymentTermId);
     const dueDate = await this.paymentTermRulesService.findFinalDueDate(paymentTerm, dto.invoiceDate);
 
-    this.logger.log(`supplierInvoices.create — supplier: ${supplier.id}, site: ${site.siteId}, due: ${dueDate}`);
+    this.logger.log(`supplierInvoices.create — supplier: ${supplier.id}, site: ${enrollment.siteId}, due: ${dueDate}`);
     return this.invoicesService.create(dto, {
       siteId: site.siteId,
       leCurrencyCode: site.leCurrencyCode,
@@ -64,7 +62,6 @@ export class SupplierInvoicesService {
       supplierCurrencyCodes: supplier.currencyCodes,
       paymentTermId: paymentTerm.id,
       dueDate,
-      createdBy: site.createdBy,
     });
   }
 
@@ -96,11 +93,7 @@ export class SupplierInvoicesService {
     await this.invoicesService.assertPostable(invoice, leCurrencyCode);
     await this.database.runInTransaction(async () => {
       await this.postDraft(invoice, leCurrencyCode, postedBy);
-      await this.purchaseProgressService.notifyInvoice(
-        invoice,
-        PurchaseEventActionValues.POST_SUPPLIER_INVOICE,
-        postedBy,
-      );
+      await this.purchaseProgressService.notifyInvoice(invoice);
     });
     return { success: true, message: `Invoice "${invoice.invoiceNumber}" posted.` };
   }
@@ -116,7 +109,7 @@ export class SupplierInvoicesService {
 
   // Cancels a draft or posted invoice; a posted one's PO line invoiced counters, costing and charges are reversed, and the
   // purchases it invoices are told, in one transaction
-  async cancel(id: string, leCurrencyCode: string, actorId: string | null): Promise<SuccessResponseDto> {
+  async cancel(id: string, leCurrencyCode: string): Promise<SuccessResponseDto> {
     const invoice = await this.invoicesService.findEditableOrThrow(id);
     this.assertNotReceiveWithInvoiceDraft(invoice);
     await this.database.runInTransaction(async () => {
@@ -125,11 +118,7 @@ export class SupplierInvoicesService {
         await this.recostingService.revalue(invoice, leCurrencyCode, 'reverse');
       }
       await this.invoicesService.cancel(invoice);
-      await this.purchaseProgressService.notifyInvoice(
-        invoice,
-        PurchaseEventActionValues.CANCEL_SUPPLIER_INVOICE,
-        actorId,
-      );
+      await this.purchaseProgressService.notifyInvoice(invoice);
     });
     return { success: true, message: `Invoice "${invoice.invoiceNumber}" cancelled.` };
   }

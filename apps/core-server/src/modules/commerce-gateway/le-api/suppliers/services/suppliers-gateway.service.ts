@@ -69,12 +69,10 @@ export class SuppliersGatewayService {
     return this.nats.send('commerce', 'le.suppliers.addItem', { supplierId, ...dto });
   }
 
-  // Enrolls the supplier at one of the LE's sites after validating the site belongs to the session legal entity
+  // Enrolls the supplier at one of the LE's sites
   async createEnrollment(
     supplierId: string,
     dto: CreateSupplierEnrollmentDto,
-    orgId: string,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
     if (!dto.siteId) {
       throw new BadRequestException({
@@ -83,19 +81,15 @@ export class SuppliersGatewayService {
         errors: [{ field: 'siteId', message: 'Site is required' }],
       });
     }
-    await this.validateSiteInSessionLe(orgId, legalEntityId, dto.siteId);
     this.logger.log(`le.suppliers.enrollments.create — supplierId: ${supplierId}, siteId: ${dto.siteId}`);
     return this.nats.send('commerce', 'le.suppliers.enrollments.create', { ...dto, supplierId });
   }
 
-  // Sets a supplier item up at a site after validating the site belongs to the session legal entity
-  async createSiteItem(
+  // Sets a supplier item up at one of the LE's sites
+  createSiteItem(
     supplierItemId: string,
     dto: AddSupplierSiteItemDto,
-    orgId: string,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<SupplierSiteItemResponseDto>> {
-    await this.validateSiteInSessionLe(orgId, legalEntityId, dto.siteId);
     this.logger.log(`le.suppliers.siteItems.create — supplierItemId: ${supplierItemId}, siteId: ${dto.siteId}`);
     return this.nats.send('commerce', 'le.suppliers.siteItems.create', { supplierItemId, ...dto });
   }
@@ -468,22 +462,6 @@ export class SuppliersGatewayService {
     if (!purchasing) return null;
     const names = await this.userService.findNamesByIds(orgId, purchasing.approverUserIds);
     return { ...purchasing, approverNames: purchasing.approverUserIds.flatMap((id) => names.get(id) ?? []) };
-  }
-
-  // Rejects site picks outside the session legal entity
-  private async validateSiteInSessionLe(
-    orgId: string,
-    legalEntityId: string | undefined,
-    siteId: string,
-  ): Promise<void> {
-    const leId = SuppliersGatewayService.requireLegalEntity(legalEntityId);
-    const [site] = await this.siteService.findByIds(orgId, [siteId]);
-    if (!site || site.legalEntityId !== leId) {
-      throw new BadRequestException({
-        label: 'Invalid Site',
-        detail: 'The selected site does not belong to this legal entity.',
-      });
-    }
   }
 
   // Returns the session legal entity, rejecting requests made outside a legal entity workspace

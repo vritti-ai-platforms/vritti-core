@@ -3,6 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { and, asc, eq, getColumns, gt, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
+  currentSiteId,
   goodsReceiptLines,
   inventoryItemLocations,
   inventoryItemQuants,
@@ -52,6 +53,11 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
   }
 
   // Returns total storage location count (independent of tree search/filter)
+  // Returns true when the location belongs to the named site, else to the request's site
+  isAtSite(locationId: string, siteId?: string): Promise<boolean> {
+    return this.exists(and(eq(locations.id, locationId), eq(locations.siteId, siteId ?? currentSiteId())) as SQL);
+  }
+
   async countAll(): Promise<number> {
     const [result] = await this.db.select({ count: sql<number>`count(*)` }).from(locations);
     return Number(result?.count ?? 0);

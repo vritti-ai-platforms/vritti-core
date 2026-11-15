@@ -26,8 +26,8 @@ export class StockTransfersDomainService {
       fromSiteId: data.fromSiteId,
       toSiteId: data.toSiteId,
       quantity: data.quantity,
-      requestedBy: data.requestedBy ?? null,
-      notes: data.notes ?? null,
+      requestedBy: data.requestedBy,
+      notes: data.notes,
     });
 
     this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromSiteId}, to: ${data.toSiteId})`);

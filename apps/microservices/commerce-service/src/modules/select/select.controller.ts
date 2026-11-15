@@ -333,18 +333,10 @@ export class SelectController {
 
   // Returns paginated supplier item options for the select component
   @MessagePattern({ cmd: 'select.supplierItems' })
-  async supplierItems(
-    @Payload() data: SupplierItemsSelectQueryDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SelectQueryResult> {
+  async supplierItems(@Payload() data: SupplierItemsSelectQueryDto): Promise<SelectQueryResult> {
     const { supplierId, purchaseOrderId, excludeOnGoodsReceiptId, ...query } = data;
     this.logger.log(`select.supplierItems — supplierId: ${supplierId ?? 'all'}`);
-    return this.supplierItemsService.findForSelect(query, {
-      supplierId,
-      siteId: headers.siteId || null,
-      purchaseOrderId,
-      excludeOnGoodsReceiptId,
-    });
+    return this.supplierItemsService.findForSelect(query, { supplierId, purchaseOrderId, excludeOnGoodsReceiptId });
   }
 
   // Returns paginated supplier options for the select component, only those enrolled at a site with enrolledAtSiteId

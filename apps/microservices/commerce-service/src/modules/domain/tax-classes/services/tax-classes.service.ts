@@ -39,7 +39,7 @@ export class TaxClassesDomainService {
     const entity = await this.repository.create({
       code: data.code,
       name: data.name,
-      isActive: data.isActive ?? true,
+      isActive: data.isActive,
       isSystem: false,
     });
 

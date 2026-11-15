@@ -5,11 +5,6 @@ import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/se
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { PaymentTermRulesDomainService } from '@domain/payment-term-rules/services/payment-term-rules.service';
 import { PaymentTermsDomainService } from '@domain/payment-terms/services/payment-terms.service';
-import {
-  type PurchaseEventAction,
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
 import type { AllocationWithLegRow } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
@@ -67,7 +62,7 @@ import {
 } from './receive-with-invoice-documents.service';
 
 export interface ReceiveWithInvoiceSite extends PurchaseSiteContext {
-  siteId: string;
+  siteId?: string;
 }
 
 @Injectable()
@@ -102,16 +97,14 @@ export class PurchasesReceiveWithInvoicesService {
   async create(
     dto: ReceiveWithInvoiceDto,
     site: ReceiveWithInvoiceSite,
-    headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ supplierInvoiceId: string }>> {
     const plans = await this.planReceiveWithInvoice(dto, site);
     const invoiceId = await this.database.runInTransaction(async () => {
       const { data: invoice } = await this.supplierInvoicesService.create(this.invoiceHeaderOf(dto), {
         siteId: site.siteId,
         leCurrencyCode: site.leCurrencyCode,
-        createdBy: headers.userId || null,
       });
-      await this.buildDocuments(invoice, dto, plans, site.leCurrencyCode, headers);
+      await this.buildDocuments(invoice, dto, plans, site.leCurrencyCode);
       return invoice.id;
     });
     this.logger.log(`purchases.receiveWithInvoices.create — ${dto.invoiceNumber}, purchases: ${plans.length}`);
@@ -124,11 +117,7 @@ export class PurchasesReceiveWithInvoicesService {
 
   // Replaces a draft Receive with Invoice: its header changes and its receipts, deliveries and invoice lines are drafted again
   // from the invoice, in one transaction; the supplier and currency stay
-  async update(
-    dto: UpdateReceiveWithInvoiceDto,
-    site: PurchaseSiteContext,
-    headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  async update(dto: UpdateReceiveWithInvoiceDto, site: PurchaseSiteContext): Promise<SuccessResponseDto> {
     const invoice = await this.findDraftReceiveWithInvoiceOrThrow(dto.invoiceId);
     this.assertSameSupplierAndCurrency(invoice, dto);
     const documents = await this.invoiceDocumentsService.findDocuments(invoice.id);
@@ -153,13 +142,7 @@ export class PurchasesReceiveWithInvoicesService {
     await this.database.runInTransaction(async () => {
       await this.invoiceDocumentsService.remove(invoice, documents, true);
       await this.invoicesService.update(invoice, header, dueDate);
-      await this.buildDocuments(
-        { ...invoice, invoiceNumber: dto.invoiceNumber },
-        dto,
-        plans,
-        site.leCurrencyCode,
-        headers,
-      );
+      await this.buildDocuments({ ...invoice, invoiceNumber: dto.invoiceNumber }, dto, plans, site.leCurrencyCode);
       for (const leg of [...directLegs, ...plans.map((plan) => plan.leg)]) {
         await this.invoiceDocumentsService.removeEmptyOrders(leg);
       }
@@ -185,7 +168,7 @@ export class PurchasesReceiveWithInvoicesService {
         const posted = await this.invoicesService.findDraftOrThrow(invoice.id, 'post');
         await this.invoicesService.assertPostable(posted, leCurrencyCode);
         await this.supplierInvoicesService.postDraft(posted, leCurrencyCode, actorId);
-        await this.notifyPurchases(invoice, PurchaseEventActionValues.POST_RECEIVE_WITH_INVOICE, actorId);
+        await this.progressService.notifyInvoice(invoice);
       }),
     );
     this.logger.log(`purchases.receiveWithInvoices.post — ${invoice.invoiceNumber}, receipts: ${receipts.length}`);
@@ -237,7 +220,7 @@ export class PurchasesReceiveWithInvoicesService {
   // received less what other draft invoices carry (the excluded invoice's own lines count as open)
   async findOpenLines(
     query: ReceiveWithInvoiceOpenLinesQueryDto,
-    siteId: string,
+    siteId?: string,
   ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
     const allocations = (
       await this.allocationsService.findWithLegs({
@@ -267,18 +250,14 @@ export class PurchasesReceiveWithInvoicesService {
 
   // Discards a draft Receive with Invoice: its invoice, draft receipts and the deliveries created behind them, and a direct
   // purchase's PO it created once nothing else of it remains, in one transaction
-  async discard(invoiceId: string, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  async discard(invoiceId: string): Promise<SuccessResponseDto> {
     const invoice = await this.findDraftReceiveWithInvoiceOrThrow(invoiceId);
     const documents = await this.invoiceDocumentsService.findDocuments(invoice.id);
     const legs = await this.findLegsOf(invoice);
     await this.database.runInTransaction(async () => {
       await this.invoiceDocumentsService.remove(invoice, documents, false);
       for (const leg of legs) await this.invoiceDocumentsService.removeEmptyOrders(leg);
-      await this.notifyPurchases(
-        invoice,
-        PurchaseEventActionValues.DISCARD_RECEIVE_WITH_INVOICE,
-        headers.userId || null,
-      );
+      await this.progressService.notifyInvoice(invoice);
     });
     this.logger.log(`purchases.receiveWithInvoices.discard — ${invoice.invoiceNumber}`);
     return { success: true, message: `Invoice "${invoice.invoiceNumber}" discarded.` };
@@ -340,31 +319,19 @@ export class PurchasesReceiveWithInvoicesService {
     return plans;
   }
 
-  // Drafts each purchase's documents of an invoice, computes the invoice's holds and records the invoice on every purchase it
-  // touches, in the caller's transaction
+  // Drafts each purchase's documents of an invoice, computes the invoice's holds and re-derives the leg of every purchase
+  // it touches, in the caller's transaction
   private async buildDocuments(
     invoice: InvoiceForLines,
     dto: ReceiveWithInvoiceDto,
     plans: ReceiveWithInvoicePurchasePlan[],
     leCurrencyCode: string,
-    headers: NatsHeaders,
   ): Promise<void> {
     for (const [index, plan] of plans.entries()) {
       await this.invoiceDocumentsService.build(invoice, dto, plan, index === 0, leCurrencyCode);
     }
     await this.holdsService.sync(invoice.id, leCurrencyCode);
-    for (const plan of plans) {
-      await this.progressService.recordLegEvent(
-        plan.purchase,
-        plan.leg,
-        {
-          action: PurchaseEventActionValues.CREATE_RECEIVE_WITH_INVOICE,
-          documentType: PurchaseEventDocumentTypeValues.SUPPLIER_INVOICE,
-          documentId: invoice.id,
-        },
-        headers.userId || null,
-      );
-    }
+    for (const plan of plans) await this.progressService.syncLegStep(plan.purchase, plan.leg);
   }
 
   // Checks one invoice line against the allocation it receives and works out its batch and location
@@ -468,10 +435,10 @@ export class PurchasesReceiveWithInvoicesService {
   }
 
   // Rejects a default or line location that is not the site's
-  private async assertLocationsAtSite(dto: ReceiveWithInvoiceDto, siteId: string): Promise<void> {
-    await this.locationsService.assertAtSite(siteId, dto.defaultLocationId, 'defaultLocationId');
+  private async assertLocationsAtSite(dto: ReceiveWithInvoiceDto, siteId?: string): Promise<void> {
+    await this.locationsService.assertAtSite(dto.defaultLocationId, 'defaultLocationId', siteId);
     const lineLocationIds = _.uniq(dto.lines.flatMap((line) => (line.locationId ? [line.locationId] : [])));
-    for (const locationId of lineLocationIds) await this.locationsService.assertAtSite(siteId, locationId, 'lines');
+    for (const locationId of lineLocationIds) await this.locationsService.assertAtSite(locationId, 'lines', siteId);
   }
 
   // Rejects changing the supplier or currency of a drafted invoice; a different one is a new invoice
@@ -517,22 +484,6 @@ export class PurchasesReceiveWithInvoicesService {
     const lines: GoodsReceiptLineRow[] = [];
     for (const itemId of itemIds) lines.push(...(await this.receiptLinesService.findLinesOfItem(itemId)));
     return lines;
-  }
-
-  // Records an invoice event on every purchase it touches and re-derives their legs, in the caller's transaction
-  private async notifyPurchases(
-    invoice: SupplierInvoiceRow,
-    action: PurchaseEventAction,
-    actorId: string | null,
-  ): Promise<void> {
-    for (const purchase of invoice.purchases) {
-      await this.progressService.notifyDocument(
-        purchase.id,
-        invoice.supplierId,
-        { action, documentType: PurchaseEventDocumentTypeValues.SUPPLIER_INVOICE, documentId: invoice.id },
-        actorId,
-      );
-    }
   }
 
   // Loads a Receive with Invoice, throwing when the invoice is out of reach, cancelled or not received with its invoice

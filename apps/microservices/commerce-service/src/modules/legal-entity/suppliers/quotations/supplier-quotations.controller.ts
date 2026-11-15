@@ -21,12 +21,9 @@ export class SupplierQuotationsController {
   constructor(private readonly service: LeSupplierQuotationsService) {}
 
   @MessagePattern({ cmd: 'le.suppliers.quotations.create' })
-  create(
-    @Payload() dto: CreateSupplierQuotationDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<SupplierQuotationDto>> {
+  create(@Payload() dto: CreateSupplierQuotationDto): Promise<CreateResponseDto<SupplierQuotationDto>> {
     this.logger.log(`suppliers.quotations.create — supplierId: ${dto.supplierId}`);
-    return this.service.create(dto, headers.userId || null);
+    return this.service.create(dto);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.quotations.items.add' })

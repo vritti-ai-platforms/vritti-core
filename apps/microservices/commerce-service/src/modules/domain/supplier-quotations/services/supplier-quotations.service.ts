@@ -34,11 +34,7 @@ export class SupplierQuotationsDomainService {
   constructor(private readonly repository: SupplierQuotationsDomainRepository) {}
 
   // Records a draft quotation in a currency the caller has checked is one of the supplier's
-  async create(
-    data: CreateSupplierQuotationDto,
-    currencyCode: string,
-    createdBy: string | null,
-  ): Promise<SupplierQuotationDto> {
+  async create(data: CreateSupplierQuotationDto, currencyCode: string): Promise<SupplierQuotationDto> {
     SupplierQuotationsDomainService.assertValidity(data.validFrom, data.validTo ?? null);
     await this.assertNumberFree(data.supplierId, data.quotationNumber);
     const entity = await this.repository.create({
@@ -47,9 +43,8 @@ export class SupplierQuotationsDomainService {
       quotationDate: data.quotationDate,
       currencyCode,
       validFrom: data.validFrom,
-      validTo: data.validTo ?? null,
-      note: data.note ?? null,
-      createdBy,
+      validTo: data.validTo,
+      note: data.note,
     });
     this.logger.log(`Created supplier quotation ${entity.quotationNumber} (${entity.id})`);
     return SupplierQuotationDto.from({ ...entity, itemCount: 0, siteCount: 0 });
@@ -57,10 +52,7 @@ export class SupplierQuotationsDomainService {
 
   // Records a draft quotation the legal entity owns for a purchase, one unpriced line per purchase item, numbered after the
   // purchase; the caller runs it in the legal entity's workspace, which RLS requires for an LE-owned row
-  async createDraftForPurchase(
-    input: CreatePurchaseQuotationDraftDto,
-    createdBy: string | null,
-  ): Promise<{ quotationId: string }> {
+  async createDraftForPurchase(input: CreatePurchaseQuotationDraftDto): Promise<{ quotationId: string }> {
     if (input.lines.length === 0) {
       throw new BadRequestException({
         label: 'No Items',
@@ -80,7 +72,6 @@ export class SupplierQuotationsDomainService {
         quotationDate: input.validFrom,
         currencyCode: input.currencyCode,
         validFrom: input.validFrom,
-        createdBy,
       });
       await this.repository.insertItems(
         input.lines.map((line) => ({
@@ -170,7 +161,8 @@ export class SupplierQuotationsDomainService {
     return this.repository.insertSite({ quotationId, siteId, postedBy });
   }
 
-  // Returns a supplier's quotations for the data table, or only those posted to one site
+  // Returns a supplier's quotations for the data table: only those posted to the named site, else in a site workspace
+  // only those posted to the request's site, else every one
   async findForSupplierTable(
     supplierId: string,
     state: TableState,
@@ -199,7 +191,11 @@ export class SupplierQuotationsDomainService {
   }
 
   // Returns a supplier's quotation with its lines and sites, only when it is posted to the given site
-  async findDetailAtSite(supplierId: string, quotationId: string, siteId: string): Promise<SupplierQuotationDetailDto> {
+  async findDetailAtSite(
+    supplierId: string,
+    quotationId: string,
+    siteId?: string,
+  ): Promise<SupplierQuotationDetailDto> {
     const quotation = await this.repository.findPostedToSite(supplierId, quotationId, siteId);
     if (!quotation) throw new NotFoundException('Quotation not found.');
     const [items, sites] = await Promise.all([
@@ -256,11 +252,6 @@ export class SupplierQuotationsDomainService {
   // Counts the quotations the purchase requested that the workspace can read, drafts included
   countForPurchase(purchaseId: string): Promise<number> {
     return this.repository.countForPurchase(purchaseId);
-  }
-
-  // Returns whether the purchase requested any quotation the workspace can read, drafts included
-  hasForPurchase(purchaseId: string): Promise<boolean> {
-    return this.repository.existsForPurchase(purchaseId);
   }
 
   async requireItem(quotationId: string, itemId: string): Promise<SupplierQuotationItem> {

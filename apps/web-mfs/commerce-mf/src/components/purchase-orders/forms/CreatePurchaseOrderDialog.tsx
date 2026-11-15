@@ -31,23 +31,31 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
 }) => {
   const SupplierSelector = binding.suppliers.Selector;
   const leCurrencyCode = useWorkspaceCurrency();
-  const timeZone = useWorkspaceTimeZone();
   const schema = useMemo(
     () => buildCreatePurchaseOrderSchema({ requiresSite: binding.spansSites }),
     [binding.spansSites],
   );
-  const today = isoTodayDate(timeZone);
+  const initialToday = isoTodayDate(useWorkspaceTimeZone());
   const form = useForm<CreatePurchaseOrderFormData>({
     resolver: zodResolver(schema),
-    defaultValues: { exchangeRate: 1, orderDate: today, taxDate: today, notes: '' },
+    defaultValues: { exchangeRate: 1, orderDate: initialToday, taxDate: initialToday, notes: '' },
   });
   const createMutation = binding.useCreate({ onSuccess });
 
   const [supplierCurrencies, setSupplierCurrencies] = useState<string[]>([]);
   const supplierId = useWatch({ control: form.control, name: 'supplierId' });
+  const siteId = useWatch({ control: form.control, name: 'siteId' });
+  const today = isoTodayDate(useWorkspaceTimeZone(siteId));
   const currencyCode = useWatch({ control: form.control, name: 'currencyCode' });
   const orderDate = useWatch({ control: form.control, name: 'orderDate' });
   const needsExchangeRate = !!currencyCode && currencyCode !== leCurrencyCode;
+
+  // Today is the picked site's day; the dates follow it until edited
+  useEffect(() => {
+    if (form.getFieldState('orderDate').isDirty) return;
+    form.resetField('orderDate', { defaultValue: today });
+    if (!form.getFieldState('taxDate').isDirty) form.resetField('taxDate', { defaultValue: today });
+  }, [today, form]);
 
   // The tax date follows the order date until it is picked
   useEffect(() => {

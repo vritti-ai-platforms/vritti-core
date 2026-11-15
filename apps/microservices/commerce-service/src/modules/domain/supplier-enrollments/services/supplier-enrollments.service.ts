@@ -60,8 +60,8 @@ export class SupplierEnrollmentsDomainService {
   ) {}
 
   // Enrolls a supplier at a site, optionally under one of its GSTIN/VAT registrations, validating every pick
-  async create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
-    const { supplierId, siteId, ...picks } = dto;
+  async create(dto: CreateSupplierEnrollmentDto, siteId?: string): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+    const { supplierId, ...picks } = dto;
     const supplier = await this.findSupplierOrThrow(supplierId);
     await this.repository.assertPicksUsable(supplier.partyId, picks);
     await this.repository.assertNotEnrolled(supplierId, siteId);
@@ -78,7 +78,7 @@ export class SupplierEnrollmentsDomainService {
       isActive: picks.isActive,
     });
     const created = await this.repository.findByIdWithPicksOrThrow(entity.id);
-    this.logger.log(`Enrolled supplier ${supplierId} at site ${siteId}`);
+    this.logger.log(`Enrolled supplier ${supplierId} at site ${entity.siteId}`);
     return {
       success: true,
       message: 'Supplier enrolled for this site.',
@@ -87,15 +87,15 @@ export class SupplierEnrollmentsDomainService {
   }
 
   // Updates an enrollment's payment term, registration, bank account and order-contact picks
-  async update(dto: UpdateSupplierEnrollmentDto): Promise<SuccessResponseDto> {
-    const { supplierId, siteId, ...data } = dto;
+  async update(dto: UpdateSupplierEnrollmentDto, siteId?: string): Promise<SuccessResponseDto> {
+    const { supplierId, ...data } = dto;
     const enrollment = await this.findBySupplierAndSiteOrThrow(supplierId, siteId);
     const supplier = await this.findSupplierOrThrow(supplierId);
     await this.repository.assertPicksUsable(supplier.partyId, data);
     if (Object.keys(data).length > 0) {
       await this.repository.update(enrollment.id, data);
     }
-    this.logger.log(`Updated enrollment of supplier ${supplierId} at site ${siteId}`);
+    this.logger.log(`Updated enrollment of supplier ${supplierId} at site ${enrollment.siteId}`);
     return { success: true, message: 'Enrollment updated successfully.' };
   }
 
@@ -143,10 +143,10 @@ export class SupplierEnrollmentsDomainService {
   }
 
   // Activates or deactivates the supplier's own enrollment at a site; the supplier-wide flag is untouched
-  async setActive(dto: SetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
-    const enrollment = await this.findBySupplierAndSiteOrThrow(dto.supplierId, dto.siteId);
+  async setActive(dto: SetSupplierEnrollmentActiveDto, siteId?: string): Promise<SuccessResponseDto> {
+    const enrollment = await this.findBySupplierAndSiteOrThrow(dto.supplierId, siteId);
     await this.repository.update(enrollment.id, { isActive: dto.isActive });
-    this.logger.log(`Set supplier ${dto.supplierId} active=${dto.isActive} at site ${dto.siteId}`);
+    this.logger.log(`Set supplier ${dto.supplierId} active=${dto.isActive} at site ${enrollment.siteId}`);
     return { success: true, message: `Enrollment ${dto.isActive ? 'activated' : 'deactivated'} at this site.` };
   }
 
@@ -154,31 +154,35 @@ export class SupplierEnrollmentsDomainService {
   // enrolled here so their enrollment stays visible
   async findForSiteTable(
     legalEntityId: string,
-    siteId: string,
     state: TableState,
+    siteId?: string,
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     const { limit = 20, offset = 0 } = state.pagination;
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
       ...SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP,
       ...SupplierEnrollmentsDomainService.FILTER_FIELD_MAP,
     });
-    const { result, count } = await this.siteSuppliersRepository.findForSiteTable(legalEntityId, siteId, {
-      where: and(
-        or(eq(suppliers.isActive, true), isNotNull(supplierEnrollments.id)),
-        FilterProcessor.buildWhere(state.filters, SupplierEnrollmentsDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [isNull(supplierEnrollments.id), asc(parties.displayName)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => SupplierEnrollmentRowDto.from(row, siteId)), count };
+    const { result, count } = await this.siteSuppliersRepository.findForSiteTable(
+      legalEntityId,
+      {
+        where: and(
+          or(eq(suppliers.isActive, true), isNotNull(supplierEnrollments.id)),
+          FilterProcessor.buildWhere(state.filters, SupplierEnrollmentsDomainService.FILTER_FIELD_MAP),
+          FilterProcessor.buildSearch(state.search, SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP),
+        ),
+        orderBy: orderBy.length > 0 ? orderBy : [isNull(supplierEnrollments.id), asc(parties.displayName)],
+        limit,
+        offset,
+      },
+      siteId,
+    );
+    return { result: result.map(SupplierEnrollmentRowDto.from), count };
   }
 
   // Returns a supplier's enrollment at a site with its commercial identity, enrolled or not
-  async findDetail(legalEntityId: string, siteId: string, supplierId: string): Promise<SupplierEnrollmentDetailDto> {
-    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
-    return SupplierEnrollmentDetailDto.fromDetail(row, siteId);
+  async findDetail(legalEntityId: string, supplierId: string, siteId?: string): Promise<SupplierEnrollmentDetailDto> {
+    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, supplierId, siteId);
+    return SupplierEnrollmentDetailDto.fromDetail(row);
   }
 
   // Returns every enrollment of a supplier; the gateway merges them into the legal entity's site list
@@ -195,10 +199,10 @@ export class SupplierEnrollmentsDomainService {
   // Returns supplier options for a site picker with each supplier's enrollment status at the site
   findSuppliersForSelect(
     legalEntityId: string,
-    siteId: string,
     query: SupplierEnrollmentSelectQueryDto,
+    siteId?: string,
   ): Promise<SelectQueryResult> {
-    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, siteId, query);
+    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, query, siteId);
   }
 
   // Returns the sites a supplier (or any supplier of an inventory item) is enrolled at, only the active enrollments with
@@ -214,11 +218,10 @@ export class SupplierEnrollmentsDomainService {
     supplierId: string,
     leCurrencyCode: string,
   ): Promise<SupplierEnrollmentPurchasingDetailDto> {
-    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
+    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, supplierId, siteId);
     const purchasing = row.id ? await this.repository.findPurchasing(row.id) : undefined;
     return SupplierEnrollmentPurchasingDetailDto.fromPurchasing(
       row,
-      siteId,
       purchasing ? EnrollmentPurchasingDto.from(purchasing, leCurrencyCode) : null,
     );
   }
@@ -240,14 +243,14 @@ export class SupplierEnrollmentsDomainService {
   }
 
   // Loads the supplier's enrollment at a site, throwing when the supplier is not enrolled there
-  async findBySupplierAndSiteOrThrow(supplierId: string, siteId: string): Promise<SupplierEnrollment> {
+  async findBySupplierAndSiteOrThrow(supplierId: string, siteId?: string): Promise<SupplierEnrollment> {
     const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
     if (!enrollment) throw new NotFoundException('Supplier is not enrolled for this site.');
     return enrollment;
   }
 
   // Rejects buying from a supplier that is not enrolled, not active or purchasing-blocked at the site
-  async assertPurchasable(supplierId: string, siteId: string): Promise<void> {
+  async assertPurchasable(supplierId: string, siteId?: string): Promise<void> {
     const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
     if (!enrollment) {
       throw new BadRequestException({
@@ -270,10 +273,10 @@ export class SupplierEnrollmentsDomainService {
   }
 
   // Removes the supplier's enrollment at a site and its site picks
-  async delete(supplierId: string, siteId: string): Promise<SuccessResponseDto> {
+  async delete(supplierId: string, siteId?: string): Promise<SuccessResponseDto> {
     const enrollment = await this.findBySupplierAndSiteOrThrow(supplierId, siteId);
     await this.repository.delete(enrollment.id);
-    this.logger.log(`Unenrolled supplier ${supplierId} from site ${siteId}`);
+    this.logger.log(`Unenrolled supplier ${supplierId} from site ${enrollment.siteId}`);
     return { success: true, message: 'Supplier unenrolled from this site.' };
   }
 

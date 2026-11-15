@@ -5,9 +5,6 @@ export class CreateSupplierEnrollmentDto {
   supplierId: string;
 
   @IsUUID('7')
-  siteId: string;
-
-  @IsUUID('7')
   paymentTermId: string;
 
   @IsOptional()

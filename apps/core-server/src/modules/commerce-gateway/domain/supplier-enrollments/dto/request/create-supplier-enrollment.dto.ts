@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class CreateSupplierEnrollmentDto {
   @ApiPropertyOptional({
@@ -15,6 +16,7 @@ export class CreateSupplierEnrollmentDto {
   })
   @IsOptional()
   @IsUUID('7')
+  @IsLeSite()
   siteId?: string;
 
   @ApiProperty({ description: 'Payment term this site buys from the supplier on' })

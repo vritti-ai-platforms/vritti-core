@@ -17,6 +17,6 @@ export class SupplierEnrollmentSiteItemsController {
   ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
     const { supplierId, siteId, ...state } = data;
     this.logger.log(`le.suppliers.enrollments.siteItems.table — supplierId: ${supplierId}, siteId: ${siteId}`);
-    return this.service.findSiteItemsAtSiteForTable(supplierId, siteId, state);
+    return this.service.findSiteItemsAtSiteForTable(supplierId, state, siteId);
   }
 }

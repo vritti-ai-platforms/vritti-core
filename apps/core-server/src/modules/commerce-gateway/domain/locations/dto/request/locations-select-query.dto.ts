@@ -2,6 +2,7 @@ import { LocationRoleValues } from '@commerce/locations/constants/location-role.
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 const LOCATION_ROLE_VALUES = Object.values(LocationRoleValues);
 const LOCATION_ROLES_CSV_REGEX = new RegExp(
@@ -47,5 +48,6 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: "Only the locations of this one of the legal entity's sites" })
   @IsOptional()
   @IsUUID('7')
+  @IsLeSite()
   atSiteId?: string;
 }

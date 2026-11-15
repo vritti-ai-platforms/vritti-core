@@ -11,7 +11,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { TransportAwareExceptionFilter } from '@vritti/api-sdk/filters';
 import { CorrelationIdMiddleware, HttpLoggerInterceptor, LoggerService } from '@vritti/api-sdk/logger';
-import type { ValidationError } from 'class-validator';
+import { useContainer, type ValidationError } from 'class-validator';
 import fastifyRawBody from 'fastify-raw-body';
 import { AppModule } from './app.module';
 
@@ -156,6 +156,9 @@ async function bootstrap() {
   // Register HTTP logger interceptor for request/response logging
   const httpLoggerInterceptor = app.get(HttpLoggerInterceptor);
   app.useGlobalInterceptors(httpLoggerInterceptor);
+
+  // Resolve custom validator constraints through Nest's DI, falling back to class-validator for plain ones
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   // Enable global validation pipe
   app.useGlobalPipes(

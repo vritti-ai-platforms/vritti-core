@@ -35,7 +35,7 @@ export const CreateLegPurchaseOrderDialog: React.FC<CreateLegPurchaseOrderDialog
   onCancel,
 }) => {
   const leCurrencyCode = useWorkspaceCurrency();
-  const timeZone = useWorkspaceTimeZone();
+  const timeZone = useWorkspaceTimeZone(purchase.siteId);
   const foreignCurrencies = uniq(
     leg.allocations
       .filter((allocation) => allocation.isPriced)

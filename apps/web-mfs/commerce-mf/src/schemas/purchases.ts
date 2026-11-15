@@ -97,59 +97,6 @@ export const PurchaseLegActionValues = {
 } as const;
 export type PurchaseLegAction = (typeof PurchaseLegActionValues)[keyof typeof PurchaseLegActionValues];
 
-export const PurchaseEventActionValues = {
-  CREATE: 'CREATE',
-  UPDATE: 'UPDATE',
-  CANCEL: 'CANCEL',
-  ADD_ITEM: 'ADD_ITEM',
-  UPDATE_ITEM: 'UPDATE_ITEM',
-  REMOVE_ITEM: 'REMOVE_ITEM',
-  SUBMIT_ITEMS: 'SUBMIT_ITEMS',
-  REQUEST_QUOTATION: 'REQUEST_QUOTATION',
-  COMPLETE_QUOTATIONS: 'COMPLETE_QUOTATIONS',
-  ADD_ALLOCATION: 'ADD_ALLOCATION',
-  UPDATE_ALLOCATION: 'UPDATE_ALLOCATION',
-  REMOVE_ALLOCATION: 'REMOVE_ALLOCATION',
-  SUBMIT: 'SUBMIT',
-  SUBMIT_SUPPLIER: 'SUBMIT_SUPPLIER',
-  APPROVE: 'APPROVE',
-  REJECT: 'REJECT',
-  CREATE_PURCHASE_ORDER: 'CREATE_PURCHASE_ORDER',
-  CONFIRM_PURCHASE_ORDER: 'CONFIRM_PURCHASE_ORDER',
-  CREATE_INBOUND_DELIVERY: 'CREATE_INBOUND_DELIVERY',
-  CREATE_GOODS_RECEIPT: 'CREATE_GOODS_RECEIPT',
-  POST_GOODS_RECEIPT: 'POST_GOODS_RECEIPT',
-  CREATE_SUPPLIER_INVOICE: 'CREATE_SUPPLIER_INVOICE',
-  POST_SUPPLIER_INVOICE: 'POST_SUPPLIER_INVOICE',
-  CANCEL_SUPPLIER_INVOICE: 'CANCEL_SUPPLIER_INVOICE',
-  CREATE_RECEIVE_WITH_INVOICE: 'CREATE_RECEIVE_WITH_INVOICE',
-  POST_RECEIVE_WITH_INVOICE: 'POST_RECEIVE_WITH_INVOICE',
-  DISCARD_RECEIVE_WITH_INVOICE: 'DISCARD_RECEIVE_WITH_INVOICE',
-  CLOSE_SUPPLIER: 'CLOSE_SUPPLIER',
-  COMPLETE: 'COMPLETE',
-} as const;
-export type PurchaseEventAction = (typeof PurchaseEventActionValues)[keyof typeof PurchaseEventActionValues];
-
-export const PurchaseEventKindValues = {
-  STAGE: 'STAGE',
-  ITEMS: 'ITEMS',
-  QUOTATIONS: 'QUOTATIONS',
-  SOURCING: 'SOURCING',
-  PROCURING: 'PROCURING',
-  INVOICES: 'INVOICES',
-} as const;
-export type PurchaseEventKind = (typeof PurchaseEventKindValues)[keyof typeof PurchaseEventKindValues];
-
-export const PurchaseEventDocumentTypeValues = {
-  SUPPLIER_QUOTATION: 'SUPPLIER_QUOTATION',
-  PURCHASE_ORDER: 'PURCHASE_ORDER',
-  INBOUND_DELIVERY: 'INBOUND_DELIVERY',
-  GOODS_RECEIPT: 'GOODS_RECEIPT',
-  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE',
-} as const;
-export type PurchaseEventDocumentType =
-  (typeof PurchaseEventDocumentTypeValues)[keyof typeof PurchaseEventDocumentTypeValues];
-
 export const PurchaseFlowStepStateValues = {
   DONE: 'DONE',
   CURRENT: 'CURRENT',
@@ -246,97 +193,6 @@ export const purchaseItemSourceConfig: Record<PurchaseItemSource, { label: strin
   MANUAL: { label: 'Manual' },
 };
 
-export const PURCHASE_EVENT_LABELS: Record<PurchaseEventAction, string> = {
-  CREATE: 'Purchase created',
-  UPDATE: 'Details changed',
-  CANCEL: 'Purchase cancelled',
-  ADD_ITEM: 'Item added',
-  UPDATE_ITEM: 'Item changed',
-  REMOVE_ITEM: 'Item removed',
-  SUBMIT_ITEMS: 'Items submitted',
-  REQUEST_QUOTATION: 'Quotation requested',
-  COMPLETE_QUOTATIONS: 'Quotations completed',
-  ADD_ALLOCATION: 'Allocation added',
-  UPDATE_ALLOCATION: 'Allocation changed',
-  REMOVE_ALLOCATION: 'Allocation removed',
-  SUBMIT: 'Sourcing submitted',
-  SUBMIT_SUPPLIER: 'Supplier submitted',
-  APPROVE: 'Supplier approved',
-  REJECT: 'Supplier rejected',
-  CREATE_PURCHASE_ORDER: 'Purchase order raised',
-  CONFIRM_PURCHASE_ORDER: 'Purchase order confirmed',
-  CREATE_INBOUND_DELIVERY: 'Inbound delivery created',
-  CREATE_GOODS_RECEIPT: 'Goods receipt started',
-  POST_GOODS_RECEIPT: 'Goods receipt posted',
-  CREATE_SUPPLIER_INVOICE: 'Invoice drafted',
-  POST_SUPPLIER_INVOICE: 'Invoice posted',
-  CANCEL_SUPPLIER_INVOICE: 'Invoice cancelled',
-  CREATE_RECEIVE_WITH_INVOICE: 'Receive with Invoice drafted',
-  POST_RECEIVE_WITH_INVOICE: 'Receive with Invoice posted',
-  DISCARD_RECEIVE_WITH_INVOICE: 'Receive with Invoice discarded',
-  CLOSE_SUPPLIER: 'Supplier closed',
-  COMPLETE: 'Purchase completed',
-};
-
-export const PURCHASE_EVENT_KIND_LABELS: Record<PurchaseEventKind, string> = {
-  STAGE: 'Stage',
-  ITEMS: 'Items',
-  QUOTATIONS: 'Quotations',
-  SOURCING: 'Sourcing',
-  PROCURING: 'Procuring',
-  INVOICES: 'Invoices',
-};
-
-export const PURCHASE_EVENT_DOCUMENT_LABELS: Record<PurchaseEventDocumentType, string> = {
-  SUPPLIER_QUOTATION: 'Quotation',
-  PURCHASE_ORDER: 'Purchase order',
-  INBOUND_DELIVERY: 'Inbound delivery',
-  GOODS_RECEIPT: 'Goods receipt',
-  SUPPLIER_INVOICE: 'Supplier invoice',
-};
-
-export const PURCHASE_EVENT_KIND_ACTIONS: Record<PurchaseEventKind, PurchaseEventAction[]> = {
-  STAGE: [
-    PurchaseEventActionValues.SUBMIT_ITEMS,
-    PurchaseEventActionValues.COMPLETE_QUOTATIONS,
-    PurchaseEventActionValues.SUBMIT,
-    PurchaseEventActionValues.COMPLETE,
-    PurchaseEventActionValues.CANCEL,
-  ],
-  ITEMS: [
-    PurchaseEventActionValues.CREATE,
-    PurchaseEventActionValues.UPDATE,
-    PurchaseEventActionValues.ADD_ITEM,
-    PurchaseEventActionValues.UPDATE_ITEM,
-    PurchaseEventActionValues.REMOVE_ITEM,
-  ],
-  QUOTATIONS: [PurchaseEventActionValues.REQUEST_QUOTATION],
-  SOURCING: [
-    PurchaseEventActionValues.ADD_ALLOCATION,
-    PurchaseEventActionValues.UPDATE_ALLOCATION,
-    PurchaseEventActionValues.REMOVE_ALLOCATION,
-    PurchaseEventActionValues.SUBMIT_SUPPLIER,
-    PurchaseEventActionValues.APPROVE,
-    PurchaseEventActionValues.REJECT,
-  ],
-  PROCURING: [
-    PurchaseEventActionValues.CREATE_PURCHASE_ORDER,
-    PurchaseEventActionValues.CONFIRM_PURCHASE_ORDER,
-    PurchaseEventActionValues.CREATE_INBOUND_DELIVERY,
-    PurchaseEventActionValues.CREATE_GOODS_RECEIPT,
-    PurchaseEventActionValues.POST_GOODS_RECEIPT,
-    PurchaseEventActionValues.CLOSE_SUPPLIER,
-  ],
-  INVOICES: [
-    PurchaseEventActionValues.CREATE_SUPPLIER_INVOICE,
-    PurchaseEventActionValues.POST_SUPPLIER_INVOICE,
-    PurchaseEventActionValues.CANCEL_SUPPLIER_INVOICE,
-    PurchaseEventActionValues.CREATE_RECEIVE_WITH_INVOICE,
-    PurchaseEventActionValues.POST_RECEIVE_WITH_INVOICE,
-    PurchaseEventActionValues.DISCARD_RECEIVE_WITH_INVOICE,
-  ],
-};
-
 export interface PurchaseProgressQuotations {
   posted: number;
   needed: number;
@@ -389,7 +245,6 @@ export interface PurchaseData {
   quotationsRequired: boolean;
   minQuotations: number;
   notes: string | null;
-  createdBy: string | null;
   submittedAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
@@ -524,6 +379,7 @@ export interface PurchaseLeg {
   sourcedTotal: CurrencyValue;
   hasUnpricedAllocations: boolean;
   rejection: PurchaseLegRejection | null;
+  closeReason: string | null;
   allocations: PurchaseAllocation[];
   documents: PurchaseLegDocuments;
   progress: PurchaseLegProgress;
@@ -562,43 +418,13 @@ export interface PurchaseLegFlowStep {
   state: PurchaseFlowStepState;
 }
 
-export interface PurchaseEvent {
-  id: string;
-  action: PurchaseEventAction;
-  purchaseSupplierId: string | null;
-  supplierName: string | null;
-  stepBefore: PurchaseStep | PurchaseLegStep | null;
-  stepAfter: PurchaseStep | PurchaseLegStep | null;
-  documentType: PurchaseEventDocumentType | null;
-  documentId: string | null;
-  reason: string | null;
-  actorId: string | null;
-  actorName: string | null;
-  createdAt: string;
-}
-
-export interface PurchaseEventsQuery {
-  kind?: PurchaseEventKind;
-  purchaseSupplierId?: string;
-}
-
-export interface PurchaseEventsParams extends PurchaseEventsQuery {
-  id: string;
-  limit: number;
-  offset: number;
-}
-
-export interface PurchaseEventsResponse {
-  result: PurchaseEvent[];
-  count: number;
-}
-
 export interface PurchaseHeader extends PurchaseData {
   siteName: string;
   siteCode: string;
   itemCount: number;
   quotationCount: number;
   supplierCount: number;
+  cancelReason: string | null;
   progress: PurchaseProgress;
   availableActions: PurchaseAction[];
 }

@@ -12,6 +12,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class AddSupplierItemDto {
   @ApiProperty({ description: 'Inventory item ID to link' })
@@ -52,5 +53,6 @@ export class AddSupplierItemDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsUUID('7', { each: true })
+  @IsLeSite({ each: true })
   siteIds: string[];
 }

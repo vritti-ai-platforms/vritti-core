@@ -41,14 +41,11 @@ export class LeSupplierQuotationsService {
     private readonly mrps: InventoryItemMrpsDomainService,
   ) {}
 
-  async create(
-    dto: CreateSupplierQuotationDto,
-    userId: string | null,
-  ): Promise<CreateResponseDto<SupplierQuotationDto>> {
+  async create(dto: CreateSupplierQuotationDto): Promise<CreateResponseDto<SupplierQuotationDto>> {
     const supplier = await this.suppliers.findById(dto.supplierId);
     const currencyCode = dto.currencyCode ?? supplier.currencyCode;
     LeSupplierQuotationsService.assertSupplierCurrency(supplier.currencyCodes, currencyCode);
-    const data = await this.quotations.create(dto, currencyCode, userId);
+    const data = await this.quotations.create(dto, currencyCode);
     return { success: true, message: `Quotation "${data.quotationNumber}" created as a draft.`, data };
   }
 
@@ -136,17 +133,11 @@ export class LeSupplierQuotationsService {
           taxInclusive: item.taxInclusive,
         });
       }
-      return this.supplierItemPrices.postQuotationPrices(
-        site.id,
-        siteId,
-        lines,
-        {
-          validFrom: quotation.validFrom,
-          validTo: quotation.validTo ?? null,
-          note: `Quotation ${quotation.quotationNumber}`,
-        },
-        userId,
-      );
+      return this.supplierItemPrices.postQuotationPrices(site.id, siteId, lines, {
+        validFrom: quotation.validFrom,
+        validTo: quotation.validTo ?? null,
+        note: `Quotation ${quotation.quotationNumber}`,
+      });
     });
     this.logger.log(
       `Posted quotation ${quotation.quotationNumber} to ${siteId ?? 'the legal entity'}: ${posted} prices`,

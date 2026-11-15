@@ -7,10 +7,8 @@ import type {
   SupplierQuotationResponseDto,
 } from '@commerce/supplier-quotations/dto/response/supplier-quotation-response.dto';
 import type { SupplierQuotationTableResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-table-response.dto';
-import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -22,7 +20,6 @@ export class SupplierQuotationsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteService: SiteDomainService,
     private readonly ownerNames: OwnerNameService,
   ) {}
 
@@ -46,20 +43,7 @@ export class SupplierQuotationsGatewayService {
   }
 
   // Posts the quotation to one of the session legal entity's sites
-  async postToSite(
-    quotationId: string,
-    siteId: string,
-    orgId: string,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    const [site] = await this.siteService.findByIds(orgId, [siteId]);
-    if (!legalEntityId || !site || site.legalEntityId !== legalEntityId) {
-      throw new BadRequestException({
-        label: 'Invalid Site',
-        detail: 'The selected site does not belong to this legal entity.',
-        errors: [{ field: 'siteId', message: 'Not a site of this legal entity' }],
-      });
-    }
+  postToSite(quotationId: string, siteId: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'le.suppliers.quotations.sites.post', { quotationId, siteId });
   }
 

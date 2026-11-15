@@ -1,8 +1,6 @@
 import { UserDomainService } from '@domain/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
-import type { PurchaseEventResponseDto } from '../dto/response/purchase-event-response.dto';
-import type { PurchaseEventsPageResponseDto } from '../dto/response/purchase-events-page-response.dto';
 import type { PurchaseHeaderResponseDto } from '../dto/response/purchase-header-response.dto';
 import type {
   PurchaseLegRejectionResponseDto,
@@ -14,10 +12,6 @@ type UnnamedRejection = Omit<PurchaseLegRejectionResponseDto, 'actorName'>;
 export type UnnamedPurchaseLeg = Omit<PurchaseLegResponseDto, 'approverNames' | 'approvedByName' | 'rejection'> & {
   rejection: UnnamedRejection | null;
 };
-
-type UnnamedEvent = Omit<PurchaseEventResponseDto, 'actorName'>;
-
-export type UnnamedPurchaseEventsPage = { result: UnnamedEvent[]; count: number };
 
 export type UnnamedPurchaseHeader = Omit<PurchaseHeaderResponseDto, 'siteName' | 'siteCode'>;
 
@@ -39,19 +33,6 @@ export class PurchaseNamesService {
     const userIds = legs.flatMap((leg) => [...leg.approverUserIds, leg.approvedBy, leg.rejection?.actorId]);
     const names = await this.userService.findNamesByIds(orgId, PurchaseNamesService.present(userIds));
     return legs.map((leg) => PurchaseNamesService.nameLeg(leg, names));
-  }
-
-  // Fills the events' actor names from one batched user lookup
-  async withEventNames(orgId: string, page: UnnamedPurchaseEventsPage): Promise<PurchaseEventsPageResponseDto> {
-    const userIds = page.result.map((event) => event.actorId);
-    const names = await this.userService.findNamesByIds(orgId, PurchaseNamesService.present(userIds));
-    return {
-      result: page.result.map((event) => ({
-        ...event,
-        actorName: PurchaseNamesService.nameOf(event.actorId, names),
-      })),
-      count: page.count,
-    };
   }
 
   // Drops the missing user ids

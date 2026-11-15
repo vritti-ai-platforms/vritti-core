@@ -32,7 +32,6 @@ export const purchaseItems = commerceSchema.table(
     sourceId: uuid('source_id'),
     neededBy: date('needed_by', { mode: 'string' }),
     notes: text('notes'),
-    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

@@ -56,7 +56,7 @@ export class PurchaseOrdersItemsService {
       });
     }
 
-    await this.siteStockLevelsService.ensureStockLevels(po.siteId, [supplierItem.inventoryItemId], 'supplierItemId');
+    await this.siteStockLevelsService.ensureStockLevels([supplierItem.inventoryItemId], 'supplierItemId', po.siteId);
     const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       supplierItem.inventoryItemId,
       supplierItem.uomId,
@@ -103,7 +103,7 @@ export class PurchaseOrdersItemsService {
     const item = await this.itemsService.findOnPurchaseOrderOrThrow(po.id, dto.itemId);
     const inventoryItemId = dto.inventoryItemId ?? item.inventoryItemId;
     if (inventoryItemId !== item.inventoryItemId) {
-      await this.siteStockLevelsService.ensureStockLevels(po.siteId, [inventoryItemId], 'inventoryItemId');
+      await this.siteStockLevelsService.ensureStockLevels([inventoryItemId], 'inventoryItemId', po.siteId);
     }
     const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       inventoryItemId,

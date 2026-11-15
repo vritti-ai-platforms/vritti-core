@@ -1,5 +1,6 @@
 import { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
+import { SupplierEnrollmentSiteParamsDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-site-params.dto';
 import { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
@@ -29,19 +30,7 @@ import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/s
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/supplier-response.dto';
 import type { SupplierTableResponseDto } from '@commerce/suppliers/dto/response/supplier-table-response.dto';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -81,11 +70,9 @@ export class SuppliersGatewayController {
   createEnrollment(
     @Param('id') supplierId: string,
     @Body() dto: CreateSupplierEnrollmentDto,
-    @OrgId() orgId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
     this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/enrollments`);
-    return this.suppliersGatewayService.createEnrollment(supplierId, dto, orgId, legalEntityId);
+    return this.suppliersGatewayService.createEnrollment(supplierId, dto);
   }
 
   // Adds an inventory item to a supplier
@@ -108,11 +95,9 @@ export class SuppliersGatewayController {
     @Param('id') supplierId: string,
     @Param('itemId') itemId: string,
     @Body() dto: AddSupplierSiteItemDto,
-    @OrgId() orgId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<SupplierSiteItemResponseDto>> {
     this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items/${itemId}/site-items`);
-    return this.suppliersGatewayService.createSiteItem(itemId, dto, orgId, legalEntityId);
+    return this.suppliersGatewayService.createSiteItem(itemId, dto);
   }
 
   // Updates a supplier by ID
@@ -127,8 +112,7 @@ export class SuppliersGatewayController {
   @Patch(':id/enrollments/:siteId')
   @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
   updateEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @Body() dto: UpdateSupplierEnrollmentDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
@@ -139,8 +123,7 @@ export class SuppliersGatewayController {
   @Patch(':id/enrollments/:siteId/purchasing')
   @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
   updateEnrollmentPurchasing(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @Body() dto: UpdateEnrollmentPurchasingDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/purchasing`);
@@ -211,7 +194,7 @@ export class SuppliersGatewayController {
   @Patch(':id/purchasing-blocked')
   @RequirePermission(LE_SUPPLIERS.purchasingBlock)
   setPurchasingBlocked(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Body() dto: SetSupplierPurchasingBlockedDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${id}/purchasing-blocked`);
@@ -221,10 +204,7 @@ export class SuppliersGatewayController {
   // Blocks or unblocks payments to a supplier
   @Patch(':id/payment-blocked')
   @RequirePermission(LE_SUPPLIERS.paymentBlock)
-  setPaymentBlocked(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: SetSupplierPaymentBlockedDto,
-  ): Promise<SuccessResponseDto> {
+  setPaymentBlocked(@Param('id') id: string, @Body() dto: SetSupplierPaymentBlockedDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${id}/payment-blocked`);
     return this.suppliersGatewayService.setPaymentBlocked(id, dto.paymentBlocked);
   }
@@ -242,8 +222,7 @@ export class SuppliersGatewayController {
   @Patch(':id/enrollments/:siteId/active')
   @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
   setEnrollmentActive(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @Body() dto: SetSupplierEnrollmentActiveDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/active`);
@@ -335,8 +314,7 @@ export class SuppliersGatewayController {
   @Get(':id/enrollments/:siteId/site-items/table')
   @RequirePermission(LE_SUPPLIERS.siteItems.view)
   getEnrollmentSiteItemsTable(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @UserId() userId: string,
   ): Promise<SupplierSiteItemRowTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/site-items/table`);
@@ -347,8 +325,7 @@ export class SuppliersGatewayController {
   @Get(':id/enrollments/:siteId/quotations/table')
   @RequirePermission(LE_SUPPLIERS.sites.quotations.view)
   getEnrollmentQuotationsTable(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @UserId() userId: string,
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/quotations/table`);
@@ -372,8 +349,7 @@ export class SuppliersGatewayController {
   @Get(':id/enrollments/:siteId')
   @RequirePermission(LE_SUPPLIERS.sites.view)
   findEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @OrgId() orgId: string,
   ): Promise<SupplierEnrollmentDetailResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
@@ -391,10 +367,7 @@ export class SuppliersGatewayController {
   // Removes the supplier's enrollment at one of the LE's sites
   @Delete(':id/enrollments/:siteId')
   @RequirePermission(LE_SUPPLIERS.sites.unenroll)
-  deleteEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-  ): Promise<SuccessResponseDto> {
+  deleteEnrollment(@Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
     return this.suppliersGatewayService.deleteEnrollment(supplierId, siteId);
   }

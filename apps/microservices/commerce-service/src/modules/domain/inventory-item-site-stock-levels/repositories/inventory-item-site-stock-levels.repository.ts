@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, getColumns, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  currentSiteId,
   type InventoryItemSiteStockLevel,
   inventoryItemQuants,
   inventoryItemSiteStockLevels,
@@ -34,9 +35,15 @@ export class InventoryItemSiteStockLevelsDomainRepository extends PrimaryBaseRep
     super(database, inventoryItemSiteStockLevels);
   }
 
-  // Returns the projection row for an item at the current site, if any
-  async findByCompositeKey(inventoryItemId: string, siteId: string): Promise<InventoryItemSiteStockLevel | undefined> {
-    return this.model.findFirst({ where: { inventoryItemId, siteId } });
+  // Returns the projection row for an item at the named site, else at the request's site, if any
+  async findByCompositeKey(inventoryItemId: string, siteId?: string): Promise<InventoryItemSiteStockLevel | undefined> {
+    const [stockLevels] = await this.findAllWithSelect<InventoryItemSiteStockLevel>({
+      where: and(
+        eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItemId),
+        eq(inventoryItemSiteStockLevels.siteId, siteId ?? currentSiteId()),
+      ),
+    });
+    return stockLevels;
   }
 
   // Returns every projection row for the current site (RLS-scoped)
@@ -75,15 +82,15 @@ export class InventoryItemSiteStockLevelsDomainRepository extends PrimaryBaseRep
       .where(eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItemId));
   }
 
-  // Returns the names of the given items without stock levels at the site
-  async findNamesWithoutStockLevels(siteId: string, inventoryItemIds: string[]): Promise<string[]> {
+  // Returns the names of the given items without stock levels at the named site, else at the request's site
+  async findNamesWithoutStockLevels(inventoryItemIds: string[], siteId?: string): Promise<string[]> {
     const levelsAtSite = this.db
       .select({ id: inventoryItemSiteStockLevels.id })
       .from(inventoryItemSiteStockLevels)
       .where(
         and(
           eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id),
-          eq(inventoryItemSiteStockLevels.siteId, siteId),
+          eq(inventoryItemSiteStockLevels.siteId, siteId ?? currentSiteId()),
         ),
       );
     const missing = await this.db
@@ -93,24 +100,29 @@ export class InventoryItemSiteStockLevelsDomainRepository extends PrimaryBaseRep
     return missing.map((item) => item.name);
   }
 
-  // Sums the item's quants at one site
-  async findOnHandAtSite(inventoryItemId: string, siteId: string): Promise<number> {
+  // Sums the item's quants at the named site, else at the request's site
+  async findOnHandAtSite(inventoryItemId: string, siteId?: string): Promise<number> {
     const [row] = await this.db
       .select({ quantity: sql<number>`coalesce(sum(${inventoryItemQuants.quantity}), 0)`.mapWith(Number) })
       .from(inventoryItemQuants)
-      .where(and(eq(inventoryItemQuants.inventoryItemId, inventoryItemId), eq(inventoryItemQuants.siteId, siteId)));
+      .where(
+        and(
+          eq(inventoryItemQuants.inventoryItemId, inventoryItemId),
+          eq(inventoryItemQuants.siteId, siteId ?? currentSiteId()),
+        ),
+      );
     return row?.quantity ?? 0;
   }
 
-  // Returns the numbers of the site's open purchases that include the item
-  async findOpenPurchaseNumbers(inventoryItemId: string, siteId: string): Promise<string[]> {
+  // Returns the numbers of the named site's, else the request's site's, open purchases that include the item
+  async findOpenPurchaseNumbers(inventoryItemId: string, siteId?: string): Promise<string[]> {
     const rows = await this.db
       .select({ purchaseNumber: purchases.purchaseNumber })
       .from(purchases)
       .innerJoin(purchaseItems, eq(purchaseItems.purchaseId, purchases.id))
       .where(
         and(
-          eq(purchases.siteId, siteId),
+          eq(purchases.siteId, siteId ?? currentSiteId()),
           eq(purchases.status, PurchaseStatusValues.OPEN),
           eq(purchaseItems.inventoryItemId, inventoryItemId),
         ),

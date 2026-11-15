@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, boolean, index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, boolean, index, text, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { purchaseLegStatusEnum, purchaseLegStepEnum, purchaseTypeEnum } from './enums';
 import { purchases } from './purchases';
@@ -27,9 +27,15 @@ export const purchaseSuppliers = commerceSchema.table(
     qualityCheckEnabled: boolean('quality_check_enabled').notNull(),
     step: purchaseLegStepEnum('step').notNull().default('SOURCING'),
     status: purchaseLegStatusEnum('status').notNull().default('OPEN'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    submittedBy: uuid('submitted_by'),
     approvedBy: uuid('approved_by'),
     approvedAt: timestamp('approved_at', { withTimezone: true }),
+    rejectionReason: text('rejection_reason'),
+    rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+    rejectedBy: uuid('rejected_by'),
     closedAt: timestamp('closed_at', { withTimezone: true }),
+    closeReason: text('close_reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

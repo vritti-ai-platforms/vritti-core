@@ -3,13 +3,6 @@ import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/good
 import type { InboundDeliveryRow } from '@domain/inbound-deliveries/repositories/inbound-deliveries.repository';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
-import {
-  type PurchaseEventAction,
-  PurchaseEventActionValues,
-  type PurchaseEventDocumentType,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
-import { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import type { PurchaseAllocationRow } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import type { PurchaseOrderItemRow } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
@@ -31,8 +24,6 @@ import Decimal from '@vritti/api-sdk/decimal';
 import {
   GoodsReceiptStatusValues,
   InboundDeliverySourceValues,
-  type PurchaseLegStep,
-  PurchaseLegStepValues,
   PurchaseOrderStatusValues,
   type PurchaseSupplier,
   SupplierInvoiceStatusValues,
@@ -50,13 +41,6 @@ export interface PurchaseLegFulfilment {
   documents: PurchaseLegDocuments;
   orderLines: PurchaseOrderItemRow[];
   remainingByLine: Map<string, number>;
-}
-
-export interface PurchaseLegEvent {
-  action: PurchaseEventAction;
-  documentType?: PurchaseEventDocumentType;
-  documentId?: string;
-  reason?: string | null;
 }
 
 interface PurchaseDocuments {
@@ -77,7 +61,6 @@ export class PurchaseProgressService {
     private readonly purchasesService: PurchasesDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
-    private readonly eventsService: PurchaseEventsDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
     private readonly deliveriesService: InboundDeliveriesDomainService,
@@ -86,84 +69,33 @@ export class PurchaseProgressService {
     private readonly invoicesService: SupplierInvoicesDomainService,
   ) {}
 
-  // Records a leg event and re-derives the leg's step from its documents, in the caller's transaction; a leg that is now
-  // received and invoiced closes and the purchase completes once every leg is closed
-  async recordLegEvent(
-    purchase: PurchaseRow,
-    leg: ProgressLeg,
-    event: PurchaseLegEvent,
-    actorId: string | null,
-  ): Promise<LegAdvance> {
+  // Re-derives a leg's step from its documents, in the caller's transaction; a leg that is now received and invoiced
+  // closes and the purchase completes once every leg is closed
+  async syncLegStep(purchase: PurchaseRow, leg: ProgressLeg): Promise<LegAdvance> {
     const { facts } = await this.findLegFulfilment(purchase, leg);
     const advance = await this.legsService.advance(leg, facts);
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      purchaseSupplierId: leg.id,
-      ...event,
-      stepBefore: advance.stepBefore,
-      stepAfter: advance.stepAfter,
-      actorId,
-    });
-    if (advance.isClosed) await this.recordLegClosed(purchase, leg, advance.stepBefore, null, actorId);
+    if (advance.isClosed) await this.completeIfLegsClosed(purchase);
     return advance;
   }
 
-  // Records a leg closing and completes the purchase once every leg is closed, in the caller's transaction
-  async recordLegClosed(
-    purchase: PurchaseRow,
-    leg: ProgressLeg,
-    stepBefore: PurchaseLegStep,
-    reason: string | null,
-    actorId: string | null,
-  ): Promise<void> {
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      purchaseSupplierId: leg.id,
-      action: PurchaseEventActionValues.CLOSE_SUPPLIER,
-      stepBefore,
-      stepAfter: PurchaseLegStepValues.CLOSED,
-      reason,
-      actorId,
-    });
+  // Completes the purchase once every leg is closed, in the caller's transaction
+  async completeIfLegsClosed(purchase: PurchaseRow): Promise<void> {
     const legs = await this.legsService.findByPurchaseId(purchase.id);
-    const isCompleted = await this.purchasesService.completeIfLegsClosed(purchase, this.legsService.allClosed(legs));
-    if (!isCompleted) return;
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      action: PurchaseEventActionValues.COMPLETE,
-      stepBefore: purchase.step,
-      actorId,
-    });
+    await this.purchasesService.completeIfLegsClosed(purchase, this.legsService.allClosed(legs));
   }
 
-  // Tells a purchase that one of its documents was completed in its own feature, in the caller's transaction: records
-  // the event on the supplier's leg and re-derives the leg's step
-  async notifyDocument(
-    purchaseId: string,
-    supplierId: string,
-    event: PurchaseLegEvent,
-    actorId: string | null,
-  ): Promise<void> {
+  // Tells a purchase that one of its documents was completed in its own feature, in the caller's transaction:
+  // re-derives the step of the supplier's leg
+  async notifyDocument(purchaseId: string, supplierId: string): Promise<void> {
     const purchase = await this.purchasesService.findDetailOrThrow(purchaseId);
     const leg = await this.legsService.findForSupplier(purchase.id, supplierId);
     if (!leg) return;
-    await this.recordLegEvent(purchase, leg, event, actorId);
+    await this.syncLegStep(purchase, leg);
   }
 
   // Tells every purchase an invoice invoices that it was posted or cancelled, in the caller's transaction
-  async notifyInvoice(
-    invoice: Pick<SupplierInvoiceRow, 'id' | 'supplierId' | 'purchases'>,
-    action: PurchaseEventAction,
-    actorId: string | null,
-  ): Promise<void> {
-    for (const purchase of invoice.purchases) {
-      await this.notifyDocument(
-        purchase.id,
-        invoice.supplierId,
-        { action, documentType: PurchaseEventDocumentTypeValues.SUPPLIER_INVOICE, documentId: invoice.id },
-        actorId,
-      );
-    }
+  async notifyInvoice(invoice: Pick<SupplierInvoiceRow, 'supplierId' | 'purchases'>): Promise<void> {
+    for (const purchase of invoice.purchases) await this.notifyDocument(purchase.id, invoice.supplierId);
   }
 
   // Gathers each leg's documents and the facts its step and actions derive from, in the order of the given legs

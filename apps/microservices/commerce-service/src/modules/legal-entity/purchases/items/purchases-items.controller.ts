@@ -3,7 +3,6 @@ import { CreatePurchaseItemDto } from '@domain/purchase-items/dto/request/create
 import { UpdatePurchaseItemDto } from '@domain/purchase-items/dto/request/update-purchase-item.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchasesItemsService } from '@/modules/site/purchases/items/services/purchases-items.service';
 
@@ -15,19 +14,16 @@ export class LePurchasesItemsController {
 
   // Adds a purchase item, or adds the quantity to the item already requested
   @MessagePattern({ cmd: 'le.purchases.items.create' })
-  create(
-    @Payload() dto: CreatePurchaseItemDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<PurchaseItemDto>> {
+  create(@Payload() dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemDto>> {
     this.logger.log(`le.purchases.items.create — id: ${dto.id}, item: ${dto.inventoryItemId}`);
-    return this.service.create(dto, headers);
+    return this.service.create(dto);
   }
 
   // Changes a purchase item
   @MessagePattern({ cmd: 'le.purchases.items.update' })
-  update(@Payload() dto: UpdatePurchaseItemDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  update(@Payload() dto: UpdatePurchaseItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.items.update — id: ${dto.id}, item: ${dto.itemId}`);
-    return this.service.update(dto, headers);
+    return this.service.update(dto);
   }
 
   // Returns a purchase's items
@@ -39,11 +35,8 @@ export class LePurchasesItemsController {
 
   // Removes a purchase item
   @MessagePattern({ cmd: 'le.purchases.items.delete' })
-  delete(
-    @Payload() data: { id: string; itemId: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  delete(@Payload() data: { id: string; itemId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.items.delete — id: ${data.id}, item: ${data.itemId}`);
-    return this.service.delete(data.id, data.itemId, headers);
+    return this.service.delete(data.id, data.itemId);
   }
 }

@@ -2,6 +2,7 @@ import { AddSupplierQuotationItemDto } from '@commerce/supplier-quotations/dto/r
 import { CreateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import { PostSupplierQuotationSiteDto } from '@commerce/supplier-quotations/dto/request/post-supplier-quotation-site.dto';
 import { SupplierQuotationItemFieldsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-item-fields.dto';
+import { SupplierQuotationSiteParamsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-site-params.dto';
 import { UpdateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/update-supplier-quotation.dto';
 import type {
   SupplierQuotationDetailResponseDto,
@@ -15,7 +16,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import { SupplierQuotationsGatewayService } from './services/supplier-quotations-gateway.service';
 
 @ApiTags('Commerce - Supplier Quotations')
@@ -82,11 +83,9 @@ export class SupplierQuotationsGatewayController {
   postToSite(
     @Param('quotationId') quotationId: string,
     @Body() dto: PostSupplierQuotationSiteDto,
-    @OrgId() orgId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/le/suppliers/quotations/${quotationId}/sites`);
-    return this.service.postToSite(quotationId, dto.siteId, orgId, legalEntityId);
+    return this.service.postToSite(quotationId, dto.siteId);
   }
 
   // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
@@ -144,10 +143,7 @@ export class SupplierQuotationsGatewayController {
   // Removes the quotation from a site, deleting its prices there and restoring the earlier ones
   @Delete(':quotationId/sites/:siteId')
   @RequirePermission(LE_SUPPLIERS.sites.quotations.delete)
-  removeFromSite(
-    @Param('quotationId') quotationId: string,
-    @Param('siteId') siteId: string,
-  ): Promise<SuccessResponseDto> {
+  removeFromSite(@Param() { quotationId, siteId }: SupplierQuotationSiteParamsDto): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}/sites/${siteId}`);
     return this.service.removeFromSite(quotationId, siteId);
   }

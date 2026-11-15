@@ -18,7 +18,6 @@ export class SupplierItemPriceDto {
   source: SupplierPriceSource;
   quotationSiteId: string | null;
   note: string | null;
-  createdBy: string | null;
   createdAt: string;
 
   // Maps a SupplierItemPrice entity to a SupplierItemPriceDto using the parent item's currency
@@ -40,7 +39,6 @@ export class SupplierItemPriceDto {
     dto.source = entity.source;
     dto.quotationSiteId = entity.quotationSiteId ?? null;
     dto.note = entity.note ?? null;
-    dto.createdBy = entity.createdBy ?? null;
     dto.createdAt = entity.createdAt.toISOString();
     return dto;
   }

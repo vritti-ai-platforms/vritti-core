@@ -17,6 +17,7 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import {
+  currentSiteId,
   inventoryItemMrps,
   inventoryItems,
   type NewSupplierQuotationItem,
@@ -84,19 +85,19 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     super(database, supplierQuotations);
   }
 
-  // Returns a supplier's quotations with their line and posted-site counts, or only those posted to one site
+  // Returns a supplier's quotations with their line and posted-site counts: only those posted to the named site, else in
+  // a site workspace only those posted to the request's site, else every one
   findForSupplierTable(
     supplierId: string,
     options: { siteId?: string; where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: SupplierQuotationTableRow[]; count: number }> {
+    const postedTo = (site: string | SQL) => sql`EXISTS (
+      SELECT 1 FROM ${supplierQuotationSites} qs
+      WHERE qs.quotation_id = ${supplierQuotations}.id AND qs.site_id = ${site}
+    )`;
     const scope = and(
       eq(supplierQuotations.supplierId, supplierId),
-      options.siteId
-        ? sql`EXISTS (
-            SELECT 1 FROM ${supplierQuotationSites} qs
-            WHERE qs.quotation_id = ${supplierQuotations}.id AND qs.site_id = ${options.siteId}
-          )`
-        : undefined,
+      options.siteId ? postedTo(options.siteId) : sql`(${currentSiteId()} is null or ${postedTo(currentSiteId())})`,
     );
     return this.findAllAndCount<SupplierQuotationTableRow>({
       select: {
@@ -115,11 +116,11 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     });
   }
 
-  // Loads a supplier's quotation only when it is posted to the site
+  // Loads a supplier's quotation only when it is posted to the named site, else to the request's site
   async findPostedToSite(
     supplierId: string,
     quotationId: string,
-    siteId: string,
+    siteId?: string,
   ): Promise<SupplierQuotation | undefined> {
     const [row] = await this.db
       .select()
@@ -135,7 +136,7 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
               .where(
                 and(
                   eq(supplierQuotationSites.quotationId, supplierQuotations.id),
-                  eq(supplierQuotationSites.siteId, siteId),
+                  eq(supplierQuotationSites.siteId, siteId ?? currentSiteId()),
                 ),
               ),
           ),
@@ -232,11 +233,6 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
         or(isNull(supplierQuotations.validTo), gte(supplierQuotations.validTo, onDate)),
       ),
     });
-  }
-
-  // Returns whether any quotation is linked to the purchase
-  existsForPurchase(purchaseId: string): Promise<boolean> {
-    return this.exists(eq(supplierQuotations.purchaseId, purchaseId));
   }
 
   // Counts the quotations linked to the purchase

@@ -35,7 +35,7 @@ export class StockAdjustmentsDomainService {
       inventoryItemId: data.inventoryItemId,
       type: data.type,
       reason: data.reason,
-      unitCost: data.unitCost ?? null,
+      unitCost: data.unitCost,
     });
 
     this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);

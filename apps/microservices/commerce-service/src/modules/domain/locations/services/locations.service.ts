@@ -91,11 +91,11 @@ export class LocationsDomainService {
       const entity = await this.locationsRepository.create({
         name: data.name,
         code: data.code,
-        parentId: data.parentId ?? null,
+        parentId: data.parentId,
         path: '__pending__',
-        sortOrder: data.sortOrder ?? 1,
-        area: data.area ?? null,
-        managerId: data.managerId ?? null,
+        sortOrder: data.sortOrder,
+        area: data.area,
+        managerId: data.managerId,
         locationRole: data.locationRole,
         storageTypeId,
         isStorageTypeOverridden: ownStorageTypeId !== null,
@@ -304,10 +304,10 @@ export class LocationsDomainService {
     });
   }
 
-  // Rejects a picked location that does not exist or belongs to another site
-  async assertAtSite(siteId: string, locationId: string, field: string): Promise<void> {
+  // Rejects a picked location that does not exist or belongs to a site other than the named one, else the request's
+  async assertAtSite(locationId: string, field: string, siteId?: string): Promise<void> {
+    if (await this.locationsRepository.isAtSite(locationId, siteId)) return;
     const location = await this.locationsRepository.findById(locationId);
-    if (location?.siteId === siteId) return;
     throw new BadRequestException({
       label: 'Location Not at Site',
       detail: location

@@ -29,10 +29,10 @@ export class InventoryItemLotsDomainService {
     return this.repository.createLot({
       inventoryItemId: data.inventoryItemId,
       lotNumber: data.lotNumber,
-      manufacturingDate: data.manufacturingDate ?? null,
+      manufacturingDate: data.manufacturingDate,
       expiryDate: data.expiryDate,
-      mrp: data.mrp ?? null,
-      mrpCurrencyCode: data.mrpCurrencyCode ?? null,
+      mrp: data.mrp,
+      mrpCurrencyCode: data.mrpCurrencyCode,
     });
   }
 

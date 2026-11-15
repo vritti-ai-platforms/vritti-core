@@ -146,7 +146,7 @@ export class CheckoutsDomainService {
         partyId: dto.partyId,
         currencyCode: dto.currencyCode,
         totalAmount,
-        partyAddressId: dto.addressId ?? null,
+        partyAddressId: dto.addressId,
         checkoutKey,
         customerName: party.displayName ?? null,
         customerPhone: phone?.value.slice(0, CUSTOMER_PHONE_MAX) ?? null,

@@ -6,7 +6,6 @@ import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/servi
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InboundDeliveriesService } from './services/inbound-deliveries-root.service';
 
@@ -21,12 +20,9 @@ export class InboundDeliveriesRootController {
 
   // Creates a planned inbound delivery of a supplier at the site
   @MessagePattern({ cmd: 'site.inboundDeliveries.create' })
-  create(
-    @Payload() dto: CreateInboundDeliveryDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<CreateResponseDto<InboundDeliveryDto>> {
+  create(@Payload() dto: CreateInboundDeliveryDto): Promise<CreateResponseDto<InboundDeliveryDto>> {
     this.logger.log(`site.inboundDeliveries.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto, siteId);
+    return this.service.create(dto);
   }
 
   // Changes an inbound delivery's expected date, carrier, tracking number, supplier's delivery note or notes

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, getColumns } from '@vritti/api-sdk/drizzle-orm';
 import {
+  currentSiteId,
   PurchaseLegStatusValues,
   PurchaseStatusValues,
   type PurchaseSupplier,
@@ -38,15 +39,15 @@ export class PurchaseSuppliersDomainRepository extends PrimaryBaseRepository<typ
     });
   }
 
-  // Returns the open legs of a supplier on the open purchases of a site, oldest first
-  findOpenForSupplierAtSite(supplierId: string, siteId: string): Promise<PurchaseSupplierRow[]> {
+  // Returns the open legs of a supplier on the open purchases of the named site, else the request's, oldest first
+  findOpenForSupplierAtSite(supplierId: string, siteId?: string): Promise<PurchaseSupplierRow[]> {
     return this.findAllWithSelect<PurchaseSupplierRow>({
       select: this.selection(),
       innerJoins: [...this.supplierJoins(), { table: purchases, on: eq(purchases.id, purchaseSuppliers.purchaseId) }],
       where: and(
         eq(purchaseSuppliers.supplierId, supplierId),
         eq(purchaseSuppliers.status, PurchaseLegStatusValues.OPEN),
-        eq(purchases.siteId, siteId),
+        eq(purchases.siteId, siteId ?? currentSiteId()),
         eq(purchases.status, PurchaseStatusValues.OPEN),
       ),
       orderBy: [asc(purchaseSuppliers.createdAt)],

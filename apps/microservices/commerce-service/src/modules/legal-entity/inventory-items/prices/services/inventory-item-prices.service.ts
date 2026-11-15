@@ -32,12 +32,12 @@ export class LeInventoryItemPricesService {
     const primaryPerUnit = await this.primaryPerPickedUnit(inventoryItemId, conditionValue(context, 'uom'));
     return this.supplierItemPricesService.findItemPriceHistoryAtSite(
       inventoryItemId,
-      siteId,
       context,
       async (supplierUomId) =>
         new Decimal(await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, supplierUomId, 1)).dividedBy(
           primaryPerUnit,
         ),
+      siteId,
     );
   }
 

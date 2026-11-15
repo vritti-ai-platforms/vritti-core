@@ -1,6 +1,8 @@
 import { CloseSupplierDto } from '@domain/purchase-suppliers/dto/request/close-supplier.dto';
 import { ConfirmLegPurchaseOrderDto } from '@domain/purchase-suppliers/dto/request/confirm-leg-purchase-order.dto';
+import { CreateLegGoodsReceiptDto } from '@domain/purchase-suppliers/dto/request/create-leg-goods-receipt.dto';
 import { CreateLegInboundDeliveryDto } from '@domain/purchase-suppliers/dto/request/create-leg-inbound-delivery.dto';
+import { CreateLegPurchaseOrderDto } from '@domain/purchase-suppliers/dto/request/create-leg-purchase-order.dto';
 import { RejectPurchaseLegDto } from '@domain/purchase-suppliers/dto/request/reject-purchase-leg.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -10,8 +12,6 @@ import {
   type PurchaseLegRef,
   PurchasesLegsService,
 } from '@/modules/site/purchases/legs/services/purchases-legs.service';
-import { LeCreateLegGoodsReceiptDto } from './dto/request/le-create-leg-goods-receipt.dto';
-import { LeCreateLegPurchaseOrderDto } from './dto/request/le-create-leg-purchase-order.dto';
 
 @Controller()
 export class LePurchasesLegsController {
@@ -22,45 +22,36 @@ export class LePurchasesLegsController {
   // Creates a leg's purchase orders: one sent purchase order per currency of its allocations, rated against the legal entity's currency
   @MessagePattern({ cmd: 'le.purchases.legs.createPurchaseOrder' })
   createPurchaseOrder(
-    @Payload() dto: LeCreateLegPurchaseOrderDto,
+    @Payload() dto: CreateLegPurchaseOrderDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ purchaseOrderIds: string[] }>> {
     this.logger.log(
       `le.purchases.legs.createPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, orderDate: ${dto.orderDate}`,
     );
-    const { timezone, ...order } = dto;
-    return this.service.createPurchaseOrder(order, headers, {
-      timezone: timezone ?? null,
-      leCurrencyCode: headers.leCurrencyCode,
-    });
+    return this.service.createPurchaseOrder(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Creates an inbound delivery of a leg's confirmed purchase order lines
   @MessagePattern({ cmd: 'le.purchases.legs.createInboundDelivery' })
   createInboundDelivery(
     @Payload() dto: CreateLegInboundDeliveryDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ inboundDeliveryId: string }>> {
     this.logger.log(
       `le.purchases.legs.createInboundDelivery — id: ${dto.id}, leg: ${dto.legId}, lines: ${dto.lines.length}`,
     );
-    return this.service.createInboundDelivery(dto, headers);
+    return this.service.createInboundDelivery(dto);
   }
 
   // Starts a draft goods receipt of a leg, from one of its deliveries or its open lines
   @MessagePattern({ cmd: 'le.purchases.legs.createGoodsReceipt' })
   createGoodsReceipt(
-    @Payload() dto: LeCreateLegGoodsReceiptDto,
+    @Payload() dto: CreateLegGoodsReceiptDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ goodsReceiptId: string }>> {
     this.logger.log(
       `le.purchases.legs.createGoodsReceipt — id: ${dto.id}, leg: ${dto.legId}, delivery: ${dto.inboundDeliveryId ?? 'none'}`,
     );
-    const { timezone, ...receipt } = dto;
-    return this.service.createGoodsReceipt(receipt, headers, {
-      timezone: timezone ?? null,
-      leCurrencyCode: headers.leCurrencyCode,
-    });
+    return this.service.createGoodsReceipt(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Starts one leg still in sourcing, routing approval against the legal entity's currency
@@ -86,20 +77,17 @@ export class LePurchasesLegsController {
 
   // Confirms a sent purchase order of a leg
   @MessagePattern({ cmd: 'le.purchases.legs.confirmPurchaseOrder' })
-  confirmPurchaseOrder(
-    @Payload() dto: ConfirmLegPurchaseOrderDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  confirmPurchaseOrder(@Payload() dto: ConfirmLegPurchaseOrderDto): Promise<SuccessResponseDto> {
     this.logger.log(
       `le.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
     );
-    return this.service.confirmPurchaseOrder(dto, headers);
+    return this.service.confirmPurchaseOrder(dto);
   }
 
   // Closes a leg, completing delivery of its open purchase orders
   @MessagePattern({ cmd: 'le.purchases.legs.closeSupplier' })
-  closeSupplier(@Payload() dto: CloseSupplierDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  closeSupplier(@Payload() dto: CloseSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.legs.closeSupplier — id: ${dto.id}, leg: ${dto.legId}`);
-    return this.service.closeSupplier(dto, headers);
+    return this.service.closeSupplier(dto);
   }
 }

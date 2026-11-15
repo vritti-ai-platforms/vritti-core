@@ -22,7 +22,6 @@ import {
   useDiscardReceiveWithInvoice,
   usePostReceiveWithInvoice,
   usePurchase,
-  usePurchaseEvents,
   usePurchaseItems,
   usePurchaseQuotations,
   usePurchaseSourcingItems,
@@ -72,7 +71,6 @@ export const binding: PurchasesBinding = {
   usePurchaseQuotations,
   usePurchaseSourcingItems,
   usePurchaseSuppliers,
-  usePurchaseEvents,
 
   useCreate: useCreatePurchase,
   useUpdate: useUpdatePurchase,

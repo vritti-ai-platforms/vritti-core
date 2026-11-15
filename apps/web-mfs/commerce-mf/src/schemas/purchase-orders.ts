@@ -84,7 +84,6 @@ export interface PurchaseOrderData {
   orderDate: string;
   taxDate: string;
   latestExpectedDeliveryDate: string | null;
-  timezone: string;
   notes: string | null;
   totalAmount: CurrencyValue;
   hasPostedGoodsReceipt: boolean;

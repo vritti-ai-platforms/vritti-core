@@ -1,5 +1,3 @@
-import type { PurchaseEventDto } from '@domain/purchase-events/dto/entity/purchase-event.dto';
-import { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import { PurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/entity/purchase-allocation.dto';
 import type { PurchaseAllocationRow } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
@@ -11,16 +9,15 @@ import { PurchasesDomainService } from '@domain/purchases/services/purchases.ser
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Injectable } from '@nestjs/common';
 import type { NatsHeaders } from '@vritti/api-sdk/nats';
-import { PurchaseOrderStatusValues } from '@/db/schema';
+import { PurchaseLegStepValues, PurchaseOrderStatusValues } from '@/db/schema';
 import {
   type PurchaseLegFulfilment,
   PurchaseProgressService,
 } from '@/modules/site/purchase-progress/services/purchase-progress.service';
-import { PurchaseLegDocumentsDto, PurchaseLegDto } from '../dto/entity/purchase-leg.dto';
+import { PurchaseLegDocumentsDto, PurchaseLegDto, type PurchaseLegRejection } from '../dto/entity/purchase-leg.dto';
 
 interface PurchaseLegSources {
   allocations: PurchaseAllocationRow[];
-  events: PurchaseEventDto[];
   approversByEnrollment: Map<string, string[]>;
 }
 
@@ -30,7 +27,6 @@ export class PurchasesSuppliersService {
     private readonly purchasesService: PurchasesDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
-    private readonly eventsService: PurchaseEventsDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly progressService: PurchaseProgressService,
   ) {}
@@ -39,15 +35,14 @@ export class PurchasesSuppliersService {
   // progress and the actions it offers the caller
   async findByPurchase(id: string, headers: NatsHeaders, leCurrencyCode: string): Promise<PurchaseLegDto[]> {
     const purchase = await this.purchasesService.findDetailOrThrow(id);
-    const [legs, allocations, events] = await Promise.all([
+    const [legs, allocations] = await Promise.all([
       this.legsService.findByPurchaseId(purchase.id),
       this.allocationsService.findByPurchaseId(purchase.id),
-      this.eventsService.findByPurchaseId(purchase.id),
     ]);
     const approversByEnrollment = await this.supplierEnrollmentsService.findApproverUserIds(
       legs.map((leg) => leg.supplierEnrollmentId),
     );
-    const sources: PurchaseLegSources = { allocations, events, approversByEnrollment };
+    const sources: PurchaseLegSources = { allocations, approversByEnrollment };
     const fulfilment = await this.progressService.findFulfilment(purchase, legs);
     return legs.map((leg, index) =>
       this.describeLeg(purchase, leg, { sources, fulfilment: fulfilment[index] }, headers, leCurrencyCode),
@@ -64,14 +59,13 @@ export class PurchasesSuppliersService {
     leCurrencyCode: string,
   ): PurchaseLegDto {
     const allocations = sources.allocations.filter((allocation) => allocation.purchaseSupplierId === leg.id);
-    const history = this.eventsService.legHistory(sources.events, leg);
     const approverUserIds = sources.approversByEnrollment.get(leg.supplierEnrollmentId) ?? [];
-    const approvers = { userId: headers.userId || null, approverUserIds, submitterId: history.submittedBy };
+    const approvers = { userId: headers.userId || null, approverUserIds, submitterId: leg.submittedBy };
     return PurchaseLegDto.fromLeg(PurchaseSupplierDto.from(leg, leCurrencyCode), {
-      submittedAt: history.submittedAt,
+      submittedAt: leg.submittedAt?.toISOString() ?? null,
       approverUserIds,
       ...this.allocationsService.sourcedTotal(allocations),
-      rejection: history.rejection,
+      rejection: this.rejectionOf(leg),
       allocations: allocations.map((allocation) =>
         PurchaseAllocationDto.from(allocation, this.openForInboundDeliveryPrimaryQty(allocation, fulfilment)),
       ),
@@ -79,6 +73,12 @@ export class PurchasesSuppliersService {
       progress: this.legsService.progressOf(fulfilment.facts),
       availableActions: this.legsService.availableActions(leg, purchase, approvers, fulfilment.facts),
     });
+  }
+
+  // Returns a leg's last rejection while it is back in sourcing
+  private rejectionOf(leg: PurchaseSupplierRow): PurchaseLegRejection | null {
+    if (leg.step !== PurchaseLegStepValues.SOURCING || !leg.rejectionReason || !leg.rejectedAt) return null;
+    return { reason: leg.rejectionReason, actorId: leg.rejectedBy, at: leg.rejectedAt.toISOString() };
   }
 
   // Returns what an allocation's PO line, on a confirmed PO, has not yet put on a delivery, in primary units

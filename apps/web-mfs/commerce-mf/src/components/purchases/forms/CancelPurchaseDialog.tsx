@@ -15,7 +15,7 @@ interface CancelPurchaseDialogProps {
   onCancel: () => void;
 }
 
-// Cancels the purchase, recording why in its activity
+// Cancels the purchase, saving why with it
 export const CancelPurchaseDialog: React.FC<CancelPurchaseDialogProps> = ({
   binding,
   purchase,
@@ -39,7 +39,7 @@ export const CancelPurchaseDialog: React.FC<CancelPurchaseDialogProps> = ({
         name="reason"
         label="Reason"
         placeholder="e.g. Stock transferred from another site instead"
-        description="Kept in the purchase's activity"
+        description="Saved with the purchase"
       />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

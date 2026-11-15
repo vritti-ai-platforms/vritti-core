@@ -39,21 +39,20 @@ export const CreateSupplierInvoiceDialog: React.FC<CreateSupplierInvoiceDialogPr
 }) => {
   const { SupplierSelector } = binding;
   const leCurrencyCode = useWorkspaceCurrency();
-  const timeZone = useWorkspaceTimeZone();
   const schema = useMemo(
     () => buildCreateSupplierInvoiceSchema({ requiresSite: binding.spansSites, leCurrencyCode }),
     [binding.spansSites, leCurrencyCode],
   );
   const initialSupplierId = supplierId ?? prefill?.supplierId;
-  const today = isoTodayDate(timeZone);
+  const initialToday = isoTodayDate(useWorkspaceTimeZone(prefill?.siteId));
   const form = useForm<CreateSupplierInvoiceFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       supplierId: initialSupplierId,
       siteId: prefill?.siteId,
       invoiceNumber: '',
-      invoiceDate: today,
-      taxDate: today,
+      invoiceDate: initialToday,
+      taxDate: initialToday,
       notes: '',
     },
   });
@@ -62,9 +61,18 @@ export const CreateSupplierInvoiceDialog: React.FC<CreateSupplierInvoiceDialogPr
   const [supplierCurrencies, setSupplierCurrencies] = useState<string[]>([]);
   const lastSupplierIdRef = useRef(initialSupplierId);
   const pickedSupplierId = useWatch({ control: form.control, name: 'supplierId' });
+  const siteId = useWatch({ control: form.control, name: 'siteId' });
+  const today = isoTodayDate(useWorkspaceTimeZone(siteId));
   const currencyCode = useWatch({ control: form.control, name: 'currencyCode' });
   const invoiceDate = useWatch({ control: form.control, name: 'invoiceDate' });
   const needsExchangeRate = !!currencyCode && currencyCode !== leCurrencyCode;
+
+  // Today is the picked site's day; the dates follow it until edited
+  useEffect(() => {
+    if (form.getFieldState('invoiceDate').isDirty) return;
+    form.resetField('invoiceDate', { defaultValue: today });
+    if (!form.getFieldState('taxDate').isDirty) form.resetField('taxDate', { defaultValue: today });
+  }, [today, form]);
 
   // The tax date follows the invoice date until it is picked
   useEffect(() => {

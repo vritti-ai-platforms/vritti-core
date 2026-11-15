@@ -43,7 +43,6 @@ export * from './orders';
 export * from './parties';
 export * from './payment-terms';
 export * from './pos-terminals';
-export * from './purchase-events';
 export * from './purchase-item-allocations';
 export * from './purchase-items';
 export * from './purchase-orders';

@@ -1,4 +1,5 @@
 import { CreateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/create-site-stock-levels.dto';
+import { InventoryItemSiteParamsDto } from '@commerce/inventory-items/dto/request/inventory-item-site-params.dto';
 import { UpdateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/update-site-stock-levels.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
@@ -37,13 +38,11 @@ export class LeInventoryItemsGatewayController {
   @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.add)
   @ApiCreateSiteStockLevels()
   createSiteStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id, siteId }: InventoryItemSiteParamsDto,
     @Body() dto: CreateSiteStockLevelsDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
     this.logger.log(`POST /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.createSiteStockLevels(id, siteId, dto, legalEntityId);
+    return this.service.createSiteStockLevels(id, siteId, dto);
   }
 
   // Updates the item's stock levels at one of the legal entity's sites
@@ -51,13 +50,11 @@ export class LeInventoryItemsGatewayController {
   @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.edit)
   @ApiUpdateSiteStockLevels()
   updateSiteStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { id, siteId }: InventoryItemSiteParamsDto,
     @Body() dto: UpdateSiteStockLevelsDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.updateSiteStockLevels(id, siteId, dto, legalEntityId);
+    return this.service.updateSiteStockLevels(id, siteId, dto);
   }
 
   // Returns one master item, read-only from a legal entity
@@ -110,12 +107,8 @@ export class LeInventoryItemsGatewayController {
   @Delete(':id/site-stock-levels/:siteId')
   @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.delete)
   @ApiDeleteSiteStockLevels()
-  deleteSiteStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  deleteSiteStockLevels(@Param() { id, siteId }: InventoryItemSiteParamsDto): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.deleteSiteStockLevels(id, siteId, legalEntityId);
+    return this.service.deleteSiteStockLevels(id, siteId);
   }
 }

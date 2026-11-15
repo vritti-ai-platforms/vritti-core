@@ -268,19 +268,13 @@ export class SelectApiGatewayService {
   }
 
   // Returns supplier options, narrowed to the suppliers enrolled at one of the legal entity's sites when one is named
-  async selectSuppliers(query: SuppliersSelectQueryDto, legalEntityId: string | undefined): Promise<SelectQueryResult> {
-    if (query.enrolledAtSiteId) {
-      await this.assertSiteInLegalEntity(query.enrolledAtSiteId, legalEntityId, 'enrolledAtSiteId');
-    }
+  selectSuppliers(query: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.suppliers — enrolledAtSiteId: ${query.enrolledAtSiteId ?? '-'}`);
     return this.nats.send<SelectQueryResult>('commerce', 'select.suppliers', query);
   }
 
   // Returns location options, narrowed to one of the legal entity's sites when one is named
-  async selectLocations(query: LocationsSelectQueryDto, legalEntityId: string | undefined): Promise<SelectQueryResult> {
-    if (query.atSiteId) {
-      await this.assertSiteInLegalEntity(query.atSiteId, legalEntityId, 'atSiteId');
-    }
+  selectLocations(query: LocationsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.locations — atSiteId: ${query.atSiteId ?? '-'}`);
     return this.nats.send<SelectQueryResult>('commerce', 'select.locations', query);
   }

@@ -20,8 +20,9 @@ const purchase = (overrides: Partial<PurchaseRow> = {}): PurchaseRow =>
 
 function setup() {
   const update = jest.fn();
-  const service = new PurchasesDomainService({ update } as unknown as PurchasesDomainRepository);
-  return { service, update };
+  const deleteRequesting = jest.fn().mockResolvedValue(true);
+  const service = new PurchasesDomainService({ update, deleteRequesting } as unknown as PurchasesDomainRepository);
+  return { service, update, deleteRequesting };
 }
 
 describe('PurchasesDomainService lifecycle', () => {
@@ -84,31 +85,51 @@ describe('PurchasesDomainService lifecycle', () => {
 
   it('cancels an open purchase once', async () => {
     const { service, update } = setup();
-    await service.cancel(purchase({ step: 'PROCURING' }));
-    expect(update).toHaveBeenCalledWith('pur-1', expect.objectContaining({ status: 'CANCELLED' }));
-    await expect(service.cancel(purchase({ status: 'CANCELLED' }))).rejects.toBeInstanceOf(ConflictException);
+    await service.cancel(purchase({ step: 'PROCURING' }), 'No longer needed');
+    expect(update).toHaveBeenCalledWith(
+      'pur-1',
+      expect.objectContaining({ status: 'CANCELLED', cancelReason: 'No longer needed' }),
+    );
+    await expect(service.cancel(purchase({ status: 'CANCELLED' }), 'No longer needed')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+  });
+
+  it('deletes a purchase only while its items are not submitted', async () => {
+    const { service, deleteRequesting } = setup();
+    await service.delete(purchase());
+    expect(deleteRequesting).toHaveBeenCalledWith('pur-1');
+    await expect(service.delete(purchase({ step: 'QUOTING' }))).rejects.toMatchObject({
+      response: expect.objectContaining({ label: 'Cannot Delete Purchase' }),
+    });
+    await expect(service.delete(purchase({ status: 'CANCELLED' }))).rejects.toBeInstanceOf(ConflictException);
+    expect(deleteRequesting).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses the delete when the purchase was submitted meanwhile', async () => {
+    const { service, deleteRequesting } = setup();
+    deleteRequesting.mockResolvedValueOnce(false);
+    await expect(service.delete(purchase())).rejects.toMatchObject({
+      response: expect.objectContaining({ detail: '"PUR-202611-0001" was submitted meanwhile; cancel it instead.' }),
+    });
   });
 });
 
 describe('PurchasesDomainService.availableActions', () => {
   const { service } = setup();
-  const facts = {
-    postedSupplierCount: 0,
-    hasSourcingLeg: false,
-    hasQuotations: false,
-    hasAllocations: false,
-    hasLegs: false,
-  };
+  const facts = { postedSupplierCount: 0, hasSourcingLeg: false };
 
   it('offers items editing and its submit only with items', () => {
-    expect(service.availableActions(purchase(), facts)).toEqual([
-      'CANCEL',
-      'DELETE',
-      'EDIT',
-      'EDIT_ITEMS',
-      'SUBMIT_ITEMS',
-    ]);
+    expect(service.availableActions(purchase(), facts)).toEqual(['DELETE', 'EDIT', 'EDIT_ITEMS', 'SUBMIT_ITEMS']);
     expect(service.availableActions(purchase({ itemCount: 0 }), facts)).not.toContain('SUBMIT_ITEMS');
+  });
+
+  it('offers delete while the items are not submitted, and cancel instead once they are', () => {
+    expect(service.availableActions(purchase(), facts)).toContain('DELETE');
+    expect(service.availableActions(purchase(), facts)).not.toContain('CANCEL');
+    const quoting = service.availableActions(purchase({ step: 'QUOTING' }), facts);
+    expect(quoting).toContain('CANCEL');
+    expect(quoting).not.toContain('DELETE');
   });
 
   it('offers completing quotations once enough suppliers posted', () => {

@@ -25,8 +25,7 @@ export class PurchasesLegsController {
     this.logger.log(
       `site.purchases.legs.createPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, orderDate: ${dto.orderDate}`,
     );
-    return this.service.createPurchaseOrder(dto, headers, {
-      timezone: headers.siteTimezone,
+    return this.service.createPurchaseOrder(dto, {
       leCurrencyCode: headers.leCurrencyCode,
     });
   }
@@ -35,12 +34,11 @@ export class PurchasesLegsController {
   @MessagePattern({ cmd: 'site.purchases.legs.createInboundDelivery' })
   createInboundDelivery(
     @Payload() dto: CreateLegInboundDeliveryDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ inboundDeliveryId: string }>> {
     this.logger.log(
       `site.purchases.legs.createInboundDelivery — id: ${dto.id}, leg: ${dto.legId}, lines: ${dto.lines.length}`,
     );
-    return this.service.createInboundDelivery(dto, headers);
+    return this.service.createInboundDelivery(dto);
   }
 
   // Starts a draft goods receipt of a leg, from one of its deliveries or its open lines
@@ -52,8 +50,7 @@ export class PurchasesLegsController {
     this.logger.log(
       `site.purchases.legs.createGoodsReceipt — id: ${dto.id}, leg: ${dto.legId}, delivery: ${dto.inboundDeliveryId ?? 'none'}`,
     );
-    return this.service.createGoodsReceipt(dto, headers, {
-      timezone: headers.siteTimezone,
+    return this.service.createGoodsReceipt(dto, {
       leCurrencyCode: headers.leCurrencyCode,
     });
   }
@@ -81,20 +78,17 @@ export class PurchasesLegsController {
 
   // Confirms a sent purchase order of a leg
   @MessagePattern({ cmd: 'site.purchases.legs.confirmPurchaseOrder' })
-  confirmPurchaseOrder(
-    @Payload() dto: ConfirmLegPurchaseOrderDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  confirmPurchaseOrder(@Payload() dto: ConfirmLegPurchaseOrderDto): Promise<SuccessResponseDto> {
     this.logger.log(
       `site.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
     );
-    return this.service.confirmPurchaseOrder(dto, headers);
+    return this.service.confirmPurchaseOrder(dto);
   }
 
   // Closes a leg, completing delivery of its open purchase orders
   @MessagePattern({ cmd: 'site.purchases.legs.closeSupplier' })
-  closeSupplier(@Payload() dto: CloseSupplierDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  closeSupplier(@Payload() dto: CloseSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchases.legs.closeSupplier — id: ${dto.id}, leg: ${dto.legId}`);
-    return this.service.closeSupplier(dto, headers);
+    return this.service.closeSupplier(dto);
   }
 }

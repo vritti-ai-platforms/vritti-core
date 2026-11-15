@@ -173,6 +173,9 @@ export const legalEntityIdColumn = () => uuid('legal_entity_id').default(sql.raw
 // The site a row belongs to, defaulted from the request's site
 export const siteIdColumn = () => uuid('site_id').default(sql.raw(SITE_GUC));
 
+// The request's site as a SQL value, for a filter or insert the caller named no site for
+export const currentSiteId = () => sql.raw(SITE_GUC);
+
 // The owner columns of a row the org, a legal entity or a site may own, defaulted from the request's workspace so a
 // plain insert stamps itself
 export const workspaceScopeColumns = () => ({
@@ -261,17 +264,21 @@ export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>
   ];
 };
 
+type SharedLink<TLink extends PgTable> = { table: TLink; fk: (table: TLink) => AnyPgColumn; id: AnyPgColumn };
+
 // For a table that OWNS its workspace columns and whose rows a parent workspace must also see — the same write rules as
 // workspaceScopePolicies, but reach runs in both directions. With `sharedThrough`, a site sees its LE's rows only when
-// a row of the link table points at them; that table's own policies must narrow it to the site's rows and must not read
-// this table back, or Postgres reports infinite recursion.
-export const workspaceHierarchyPolicies = <TLink extends PgTable>(options?: {
-  sharedThrough: { table: TLink; fk: (table: TLink) => AnyPgColumn; id: AnyPgColumn };
+// a row of one of the link tables points at them; each link table's own policies must narrow it to the site's rows and
+// must not read this table back, or Postgres reports infinite recursion.
+export const workspaceHierarchyPolicies = <TLinks extends PgTable[]>(options?: {
+  sharedThrough: { [K in keyof TLinks]: SharedLink<TLinks[K]> };
 }) => {
   const owned = sql.raw(exactlyThisWorkspaceSql());
-  const link = options?.sharedThrough;
-  const shared = link
-    ? `${link.id.name} in (select l.${link.fk(link.table).name} from ${qualifiedName(link.table)} l)`
+  const links = options?.sharedThrough;
+  const shared = links
+    ? `(${links
+        .map((link) => `${link.id.name} in (select l.${link.fk(link.table).name} from ${qualifiedName(link.table)} l)`)
+        .join(' or ')})`
     : undefined;
 
   return [

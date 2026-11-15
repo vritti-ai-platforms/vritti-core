@@ -10,8 +10,8 @@ import { LeCreatePurchaseDto } from '@commerce/purchases/dto/request/le-create-p
 import { LeCreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/le-create-purchase-supplier-invoice.dto';
 import { LeCreateReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-create-receive-with-invoice.dto';
 import { LeReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-receive-with-invoice.dto';
-import { PurchaseEventsQueryDto } from '@commerce/purchases/dto/request/purchase-events-query.dto';
 import { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
+import { ReceiveWithInvoiceSiteParamsDto } from '@commerce/purchases/dto/request/receive-with-invoice-site-params.dto';
 import { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
 import { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/request-purchase-quotation.dto';
 import { UpdatePurchaseDto } from '@commerce/purchases/dto/request/update-purchase.dto';
@@ -22,7 +22,6 @@ import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/d
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import type { PurchaseEventsPageResponseDto } from '@commerce/purchases/dto/response/purchase-events-page-response.dto';
 import type { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
 import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import type { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
@@ -54,7 +53,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_PURCHASES } from '@vritti/commerce-permissions/purchases';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiApproveLeg,
   ApiCancel,
@@ -75,7 +74,6 @@ import {
   ApiDeleteItem,
   ApiDiscardReceiveWithInvoice,
   ApiFindById,
-  ApiFindEvents,
   ApiFindItems,
   ApiFindQuotations,
   ApiFindReceiveWithInvoiceById,
@@ -111,12 +109,9 @@ export class LePurchasesGatewayController {
   @RequirePermission(LE_PURCHASES.add)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
-  create(
-    @Body() dto: LeCreatePurchaseDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<PurchaseResponseDto>> {
+  create(@Body() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<PurchaseResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchases');
-    return this.service.create(dto, legalEntityId);
+    return this.service.create(dto);
   }
 
   // Adds an item to a purchase
@@ -180,10 +175,9 @@ export class LePurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CreateLegPurchaseOrderDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedLegPurchaseOrdersResponseDto>> {
     this.logger.log(`POST /commerce-api/le/purchases/${id}/legs/${legId}/purchase-orders`);
-    return this.service.createLegPurchaseOrder(id, legId, dto, legalEntityId);
+    return this.service.createLegPurchaseOrder(id, legId, dto);
   }
 
   // Creates an inbound delivery of a leg's confirmed purchase order lines
@@ -209,10 +203,9 @@ export class LePurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CreateLegGoodsReceiptDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedLegGoodsReceiptResponseDto>> {
     this.logger.log(`POST /commerce-api/le/purchases/${id}/legs/${legId}/goods-receipts`);
-    return this.service.createLegGoodsReceipt(id, legId, dto, legalEntityId);
+    return this.service.createLegGoodsReceipt(id, legId, dto);
   }
 
   // Drafts a supplier invoice for the received goods of the supplier's open legs at one of the legal entity's sites
@@ -222,10 +215,9 @@ export class LePurchasesGatewayController {
   @ApiCreateSupplierInvoice()
   createSupplierInvoice(
     @Body() dto: LeCreatePurchaseSupplierInvoiceDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchases/supplier-invoices');
-    return this.service.createSupplierInvoice(dto, legalEntityId);
+    return this.service.createSupplierInvoice(dto);
   }
 
   // Drafts a Receive with Invoice at one of the legal entity's sites
@@ -235,10 +227,9 @@ export class LePurchasesGatewayController {
   @ApiCreateReceiveWithInvoice()
   createReceiveWithInvoice(
     @Body() dto: LeCreateReceiveWithInvoiceDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchases/receive-with-invoices');
-    return this.service.createReceiveWithInvoice(dto, legalEntityId);
+    return this.service.createReceiveWithInvoice(dto);
   }
 
   // Changes a purchase's header while it is Requesting
@@ -283,10 +274,9 @@ export class LePurchasesGatewayController {
   updateReceiveWithInvoice(
     @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
     @Body() dto: LeReceiveWithInvoiceDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PUT /commerce-api/le/purchases/receive-with-invoices/${invoiceId}`);
-    return this.service.updateReceiveWithInvoice(invoiceId, dto, legalEntityId);
+    return this.service.updateReceiveWithInvoice(invoiceId, dto);
   }
 
   // Cancels a purchase with a reason
@@ -475,30 +465,16 @@ export class LePurchasesGatewayController {
     return this.service.findSuppliers(id, orgId);
   }
 
-  // Returns one page of a purchase's activity, newest first
-  @Get(':id/events')
-  @RequirePermission(LE_PURCHASES.view)
-  @ApiFindEvents()
-  findEvents(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query: PurchaseEventsQueryDto,
-    @OrgId() orgId: string,
-  ): Promise<PurchaseEventsPageResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchases/${id}/events`);
-    return this.service.findEvents(id, query, orgId);
-  }
-
   // Returns the supplier's allocations open to receive and invoice at once at one of the legal entity's sites
   @Get('receive-with-invoices/open-lines/sites/:siteId')
   @RequirePermission(LE_PURCHASES.view)
   @ApiFindReceiveWithInvoiceOpenLines()
   findReceiveWithInvoiceOpenLines(
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { siteId }: ReceiveWithInvoiceSiteParamsDto,
     @Query() query: ReceiveWithInvoiceOpenLinesQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<ReceiveWithInvoiceOpenLineResponseDto[]> {
     this.logger.log(`GET /commerce-api/le/purchases/receive-with-invoices/open-lines/sites/${siteId}`);
-    return this.service.findReceiveWithInvoiceOpenLines(siteId, query, legalEntityId);
+    return this.service.findReceiveWithInvoiceOpenLines(siteId, query);
   }
 
   // Deletes a purchase that is still open and Requesting with nothing beyond items

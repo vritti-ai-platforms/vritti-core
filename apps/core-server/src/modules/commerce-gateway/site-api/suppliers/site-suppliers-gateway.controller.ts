@@ -38,7 +38,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { OrgId, SiteId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiCreateSiteSupplierInvoice,
   ApiCreateSiteSupplierInvoiceLine,
@@ -67,12 +67,9 @@ export class SiteSuppliersGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_SUPPLIERS.enroll)
-  create(
-    @Body() dto: CreateSupplierEnrollmentDto,
-    @SiteId() siteId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  create(@Body() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
     this.logger.log('POST /commerce-api/site/suppliers');
-    return this.siteSuppliersGatewayService.create(dto, siteId);
+    return this.siteSuppliersGatewayService.create(dto);
   }
 
   // Records a draft invoice of the supplier at this site
@@ -108,10 +105,9 @@ export class SiteSuppliersGatewayController {
   update(
     @Param('id', new ParseUUIDPipe()) supplierId: string,
     @Body() dto: UpdateSupplierEnrollmentDto,
-    @SiteId() siteId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}`);
-    return this.siteSuppliersGatewayService.update(supplierId, dto, siteId);
+    return this.siteSuppliersGatewayService.update(supplierId, dto);
   }
 
   // Updates this site's terms for a supplier item; the site item must belong to this site (RLS)
@@ -159,10 +155,9 @@ export class SiteSuppliersGatewayController {
   setActive(
     @Param('id', new ParseUUIDPipe()) supplierId: string,
     @Body() dto: SetSupplierEnrollmentActiveDto,
-    @SiteId() siteId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/active`);
-    return this.siteSuppliersGatewayService.setActive(supplierId, dto.isActive, siteId);
+    return this.siteSuppliersGatewayService.setActive(supplierId, dto.isActive);
   }
 
   // Posts a draft invoice, setting the final cost of the stock it invoices

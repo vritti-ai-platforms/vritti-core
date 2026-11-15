@@ -50,9 +50,6 @@ export const purchaseOrders = commerceSchema.table(
     conversionRates: jsonb('conversion_rates').$type<Record<string, string>>().notNull().default({}),
     orderDate: date('order_date', { mode: 'string' }).notNull(),
     taxDate: date('tax_date', { mode: 'string' }).notNull(),
-    timezone: varchar('timezone', { length: 50 })
-      .notNull()
-      .default(sql.raw("cast(current_setting('app.site_timezone') as text)")),
     notes: text('notes'),
     totalAmount: bigint('total_amount', { mode: 'bigint' }).notNull().default(0n),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

@@ -6,7 +6,6 @@ import { InventoryItemSiteStockLevelsDomainModule } from '@domain/inventory-item
 import { LocationsDomainModule } from '@domain/locations/locations.module';
 import { PaymentTermRulesDomainModule } from '@domain/payment-term-rules/payment-term-rules.module';
 import { PaymentTermsDomainModule } from '@domain/payment-terms/payment-terms.module';
-import { PurchaseEventsDomainModule } from '@domain/purchase-events/purchase-events.module';
 import { PurchaseItemAllocationsDomainModule } from '@domain/purchase-item-allocations/purchase-item-allocations.module';
 import { PurchaseItemsDomainModule } from '@domain/purchase-items/purchase-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
@@ -25,8 +24,6 @@ import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/pur
 import { SiteSuppliersModule } from '@/modules/site/suppliers/suppliers.module';
 import { PurchasesAllocationsController } from './allocations/purchases-allocations.controller';
 import { PurchasesAllocationsService } from './allocations/services/purchases-allocations.service';
-import { PurchasesEventsController } from './events/purchases-events.controller';
-import { PurchasesEventsService } from './events/services/purchases-events.service';
 import { PurchasesItemsController } from './items/purchases-items.controller';
 import { PurchasesItemsService } from './items/services/purchases-items.service';
 import { PurchasesLegsController } from './legs/purchases-legs.controller';
@@ -52,7 +49,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     PurchaseItemsDomainModule,
     PurchaseSuppliersDomainModule,
     PurchaseItemAllocationsDomainModule,
-    PurchaseEventsDomainModule,
     PurchaseOrdersDomainModule,
     PurchaseOrderItemsDomainModule,
     InboundDeliveriesDomainModule,
@@ -83,7 +79,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     PurchasesLegsController,
     PurchasesSupplierInvoicesController,
     PurchasesReceiveWithInvoicesController,
-    PurchasesEventsController,
   ],
   providers: [
     // Root
@@ -106,8 +101,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     // Receive with Invoice
     PurchasesReceiveWithInvoicesService,
     ReceiveWithInvoiceDocumentsService,
-    // Events
-    PurchasesEventsService,
   ],
   exports: [
     PurchasesService,
@@ -119,7 +112,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     PurchasesLegsService,
     PurchasesSupplierInvoicesService,
     PurchasesReceiveWithInvoicesService,
-    PurchasesEventsService,
   ],
 })
 export class SitePurchasesModule {}

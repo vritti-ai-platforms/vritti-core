@@ -35,12 +35,9 @@ export class SiteSuppliersGatewayService {
   ) {}
 
   // Enrolls a supplier at the session site
-  async create(
-    dto: CreateSupplierEnrollmentDto,
-    siteId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
     this.logger.log(`site.suppliers.create — supplierId: ${dto.supplierId}`);
-    return this.nats.send('commerce', 'site.suppliers.create', { ...dto, siteId });
+    return this.nats.send('commerce', 'site.suppliers.create', dto);
   }
 
   // Records a draft invoice of the supplier at this site; payment term and due date come from its enrollment
@@ -59,13 +56,9 @@ export class SiteSuppliersGatewayService {
   }
 
   // Updates a supplier's enrollment picks and flags at the session site
-  async update(
-    supplierId: string,
-    dto: UpdateSupplierEnrollmentDto,
-    siteId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  update(supplierId: string, dto: UpdateSupplierEnrollmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.update — supplierId: ${supplierId}`);
-    return this.nats.send('commerce', 'site.suppliers.update', { ...dto, supplierId, siteId });
+    return this.nats.send('commerce', 'site.suppliers.update', { ...dto, supplierId });
   }
 
   // Updates this site's terms for a supplier item (preferred, lead time)
@@ -87,9 +80,9 @@ export class SiteSuppliersGatewayService {
   }
 
   // Activates or deactivates a supplier's own enrollment at the session site
-  async setActive(supplierId: string, isActive: boolean, siteId: string | undefined): Promise<SuccessResponseDto> {
+  setActive(supplierId: string, isActive: boolean): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.setActive — supplierId: ${supplierId}, isActive: ${isActive}`);
-    return this.nats.send('commerce', 'site.suppliers.setActive', { supplierId, siteId, isActive });
+    return this.nats.send('commerce', 'site.suppliers.setActive', { supplierId, isActive });
   }
 
   // Posts a draft invoice, setting the final cost of the stock it invoices

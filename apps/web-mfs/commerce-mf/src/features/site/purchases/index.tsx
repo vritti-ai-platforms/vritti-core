@@ -4,11 +4,9 @@ import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/Permissio
 import type React from 'react';
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { PurchaseActivitySkeleton } from '@/components/purchases/activity/PurchaseActivitySkeleton';
 import { PurchaseDetailSkeleton } from '@/components/purchases/PurchaseDetailSkeleton';
 import { ReceiveWithInvoiceSkeleton } from '@/components/purchases/receive-with-invoices/ReceiveWithInvoiceSkeleton';
 import { NewReceiveWithInvoicePage } from './NewReceiveWithInvoicePage';
-import { PurchaseActivityPage } from './PurchaseActivityPage';
 import { PurchaseDetailPage } from './PurchaseDetailPage';
 import { PurchasesPage } from './PurchasesPage';
 import { ReceiveWithInvoicePage } from './ReceiveWithInvoicePage';
@@ -40,10 +38,6 @@ const routes: RouteObject[] = [
   {
     path: ':purchaseSlug',
     element: gated(SITE_PURCHASES.view, <PurchaseDetailPage />, <PurchaseDetailSkeleton />),
-  },
-  {
-    path: ':purchaseSlug/activity',
-    element: gated(SITE_PURCHASES.view, <PurchaseActivityPage />, <PurchaseActivitySkeleton />),
   },
 ];
 

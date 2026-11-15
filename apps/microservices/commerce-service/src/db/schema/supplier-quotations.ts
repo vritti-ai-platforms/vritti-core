@@ -47,7 +47,6 @@ export const supplierQuotations = commerceSchema.table(
     validFrom: date('valid_from', { mode: 'string' }).notNull(),
     validTo: date('valid_to', { mode: 'string' }),
     note: varchar('note', { length: 500 }),
-    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -59,9 +58,12 @@ export const supplierQuotations = commerceSchema.table(
     index('idx_supplier_quotations_supplier').on(table.supplierId, table.validFrom),
     index('idx_supplier_quotations_purchase').on(table.purchaseId),
     check('supplier_quotations_validity_chk', sql`${table.validTo} IS NULL OR ${table.validTo} >= ${table.validFrom}`),
-    // A site sees only the quotations posted to it
+    // A site sees the legal entity's quotations posted to it and those requested for its own purchases
     ...workspaceHierarchyPolicies({
-      sharedThrough: { table: supplierQuotationSites, fk: (sites) => sites.quotationId, id: table.id },
+      sharedThrough: [
+        { table: supplierQuotationSites, fk: (sites) => sites.quotationId, id: table.id },
+        { table: purchases, fk: (purchase) => purchase.id, id: table.purchaseId },
+      ],
     }),
   ],
 );

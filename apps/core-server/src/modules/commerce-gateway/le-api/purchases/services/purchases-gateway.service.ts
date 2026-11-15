@@ -10,7 +10,6 @@ import type { LeCreatePurchaseDto } from '@commerce/purchases/dto/request/le-cre
 import type { LeCreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/le-create-purchase-supplier-invoice.dto';
 import type { LeCreateReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-create-receive-with-invoice.dto';
 import type { LeReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-receive-with-invoice.dto';
-import type { PurchaseEventsQueryDto } from '@commerce/purchases/dto/request/purchase-events-query.dto';
 import type { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import type { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
 import type { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/request-purchase-quotation.dto';
@@ -22,7 +21,6 @@ import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/d
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import type { PurchaseEventsPageResponseDto } from '@commerce/purchases/dto/response/purchase-events-page-response.dto';
 import type { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
 import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import type { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
@@ -36,18 +34,14 @@ import type { ReceiveWithInvoiceOpenLineResponseDto } from '@commerce/purchases/
 import type { RequestedPurchaseQuotationResponseDto } from '@commerce/purchases/dto/response/requested-purchase-quotation-response.dto';
 import {
   PurchaseNamesService,
-  type UnnamedPurchaseEventsPage,
   type UnnamedPurchaseHeader,
   type UnnamedPurchaseLeg,
 } from '@commerce/purchases/services/purchase-names.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
-import type { SiteContext } from '@/site-context/site-context-cache.service';
-import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 @Injectable()
 export class LePurchasesGatewayService {
@@ -58,20 +52,12 @@ export class LePurchasesGatewayService {
     private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
     private readonly purchaseNames: PurchaseNamesService,
-    private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
-  // Creates a purchase at one of the legal entity's sites, in its timezone and against the company's currency
-  async create(
-    dto: LeCreatePurchaseDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<PurchaseResponseDto>> {
-    this.logger.log(`le.purchases.create — site: ${dto.siteId}, items: ${dto.items?.length ?? 0}`);
-    const site = await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.create', {
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+  // Creates a purchase at one of the legal entity's sites
+  create(dto: LeCreatePurchaseDto): Promise<CreateResponseDto<PurchaseResponseDto>> {
+    this.logger.log(`le.purchases.create — site: ${dto.siteId}`);
+    return this.nats.send('commerce', 'le.purchases.create', dto);
   }
 
   // Adds an item, or adds the quantity to the item already on the purchase
@@ -112,20 +98,13 @@ export class LePurchasesGatewayService {
   }
 
   // Creates a leg's purchase orders, one per currency of its allocations, converted against the legal entity's currency
-  async createLegPurchaseOrder(
+  createLegPurchaseOrder(
     id: string,
     legId: string,
     dto: CreateLegPurchaseOrderDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedLegPurchaseOrdersResponseDto>> {
     this.logger.log(`le.purchases.legs.createPurchaseOrder — id: ${id}, legId: ${legId}, orderDate: ${dto.orderDate}`);
-    const site = await this.resolvePurchaseSite(id, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.legs.createPurchaseOrder', {
-      id,
-      legId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+    return this.nats.send('commerce', 'le.purchases.legs.createPurchaseOrder', { id, legId, ...dto });
   }
 
   // Creates an inbound delivery of a leg's confirmed purchase order lines
@@ -139,50 +118,36 @@ export class LePurchasesGatewayService {
   }
 
   // Creates a draft goods receipt of a leg, from one of its inbound deliveries or its open lines
-  async createLegGoodsReceipt(
+  createLegGoodsReceipt(
     id: string,
     legId: string,
     dto: CreateLegGoodsReceiptDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedLegGoodsReceiptResponseDto>> {
     this.logger.log(
       `le.purchases.legs.createGoodsReceipt — id: ${id}, legId: ${legId}, inboundDeliveryId: ${dto.inboundDeliveryId ?? 'none'}`,
     );
-    const site = await this.resolvePurchaseSite(id, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.legs.createGoodsReceipt', {
-      id,
-      legId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+    return this.nats.send('commerce', 'le.purchases.legs.createGoodsReceipt', { id, legId, ...dto });
   }
 
   // Drafts a supplier invoice for the received, uninvoiced goods of the supplier's open legs at one of the legal
   // entity's sites
-  async createSupplierInvoice(
+  createSupplierInvoice(
     dto: LeCreatePurchaseSupplierInvoiceDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
     this.logger.log(
       `le.purchases.supplierInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}`,
     );
-    await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
     return this.nats.send('commerce', 'le.purchases.supplierInvoices.create', dto);
   }
 
   // Drafts a Receive with Invoice at one of the legal entity's sites: the inbound deliveries, goods receipts and supplier invoice it records
-  async createReceiveWithInvoice(
+  createReceiveWithInvoice(
     dto: LeCreateReceiveWithInvoiceDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
     this.logger.log(
       `le.purchases.receiveWithInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}, lines: ${dto.lines.length}`,
     );
-    const site = await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.create', {
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.create', dto);
   }
 
   // Changes a purchase's header while it is Requesting
@@ -204,18 +169,9 @@ export class LePurchasesGatewayService {
   }
 
   // Replaces a draft Receive with Invoice, at the site it was drafted for
-  async updateReceiveWithInvoice(
-    invoiceId: string,
-    dto: LeReceiveWithInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  updateReceiveWithInvoice(invoiceId: string, dto: LeReceiveWithInvoiceDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.receiveWithInvoices.update — invoiceId: ${invoiceId}, lines: ${dto.lines.length}`);
-    const site = await this.resolveReceiveWithInvoiceSite(invoiceId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.update', {
-      invoiceId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.update', { invoiceId, ...dto });
   }
 
   // Cancels a purchase with a reason
@@ -331,26 +287,12 @@ export class LePurchasesGatewayService {
     return this.purchaseNames.withLegNames(orgId, legs);
   }
 
-  // Returns one page of a purchase's events, newest first, with their actors named
-  async findEvents(id: string, query: PurchaseEventsQueryDto, orgId: string): Promise<PurchaseEventsPageResponseDto> {
-    this.logger.log(
-      `le.purchases.events.findByPurchase — id: ${id}, kind: ${query.kind ?? 'all'}, offset: ${query.offset}`,
-    );
-    const page = await this.nats.send<UnnamedPurchaseEventsPage>('commerce', 'le.purchases.events.findByPurchase', {
-      id,
-      ...query,
-    });
-    return this.purchaseNames.withEventNames(orgId, page);
-  }
-
   // Returns the supplier's allocations still open to receive and invoice at once at one of the legal entity's sites
-  async findReceiveWithInvoiceOpenLines(
+  findReceiveWithInvoiceOpenLines(
     siteId: string,
     query: ReceiveWithInvoiceOpenLinesQueryDto,
-    legalEntityId: string | undefined,
   ): Promise<ReceiveWithInvoiceOpenLineResponseDto[]> {
     this.logger.log(`le.purchases.receiveWithInvoices.openLines — site: ${siteId}, supplierId: ${query.supplierId}`);
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
     return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.openLines', { ...query, siteId });
   }
 
@@ -376,34 +318,5 @@ export class LePurchasesGatewayService {
   discardReceiveWithInvoice(invoiceId: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.receiveWithInvoices.discard — invoiceId: ${invoiceId}`);
     return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.discard', { invoiceId });
-  }
-
-  // Resolves the site of a purchase of the workspace, whose timezone dates the purchase orders an action creates there
-  private async resolvePurchaseSite(id: string, legalEntityId: string | undefined): Promise<SiteContext> {
-    const purchase = await this.nats.send<UnnamedPurchaseHeader>('commerce', 'le.purchases.findById', { id });
-    return this.resolveWorkspaceSite(purchase.siteId, legalEntityId);
-  }
-
-  // Resolves the site a draft Receive with Invoice was drafted for
-  private async resolveReceiveWithInvoiceSite(
-    invoiceId: string,
-    legalEntityId: string | undefined,
-  ): Promise<SiteContext> {
-    const receiveWithInvoice = await this.findReceiveWithInvoiceById(invoiceId);
-    return this.resolveWorkspaceSite(receiveWithInvoice.siteId, legalEntityId);
-  }
-
-  // Resolves a site's context, rejecting a site outside the legal entity the user is working in
-  private async resolveWorkspaceSite(siteId: string, legalEntityId: string | undefined): Promise<SiteContext> {
-    const site = await this.siteContextResolver.resolve(siteId);
-    if (site.legalEntityId !== legalEntityId) {
-      throw new BadRequestException({
-        label: 'Site Not In Company',
-        detail:
-          'Purchases and their supplier invoices can only be entered for the sites of the company you are working in.',
-        errors: [{ field: 'siteId', message: 'Not one of your sites' }],
-      });
-    }
-    return site;
   }
 }

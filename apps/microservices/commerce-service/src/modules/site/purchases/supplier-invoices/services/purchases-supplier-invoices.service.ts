@@ -1,7 +1,3 @@
-import {
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
 import type { PurchaseSupplierRow } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type { CreatePurchaseSupplierInvoiceDto } from '@domain/purchases/dto/request/create-purchase-supplier-invoice.dto';
@@ -17,7 +13,6 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { PurchaseOrderStatusValues, SupplierInvoiceLineTypeValues } from '@/db/schema';
@@ -25,7 +20,7 @@ import { PurchaseProgressService } from '@/modules/site/purchase-progress/servic
 import { SupplierInvoicesService } from '@/modules/site/suppliers/invoices/root/services/supplier-invoices.service';
 
 export interface PurchaseSupplierInvoiceSite {
-  siteId: string;
+  siteId?: string;
   leCurrencyCode: string;
 }
 
@@ -56,7 +51,6 @@ export class PurchasesSupplierInvoicesService {
   async create(
     dto: CreatePurchaseSupplierInvoiceDto,
     site: PurchaseSupplierInvoiceSite,
-    headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ supplierInvoiceId: string }>> {
     const invoicedLegs = await this.findInvoicedLegs(dto, site.siteId);
     const { purchaseIds, ...invoice } = dto;
@@ -65,22 +59,10 @@ export class PurchasesSupplierInvoicesService {
       const { data } = await this.supplierInvoicesService.create(invoice, {
         siteId: site.siteId,
         leCurrencyCode: site.leCurrencyCode,
-        createdBy: headers.userId || null,
       });
       for (const invoiced of invoicedLegs) await this.addLines(data, invoiced.receipts);
       await this.holdsService.sync(data.id, site.leCurrencyCode);
-      for (const invoiced of invoicedLegs) {
-        await this.progressService.recordLegEvent(
-          invoiced.purchase,
-          invoiced.leg,
-          {
-            action: PurchaseEventActionValues.CREATE_SUPPLIER_INVOICE,
-            documentType: PurchaseEventDocumentTypeValues.SUPPLIER_INVOICE,
-            documentId: data.id,
-          },
-          headers.userId || null,
-        );
-      }
+      for (const invoiced of invoicedLegs) await this.progressService.syncLegStep(invoiced.purchase, invoiced.leg);
       return data;
     });
     const lineCount = invoicedLegs.reduce((count, invoiced) => count + invoiced.receipts.length, 0);
@@ -96,12 +78,12 @@ export class PurchasesSupplierInvoicesService {
 
   // Finds the supplier's legs invoiced on their own with posted receipts of their live POs in the invoice's currency
   // still to invoice, rejecting an invoice with nothing to invoice
-  private async findInvoicedLegs(dto: CreatePurchaseSupplierInvoiceDto, siteId: string): Promise<InvoicedLeg[]> {
+  private async findInvoicedLegs(dto: CreatePurchaseSupplierInvoiceDto, siteId?: string): Promise<InvoicedLeg[]> {
     const legs = await this.legsService.findFulfillingForSupplierAtSite(
       dto.supplierId,
-      siteId,
       PurchaseSuppliersDomainService.SUPPLIER_INVOICE_TYPES,
       dto.purchaseIds,
+      siteId,
     );
     const invoiceable = await this.invoicesService.findInvoiceableGoodsReceiptRows({
       supplierId: dto.supplierId,

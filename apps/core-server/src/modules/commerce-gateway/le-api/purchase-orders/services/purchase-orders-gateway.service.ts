@@ -26,11 +26,9 @@ import type { SupplierInvoiceResponseDto } from '@commerce/supplier-invoices/dto
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
-import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 @Injectable()
 export class LePurchaseOrdersGatewayService {
@@ -41,27 +39,12 @@ export class LePurchaseOrdersGatewayService {
     private readonly tableStateService: TableStateService,
     private readonly documents: PurchaseOrderDocumentsService,
     private readonly ownerNames: OwnerNameService,
-    private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
-  // Creates a purchase order at one of the legal entity's sites, in its timezone and against the company's currency
-  async create(
-    dto: LeCreatePurchaseOrderDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+  // Creates a purchase order at one of the legal entity's sites
+  create(dto: LeCreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
     this.logger.log(`le.purchaseOrders.create — supplier: ${dto.supplierId}, site: ${dto.siteId}`);
-    const site = await this.siteContextResolver.resolve(dto.siteId);
-    if (site.legalEntityId !== legalEntityId) {
-      throw new BadRequestException({
-        label: 'Site Not In Company',
-        detail: 'Purchase orders can only be raised for the sites of the company you are working in.',
-        errors: [{ field: 'siteId', message: 'Not one of your sites' }],
-      });
-    }
-    return this.nats.send('commerce', 'le.purchaseOrders.create', {
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+    return this.nats.send('commerce', 'le.purchaseOrders.create', dto);
   }
 
   // Adds a line item to a purchase order

@@ -26,10 +26,10 @@ export const purchases = commerceSchema.table(
     step: purchaseStepEnum('step').notNull().default('REQUESTING'),
     status: purchaseStatusEnum('status').notNull().default('OPEN'),
     notes: text('notes'),
-    createdBy: uuid('created_by'),
     submittedAt: timestamp('submitted_at', { withTimezone: true }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelReason: text('cancel_reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

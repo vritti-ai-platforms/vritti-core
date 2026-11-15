@@ -190,6 +190,7 @@ export class InboundDeliveriesDomainRepository extends PrimaryBaseRepository<typ
         supplierId: sql`${inboundDeliveries.supplierId}`,
         supplierName: sql`${parties.displayName}`,
         expectedDeliveryDate: sql`${inboundDeliveries.expectedDeliveryDate}`,
+        siteId: sql`${inboundDeliveries.siteId}`,
       },
     });
   }

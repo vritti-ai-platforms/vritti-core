@@ -19,8 +19,6 @@ import type {
   PurchaseAllocation,
   PurchaseAllocationRef,
   PurchaseData,
-  PurchaseEventsParams,
-  PurchaseEventsResponse,
   PurchaseHeader,
   PurchaseItem,
   PurchaseItemRef,
@@ -52,7 +50,7 @@ export function getPurchasesTable(): Promise<PurchasesTableResponse> {
   return axios.get<PurchasesTableResponse>(`${BASE}/table`).then((r) => r.data);
 }
 
-// Creates a purchase at the site, optionally with its first items
+// Creates a purchase at the site
 export function createPurchase(data: CreatePurchasePayload): Promise<CreateResponse<PurchaseData>> {
   return axios.post<CreateResponse<PurchaseData>>(BASE, data).then((r) => r.data);
 }
@@ -80,11 +78,6 @@ export function getPurchaseSourcingItems(id: string): Promise<PurchaseSourcingIt
 // Fetches the suppliers a purchase sources from, each with its allocations, documents, progress and actions
 export function getPurchaseSuppliers(id: string): Promise<PurchaseLeg[]> {
   return axios.get<PurchaseLeg[]>(`${BASE}/${id}/suppliers`).then((r) => r.data);
-}
-
-// Fetches a page of a purchase's activity, newest first, narrowed to a kind of event or one supplier
-export function getPurchaseEvents({ id, ...params }: PurchaseEventsParams): Promise<PurchaseEventsResponse> {
-  return axios.get<PurchaseEventsResponse>(`${BASE}/${id}/events`, { params }).then((r) => r.data);
 }
 
 // Updates a purchase's details while it is in the Items step

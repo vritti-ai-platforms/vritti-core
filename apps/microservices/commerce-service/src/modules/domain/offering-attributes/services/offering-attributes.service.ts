@@ -29,7 +29,7 @@ export class OfferingAttributesDomainService {
       offeringId: data.offeringId,
       code: data.code,
       name: data.name,
-      description: data.description ?? null,
+      description: data.description,
       sortOrder,
     });
 
@@ -55,7 +55,7 @@ export class OfferingAttributesDomainService {
         offeringId: data.offeringId,
         code: data.code,
         name: data.name,
-        description: data.description ?? null,
+        description: data.description,
         sortOrder,
       });
 

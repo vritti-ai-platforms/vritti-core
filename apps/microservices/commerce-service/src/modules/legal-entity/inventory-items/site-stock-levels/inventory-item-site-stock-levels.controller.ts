@@ -33,7 +33,8 @@ export class LeInventoryItemSiteStockLevelsController {
     this.logger.log(
       `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${dto.inventoryItemId}, siteId: ${dto.siteId}`,
     );
-    return this.service.update(dto);
+    const { siteId, ...levels } = dto;
+    return this.service.update(levels, siteId);
   }
 
   // The item's stock levels at the legal entity's sites that have them, with the stock each holds by location and

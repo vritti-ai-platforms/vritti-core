@@ -73,11 +73,11 @@ export class InventoryItemUomConversionsDomainService {
       uomId: dto.uomId,
       primaryUomQty: dto.primaryUomQty,
       uomQty: dto.uomQty,
-      weight: dto.weight ?? null,
-      volume: dto.volume ?? null,
-      length: dto.length ?? null,
-      width: dto.width ?? null,
-      height: dto.height ?? null,
+      weight: dto.weight,
+      volume: dto.volume,
+      length: dto.length,
+      width: dto.width,
+      height: dto.height,
     });
     this.logger.log(
       `Created UOM conversion for inventory item ${inventoryItemId}: uomId=${dto.uomId}, primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`,

@@ -1,4 +1,3 @@
-import type { PurchaseLegRejection } from '@domain/purchase-events/services/purchase-events.service';
 import type { PurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/entity/purchase-allocation.dto';
 import {
   type PurchaseLegAction,
@@ -16,6 +15,12 @@ import type {
   SupplierInvoiceStatus,
 } from '@/db/schema';
 import type { PurchaseLegDocuments } from '@/modules/site/purchase-progress/services/purchase-progress.service';
+
+export interface PurchaseLegRejection {
+  reason: string;
+  actorId: string | null;
+  at: string;
+}
 
 export class PurchaseLegPurchaseOrderDto {
   id: string;

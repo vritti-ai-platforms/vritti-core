@@ -58,7 +58,7 @@ export class SuppliersDomainService {
       currencyCode: data.currencyCode,
       currencyCodes: data.currencyCodes,
       defaultPaymentTermId: data.defaultPaymentTermId,
-      notes: data.notes ?? null,
+      notes: data.notes,
       purchasingBlocked: data.purchasingBlocked,
       paymentBlocked: data.paymentBlocked,
       isActive: data.isActive,

@@ -24,7 +24,6 @@ import {
   purchaseStepConfig,
 } from '@/schemas/purchases';
 import type { PurchasesBinding } from '../../bindings';
-import { DeletePurchaseZone } from './DeletePurchaseZone';
 import { AddPurchaseItemDialog } from './forms/AddPurchaseItemDialog';
 import { EditPurchaseItemDialog } from './forms/EditPurchaseItemDialog';
 
@@ -35,7 +34,7 @@ interface RequestingViewProps {
 }
 
 // The Requesting stage: the purchase's items — each in its primary unit — added, edited and submitted while it is
-// requesting, and the purchase deleted while nothing exists behind it
+// requesting
 export const RequestingView: React.FC<RequestingViewProps> = ({ binding, purchase, readOnly }) => {
   const { permissions } = binding;
   const fmt = useFormatters();
@@ -214,9 +213,6 @@ export const RequestingView: React.FC<RequestingViewProps> = ({ binding, purchas
             <AddPurchaseItemDialog binding={binding} purchase={purchase} onSuccess={close} onCancel={close} />
           )}
         />
-      )}
-      {!readOnly && purchase.availableActions.includes(PurchaseActionValues.DELETE) && (
-        <DeletePurchaseZone binding={binding} purchase={purchase} />
       )}
     </div>
   );

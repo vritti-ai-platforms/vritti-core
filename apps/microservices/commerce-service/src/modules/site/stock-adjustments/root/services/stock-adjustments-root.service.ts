@@ -56,16 +56,13 @@ export class StockAdjustmentsService {
   ) {}
 
   // Creates an adjustment for an item that has stock levels set at the site
-  async create(
-    siteId: string,
-    data: {
-      inventoryItemId: string;
-      type: StockAdjustmentType;
-      reason: string;
-      unitCost?: bigint | null;
-    },
-  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
-    await this.siteStockLevelsService.ensureStockLevels(siteId, [data.inventoryItemId], 'inventoryItemId');
+  async create(data: {
+    inventoryItemId: string;
+    type: StockAdjustmentType;
+    reason: string;
+    unitCost?: bigint | null;
+  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
+    await this.siteStockLevelsService.ensureStockLevels([data.inventoryItemId], 'inventoryItemId');
     return this.adjustmentsService.create(data);
   }
 

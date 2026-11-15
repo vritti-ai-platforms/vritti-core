@@ -39,9 +39,8 @@ export const CreatePurchaseSupplierInvoiceDialog: React.FC<CreatePurchaseSupplie
 }) => {
   const { SupplierSelector } = binding;
   const leCurrencyCode = useWorkspaceCurrency();
-  const timeZone = useWorkspaceTimeZone();
   const schema = useMemo(() => buildPurchaseSupplierInvoiceSchema({ leCurrencyCode }), [leCurrencyCode]);
-  const today = isoTodayDate(timeZone);
+  const today = isoTodayDate(useWorkspaceTimeZone(siteId));
   const form = useForm<PurchaseSupplierInvoiceFormData>({
     resolver: zodResolver(schema),
     defaultValues: { supplierId: supplier?.supplierId, invoiceNumber: '', invoiceDate: today, taxDate: today },

@@ -44,10 +44,10 @@ export class PartyLicensesDomainService {
       partyId,
       licenseType: data.licenseType,
       licenseNumber: data.licenseNumber,
-      region: data.region ?? null,
-      validTo: data.validTo ?? null,
-      notes: data.notes ?? null,
-      isActive: data.isActive ?? true,
+      region: data.region,
+      validTo: data.validTo,
+      notes: data.notes,
+      isActive: data.isActive,
     });
 
     this.logger.log(`Created ${data.licenseType} license for party ${partyId}`);

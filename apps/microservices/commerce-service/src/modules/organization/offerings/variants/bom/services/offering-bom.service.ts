@@ -49,8 +49,8 @@ export class OrgOfferingBomService {
       pickStrategy: data.pickStrategy,
       categoryId: data.categoryId,
       uomId: data.uomId,
-      description: data.description ?? null,
-      hsnCode: data.hsnCode ?? null,
+      description: data.description,
+      hsnCode: data.hsnCode,
       taxClassId: variant.taxClassId,
     });
 

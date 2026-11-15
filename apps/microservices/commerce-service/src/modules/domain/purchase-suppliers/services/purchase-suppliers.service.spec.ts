@@ -130,7 +130,12 @@ describe('PurchaseSuppliersDomainService.start', () => {
   const start = (enrollment: LegEnrollmentSnapshot, legSourcing: LegSourcing = sourcing()) => {
     const { service, repository } = setup();
     return {
-      reached: service.start(leg(), { snapshot: enrollment, sourcing: legSourcing, leCurrencyCode: 'INR' }),
+      reached: service.start(leg(), {
+        snapshot: enrollment,
+        sourcing: legSourcing,
+        leCurrencyCode: 'INR',
+        submittedBy: 'user-1',
+      }),
       repository,
     };
   };
@@ -147,6 +152,21 @@ describe('PurchaseSuppliersDomainService.start', () => {
         type: 'ANNOUNCED',
         approvalEnabled: false,
         step: 'PURCHASE_ORDER',
+      }),
+    );
+  });
+
+  it('stamps who submitted the leg and clears its last rejection', async () => {
+    const { reached, repository } = start(snapshot());
+    await reached;
+    expect(repository.update).toHaveBeenCalledWith(
+      'leg-1',
+      expect.objectContaining({
+        submittedAt: expect.any(Date),
+        submittedBy: 'user-1',
+        rejectionReason: null,
+        rejectedAt: null,
+        rejectedBy: null,
       }),
     );
   });
@@ -188,7 +208,7 @@ describe('PurchaseSuppliersDomainService.start', () => {
 
   it('refuses to start a leg no longer in sourcing or whose enrollment is inactive', async () => {
     const { service } = setup();
-    const ready = { snapshot: snapshot(), sourcing: sourcing(), leCurrencyCode: 'INR' };
+    const ready = { snapshot: snapshot(), sourcing: sourcing(), leCurrencyCode: 'INR', submittedBy: 'user-1' };
     await expect(service.start(leg({ step: 'APPROVAL' }), ready)).rejects.toBeInstanceOf(ConflictException);
     await expect(service.start(leg(), { ...ready, snapshot: snapshot({ isActive: false }) })).rejects.toBeInstanceOf(
       BadRequestException,
@@ -234,7 +254,7 @@ describe('PurchaseSuppliersDomainService approval', () => {
     await expect(service.approve(waiting, { ...approvers, userId: 'user-9' })).rejects.toBeInstanceOf(
       ForbiddenException,
     );
-    await expect(service.reject(waiting, { ...approvers, userId: 'user-9' })).rejects.toBeInstanceOf(
+    await expect(service.reject(waiting, { ...approvers, userId: 'user-9' }, 'Too expensive')).rejects.toBeInstanceOf(
       ForbiddenException,
     );
   });
@@ -242,14 +262,21 @@ describe('PurchaseSuppliersDomainService approval', () => {
   it('answers 409 for a leg that is not waiting for approval', async () => {
     const { service } = setup();
     await expect(service.approve(leg(), approvers)).rejects.toBeInstanceOf(ConflictException);
-    await expect(service.reject(leg({ step: 'PURCHASE_ORDER' }), approvers)).rejects.toBeInstanceOf(ConflictException);
+    await expect(service.reject(leg({ step: 'PURCHASE_ORDER' }), approvers, 'Too expensive')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 
-  it('returns only the rejected leg to SOURCING', async () => {
+  it('returns only the rejected leg to SOURCING with its reason and rejector', async () => {
     const { service, repository } = setup();
-    await service.reject(waiting, approvers);
+    await service.reject(waiting, approvers, 'Too expensive');
     expect(repository.update).toHaveBeenCalledTimes(1);
-    expect(repository.update).toHaveBeenCalledWith('leg-1', { step: 'SOURCING' });
+    expect(repository.update).toHaveBeenCalledWith('leg-1', {
+      step: 'SOURCING',
+      rejectionReason: 'Too expensive',
+      rejectedAt: expect.any(Date),
+      rejectedBy: 'user-2',
+    });
   });
 
   it('offers APPROVE only to an eligible approver, REJECT to any approver', () => {
@@ -431,7 +458,7 @@ describe('PurchaseSuppliersDomainService advancing a leg', () => {
     expect(advance).toEqual({ stepBefore: 'RECEIVE_WITH_INVOICE', stepAfter: 'CLOSED', isClosed: true });
     expect(repository.update).toHaveBeenCalledWith(
       'leg-1',
-      expect.objectContaining({ step: 'CLOSED', status: 'CLOSED', closedAt: expect.any(Date) }),
+      expect.objectContaining({ step: 'CLOSED', status: 'CLOSED', closedAt: expect.any(Date), closeReason: null }),
     );
   });
 

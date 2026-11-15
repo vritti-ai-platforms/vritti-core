@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import type { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import type { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
 import type { PurchaseSuppliersDomainRepository } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
@@ -30,7 +29,6 @@ function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, s
   } as PurchaseRow);
   const createDraftForPurchase = jest.fn().mockResolvedValue({ quotationId: 'q-1' });
   const runWithRlsContext = jest.fn((_context: unknown, run: () => Promise<unknown>) => run());
-  const record = jest.fn();
   const service = new PurchasesQuotationsService(
     { runWithRlsContext } as unknown as PrimaryDatabaseService,
     purchasesService,
@@ -41,7 +39,6 @@ function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, s
       ]),
     } as unknown as PurchaseItemsDomainService,
     new PurchaseSuppliersDomainService({} as PurchaseSuppliersDomainRepository),
-    { record } as unknown as PurchaseEventsDomainService,
     {
       findByIdOrThrow: jest.fn().mockResolvedValue({ id: 'sup-1', currencyCode: 'INR', currencyCodes: ['INR'] }),
     } as unknown as SuppliersDomainService,
@@ -64,14 +61,14 @@ function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, s
     { createDraftForPurchase } as unknown as SupplierQuotationsDomainService,
     {} as UomConversionsDomainService,
   );
-  return { service, createDraftForPurchase, runWithRlsContext, record };
+  return { service, createDraftForPurchase, runWithRlsContext };
 }
 
 const dto = { id: 'pur-1', supplierId: 'sup-1' };
 
 describe('PurchasesQuotationsService.request', () => {
   it("drafts the quotation in the legal entity's workspace with the items the supplier supplies at the site", async () => {
-    const { service, createDraftForPurchase, runWithRlsContext, record } = setup();
+    const { service, createDraftForPurchase, runWithRlsContext } = setup();
     const result = await service.request(dto, headers);
     expect(runWithRlsContext).toHaveBeenCalledWith(
       expect.objectContaining({ siteId: '', siteTimezone: '', legalEntityId: 'le-1' }),
@@ -83,10 +80,6 @@ describe('PurchasesQuotationsService.request', () => {
         currencyCode: 'INR',
         lines: [{ purchaseItemId: 'pi-1', inventoryItemId: 'item-1', uomId: 'uom-strip' }],
       }),
-      'user-1',
-    );
-    expect(record).toHaveBeenCalledWith(
-      expect.objectContaining({ action: 'REQUEST_QUOTATION', documentType: 'SUPPLIER_QUOTATION', documentId: 'q-1' }),
     );
     expect(result.message).toContain('1 item the supplier does not supply here left out');
   });

@@ -39,13 +39,12 @@ import {
 } from '../repositories/supplier-invoices.repository';
 
 export interface SupplierInvoiceCreateContext {
-  siteId: string;
+  siteId?: string;
   leCurrencyCode: string;
   supplierCurrencyCode: string;
   supplierCurrencyCodes: string[];
   paymentTermId: string;
   dueDate: string;
-  createdBy: string | null;
 }
 
 export interface SupplierInvoiceInvoicingMove {
@@ -103,8 +102,7 @@ export class SupplierInvoicesDomainService {
       paymentTermId: context.paymentTermId,
       dueDate: context.dueDate,
       status: SupplierInvoiceStatusValues.DRAFT,
-      notes: dto.notes ?? null,
-      createdBy: context.createdBy,
+      notes: dto.notes,
     });
     this.logger.log(`Created supplier invoice ${entity.invoiceNumber} (${entity.id}) at site ${context.siteId}`);
     return {

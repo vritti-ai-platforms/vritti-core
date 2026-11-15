@@ -38,8 +38,8 @@ export class PosTerminalsDomainService {
       name: data.name,
       code: data.code,
       locationId: data.locationId,
-      description: data.description ?? null,
-      isActive: data.isActive ?? true,
+      description: data.description,
+      isActive: data.isActive,
     });
 
     const created = await this.repository.findByIdWithLocationName(entity.id);

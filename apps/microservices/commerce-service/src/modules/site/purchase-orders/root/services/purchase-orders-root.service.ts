@@ -1,8 +1,4 @@
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import {
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import type { ChangePurchaseOrderExchangeRateDto } from '@domain/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
@@ -27,8 +23,7 @@ import { PurchaseProgressService } from '@/modules/site/purchase-progress/servic
 import { PurchaseOrderProblemsDto } from '../dto/entity/purchase-order-problems.dto';
 
 export interface PurchaseOrderSite {
-  siteId: string;
-  timezone: string;
+  siteId?: string;
   leCurrencyCode: string;
 }
 
@@ -57,30 +52,19 @@ export class PurchaseOrdersService {
     const currencyCode = dto.currencyCode ?? supplier.currencyCode;
     this.assertTradesIn(supplier, currencyCode);
 
-    this.logger.log(
-      `purchaseOrders.create — supplier: ${supplier.id}, site: ${site.siteId}, currency: ${currencyCode}`,
-    );
+    this.logger.log(`purchaseOrders.create — supplier: ${supplier.id}, currency: ${currencyCode}`);
     return this.purchaseOrdersService.create(dto, { ...site, currencyCode, paymentTermId: enrollment.paymentTermId });
   }
 
   // Moves a PO along its workflow; a purchase's PO is not cancelled here, and confirming one tells its purchase in the
   // same transaction
-  async updateStatus(dto: UpdatePurchaseOrderStatusDto, actorId: string | null): Promise<SuccessResponseDto> {
+  async updateStatus(dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
     if (dto.status === PurchaseOrderStatusValues.CANCELLED) this.assertNotPartOfPurchase(po);
     return this.database.runInTransaction(async () => {
       const result = await this.purchaseOrdersService.changeStatus(po, dto.status);
       if (po.purchaseId && dto.status === PurchaseOrderStatusValues.CONFIRMED) {
-        await this.purchaseProgressService.notifyDocument(
-          po.purchaseId,
-          po.supplierId,
-          {
-            action: PurchaseEventActionValues.CONFIRM_PURCHASE_ORDER,
-            documentType: PurchaseEventDocumentTypeValues.PURCHASE_ORDER,
-            documentId: po.id,
-          },
-          actorId,
-        );
+        await this.purchaseProgressService.notifyDocument(po.purchaseId, po.supplierId);
       }
       return result;
     });

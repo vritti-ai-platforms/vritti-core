@@ -35,7 +35,7 @@ export class PaymentTermsDomainService {
     const entity = await this.repository.create({
       name: data.name,
       baseline: data.baseline,
-      description: data.description ?? null,
+      description: data.description,
     });
     this.logger.log(`Created payment term: ${entity.name} (${entity.id})`);
     return {

@@ -15,29 +15,17 @@ export class InventoryItemsPricesService {
   ) {}
 
   // Every supplier's price rows for the item at the site, paginated
-  findForTable(
-    inventoryItemId: string,
-    siteId: string,
-    state: TableState,
-  ): Promise<{ result: ItemSupplierPriceDto[]; count: number }> {
-    return this.supplierItemPricesService.findItemPricesAtSiteForTable(inventoryItemId, siteId, state);
+  findForTable(inventoryItemId: string, state: TableState): Promise<{ result: ItemSupplierPriceDto[]; count: number }> {
+    return this.supplierItemPricesService.findItemPricesAtSiteForTable(inventoryItemId, state);
   }
 
   // The item's price history at the site, per the context's unit (the item's own when none is picked)
-  async findHistory(
-    inventoryItemId: string,
-    siteId: string,
-    context: FilterCondition[],
-  ): Promise<InventoryItemPriceHistoryDto> {
+  async findHistory(inventoryItemId: string, context: FilterCondition[]): Promise<InventoryItemPriceHistoryDto> {
     const primaryPerUnit = await this.primaryPerPickedUnit(inventoryItemId, conditionValue(context, 'uom'));
-    return this.supplierItemPricesService.findItemPriceHistoryAtSite(
-      inventoryItemId,
-      siteId,
-      context,
-      async (supplierUomId) =>
-        new Decimal(await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, supplierUomId, 1)).dividedBy(
-          primaryPerUnit,
-        ),
+    return this.supplierItemPricesService.findItemPriceHistoryAtSite(inventoryItemId, context, async (supplierUomId) =>
+      new Decimal(await this.uomConversionsService.toPrimaryUomQuantity(inventoryItemId, supplierUomId, 1)).dividedBy(
+        primaryPerUnit,
+      ),
     );
   }
 

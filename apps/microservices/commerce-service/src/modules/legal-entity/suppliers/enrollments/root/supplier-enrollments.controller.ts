@@ -1,15 +1,15 @@
 import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
 import type { SupplierEnrollmentPurchasingDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-purchasing-detail.dto';
-import { CreateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
-import { SetSupplierEnrollmentActiveDto } from '@domain/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
 import { SupplierEnrolledSitesQueryDto } from '@domain/supplier-enrollments/dto/request/supplier-enrolled-sites-query.dto';
 import { UpdateEnrollmentPurchasingDto } from '@domain/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
-import { UpdateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { LeCreateSupplierEnrollmentDto } from './dto/request/le-create-supplier-enrollment.dto';
+import { LeSetSupplierEnrollmentActiveDto } from './dto/request/le-set-supplier-enrollment-active.dto';
+import { LeUpdateSupplierEnrollmentDto } from './dto/request/le-update-supplier-enrollment.dto';
 import { LeSupplierEnrollmentsService } from './services/supplier-enrollments.service';
 
 @Controller()
@@ -23,16 +23,18 @@ export class SupplierEnrollmentsController {
 
   // Enrolls a supplier at one of the LE's sites
   @MessagePattern({ cmd: 'le.suppliers.enrollments.create' })
-  create(@Payload() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  create(@Payload() dto: LeCreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
     this.logger.log(`le.suppliers.enrollments.create — supplierId: ${dto.supplierId}, siteId: ${dto.siteId}`);
-    return this.service.create(dto);
+    const { siteId, ...enrollment } = dto;
+    return this.service.create(enrollment, siteId);
   }
 
   // Updates a supplier's enrollment picks and flags at one of the LE's sites
   @MessagePattern({ cmd: 'le.suppliers.enrollments.update' })
-  update(@Payload() dto: UpdateSupplierEnrollmentDto): Promise<SuccessResponseDto> {
+  update(@Payload() dto: LeUpdateSupplierEnrollmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.suppliers.enrollments.update — supplierId: ${dto.supplierId}, siteId: ${dto.siteId}`);
-    return this.service.update(dto);
+    const { siteId, ...enrollment } = dto;
+    return this.service.update(enrollment, siteId);
   }
 
   // Sets how purchases from a supplier run at one of the LE's sites
@@ -49,9 +51,10 @@ export class SupplierEnrollmentsController {
 
   // Activates or deactivates a supplier's own enrollment at one of the LE's sites
   @MessagePattern({ cmd: 'le.suppliers.enrollments.setActive' })
-  setActive(@Payload() dto: SetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
+  setActive(@Payload() dto: LeSetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.suppliers.enrollments.setActive — supplierId: ${dto.supplierId}, siteId: ${dto.siteId}`);
-    return this.service.setActive(dto);
+    const { siteId, ...enrollment } = dto;
+    return this.service.setActive(enrollment, siteId);
   }
 
   // Returns every enrollment of a supplier for the LE Enrollments tab

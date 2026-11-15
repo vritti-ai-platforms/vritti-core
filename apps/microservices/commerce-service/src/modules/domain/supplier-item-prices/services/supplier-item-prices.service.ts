@@ -132,18 +132,17 @@ export class SupplierItemPricesDomainService {
     private readonly comparisonsRepository: ItemSupplierPriceComparisonsRepository,
   ) {}
 
-  // Adds a validity-dated price at each given site, or for the whole legal entity when none is given, delimiting the
-  // open row of each (SAP ME11)
-  async addPrice(
-    dto: AddSupplierItemPriceDto,
-    siteIds: string[],
-    createdBy: string | null,
-  ): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
+  // Adds a validity-dated price at each given site, for the whole legal entity when the list is empty, or at the
+  // request's site when there is no list, delimiting the open row of each (SAP ME11)
+  async addPrice(dto: AddSupplierItemPriceDto, siteIds?: string[]): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
     const context = await this.requirePriceContext(dto.supplierItemId);
     SupplierItemPricesDomainService.assertSupplierCurrency(context.currencyCodes, dto.unitPrice.currency, 'unitPrice');
     if (dto.mrpId) await this.assertMrpMatches(dto.mrpId, context, dto.unitPrice.currency);
-    const carriedSiteIds = new Set(await this.repository.findCarriedSiteIds(dto.supplierItemId));
-    if (siteIds.some((siteId) => !carriedSiteIds.has(siteId))) {
+    const carriedSiteIds = new Set(siteIds ? await this.repository.findCarriedSiteIds(dto.supplierItemId) : []);
+    const carried = siteIds
+      ? siteIds.every((siteId) => carriedSiteIds.has(siteId))
+      : await this.repository.isCarriedAtRequestSite(dto.supplierItemId);
+    if (!carried) {
       throw new BadRequestException({
         label: 'Item Not At Site',
         detail: 'Prices can only be added for sites where this item is set up.',
@@ -154,26 +153,30 @@ export class SupplierItemPricesDomainService {
     const data: AddSupplierItemPriceInput = {
       unitPrice: majorToMinor(dto.unitPrice.value, dto.unitPrice.currency, 'unitPrice'),
       currencyCode: dto.unitPrice.currency,
-      mrpId: dto.mrpId ?? null,
-      schemeBuyQty: dto.schemeBuyQty ?? null,
-      schemeFreeQty: dto.schemeFreeQty ?? null,
-      taxInclusive: dto.taxInclusive ?? false,
+      mrpId: dto.mrpId,
+      schemeBuyQty: dto.schemeBuyQty,
+      schemeFreeQty: dto.schemeFreeQty,
+      taxInclusive: dto.taxInclusive,
       validFrom: dto.validFrom,
-      validTo: dto.validTo ?? null,
-      note: dto.note ?? null,
+      validTo: dto.validTo,
+      note: dto.note,
     };
-    const strata: (string | null)[] = siteIds.length > 0 ? [...new Set(siteIds)] : [null];
+    const strata: (string | null | undefined)[] = !siteIds
+      ? [undefined]
+      : siteIds.length > 0
+        ? [...new Set(siteIds)]
+        : [null];
     const rows = await this.database.runInTransaction(async () => {
       const created: SupplierItemPrice[] = [];
       for (const siteId of strata) {
-        created.push(await this.applyPriceInsert(context, dto.supplierItemId, siteId, data, createdBy));
+        created.push(await this.applyPriceInsert(context, dto.supplierItemId, siteId, data));
       }
       return created;
     });
     return {
       success: true,
       message:
-        siteIds.length === 0
+        siteIds?.length === 0
           ? 'Price added for all sites.'
           : rows.length === 1
             ? 'Price added successfully.'
@@ -183,11 +186,11 @@ export class SupplierItemPricesDomainService {
   }
 
   // Updates a price row — only the end date of one in force, and only a site's own rows from a site workspace
-  async updatePrice(dto: UpdateSupplierItemPriceDto, workspaceSiteId?: string): Promise<SuccessResponseDto> {
+  async updatePrice(dto: UpdateSupplierItemPriceDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findPriceById(dto.id);
     if (!existing) throw new NotFoundException('Price not found.');
     SupplierItemPricesDomainService.assertNotFromQuotation(existing);
-    SupplierItemPricesDomainService.assertSiteOwns(existing, workspaceSiteId);
+    await this.repository.assertChangeableFromWorkspace(existing.id);
 
     const inForce = existing.validFrom <= SupplierItemPricesDomainService.today();
     const changesTerms =
@@ -251,29 +254,22 @@ export class SupplierItemPricesDomainService {
     siteId: string | null,
     lines: QuotationPriceLine[],
     validity: { validFrom: string; validTo: string | null; note: string | null },
-    createdBy: string | null,
   ): Promise<number> {
     for (const line of lines) {
       const { supplierItemId } = line;
       const context = await this.requirePriceContext(supplierItemId);
-      const row = await this.applyPriceInsert(
-        context,
-        supplierItemId,
-        siteId,
-        {
-          unitPrice: line.unitPrice,
-          currencyCode: line.currencyCode,
-          mrpId: line.mrpId,
-          schemeBuyQty: line.schemeBuyQty,
-          schemeFreeQty: line.schemeFreeQty,
-          taxInclusive: line.taxInclusive,
-          validFrom: validity.validFrom,
-          validTo: validity.validTo,
-          source: SupplierPriceSourceValues.QUOTATION,
-          note: validity.note,
-        },
-        createdBy,
-      );
+      const row = await this.applyPriceInsert(context, supplierItemId, siteId, {
+        unitPrice: line.unitPrice,
+        currencyCode: line.currencyCode,
+        mrpId: line.mrpId,
+        schemeBuyQty: line.schemeBuyQty,
+        schemeFreeQty: line.schemeFreeQty,
+        taxInclusive: line.taxInclusive,
+        validFrom: validity.validFrom,
+        validTo: validity.validTo,
+        source: SupplierPriceSourceValues.QUOTATION,
+        note: validity.note,
+      });
       await this.repository.updatePriceRow(row.id, { quotationSiteId });
     }
     return lines.length;
@@ -285,18 +281,18 @@ export class SupplierItemPricesDomainService {
     return row ? SupplierItemPriceDto.from(row) : null;
   }
 
-  // Returns the paginated price timeline of a supplier item as a site reads it — the workspace's own site, else the site
-  // in the table's context: its own prices and the legal entity's it falls back to; with neither, every price
+  // Returns the paginated price timeline of a supplier item as a site reads it — the site in the table's context: its own
+  // prices and the legal entity's it falls back to; without one, every price RLS shows (a site workspace its own and the
+  // legal entity's)
   async findPricesForTable(
     supplierItemId: string,
     state: TableState,
-    workspaceSiteId?: string,
   ): Promise<{ result: SupplierItemPriceDto[]; count: number }> {
     await this.requirePriceContext(supplierItemId);
 
     // The context site is read as "what this site pays", not as an exact match that would hide the legal entity's prices
     const contextSite = state.filters.context.find((condition) => condition.field === 'site')?.value;
-    const readingSiteId = workspaceSiteId ?? (typeof contextSite === 'string' ? contextSite : undefined);
+    const readingSiteId = typeof contextSite === 'string' ? contextSite : undefined;
     const filters = {
       ...state.filters,
       context: state.filters.context.filter((condition) => condition.field !== 'site'),
@@ -319,8 +315,8 @@ export class SupplierItemPricesDomainService {
   // Returns the paginated prices of every supplier for an inventory item at one site
   async findItemPricesAtSiteForTable(
     inventoryItemId: string,
-    siteId: string,
     state: TableState,
+    siteId?: string,
   ): Promise<{ result: ItemSupplierPriceDto[]; count: number }> {
     const fieldMap = SupplierItemPricesDomainService.ITEM_PRICE_FIELD_MAP;
     const where =
@@ -329,12 +325,11 @@ export class SupplierItemPricesDomainService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findItemPricesAtSiteForTable(inventoryItemId, siteId, {
-      where,
-      orderBy,
-      limit,
-      offset,
-    });
+    const { result, count } = await this.repository.findItemPricesAtSiteForTable(
+      inventoryItemId,
+      { where, orderBy, limit, offset },
+      siteId,
+    );
     return { result: result.map((row) => ItemSupplierPriceDto.fromItemRow(row)), count };
   }
 
@@ -410,9 +405,16 @@ export class SupplierItemPricesDomainService {
       if (row.siteId) bySite.set(row.siteId, windows);
     }
     const picked = conditionValues(context, 'sites');
+    const requestSiteId = rows[0]?.requestSiteId;
     const siteIds = picked.length
       ? picked
-      : [...new Set([...((await siteIdsOf?.(supplierId)) ?? []), ...bySite.keys()])];
+      : [
+          ...new Set([
+            ...((await siteIdsOf?.(supplierId)) ?? []),
+            ...bySite.keys(),
+            ...(requestSiteId ? [requestSiteId] : []),
+          ]),
+        ];
     const today = SupplierItemPricesDomainService.today();
     return {
       currency,
@@ -427,20 +429,20 @@ export class SupplierItemPricesDomainService {
   // `unitsPer` gives how many of that unit one of a supplier's unit holds — the caller owns unit conversion
   async findItemPriceHistoryAtSite(
     inventoryItemId: string,
-    siteId: string,
     context: FilterCondition[],
     unitsPer: (uomId: string) => Promise<Decimal>,
+    siteId?: string,
   ): Promise<InventoryItemPriceHistoryDto> {
     const currency = conditionValue(context, 'currency') ?? null;
     if (!currency) return { currency, lines: [] };
     const where = FilterProcessor.buildWhere(context, SupplierItemPricesDomainService.ITEM_PRICE_HISTORY_FIELD_MAP);
-    const priced = await this.repository.findItemPriceHistoryAtSite(inventoryItemId, siteId, where);
+    const priced = await this.repository.findItemPriceHistoryAtSite(inventoryItemId, where, siteId);
 
     const supplierIds = conditionValues(context, 'supplierIds');
     const charted = new Set(
       supplierIds.length
         ? supplierIds.slice(0, MAX_CHARTED_SUPPLIERS)
-        : await this.defaultChartedSuppliers(inventoryItemId, siteId, priced),
+        : await this.defaultChartedSuppliers(inventoryItemId, priced, siteId),
     );
     const bySupplierItem = new Map<string, ItemPriceAtSiteRow[]>();
     for (const row of priced.filter((entry) => charted.has(entry.supplierId))) {
@@ -477,11 +479,11 @@ export class SupplierItemPricesDomainService {
   }
 
   // Deletes a future price row, from a site workspace only its own, re-opening the contiguous prior row
-  async deletePrice(id: string, workspaceSiteId?: string): Promise<SuccessResponseDto> {
+  async deletePrice(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findPriceById(id);
     if (!existing) throw new NotFoundException('Price not found.');
     SupplierItemPricesDomainService.assertNotFromQuotation(existing);
-    SupplierItemPricesDomainService.assertSiteOwns(existing, workspaceSiteId);
+    await this.repository.assertChangeableFromWorkspace(existing.id);
     if (existing.validFrom <= SupplierItemPricesDomainService.today()) {
       throw new BadRequestException({
         label: 'Price In Force',
@@ -529,9 +531,8 @@ export class SupplierItemPricesDomainService {
   private async applyPriceInsert(
     context: PriceContext,
     supplierItemId: string,
-    siteId: string | null,
+    siteId: string | null | undefined,
     data: AddSupplierItemPriceInput,
-    createdBy: string | null,
   ): Promise<SupplierItemPrice> {
     const conflict = await this.repository.hasPriceOnOrAfter(supplierItemId, siteId, data.validFrom);
     if (conflict) {
@@ -548,15 +549,14 @@ export class SupplierItemPricesDomainService {
       supplierItemId,
       unitPrice: data.unitPrice,
       currencyCode: data.currencyCode,
-      mrpId: data.mrpId ?? null,
-      schemeBuyQty: data.schemeBuyQty ?? null,
-      schemeFreeQty: data.schemeFreeQty ?? null,
-      taxInclusive: data.taxInclusive ?? false,
+      mrpId: data.mrpId,
+      schemeBuyQty: data.schemeBuyQty,
+      schemeFreeQty: data.schemeFreeQty,
+      taxInclusive: data.taxInclusive,
       validFrom: data.validFrom,
-      validTo: data.validTo ?? null,
-      source: data.source ?? 'MANUAL',
-      note: data.note ?? null,
-      createdBy,
+      validTo: data.validTo,
+      source: data.source,
+      note: data.note,
     });
   }
 
@@ -594,15 +594,6 @@ export class SupplierItemPricesDomainService {
     }
   }
 
-  // A site reads the legal entity's prices but changes only its own; it overrides one by adding a price of its own
-  private static assertSiteOwns(price: SupplierItemPrice, workspaceSiteId: string | undefined): void {
-    if (!workspaceSiteId || price.siteId === workspaceSiteId) return;
-    throw new BadRequestException({
-      label: 'Legal Entity Price',
-      detail: "This is the legal entity's price for all sites. Add a price for this site to override it.",
-    });
-  }
-
   // Prices a quotation posted change only through the quotation, so they always match it
   private static assertNotFromQuotation(price: SupplierItemPrice): void {
     if (!price.quotationSiteId) return;
@@ -617,8 +608,8 @@ export class SupplierItemPricesDomainService {
   // priced, up to MAX_CHARTED_SUPPLIERS
   private async defaultChartedSuppliers(
     inventoryItemId: string,
-    siteId: string,
     rows: ItemPriceAtSiteRow[],
+    siteId?: string,
   ): Promise<string[]> {
     const preferred = new Set(await this.repository.findPreferredSupplierItemIdsAtSite(inventoryItemId, siteId));
     const latest = new Map<string, { preferred: boolean; validFrom: string }>();

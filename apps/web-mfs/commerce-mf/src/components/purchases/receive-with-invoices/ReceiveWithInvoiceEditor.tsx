@@ -99,10 +99,10 @@ export const ReceiveWithInvoiceEditor: React.FC<ReceiveWithInvoiceEditorProps> =
   const confirm = useConfirm();
   const lineDialog = useDialog();
   const leCurrencyCode = useWorkspaceCurrency();
-  const timeZone = useWorkspaceTimeZone();
+  const invoiceSiteId = invoice?.siteId ?? siteId;
   const canSetMrp = usePermission(binding.mrpEditPermission).available;
   const schema = useMemo(() => buildReceiveWithInvoiceSchema({ leCurrencyCode }), [leCurrencyCode]);
-  const today = isoTodayDate(timeZone);
+  const today = isoTodayDate(useWorkspaceTimeZone(invoiceSiteId));
   const form = useForm<ReceiveWithInvoiceFormValues, unknown, ReceiveWithInvoiceFormData>({
     resolver: zodResolver(schema),
     defaultValues: invoice
@@ -134,7 +134,6 @@ export const ReceiveWithInvoiceEditor: React.FC<ReceiveWithInvoiceEditorProps> =
   const [supplierCurrencies, setSupplierCurrencies] = useState<string[]>([]);
   const lastSupplierIdRef = useRef<string | undefined>(pickedSupplierId);
   const needsExchangeRate = !!currencyCode && currencyCode !== leCurrencyCode;
-  const invoiceSiteId = invoice?.siteId ?? siteId;
   const locationParams = invoiceSiteId ? binding.locationParams?.(invoiceSiteId) : undefined;
 
   const openLinesQuery = receiveWithInvoices.useOpenLines({

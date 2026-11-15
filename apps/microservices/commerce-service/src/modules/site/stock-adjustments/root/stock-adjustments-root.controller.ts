@@ -4,7 +4,7 @@ import { UpdateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcLeCurrencyCode, RpcSiteId } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { StockAdjustmentsService } from './services/stock-adjustments-root.service';
 
@@ -15,12 +15,9 @@ export class StockAdjustmentsRootController {
   constructor(private readonly service: StockAdjustmentsService) {}
 
   @MessagePattern({ cmd: 'site.stockAdjustments.create' })
-  create(
-    @Payload() dto: CreateStockAdjustmentDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
+  create(@Payload() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentDto>> {
     this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
-    return this.service.create(siteId, {
+    return this.service.create({
       inventoryItemId: dto.inventoryItemId,
       type: dto.type,
       reason: dto.reason,

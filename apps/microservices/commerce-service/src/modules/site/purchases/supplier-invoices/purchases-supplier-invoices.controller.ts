@@ -20,6 +20,6 @@ export class PurchasesSupplierInvoicesController {
     this.logger.log(
       `site.purchases.supplierInvoices.create — supplier: ${dto.supplierId}, invoice: ${dto.invoiceNumber}`,
     );
-    return this.service.create(dto, { siteId: headers.siteId, leCurrencyCode: headers.leCurrencyCode }, headers);
+    return this.service.create(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 }

@@ -9,7 +9,7 @@ import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/s
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcNatsHeaders, RpcSiteId } from '@vritti/api-sdk/nats';
+import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectQueryResult } from '@vritti/api-sdk/select';
 
@@ -21,26 +21,23 @@ export class SiteSuppliersController {
 
   // Enrolls a supplier at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.create' })
-  create(
-    @Payload() dto: CreateSupplierEnrollmentDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  create(@Payload() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
     this.logger.log(`site.suppliers.create — supplierId: ${dto.supplierId}`);
-    return this.service.create({ ...dto, siteId });
+    return this.service.create(dto);
   }
 
   // Updates a supplier's enrollment picks and flags at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.update' })
-  update(@Payload() dto: UpdateSupplierEnrollmentDto, @RpcSiteId() siteId: string): Promise<SuccessResponseDto> {
+  update(@Payload() dto: UpdateSupplierEnrollmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.update — supplierId: ${dto.supplierId}`);
-    return this.service.update({ ...dto, siteId });
+    return this.service.update(dto);
   }
 
   // Activates or deactivates a supplier's own enrollment at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.setActive' })
-  setActive(@Payload() dto: SetSupplierEnrollmentActiveDto, @RpcSiteId() siteId: string): Promise<SuccessResponseDto> {
+  setActive(@Payload() dto: SetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.setActive — supplierId: ${dto.supplierId}, isActive: ${dto.isActive}`);
-    return this.service.setActive({ ...dto, siteId });
+    return this.service.setActive(dto);
   }
 
   // Returns a supplier's enrollment at the caller's site with its commercial identity, enrolled or not
@@ -50,7 +47,7 @@ export class SiteSuppliersController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SupplierEnrollmentDetailDto> {
     this.logger.log(`site.suppliers.findById — supplierId: ${data.supplierId}`);
-    return this.service.findDetail(headers.legalEntityId, headers.siteId, data.supplierId);
+    return this.service.findDetail(headers.legalEntityId, data.supplierId);
   }
 
   // Returns every supplier of the legal entity with its enrollment at the caller's site
@@ -60,7 +57,7 @@ export class SiteSuppliersController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     this.logger.log('site.suppliers.table');
-    return this.service.findForSiteTable(headers.legalEntityId, headers.siteId, state);
+    return this.service.findForSiteTable(headers.legalEntityId, state);
   }
 
   // Returns supplier options for a picker at the caller's site with each one's enrollment status there
@@ -70,13 +67,13 @@ export class SiteSuppliersController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SelectQueryResult> {
     this.logger.log('site.suppliers.select');
-    return this.service.findSuppliersForSelect(headers.legalEntityId, headers.siteId, query);
+    return this.service.findSuppliersForSelect(headers.legalEntityId, query);
   }
 
   // Removes a supplier's enrollment at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.delete' })
-  delete(@Payload() data: { supplierId: string }, @RpcSiteId() siteId: string): Promise<SuccessResponseDto> {
+  delete(@Payload() data: { supplierId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.delete — supplierId: ${data.supplierId}`);
-    return this.service.delete(data.supplierId, siteId);
+    return this.service.delete(data.supplierId);
   }
 }

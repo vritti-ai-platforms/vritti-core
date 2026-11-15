@@ -15,10 +15,6 @@ import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
-import {
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
@@ -83,16 +79,7 @@ export class GoodsReceiptsPostService {
       await this.database.runInTransaction(async () => {
         await this.land(receipt, landing, leCurrencyCode);
         if (receipt.purchaseId) {
-          await this.purchaseProgressService.notifyDocument(
-            receipt.purchaseId,
-            receipt.supplierId,
-            {
-              action: PurchaseEventActionValues.POST_GOODS_RECEIPT,
-              documentType: PurchaseEventDocumentTypeValues.GOODS_RECEIPT,
-              documentId: receipt.id,
-            },
-            headers.userId || null,
-          );
+          await this.purchaseProgressService.notifyDocument(receipt.purchaseId, receipt.supplierId);
         }
       });
     });
@@ -112,7 +99,7 @@ export class GoodsReceiptsPostService {
 
   // Runs work in a receipt's site context, which landing stock needs, with the legal entity's currency
   inSiteContext<T>(
-    receipt: Pick<GoodsReceiptRow, 'siteId' | 'siteTimezone'>,
+    receipt: Pick<GoodsReceiptRow, 'siteId'>,
     leCurrencyCode: string,
     headers: NatsHeaders,
     run: () => Promise<T>,
@@ -120,7 +107,6 @@ export class GoodsReceiptsPostService {
     const siteContext: NatsHeaders = {
       ...headers,
       siteId: receipt.siteId,
-      siteTimezone: receipt.siteTimezone ?? headers.siteTimezone,
       leCurrencyCode: leCurrencyCode,
     };
     return this.database.runWithRlsContext(siteContext, run);
@@ -130,9 +116,9 @@ export class GoodsReceiptsPostService {
   async prepareLanding(receipt: GoodsReceiptRow, leCurrencyCode: string): Promise<ReceiptLanding> {
     const costs = await this.itemsService.findProvisionalCosts(receipt.id, leCurrencyCode);
     await this.siteStockLevelsService.ensureStockLevels(
-      receipt.siteId,
       _.uniq(costs.map((cost) => cost.item.inventoryItemId)),
       'items',
+      receipt.siteId,
     );
     const lotsByItemId = new Map<string, GoodsReceiptLot[]>();
     for (const cost of costs) {

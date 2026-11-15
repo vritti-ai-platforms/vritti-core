@@ -24,18 +24,15 @@ export class LePurchasesQuotationsController {
 
   // Completes quotations, moving the purchase to sourcing
   @MessagePattern({ cmd: 'le.purchases.quotations.complete' })
-  complete(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  complete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.quotations.complete — id: ${data.id}`);
-    return this.service.complete(data.id, headers);
+    return this.service.complete(data.id);
   }
 
   // Returns the quotations linked to a purchase, read in its legal entity's workspace
   @MessagePattern({ cmd: 'le.purchases.quotations.findByPurchase' })
-  findByPurchase(
-    @Payload() data: { id: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<PurchaseDetailQuotationDto[]> {
+  findByPurchase(@Payload() data: { id: string }): Promise<PurchaseDetailQuotationDto[]> {
     this.logger.log(`le.purchases.quotations.findByPurchase — id: ${data.id}`);
-    return this.service.findByPurchase(data.id, headers);
+    return this.service.findByPurchase(data.id);
   }
 }

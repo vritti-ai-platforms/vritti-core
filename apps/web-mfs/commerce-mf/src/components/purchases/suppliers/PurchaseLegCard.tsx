@@ -32,8 +32,8 @@ interface PurchaseLegCardProps {
 }
 
 // One supplier of the purchase: its flow and where it is on the flow's steps, who approves it and what it will order;
-// a rejected supplier shows why it went back to sourcing, and once fulfilling how far it is received and invoiced, the
-// documents its actions created and the actions its step offers
+// a rejected supplier shows why it went back to sourcing and a closed one why it was closed, and once fulfilling how
+// far it is received and invoiced, the documents its actions created and the actions its step offers
 export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
   binding,
   purchase,
@@ -86,6 +86,11 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
             <span className="text-muted-foreground">{` · ${flow.description}`}</span>
           </Typography>
           <PurchaseStepChips steps={purchaseLegFlow(leg)} />
+          {leg.closeReason && (
+            <Typography variant="caption" intent="muted">
+              {`Closed: “${leg.closeReason}”`}
+            </Typography>
+          )}
           {preview && leg.step === PurchaseLegStepValues.SOURCING && (
             <Typography variant="caption" intent="muted">
               {legNeedsApproval(leg)

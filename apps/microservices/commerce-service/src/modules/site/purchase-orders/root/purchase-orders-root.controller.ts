@@ -24,18 +24,14 @@ export class PurchaseOrdersRootController {
     private readonly service: PurchaseOrdersService,
   ) {}
 
-  // Creates a purchase order at the site, in its timezone and against its legal entity's currency
+  // Creates a purchase order at the site, against its legal entity's currency
   @MessagePattern({ cmd: 'site.purchaseOrders.create' })
   create(
     @Payload() dto: CreatePurchaseOrderDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`site.purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.service.create(dto, {
-      siteId: headers.siteId,
-      timezone: headers.siteTimezone,
-      leCurrencyCode: headers.leCurrencyCode,
-    });
+    return this.service.create(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Updates a purchase order's notes
@@ -54,12 +50,9 @@ export class PurchaseOrdersRootController {
 
   // Moves a purchase order along its manual workflow: send, confirm or cancel
   @MessagePattern({ cmd: 'site.purchaseOrders.updateStatus' })
-  updateStatus(
-    @Payload() dto: UpdatePurchaseOrderStatusDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  updateStatus(@Payload() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
-    return this.service.updateStatus(dto, headers.userId || null);
+    return this.service.updateStatus(dto);
   }
 
   // Moves a draft purchase order to another supplier

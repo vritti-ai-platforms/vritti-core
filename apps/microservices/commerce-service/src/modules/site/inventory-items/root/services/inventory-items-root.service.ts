@@ -13,18 +13,15 @@ export class SiteInventoryItemsService {
   constructor(private readonly stockLevelsService: InventoryItemSiteStockLevelsDomainService) {}
 
   // Updates an item's stock levels at the current site
-  updateStockLevels(siteId: string, dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`updateStockLevels — inventoryItemId=${dto.inventoryItemId}, siteId=${siteId}`);
-    return this.stockLevelsService.update({ ...dto, siteId });
+  updateStockLevels(dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`updateStockLevels — inventoryItemId=${dto.inventoryItemId}`);
+    return this.stockLevelsService.update(dto);
   }
 
   // Sets a master item's stock levels at the current site
-  async setStockLevels(
-    siteId: string,
-    dto: SetStockLevelsDto,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
-    this.logger.log(`setStockLevels — inventoryItemId=${dto.inventoryItemId}, siteId=${siteId}`);
-    const entity = await this.stockLevelsService.setStockLevels(dto.inventoryItemId, siteId, {
+  async setStockLevels(dto: SetStockLevelsDto): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
+    this.logger.log(`setStockLevels — inventoryItemId=${dto.inventoryItemId}`);
+    const entity = await this.stockLevelsService.setStockLevels(dto.inventoryItemId, {
       reorderPoint: dto.reorderPoint,
       safetyStock: dto.safetyStock,
       maxStockLevel: dto.maxStockLevel,
@@ -39,8 +36,8 @@ export class SiteInventoryItemsService {
   }
 
   // Removes an item's stock levels at the current site, refused while it is held or on an open purchase here
-  removeStockLevels(siteId: string, inventoryItemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`removeStockLevels — inventoryItemId=${inventoryItemId}, siteId=${siteId}`);
-    return this.stockLevelsService.delete(inventoryItemId, siteId);
+  removeStockLevels(inventoryItemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`removeStockLevels — inventoryItemId=${inventoryItemId}`);
+    return this.stockLevelsService.delete(inventoryItemId);
   }
 }

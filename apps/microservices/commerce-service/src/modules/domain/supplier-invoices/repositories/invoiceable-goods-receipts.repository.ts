@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, asc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  currentSiteId,
   type GoodsReceiptStatus,
   GoodsReceiptStatusValues,
   goodsReceiptItems,
@@ -56,7 +57,7 @@ export type InvoiceableGoodsReceiptRow = {
 
 export type InvoiceableGoodsReceiptFilter = {
   supplierId: string;
-  siteId: string;
+  siteId?: string;
   purchaseOrderId?: string;
   excludeLineId?: string;
 };
@@ -85,7 +86,7 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
       .where(
         and(
           eq(purchaseOrders.supplierId, filter.supplierId),
-          eq(purchaseOrders.siteId, filter.siteId),
+          eq(purchaseOrders.siteId, filter.siteId ?? currentSiteId()),
           eq(goodsReceipts.status, GoodsReceiptStatusValues.POSTED),
           filter.purchaseOrderId ? eq(purchaseOrders.id, filter.purchaseOrderId) : undefined,
           sql`${accepted} - ${invoiced} > 0`,

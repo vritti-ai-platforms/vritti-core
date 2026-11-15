@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
-import { useWorkspaceCurrency } from '@vritti/quantum-ui/hooks';
+import { useWorkspaceCurrency, useWorkspaceTimeZone } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
 import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 import {
@@ -18,6 +18,7 @@ interface OverviewTabProps {
 // the legal entity's, its rate
 export const OverviewTab: React.FC<OverviewTabProps> = ({ purchaseOrder, showSite }) => {
   const leCurrencyCode = useWorkspaceCurrency();
+  const timeZone = useWorkspaceTimeZone(purchaseOrder.siteId) ?? undefined;
   const isForeignCurrency = purchaseOrder.currencyCode !== leCurrencyCode;
 
   return (
@@ -68,12 +69,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ purchaseOrder, showSit
               value={rate}
             />
           ))}
-          <DetailField
-            label="Created At"
-            type="dateTime"
-            value={purchaseOrder.createdAt}
-            timeZone={purchaseOrder.timezone}
-          />
+          <DetailField label="Created At" type="dateTime" value={purchaseOrder.createdAt} timeZone={timeZone} />
           <DetailField label="Notes" type="string" value={purchaseOrder.notes} className="col-span-2" />
         </div>
       </CardContent>

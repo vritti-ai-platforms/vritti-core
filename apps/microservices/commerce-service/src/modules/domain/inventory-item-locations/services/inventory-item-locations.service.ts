@@ -30,7 +30,7 @@ export class InventoryItemLocationsDomainService {
     const entity = await this.repository.create({
       inventoryItemId: inventoryItemId,
       locationId: data.locationId,
-      isBlocked: data.isBlocked ?? false,
+      isBlocked: data.isBlocked,
     });
 
     const row = await this.repository.findByIdWithLocation(entity.id);

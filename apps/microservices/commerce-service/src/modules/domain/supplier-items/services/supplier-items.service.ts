@@ -134,8 +134,8 @@ export class SupplierItemsDomainService {
       const item = await this.repository.createSupplierItem({
         supplierId,
         inventoryItemId: data.inventoryItemId,
-        supplierItemCode: data.supplierItemCode ?? null,
-        minOrderQuantity: data.minOrderQuantity ?? null,
+        supplierItemCode: data.supplierItemCode,
+        minOrderQuantity: data.minOrderQuantity,
         defaultLeadTimeDays: data.defaultLeadTimeDays,
         uomId: data.uomId,
       });
@@ -335,16 +335,16 @@ export class SupplierItemsDomainService {
   // not yet enrolled sees the supplier's whole catalog with no site terms
   async findSiteItemsAtSiteForTable(
     supplierId: string,
-    siteId: string,
     state: TableState,
+    siteId?: string,
   ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
     await this.requireSupplier(supplierId);
-    const enrolled = (await this.repository.findEnrolledSiteIds(supplierId)).includes(siteId);
+    const enrolled = await this.repository.isEnrolledAt(supplierId, siteId);
     const { result, count } = await this.repository.findSiteItemsAtSiteForTable(
       supplierId,
-      siteId,
       SupplierItemsDomainService.tableOptions(state, SupplierItemsDomainService.SITE_ITEM_FIELD_MAP),
       { carriedOnly: enrolled },
+      siteId,
     );
     return {
       result: result.map((row) => SupplierSiteItemRowDto.fromSite(row, row.inventoryItemName, row.uomSymbol)),
@@ -403,19 +403,17 @@ export class SupplierItemsDomainService {
     const context = state.filters.context.filter((condition) => condition.field !== 'site');
     return this.findSuppliersForItem(
       inventoryItemId,
-      siteId,
       { ...state, filters: { ...state.filters, context } },
-      {
-        onlyAtSite: siteId !== null,
-      },
+      { onlyAtSite: siteId !== null },
+      siteId,
     );
   }
 
   async findSuppliersForItem(
     inventoryItemId: string,
-    siteId: string | null,
     state: TableState,
     options: { onlyAtSite?: boolean } = {},
+    siteId?: string | null,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(
       state.filters,
@@ -429,12 +427,11 @@ export class SupplierItemsDomainService {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, SupplierItemsDomainService.SUPPLIERS_FOR_ITEM_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
-    const { result, count } = await this.repository.findSuppliersForItem(inventoryItemId, siteId, {
-      where: where || undefined,
-      orderBy,
-      limit,
-      offset,
-    });
+    const { result, count } = await this.repository.findSuppliersForItem(
+      inventoryItemId,
+      { where: where || undefined, orderBy, limit, offset },
+      siteId,
+    );
 
     return {
       result: result.map((row) =>
@@ -447,9 +444,9 @@ export class SupplierItemsDomainService {
   // Keyset feed of an item's supplier links, preferred at the site first
   async findSuppliersFeed(
     inventoryItemId: string,
-    siteId: string | null,
     limit: number,
     cursor?: string,
+    siteId?: string | null,
   ): Promise<{
     edges: { cursor: string; node: InventoryItemSupplierDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
@@ -463,7 +460,7 @@ export class SupplierItemsDomainService {
     const cursorWhere = cursor ? KeysetProcessor.buildAfter(orderByEntries, CursorCodec.decode(cursor)) : undefined;
     const where = and(eq(supplierItems.inventoryItemId, inventoryItemId), cursorWhere);
 
-    const { rows, hasMore } = await this.repository.findSuppliersFeedKeyset(siteId, { where, orderBy, limit });
+    const { rows, hasMore } = await this.repository.findSuppliersFeedKeyset({ where, orderBy, limit }, siteId);
     const edges = rows.map((row) => ({
       cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
       node: InventoryItemSupplierDto.from(row, row.supplierName, row.supplierCode, row.uomSymbol),
@@ -493,7 +490,7 @@ export class SupplierItemsDomainService {
   }
 
   // Returns a supplier item carried by a site with that site's terms and price in force
-  async findSiteItemDetail(supplierItemId: string, siteId: string): Promise<SupplierSiteItemDetailDto> {
+  async findSiteItemDetail(supplierItemId: string, siteId?: string): Promise<SupplierSiteItemDetailDto> {
     const row = await this.repository.findSiteItemDetailById(supplierItemId, siteId);
     if (!row) throw new NotFoundException('Supplier item not found.');
     return SupplierSiteItemDetailDto.fromSiteDetail(row, row.inventoryItemName, row.uomSymbol);

@@ -11,11 +11,9 @@ import type {
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
-import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 type CommerceSupplierInvoice = Omit<SupplierInvoiceResponseDto, 'siteName' | 'siteCode'>;
 type CommerceSupplierInvoiceDetail = Omit<SupplierInvoiceDetailResponseDto, 'siteName' | 'siteCode'>;
@@ -28,16 +26,11 @@ export class SupplierInvoicesGatewayService {
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
-    private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
   // Records a draft invoice of a supplier at one of the legal entity's sites
-  async create(
-    dto: LeCreateSupplierInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+  create(dto: LeCreateSupplierInvoiceDto): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
     this.logger.log(`le.supplierInvoices.create — supplierId: ${dto.supplierId}, site: ${dto.siteId}`);
-    await this.validateSiteOfLegalEntity(dto.siteId, legalEntityId);
     return this.nats.send('commerce', 'le.supplierInvoices.create', dto);
   }
 
@@ -100,13 +93,11 @@ export class SupplierInvoicesGatewayService {
   }
 
   // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, oldest receipt first
-  async findInvoiceableGoodsReceipts(
+  findInvoiceableGoodsReceipts(
     siteId: string,
     query: LeInvoiceableGoodsReceiptsQueryDto,
-    legalEntityId: string | undefined,
   ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(`le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${siteId}`);
-    await this.validateSiteOfLegalEntity(siteId, legalEntityId);
     return this.nats.send('commerce', 'le.supplierInvoices.invoiceableGoodsReceipts', { ...query, siteId });
   }
 
@@ -120,17 +111,5 @@ export class SupplierInvoicesGatewayService {
   deleteLine(supplierInvoiceId: string, id: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.lines.delete — id: ${id}`);
     return this.nats.send('commerce', 'le.supplierInvoices.lines.delete', { supplierInvoiceId, id });
-  }
-
-  // Rejects a site outside the legal entity the user is working in
-  private async validateSiteOfLegalEntity(siteId: string, legalEntityId: string | undefined): Promise<void> {
-    const site = await this.siteContextResolver.resolve(siteId);
-    if (site.legalEntityId !== legalEntityId) {
-      throw new BadRequestException({
-        label: 'Site Not In Company',
-        detail: 'Supplier invoices can only be entered for the sites of the company you are working in.',
-        errors: [{ field: 'siteId', message: 'Not one of your sites' }],
-      });
-    }
   }
 }

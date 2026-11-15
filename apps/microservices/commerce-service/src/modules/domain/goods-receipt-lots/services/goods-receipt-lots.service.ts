@@ -42,7 +42,7 @@ export class GoodsReceiptLotsDomainService {
       goodsReceiptItemId: item.id,
       siteId: item.siteId,
       lotNumber: dto.lotNumber,
-      manufacturingDate: dto.manufacturingDate ?? null,
+      manufacturingDate: dto.manufacturingDate,
       expiryDate: dto.expiryDate,
       mrp: dto.mrp ? majorToMinor(dto.mrp.value, dto.mrp.currency as CurrencyCode, 'mrp') : null,
     });

@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PURCHASE_ACTIONS, type PurchaseAction } from '../../constants/purchase.constants';
 import { PurchaseResponseDto } from './purchase-response.dto';
 import { PurchaseProgressResponseDto } from './purchase-table-row-response.dto';
@@ -28,4 +28,7 @@ export class PurchaseHeaderResponseDto extends PurchaseResponseDto {
     isArray: true,
   })
   availableActions: PurchaseAction[];
+
+  @ApiPropertyOptional({ description: 'Why the purchase was cancelled', type: String, nullable: true })
+  cancelReason: string | null;
 }

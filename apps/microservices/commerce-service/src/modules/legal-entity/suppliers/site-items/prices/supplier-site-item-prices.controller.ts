@@ -8,7 +8,6 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { FilterCondition } from '@vritti/api-sdk/conditions';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -22,15 +21,12 @@ export class SupplierSiteItemPricesController {
 
   // Adds a validity-dated price to a supplier item's timeline
   @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.create' })
-  create(
-    @Payload() dto: AddLeSupplierItemPriceDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
+  create(@Payload() dto: AddLeSupplierItemPriceDto): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
     this.logger.log(
       `le.suppliers.siteItems.prices.create — supplierItemId: ${dto.supplierItemId}, validFrom: ${dto.validFrom}`,
     );
     const { siteIds, ...price } = dto;
-    return this.service.addPrice(price, siteIds, headers.userId || null);
+    return this.service.addPrice(price, siteIds);
   }
 
   // Updates a price row's amount, scheme, or end date

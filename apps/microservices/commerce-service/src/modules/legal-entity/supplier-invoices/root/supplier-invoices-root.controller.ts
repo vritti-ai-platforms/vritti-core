@@ -34,7 +34,6 @@ export class LeSupplierInvoicesRootController {
     return this.service.create(invoice, {
       siteId,
       leCurrencyCode: headers.leCurrencyCode,
-      createdBy: headers.userId || null,
     });
   }
 
@@ -59,7 +58,7 @@ export class LeSupplierInvoicesRootController {
   @MessagePattern({ cmd: 'le.supplierInvoices.cancel' })
   cancel(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.cancel — id: ${data.id}`);
-    return this.service.cancel(data.id, headers.leCurrencyCode, headers.userId || null);
+    return this.service.cancel(data.id, headers.leCurrencyCode);
   }
 
   // Returns an invoice with its lines and holds

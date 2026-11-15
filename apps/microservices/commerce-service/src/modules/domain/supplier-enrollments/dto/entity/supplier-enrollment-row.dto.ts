@@ -44,7 +44,7 @@ export class SupplierEnrollmentRowDto {
   enrolledAt: string | null;
 
   // Maps a (supplier, site) row, enrolled or not, to the shared enrollment row; site names are filled by the gateway
-  static from(row: SupplierEnrollmentRowRecord, siteId: string): SupplierEnrollmentRowDto {
+  static from(row: SupplierEnrollmentRowRecord): SupplierEnrollmentRowDto {
     const dto = new SupplierEnrollmentRowDto();
     dto.id = row.id ?? null;
     dto.supplierId = row.supplierId;
@@ -52,7 +52,7 @@ export class SupplierEnrollmentRowDto {
     dto.partyId = row.partyId;
     dto.partyName = row.partyName;
     dto.partyType = row.partyType;
-    dto.siteId = siteId;
+    dto.siteId = row.siteId;
     dto.siteName = null;
     dto.siteCode = null;
     dto.enrollmentStatus = row.id

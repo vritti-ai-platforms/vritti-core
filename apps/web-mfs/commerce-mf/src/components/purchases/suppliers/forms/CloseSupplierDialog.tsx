@@ -21,7 +21,7 @@ interface CloseSupplierDialogProps {
   onCancel: () => void;
 }
 
-// Closes the supplier as it stands, with an optional reason kept in the purchase's activity
+// Closes the supplier as it stands, with an optional reason saved with the supplier
 export const CloseSupplierDialog: React.FC<CloseSupplierDialogProps> = ({
   binding,
   purchase,
@@ -46,7 +46,7 @@ export const CloseSupplierDialog: React.FC<CloseSupplierDialogProps> = ({
         name="reason"
         label="Reason (optional)"
         placeholder="e.g. Supplier cannot supply the rest this month"
-        description="Kept in the purchase's activity"
+        description="Saved with the supplier"
       />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

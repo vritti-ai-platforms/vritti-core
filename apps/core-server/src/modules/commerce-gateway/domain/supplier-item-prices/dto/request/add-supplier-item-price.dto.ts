@@ -14,6 +14,7 @@ import {
   Min,
 } from 'class-validator';
 import { FieldPermission } from '@/rbac/decorators';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class AddSupplierItemPriceDto {
   @ApiProperty({ type: CurrencyAmountDto, description: 'Unit price for this validity window' })
@@ -55,6 +56,7 @@ export class AddSupplierItemPriceDto {
   })
   @IsArray()
   @IsUUID('7', { each: true })
+  @IsLeSite({ each: true })
   siteIds: string[];
 
   @FieldPermission([LE_INVENTORY_ITEMS.mrp.edit])

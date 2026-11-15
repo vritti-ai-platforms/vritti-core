@@ -3,12 +3,14 @@ import { getRequestFromContext } from '@vritti/api-sdk/context';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { from, type Observable } from 'rxjs';
 import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
+import { WorkspaceContextService } from '../services/workspace-context.service';
 
 @Injectable()
 export class RlsInterceptor implements NestInterceptor {
   constructor(
     private readonly db: PrimaryDatabaseService,
     private readonly siteContextResolver: SiteContextResolverService,
+    private readonly workspaceContext: WorkspaceContextService,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -45,6 +47,8 @@ export class RlsInterceptor implements NestInterceptor {
       legalEntityId,
     };
 
-    return this.db.runWithRlsContext(rlsContext, async () => next.handle().toPromise());
+    return this.db.runWithRlsContext(rlsContext, () =>
+      this.workspaceContext.run({ legalEntityId: auth?.legalEntityId }, async () => next.handle().toPromise()),
+    );
   }
 }

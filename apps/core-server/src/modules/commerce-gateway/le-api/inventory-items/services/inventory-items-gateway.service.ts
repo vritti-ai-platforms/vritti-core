@@ -22,7 +22,6 @@ import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { LegalEntityContextResolverService } from '@/legal-entity-context/legal-entity-context-resolver.service';
-import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 @Injectable()
 export class LeInventoryItemsGatewayService {
@@ -31,36 +30,31 @@ export class LeInventoryItemsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteContextResolver: SiteContextResolverService,
     private readonly siteService: SiteDomainService,
     private readonly legalEntityContextResolver: LegalEntityContextResolverService,
   ) {}
 
   // Sets the item's stock levels at one of the legal entity's sites
-  async createSiteStockLevels(
+  createSiteStockLevels(
     inventoryItemId: string,
     siteId: string,
     dto: CreateSiteStockLevelsDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
     this.logger.log(
       `le.inventoryItems.siteStockLevels.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
     );
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
     return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.create', { inventoryItemId, siteId, ...dto });
   }
 
   // Updates the item's stock levels at one of the legal entity's sites
-  async updateSiteStockLevels(
+  updateSiteStockLevels(
     inventoryItemId: string,
     siteId: string,
     dto: UpdateSiteStockLevelsDto,
-    legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(
       `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
     );
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
     return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.update', { inventoryItemId, siteId, ...dto });
   }
 
@@ -165,28 +159,11 @@ export class LeInventoryItemsGatewayService {
   }
 
   // Removes the item's stock levels at one of the legal entity's sites
-  async deleteSiteStockLevels(
-    inventoryItemId: string,
-    siteId: string,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  deleteSiteStockLevels(inventoryItemId: string, siteId: string): Promise<SuccessResponseDto> {
     this.logger.log(
       `le.inventoryItems.siteStockLevels.delete — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
     );
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
     return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.delete', { inventoryItemId, siteId });
-  }
-
-  // Rejects a site outside the legal entity the user is working in
-  private async resolveWorkspaceSite(siteId: string, legalEntityId: string | undefined): Promise<void> {
-    const leId = LeInventoryItemsGatewayService.requireLegalEntity(legalEntityId);
-    const site = await this.siteContextResolver.resolve(siteId);
-    if (site.legalEntityId !== leId) {
-      throw new BadRequestException({
-        label: 'Site Not In Company',
-        detail: 'Items can only be stocked at the sites of the company you are working in.',
-      });
-    }
   }
 
   // Returns the session legal entity, rejecting requests made outside a legal entity workspace

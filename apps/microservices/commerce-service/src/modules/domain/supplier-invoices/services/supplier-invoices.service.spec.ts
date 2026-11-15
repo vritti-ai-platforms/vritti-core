@@ -30,7 +30,6 @@ const context: SupplierInvoiceCreateContext = {
   supplierCurrencyCodes: ['INR', 'USD'],
   paymentTermId: 'pt-1',
   dueDate: '2026-12-01',
-  createdBy: null,
 };
 
 const createDto = { supplierId: 'sup-1', invoiceNumber: 'INV-1', invoiceDate: '2026-11-01' };

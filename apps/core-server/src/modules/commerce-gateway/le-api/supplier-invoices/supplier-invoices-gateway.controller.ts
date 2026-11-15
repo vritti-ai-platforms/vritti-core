@@ -2,6 +2,7 @@ import { LeCreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/requ
 import { LeInvoiceableGoodsReceiptsQueryDto } from '@commerce/supplier-invoices/dto/request/le-invoiceable-goods-receipts-query.dto';
 import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
+import { SupplierInvoiceSiteParamsDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-site-params.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
 import type {
@@ -29,7 +30,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_SUPPLIER_INVOICES } from '@vritti/commerce-permissions/supplier-invoices';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiCancelSupplierInvoice,
   ApiCreateSupplierInvoice,
@@ -61,12 +62,9 @@ export class SupplierInvoicesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(LE_SUPPLIER_INVOICES.add)
   @ApiCreateSupplierInvoice()
-  create(
-    @Body() dto: LeCreateSupplierInvoiceDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+  create(@Body() dto: LeCreateSupplierInvoiceDto): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
     this.logger.log('POST /commerce-api/le/supplier-invoices');
-    return this.service.create(dto, legalEntityId);
+    return this.service.create(dto);
   }
 
   // Adds an item line invoicing a received lot, or a charge line, to an invoice
@@ -167,12 +165,11 @@ export class SupplierInvoicesGatewayController {
   @RequirePermission(LE_SUPPLIER_INVOICES.view)
   @ApiFindSupplierInvoiceInvoiceableGoodsReceipts()
   findInvoiceableGoodsReceipts(
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Param() { siteId }: SupplierInvoiceSiteParamsDto,
     @Query() query: LeInvoiceableGoodsReceiptsQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(`GET /commerce-api/le/supplier-invoices/invoiceable-goods-receipts/sites/${siteId}`);
-    return this.service.findInvoiceableGoodsReceipts(siteId, query, legalEntityId);
+    return this.service.findInvoiceableGoodsReceipts(siteId, query);
   }
 
   // Deletes a draft invoice

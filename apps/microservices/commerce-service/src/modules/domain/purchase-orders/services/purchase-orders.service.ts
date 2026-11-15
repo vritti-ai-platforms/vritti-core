@@ -33,8 +33,7 @@ import {
 } from '../repositories/purchase-orders.repository';
 
 export interface PurchaseOrderCreateContext {
-  siteId: string;
-  timezone: string;
+  siteId?: string;
   currencyCode: string;
   leCurrencyCode: string;
   paymentTermId: string;
@@ -51,7 +50,6 @@ export interface PurchaseOrderSupplier {
 export interface PurchaseOrderForPurchase {
   purchaseId: string;
   siteId: string;
-  timezone: string;
   supplierId: string;
   paymentTermId: string;
   currencyCode: string;
@@ -107,7 +105,8 @@ export class PurchaseOrdersDomainService {
 
   constructor(private readonly repository: PurchaseOrdersDomainRepository) {}
 
-  // Creates a draft PO at the given site, storing an exchange rate only when its currency is not the legal entity's
+  // Creates a draft PO at the given site, else the request's, storing an exchange rate only when its currency is not the
+  // legal entity's
   async create(
     dto: CreatePurchaseOrderDto,
     context: PurchaseOrderCreateContext,
@@ -120,7 +119,6 @@ export class PurchaseOrdersDomainService {
     const poNumber = await this.repository.generatePoNumber();
     const created = await this.repository.create({
       siteId: context.siteId,
-      timezone: context.timezone,
       supplierId: dto.supplierId,
       poNumber,
       paymentTermId: context.paymentTermId,
@@ -128,10 +126,10 @@ export class PurchaseOrdersDomainService {
       exchangeRate,
       orderDate: dto.orderDate,
       taxDate: dto.taxDate,
-      notes: dto.notes ?? null,
+      notes: dto.notes,
     });
 
-    this.logger.log(`Created PO ${poNumber} at site ${context.siteId}`);
+    this.logger.log(`Created PO ${poNumber} at site ${created.siteId}`);
     return {
       success: true,
       message: `Purchase order "${poNumber}" created successfully.`,

@@ -34,9 +34,6 @@ export class PurchaseResponseDto {
   @ApiPropertyOptional({ description: 'Notes', type: String, nullable: true })
   notes: string | null;
 
-  @ApiPropertyOptional({ description: 'User who created the purchase', type: String, nullable: true })
-  createdBy: string | null;
-
   @ApiPropertyOptional({ description: 'When the items were submitted', type: String, nullable: true })
   submittedAt: string | null;
 

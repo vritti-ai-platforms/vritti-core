@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsInt, IsNotEmpty, IsOptional, IsUUID, Max, Min, ValidateIf } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class AddSupplierSiteItemDto {
   @ApiProperty({ description: 'Enrolled site to set the item up at' })
   @IsUUID('7')
   @IsNotEmpty()
+  @IsLeSite()
   siteId: string;
 
   @ApiPropertyOptional({

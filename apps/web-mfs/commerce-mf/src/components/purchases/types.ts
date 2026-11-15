@@ -1,9 +1,4 @@
-import type {
-  InfiniteData,
-  UseInfiniteQueryResult,
-  UseMutationOptions,
-  UseMutationResult,
-} from '@tanstack/react-query';
+import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import type { SelectFilterProps, SelectProps } from '@vritti/quantum-ui/Select';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
@@ -28,8 +23,6 @@ import type {
   PurchaseAllocation,
   PurchaseAllocationRef,
   PurchaseData,
-  PurchaseEventsQuery,
-  PurchaseEventsResponse,
   PurchaseHeader,
   PurchaseItem,
   PurchaseItemRef,
@@ -94,10 +87,6 @@ export type UsePurchaseItems = (id: string) => { data: PurchaseItem[] };
 export type UsePurchaseQuotations = (id: string) => { data: PurchaseQuotation[] };
 export type UsePurchaseSourcingItems = (id: string) => { data: PurchaseSourcingItem[] };
 export type UsePurchaseSuppliers = (id: string) => { data: PurchaseLeg[] };
-export type UsePurchaseEvents = (
-  id: string,
-  query: PurchaseEventsQuery,
-) => UseInfiniteQueryResult<InfiniteData<PurchaseEventsResponse, number>, AxiosError>;
 
 export type UseCreatePurchase = Mutation<CreateResponse<PurchaseData>, CreatePurchasePayload>;
 export type UseUpdatePurchase = Mutation<SuccessResponse, UpdatePurchasePayload>;

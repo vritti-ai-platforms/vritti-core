@@ -4,9 +4,6 @@ export class UpdateSupplierEnrollmentDto {
   @IsUUID('7')
   supplierId: string;
 
-  @IsUUID('7')
-  siteId: string;
-
   @IsOptional()
   @IsUUID('7')
   paymentTermId?: string;

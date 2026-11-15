@@ -3,7 +3,6 @@ import { GOODS_RECEIPTS_KEY } from '@/hooks/legal-entity/goods-receipts/keys';
 import { INBOUND_DELIVERIES_KEY } from '@/hooks/legal-entity/inbound-deliveries/keys';
 import { PURCHASE_ORDERS_KEY } from '@/hooks/legal-entity/purchase-orders/keys';
 import { LE_SUPPLIER_INVOICES_KEY } from '@/hooks/legal-entity/supplier-invoices/keys';
-import type { PurchaseEventsQuery } from '@/schemas/purchases';
 import type { ReceiveWithInvoiceOpenLinesParams } from '@/schemas/receive-with-invoices';
 
 export const PURCHASES_KEY = ['commerce', 'le', 'purchases'] as const;
@@ -13,9 +12,6 @@ export const PURCHASE_ITEMS_KEY = (id: string) => [...PURCHASE_KEY(id), 'items']
 export const PURCHASE_QUOTATIONS_KEY = (id: string) => [...PURCHASE_KEY(id), 'quotations'] as const;
 export const PURCHASE_SOURCING_ITEMS_KEY = (id: string) => [...PURCHASE_KEY(id), 'sourcing-items'] as const;
 export const PURCHASE_SUPPLIERS_KEY = (id: string) => [...PURCHASE_KEY(id), 'suppliers'] as const;
-export const PURCHASE_EVENTS_KEY = (id: string) => [...PURCHASE_KEY(id), 'events'] as const;
-export const PURCHASE_EVENTS_QUERY_KEY = (id: string, query: PurchaseEventsQuery) =>
-  [...PURCHASE_EVENTS_KEY(id), query] as const;
 export const RECEIVE_WITH_INVOICES_KEY = [...PURCHASES_KEY, 'receive-with-invoices'] as const;
 export const RECEIVE_WITH_INVOICE_KEY = (invoiceId: string) => [...RECEIVE_WITH_INVOICES_KEY, invoiceId] as const;
 export const RECEIVE_WITH_INVOICE_OPEN_LINES_KEY = (params: ReceiveWithInvoiceOpenLinesParams) =>
@@ -27,14 +23,14 @@ export const PURCHASE_DOCUMENT_KEYS = [
   LE_SUPPLIER_INVOICES_KEY,
 ] as const;
 
-// Refreshes the purchases list and a purchase's header and activity, plus the views of it a change touched
+// Refreshes the purchases list and a purchase's header, plus the views of it a change touched
 export function invalidatePurchase(
   queryClient: QueryClient,
   id: string,
   views: ((id: string) => readonly unknown[])[] = [],
 ): void {
   queryClient.invalidateQueries({ queryKey: PURCHASE_KEY(id), exact: true });
-  for (const queryKey of [PURCHASES_TABLE_KEY, PURCHASE_EVENTS_KEY(id), ...views.map((view) => view(id))]) {
+  for (const queryKey of [PURCHASES_TABLE_KEY, ...views.map((view) => view(id))]) {
     queryClient.invalidateQueries({ queryKey });
   }
 }

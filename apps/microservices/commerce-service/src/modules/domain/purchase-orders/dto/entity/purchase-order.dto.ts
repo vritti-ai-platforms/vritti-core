@@ -21,7 +21,6 @@ export class PurchaseOrderDto {
   orderDate: string;
   taxDate: string;
   latestExpectedDeliveryDate: string | null;
-  timezone: string;
   notes: string | null;
   totalAmount: CurrencyAmountDto;
   hasPostedGoodsReceipt: boolean;
@@ -48,7 +47,6 @@ export class PurchaseOrderDto {
     dto.orderDate = row.orderDate;
     dto.taxDate = row.taxDate;
     dto.latestExpectedDeliveryDate = row.latestExpectedDeliveryDate;
-    dto.timezone = row.timezone;
     dto.notes = row.notes;
     dto.totalAmount = CurrencyAmountDto.from(row.totalAmount, row.currencyCode);
     dto.hasPostedGoodsReceipt = row.hasPostedGoodsReceipt;

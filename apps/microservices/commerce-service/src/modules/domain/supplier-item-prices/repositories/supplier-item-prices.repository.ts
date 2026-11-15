@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, getColumns, isNull, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import {
+  currentSiteId,
   type InventoryItemMrp,
   inventoryItemMrps,
   type NewSupplierItemPrice,
@@ -24,6 +26,8 @@ export type ItemSupplierPriceRow = SupplierItemPriceRow & {
   uomSymbol: string | null;
 };
 
+export type PriceHistoryRow = SupplierItemPrice & { requestSiteId: string | null };
+
 export type ItemPriceAtSiteRow = SupplierItemPrice & {
   supplierId: string;
   supplierName: string;
@@ -33,13 +37,14 @@ export type ItemPriceAtSiteRow = SupplierItemPrice & {
   mrpAmount: bigint | null;
 };
 
-// One stratum of prices: a site's own, or the legal entity's when the site is empty
-function inStratum(siteId: string | null): SQL {
+// One stratum of prices: a site's own, the legal entity's when the site is empty, the request's own when undefined
+function inStratum(siteId: string | null | undefined): SQL {
+  if (siteId === undefined) return sql`${supplierItemPrices.siteId} is not distinct from ${currentSiteId()}`;
   return siteId ? eq(supplierItemPrices.siteId, siteId) : isNull(supplierItemPrices.siteId);
 }
 
 // What a site reads: its own prices and the legal entity's it falls back to where it has none in force
-function atSiteOrLegalEntity(siteId: string): SQL {
+function atSiteOrLegalEntity(siteId: string | SQL): SQL {
   return or(eq(supplierItemPrices.siteId, siteId), isNull(supplierItemPrices.siteId)) as SQL;
 }
 
@@ -73,8 +78,8 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   // each quotes in
   findItemPricesAtSiteForTable(
     inventoryItemId: string,
-    siteId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+    siteId?: string,
   ): Promise<{ result: ItemSupplierPriceRow[]; count: number }> {
     return this.findAllAndCount<ItemSupplierPriceRow>({
       select: {
@@ -94,7 +99,11 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
         { table: inventoryItemMrps, on: eq(inventoryItemMrps.id, supplierItemPrices.mrpId) },
         { table: uom, on: eq(uom.id, supplierItems.uomId) },
       ],
-      where: and(eq(supplierItems.inventoryItemId, inventoryItemId), atSiteOrLegalEntity(siteId), options.where),
+      where: and(
+        eq(supplierItems.inventoryItemId, inventoryItemId),
+        atSiteOrLegalEntity(siteId ?? currentSiteId()),
+        options.where,
+      ),
       orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierItemPrices.validFrom)],
       limit: options.limit,
       offset: options.offset,
@@ -102,24 +111,26 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // A supplier item's price windows at the given sites (every site when none are given) and the legal entity's,
-  // overlapping a date range, unpaged, ordered by site (the legal entity's first) then start date
-  async findPriceHistory(supplierItemId: string, where: SQL | undefined): Promise<SupplierItemPrice[]> {
+  // overlapping a date range, unpaged, ordered by site (the legal entity's first) then start date; each row carries the
+  // request's site, empty outside a site workspace
+  async findPriceHistory(supplierItemId: string, where: SQL | undefined): Promise<PriceHistoryRow[]> {
     const rows = await this.db
-      .select()
+      .select({ ...getColumns(supplierItemPrices), requestSiteId: sql<string | null>`${currentSiteId()}` })
       .from(supplierItemPrices)
       .where(and(eq(supplierItemPrices.supplierItemId, supplierItemId), where))
       .orderBy(sql`${supplierItemPrices.siteId} asc nulls first`, asc(supplierItemPrices.validFrom));
-    return rows as SupplierItemPrice[];
+    return rows as PriceHistoryRow[];
   }
 
   // Every supplier's price rows for an inventory item at one site, with the supplier and the unit each quotes in,
   // ordered per supplier item then by start date; a supplier item the site has never priced shows the legal entity's
   async findItemPriceHistoryAtSite(
     inventoryItemId: string,
-    siteId: string,
     where: SQL | undefined,
+    siteId?: string,
   ): Promise<ItemPriceAtSiteRow[]> {
     const ownPrices = alias(supplierItemPrices, 'own_prices');
+    const site = siteId ?? currentSiteId();
     const rows = await this.db
       .select({
         ...getColumns(supplierItemPrices),
@@ -140,7 +151,7 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
         and(
           eq(supplierItems.inventoryItemId, inventoryItemId),
           or(
-            eq(supplierItemPrices.siteId, siteId),
+            eq(supplierItemPrices.siteId, site),
             and(
               isNull(supplierItemPrices.siteId),
               notExists(
@@ -148,7 +159,7 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
                   .select({ one: sql`1` })
                   .from(ownPrices)
                   .where(
-                    and(eq(ownPrices.supplierItemId, supplierItemPrices.supplierItemId), eq(ownPrices.siteId, siteId)),
+                    and(eq(ownPrices.supplierItemId, supplierItemPrices.supplierItemId), eq(ownPrices.siteId, site)),
                   ),
               ),
             ),
@@ -161,14 +172,14 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // The supplier items set up as preferred for an inventory item at a site
-  async findPreferredSupplierItemIdsAtSite(inventoryItemId: string, siteId: string): Promise<string[]> {
+  async findPreferredSupplierItemIdsAtSite(inventoryItemId: string, siteId?: string): Promise<string[]> {
     const rows = await this.db
       .select({ supplierItemId: supplierSiteItems.supplierItemId })
       .from(supplierSiteItems)
       .where(
         and(
           eq(supplierSiteItems.inventoryItemId, inventoryItemId),
-          eq(supplierSiteItems.siteId, siteId),
+          eq(supplierSiteItems.siteId, siteId ?? currentSiteId()),
           eq(supplierSiteItems.isPreferred, true),
         ),
       );
@@ -195,7 +206,11 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Returns true when the stratum (a site, or the legal entity when empty) has a row starting on or after the date
-  async hasPriceOnOrAfter(supplierItemId: string, siteId: string | null, validFrom: string): Promise<boolean> {
+  async hasPriceOnOrAfter(
+    supplierItemId: string,
+    siteId: string | null | undefined,
+    validFrom: string,
+  ): Promise<boolean> {
     return this.priceExists(
       and(
         eq(supplierItemPrices.supplierItemId, supplierItemId),
@@ -206,7 +221,7 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Closes the stratum's open-ended row to the day before the new price takes effect
-  async closeOpenPrice(supplierItemId: string, siteId: string | null, newValidFrom: string): Promise<void> {
+  async closeOpenPrice(supplierItemId: string, siteId: string | null | undefined, newValidFrom: string): Promise<void> {
     await this.db
       .update(supplierItemPrices)
       .set({ validTo: sql`${newValidFrom}::date - 1` })
@@ -220,8 +235,14 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
       );
   }
 
-  async insertPrice(data: Omit<NewSupplierItemPrice, 'organizationId'>): Promise<SupplierItemPrice> {
-    const [row] = await this.db.insert(supplierItemPrices).values(data).returning();
+  // Inserts a price row in its stratum: the named site, the legal entity's when empty, the request's when undefined
+  async insertPrice(
+    data: Omit<NewSupplierItemPrice, 'organizationId' | 'siteId'> & { siteId: string | null | undefined },
+  ): Promise<SupplierItemPrice> {
+    const [row] = await this.db
+      .insert(supplierItemPrices)
+      .values({ ...data, siteId: data.siteId === undefined ? currentSiteId() : data.siteId })
+      .returning();
     return row as SupplierItemPrice;
   }
 
@@ -338,6 +359,28 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
   async findMrp(mrpId: string): Promise<InventoryItemMrp | undefined> {
     const [row] = await this.db.select().from(inventoryItemMrps).where(eq(inventoryItemMrps.id, mrpId)).limit(1);
     return row as InventoryItemMrp | undefined;
+  }
+
+  // Returns true when the supplier item is set up at the request's site
+  async isCarriedAtRequestSite(supplierItemId: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ one: sql`1` })
+      .from(supplierSiteItems)
+      .where(and(eq(supplierSiteItems.supplierItemId, supplierItemId), eq(supplierSiteItems.siteId, currentSiteId())))
+      .limit(1);
+    return Boolean(row);
+  }
+
+  // A site reads the legal entity's prices but changes only its own; it overrides one by adding a price of its own
+  async assertChangeableFromWorkspace(id: string): Promise<void> {
+    const legalEntityPriceAtSite = await this.priceExists(
+      and(eq(supplierItemPrices.id, id), isNull(supplierItemPrices.siteId), sql`${currentSiteId()} is not null`) as SQL,
+    );
+    if (!legalEntityPriceAtSite) return;
+    throw new BadRequestException({
+      label: 'Legal Entity Price',
+      detail: "This is the legal entity's price for all sites. Add a price for this site to override it.",
+    });
   }
 
   // The sites a supplier item is set up at — a price can only be added where the item is carried

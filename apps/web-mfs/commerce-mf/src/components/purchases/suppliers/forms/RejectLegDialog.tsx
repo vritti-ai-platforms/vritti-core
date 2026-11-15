@@ -40,7 +40,7 @@ export const RejectLegDialog: React.FC<RejectLegDialogProps> = ({ binding, purch
         name="reason"
         label="Reason"
         placeholder="e.g. Missed the last two delivery dates — move these items to another supplier"
-        description="Shown on the supplier's card and kept in the purchase's activity"
+        description="Saved with the supplier and shown on its card"
       />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>

@@ -8,7 +8,6 @@ import { CreatePurchaseAllocationDto } from '@commerce/purchases/dto/request/cre
 import { CreatePurchaseAllocationsFromQuotationDto } from '@commerce/purchases/dto/request/create-purchase-allocations-from-quotation.dto';
 import { CreatePurchaseItemDto } from '@commerce/purchases/dto/request/create-purchase-item.dto';
 import { CreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/create-purchase-supplier-invoice.dto';
-import { PurchaseEventsQueryDto } from '@commerce/purchases/dto/request/purchase-events-query.dto';
 import { ReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/receive-with-invoice.dto';
 import { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
@@ -21,7 +20,6 @@ import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/d
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import type { PurchaseEventsPageResponseDto } from '@commerce/purchases/dto/response/purchase-events-page-response.dto';
 import type { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
 import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import type { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
@@ -74,7 +72,6 @@ import {
   ApiDeleteItem,
   ApiDiscardReceiveWithInvoice,
   ApiFindById,
-  ApiFindEvents,
   ApiFindItems,
   ApiFindQuotations,
   ApiFindReceiveWithInvoiceById,
@@ -464,19 +461,6 @@ export class PurchasesGatewayController {
   ): Promise<PurchaseLegResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers`);
     return this.service.findSuppliers(id, orgId);
-  }
-
-  // Returns one page of a purchase's activity, newest first
-  @Get(':id/events')
-  @RequirePermission(SITE_PURCHASES.view)
-  @ApiFindEvents()
-  findEvents(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query: PurchaseEventsQueryDto,
-    @OrgId() orgId: string,
-  ): Promise<PurchaseEventsPageResponseDto> {
-    this.logger.log(`GET /commerce-api/site/purchases/${id}/events`);
-    return this.service.findEvents(id, query, orgId);
   }
 
   // Returns the supplier's allocations open to receive and invoice at once

@@ -6,7 +6,6 @@ import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/ser
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcSiteId } from '@vritti/api-sdk/nats';
 
 @Controller()
 export class SiteSupplierQuotationsController {
@@ -16,22 +15,18 @@ export class SiteSupplierQuotationsController {
 
   // Returns a quotation of the supplier only when it is posted to the caller's site
   @MessagePattern({ cmd: 'site.suppliers.quotations.findById' })
-  findById(
-    @Payload() data: { supplierId: string; quotationId: string },
-    @RpcSiteId() siteId: string,
-  ): Promise<SupplierQuotationDetailDto> {
+  findById(@Payload() data: { supplierId: string; quotationId: string }): Promise<SupplierQuotationDetailDto> {
     this.logger.log(`site.suppliers.quotations.findById — supplierId: ${data.supplierId}, id: ${data.quotationId}`);
-    return this.service.findDetailAtSite(data.supplierId, data.quotationId, siteId);
+    return this.service.findDetailAtSite(data.supplierId, data.quotationId);
   }
 
   // Returns the supplier's quotations posted to the caller's site
   @MessagePattern({ cmd: 'site.suppliers.quotations.table' })
   table(
     @Payload() data: { supplierId: string } & TableState,
-    @RpcSiteId() siteId: string,
   ): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.quotations.table — supplierId: ${supplierId}`);
-    return this.service.findForSupplierTable(supplierId, state, siteId);
+    return this.service.findForSupplierTable(supplierId, state);
   }
 }

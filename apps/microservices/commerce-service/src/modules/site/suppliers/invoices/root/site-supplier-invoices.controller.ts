@@ -10,7 +10,7 @@ import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/service
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders, RpcSiteId } from '@vritti/api-sdk/nats';
+import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SupplierInvoicesService } from './services/supplier-invoices.service';
 
@@ -30,11 +30,7 @@ export class SiteSupplierInvoicesController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<SupplierInvoiceDto>> {
     this.logger.log(`site.suppliers.invoices.create — supplierId: ${dto.supplierId}, number: ${dto.invoiceNumber}`);
-    return this.service.create(dto, {
-      siteId: headers.siteId,
-      leCurrencyCode: headers.leCurrencyCode,
-      createdBy: headers.userId || null,
-    });
+    return this.service.create(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Updates an invoice's header
@@ -82,10 +78,9 @@ export class SiteSupplierInvoicesController {
   @MessagePattern({ cmd: 'site.suppliers.invoices.invoiceableGoodsReceipts' })
   invoiceableGoodsReceipts(
     @Payload() query: InvoiceableGoodsReceiptsQueryDto,
-    @RpcSiteId() siteId: string,
     @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<InvoiceableGoodsReceiptDto[]> {
     this.logger.log(`site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}`);
-    return this.invoicesService.findInvoiceableGoodsReceipts({ ...query, siteId }, leCurrencyCode);
+    return this.invoicesService.findInvoiceableGoodsReceipts(query, leCurrencyCode);
   }
 }

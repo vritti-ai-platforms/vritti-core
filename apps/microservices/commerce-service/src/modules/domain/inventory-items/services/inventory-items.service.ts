@@ -81,9 +81,9 @@ export class InventoryItemsDomainService {
       ...(data.tracking ? { tracking: data.tracking } : {}),
       ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
       categoryId: data.categoryId,
-      description: data.description ?? null,
+      description: data.description,
       uomId: data.uomId,
-      hsnCode: data.hsnCode ?? null,
+      hsnCode: data.hsnCode,
       taxClassId: data.taxClassId,
     });
     const [uomSymbol, categoryName, taxClassName] = await Promise.all([

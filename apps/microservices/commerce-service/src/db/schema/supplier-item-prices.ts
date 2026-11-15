@@ -42,7 +42,6 @@ export const supplierItemPrices = commerceSchema.table(
     // Set on rows a quotation posted; removing the quotation from the site removes them
     quotationSiteId: uuid('quotation_site_id').references(() => supplierQuotationSites.id, { onDelete: 'restrict' }),
     note: varchar('note', { length: 500 }),
-    createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

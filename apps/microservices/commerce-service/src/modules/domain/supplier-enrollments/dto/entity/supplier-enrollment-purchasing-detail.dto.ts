@@ -8,11 +8,10 @@ export class SupplierEnrollmentPurchasingDetailDto extends SupplierEnrollmentDet
   // Maps one (supplier, site) pair with the enrollment's purchasing settings, null when the supplier is not enrolled
   static fromPurchasing(
     row: SupplierEnrollmentDetailRecord,
-    siteId: string,
     purchasing: EnrollmentPurchasingDto | null,
   ): SupplierEnrollmentPurchasingDetailDto {
     const dto = new SupplierEnrollmentPurchasingDetailDto();
-    Object.assign(dto, SupplierEnrollmentDetailDto.fromDetail(row, siteId));
+    Object.assign(dto, SupplierEnrollmentDetailDto.fromDetail(row));
     dto.purchasing = purchasing;
     return dto;
   }

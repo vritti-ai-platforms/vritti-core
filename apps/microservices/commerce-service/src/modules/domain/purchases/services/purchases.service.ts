@@ -31,18 +31,7 @@ import {
   PurchasesDomainRepository,
 } from '../repositories/purchases.repository';
 
-export interface PurchaseCreateContext {
-  siteId: string;
-  createdBy: string | null;
-}
-
-export interface PurchaseDeleteFacts {
-  hasQuotations: boolean;
-  hasAllocations: boolean;
-  hasLegs: boolean;
-}
-
-export interface PurchaseActionFacts extends PurchaseDeleteFacts {
+export interface PurchaseActionFacts {
   postedSupplierCount: number;
   hasSourcingLeg: boolean;
 }
@@ -87,18 +76,17 @@ export class PurchasesDomainService {
 
   constructor(private readonly repository: PurchasesDomainRepository) {}
 
-  // Opens a purchase in REQUESTING at the given site; the caller adds its items in the same transaction
-  async create(dto: CreatePurchaseDto, context: PurchaseCreateContext): Promise<Purchase> {
+  // Opens a purchase in REQUESTING at the given site, else the request's; the caller adds its items in the same transaction
+  async create(dto: CreatePurchaseDto, siteId?: string): Promise<Purchase> {
     const purchaseNumber = await this.repository.generatePurchaseNumber();
     const purchase = await this.repository.create({
-      siteId: context.siteId,
+      siteId,
       purchaseNumber,
       quotationsRequired: dto.quotationsRequired,
-      minQuotations: dto.minQuotations ?? 1,
-      notes: dto.notes ?? null,
-      createdBy: context.createdBy,
+      minQuotations: dto.minQuotations,
+      notes: dto.notes,
     });
-    this.logger.log(`Created purchase ${purchaseNumber} at site ${context.siteId}`);
+    this.logger.log(`Created purchase ${purchaseNumber} at site ${purchase.siteId}`);
     return purchase;
   }
 
@@ -156,14 +144,18 @@ export class PurchasesDomainService {
   }
 
   // Cancels an open purchase; nothing is received or invoiced before fulfilment actions exist
-  async cancel(purchase: PurchaseRow): Promise<void> {
+  async cancel(purchase: PurchaseRow, reason: string): Promise<void> {
     if (purchase.status !== PurchaseStatusValues.OPEN) {
       throw new ConflictException({
         label: 'Cannot Cancel Purchase',
         detail: `"${purchase.purchaseNumber}" is already ${purchase.status}.`,
       });
     }
-    await this.repository.update(purchase.id, { status: PurchaseStatusValues.CANCELLED, cancelledAt: new Date() });
+    await this.repository.update(purchase.id, {
+      status: PurchaseStatusValues.CANCELLED,
+      cancelledAt: new Date(),
+      cancelReason: reason,
+    });
     this.logger.log(`Cancelled purchase ${purchase.purchaseNumber}`);
   }
 
@@ -242,11 +234,12 @@ export class PurchasesDomainService {
     });
   }
 
-  // Lists the actions an open purchase offers in its step, from its items, quotations, allocations and legs
+  // Lists the actions an open purchase offers in its step — delete while its items are not submitted yet, cancel after
   availableActions(purchase: PurchaseRow, facts: PurchaseActionFacts): PurchaseAction[] {
     if (purchase.status !== PurchaseStatusValues.OPEN) return [];
-    const actions: PurchaseAction[] = [PurchaseActionValues.CANCEL];
-    if (this.deleteBlocker(purchase, facts) === null) actions.push(PurchaseActionValues.DELETE);
+    const actions: PurchaseAction[] = [
+      this.deleteBlocker(purchase) === null ? PurchaseActionValues.DELETE : PurchaseActionValues.CANCEL,
+    ];
     if (purchase.step === PurchaseStepValues.REQUESTING) {
       actions.push(PurchaseActionValues.EDIT, PurchaseActionValues.EDIT_ITEMS);
       if (purchase.itemCount > 0) actions.push(PurchaseActionValues.SUBMIT_ITEMS);
@@ -264,25 +257,28 @@ export class PurchasesDomainService {
     return actions;
   }
 
-  // Deletes a purchase nothing exists behind yet; its items, events and legs go with it on the foreign keys
-  async delete(purchase: PurchaseRow, facts: PurchaseDeleteFacts): Promise<void> {
-    const blocker = this.deleteBlocker(purchase, facts);
+  // Deletes a purchase whose items are not submitted yet, its items going with it on the foreign key; the delete itself
+  // re-checks the step, so a purchase submitted meanwhile is refused
+  async delete(purchase: PurchaseRow): Promise<void> {
+    const blocker = this.deleteBlocker(purchase);
     if (blocker) throw new ConflictException({ label: 'Cannot Delete Purchase', detail: blocker });
-    await this.repository.delete(purchase.id);
+    if (!(await this.repository.deleteRequesting(purchase.id))) {
+      throw new ConflictException({
+        label: 'Cannot Delete Purchase',
+        detail: `"${purchase.purchaseNumber}" was submitted meanwhile; cancel it instead.`,
+      });
+    }
     this.logger.log(`Deleted purchase ${purchase.purchaseNumber}`);
   }
 
-  // Explains what keeps a purchase from being deleted, or returns null while it is open in REQUESTING with no quotations,
-  // allocations or legs behind it
-  private deleteBlocker(purchase: PurchaseState, facts: PurchaseDeleteFacts): string | null {
+  // Explains what keeps a purchase from being deleted, or returns null while it is open in REQUESTING: nothing — no
+  // quotation, leg or allocation — can exist before its items are submitted
+  private deleteBlocker(purchase: PurchaseState): string | null {
     const name = `"${purchase.purchaseNumber}"`;
     if (purchase.status !== PurchaseStatusValues.OPEN) return `${name} is ${purchase.status.toLowerCase()}.`;
     if (purchase.step !== PurchaseStepValues.REQUESTING) {
       return `${name} is in ${PurchaseStepLabels[purchase.step]}; cancel it instead.`;
     }
-    if (facts.hasQuotations) return `${name} has quotations; cancel it instead.`;
-    if (facts.hasLegs) return `${name} has suppliers; cancel it instead.`;
-    if (facts.hasAllocations) return `${name} has allocations; cancel it instead.`;
     return null;
   }
 

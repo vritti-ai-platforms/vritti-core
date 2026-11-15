@@ -5,7 +5,6 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcSiteId } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
 @Controller()
@@ -23,22 +22,18 @@ export class SiteSupplierSiteItemsController {
 
   // Returns a supplier item's detail with the caller site's terms and price in force
   @MessagePattern({ cmd: 'site.suppliers.siteItems.findById' })
-  findById(
-    @Payload() data: { supplierItemId: string },
-    @RpcSiteId() siteId: string,
-  ): Promise<SupplierSiteItemDetailDto> {
+  findById(@Payload() data: { supplierItemId: string }): Promise<SupplierSiteItemDetailDto> {
     this.logger.log(`site.suppliers.siteItems.findById — supplierItemId: ${data.supplierItemId}`);
-    return this.service.findSiteItemDetail(data.supplierItemId, siteId);
+    return this.service.findSiteItemDetail(data.supplierItemId);
   }
 
   // Returns a supplier's site items at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.siteItems.table' })
   table(
     @Payload() data: { supplierId: string } & TableState,
-    @RpcSiteId() siteId: string,
   ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.siteItems.table — supplierId: ${supplierId}`);
-    return this.service.findSiteItemsAtSiteForTable(supplierId, siteId, state);
+    return this.service.findSiteItemsAtSiteForTable(supplierId, state);
   }
 }

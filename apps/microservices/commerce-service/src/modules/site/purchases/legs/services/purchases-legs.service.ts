@@ -1,12 +1,6 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
-import {
-  type PurchaseEventAction,
-  PurchaseEventActionValues,
-  PurchaseEventDocumentTypeValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
-import { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import type { PurchaseOrderItemRow } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
@@ -39,7 +33,6 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import {
   InboundDeliverySourceValues,
   type PurchaseLegStep,
-  PurchaseLegStepValues,
   PurchaseOrderStatusValues,
   PurchaseTypeValues,
 } from '@/db/schema';
@@ -69,7 +62,6 @@ export class PurchasesLegsService {
     private readonly purchasesService: PurchasesDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
-    private readonly eventsService: PurchaseEventsDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
@@ -82,7 +74,6 @@ export class PurchasesLegsService {
   // Creates a leg's purchase orders: one sent PO per currency of its allocations, each allocation becoming a line of it
   async createPurchaseOrder(
     dto: CreateLegPurchaseOrderDto,
-    headers: NatsHeaders,
     site: PurchaseSiteContext,
   ): Promise<CreateResponseDto<{ purchaseOrderIds: string[] }>> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
@@ -103,7 +94,7 @@ export class PurchasesLegsService {
 
     const orders = await this.database.runInTransaction(async () => {
       const created = await this.documentsService.createOrders(purchase, leg, plan, terms);
-      for (const po of created) await this.recordOrdered(purchase, leg, po.id, headers);
+      await this.progressService.syncLegStep(purchase, leg);
       return created;
     });
     this.logger.log(
@@ -119,7 +110,6 @@ export class PurchasesLegsService {
   // Creates an inbound delivery of a leg's confirmed PO lines, each within what it still has open to deliver
   async createInboundDelivery(
     dto: CreateLegInboundDeliveryDto,
-    headers: NatsHeaders,
   ): Promise<CreateResponseDto<{ inboundDeliveryId: string }>> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
     this.legsService.assertActionAvailable(
@@ -151,16 +141,7 @@ export class PurchasesLegsService {
         dto.lines.map((line) => line.purchaseOrderItemId),
       );
       await this.deliveryLinesService.addLines(row, { inboundDeliveryId: row.id, lines: dto.lines }, items);
-      await this.progressService.recordLegEvent(
-        purchase,
-        leg,
-        {
-          action: PurchaseEventActionValues.CREATE_INBOUND_DELIVERY,
-          documentType: PurchaseEventDocumentTypeValues.INBOUND_DELIVERY,
-          documentId: row.id,
-        },
-        headers.userId || null,
-      );
+      await this.progressService.syncLegStep(purchase, leg);
       return row;
     });
     this.logger.log(
@@ -177,7 +158,6 @@ export class PurchasesLegsService {
   // created behind it; a direct receipt orders its allocations first
   async createGoodsReceipt(
     dto: CreateLegGoodsReceiptDto,
-    headers: NatsHeaders,
     site: PurchaseSiteContext,
   ): Promise<CreateResponseDto<{ goodsReceiptId: string }>> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
@@ -188,8 +168,8 @@ export class PurchasesLegsService {
       PurchaseLegActionValues.CREATE_GOODS_RECEIPT,
     );
     const receipt = dto.inboundDeliveryId
-      ? await this.receiveInboundDelivery(purchase, leg, dto, dto.inboundDeliveryId, headers)
-      : await this.receiveWithoutDelivery(purchase, leg, fulfilment, dto, headers, site);
+      ? await this.receiveInboundDelivery(purchase, leg, dto, dto.inboundDeliveryId)
+      : await this.receiveWithoutDelivery(purchase, leg, fulfilment, dto, site);
     this.logger.log(
       `purchases.legs.createGoodsReceipt — ${purchase.purchaseNumber}, receipt: ${receipt.data.grNumber}`,
     );
@@ -200,31 +180,22 @@ export class PurchasesLegsService {
     };
   }
 
-  // Starts a leg in sourcing against its supplier's current enrollment and sourced total, and records it, in the
-  // caller's transaction; returns the step it reached
+  // Starts a leg in sourcing against its supplier's current enrollment and sourced total, stamping the caller as its
+  // submitter, in the caller's transaction; returns the step it reached
   async startLeg(
     purchase: PurchaseRow,
     leg: PurchaseSupplierRow,
-    action: PurchaseEventAction,
     headers: NatsHeaders,
     leCurrencyCode: string,
   ): Promise<PurchaseLegStep> {
     const snapshot = await this.supplierEnrollmentsService.findPurchasingSnapshot(leg.supplierId, purchase.siteId);
     const allocations = await this.allocationsService.findByLegId(leg.id);
-    const step = await this.legsService.start(leg, {
+    return this.legsService.start(leg, {
       snapshot,
       sourcing: this.allocationsService.summarize(allocations),
       leCurrencyCode,
+      submittedBy: headers.userId || null,
     });
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      purchaseSupplierId: leg.id,
-      action,
-      stepBefore: leg.step,
-      stepAfter: step,
-      actorId: headers.userId || null,
-    });
-    return step;
   }
 
   // Starts one leg of a submitted purchase on its own: one rejected back to sourcing or opened after the submit
@@ -232,9 +203,7 @@ export class PurchasesLegsService {
     const purchase = await this.purchasesService.findDetailOrThrow(ref.id);
     this.legsService.assertStartableAlone(purchase);
     const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, ref.legId);
-    const step = await this.database.runInTransaction(() =>
-      this.startLeg(purchase, leg, PurchaseEventActionValues.SUBMIT_SUPPLIER, headers, leCurrencyCode),
-    );
+    const step = await this.database.runInTransaction(() => this.startLeg(purchase, leg, headers, leCurrencyCode));
     this.logger.log(`purchases.legs.submitSupplier — ${purchase.purchaseNumber}, leg: ${leg.id} → ${step}`);
     return {
       success: true,
@@ -247,18 +216,7 @@ export class PurchasesLegsService {
     const purchase = await this.purchasesService.findDetailOrThrow(ref.id);
     const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, ref.legId);
     const approvers = await this.findApprovers(leg, headers);
-    const step = await this.database.runInTransaction(async () => {
-      const approvedStep = await this.legsService.approve(leg, approvers);
-      await this.eventsService.record({
-        purchaseId: purchase.id,
-        purchaseSupplierId: leg.id,
-        action: PurchaseEventActionValues.APPROVE,
-        stepBefore: PurchaseLegStepValues.APPROVAL,
-        stepAfter: approvedStep,
-        actorId: approvers.userId,
-      });
-      return approvedStep;
-    });
+    const step = await this.legsService.approve(leg, approvers);
     this.logger.log(`purchases.legs.approve — ${purchase.purchaseNumber}, leg: ${leg.id} → ${step}`);
     return {
       success: true,
@@ -271,18 +229,7 @@ export class PurchasesLegsService {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
     const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, dto.legId);
     const approvers = await this.findApprovers(leg, headers);
-    await this.database.runInTransaction(async () => {
-      await this.legsService.reject(leg, approvers);
-      await this.eventsService.record({
-        purchaseId: purchase.id,
-        purchaseSupplierId: leg.id,
-        action: PurchaseEventActionValues.REJECT,
-        stepBefore: PurchaseLegStepValues.APPROVAL,
-        stepAfter: PurchaseLegStepValues.SOURCING,
-        reason: dto.reason,
-        actorId: approvers.userId,
-      });
-    });
+    await this.legsService.reject(leg, approvers, dto.reason);
     this.logger.log(`purchases.legs.reject — ${purchase.purchaseNumber}, leg: ${leg.id}`);
     return {
       success: true,
@@ -290,8 +237,8 @@ export class PurchasesLegsService {
     };
   }
 
-  // Confirms a sent PO of a leg through the PO's own rule and records it on the leg
-  async confirmPurchaseOrder(dto: ConfirmLegPurchaseOrderDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  // Confirms a sent PO of a leg through the PO's own rule and re-derives the leg's step
+  async confirmPurchaseOrder(dto: ConfirmLegPurchaseOrderDto): Promise<SuccessResponseDto> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
     const po = await this.findLegOrderOrThrow(purchase, leg, dto.purchaseOrderId);
     this.legsService.assertActionAvailable(
@@ -302,23 +249,14 @@ export class PurchasesLegsService {
     );
     await this.database.runInTransaction(async () => {
       await this.purchaseOrdersService.changeStatus(po, PurchaseOrderStatusValues.CONFIRMED);
-      await this.progressService.recordLegEvent(
-        purchase,
-        leg,
-        {
-          action: PurchaseEventActionValues.CONFIRM_PURCHASE_ORDER,
-          documentType: PurchaseEventDocumentTypeValues.PURCHASE_ORDER,
-          documentId: po.id,
-        },
-        headers.userId || null,
-      );
+      await this.progressService.syncLegStep(purchase, leg);
     });
     this.logger.log(`purchases.legs.confirmPurchaseOrder — ${purchase.purchaseNumber}, PO: ${po.poNumber}`);
     return { success: true, message: `Purchase order "${po.poNumber}" confirmed.` };
   }
 
   // Closes a leg: its confirmed POs complete delivery and its sent ones are cancelled; the purchase completes with its last leg
-  async closeSupplier(dto: CloseSupplierDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  async closeSupplier(dto: CloseSupplierDto): Promise<SuccessResponseDto> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
     this.legsService.assertActionAvailable(leg, purchase, fulfilment.facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
     const openOrders = fulfilment.documents.purchaseOrders.filter(
@@ -326,8 +264,8 @@ export class PurchasesLegsService {
     );
     await this.database.runInTransaction(async () => {
       for (const po of openOrders) await this.completeOrCancelOrder(po);
-      await this.legsService.close(leg, purchase, fulfilment.facts);
-      await this.progressService.recordLegClosed(purchase, leg, leg.step, dto.reason ?? null, headers.userId || null);
+      await this.legsService.close(leg, purchase, fulfilment.facts, dto.reason ?? null);
+      await this.progressService.completeIfLegsClosed(purchase);
     });
     this.logger.log(
       `purchases.legs.closeSupplier — ${purchase.purchaseNumber}, leg: ${leg.id}, POs: ${openOrders.length}`,
@@ -343,32 +281,12 @@ export class PurchasesLegsService {
     return { purchase, leg, fulfilment };
   }
 
-  // Records a PO the leg ordered and re-derives the leg's step
-  private async recordOrdered(
-    purchase: PurchaseRow,
-    leg: PurchaseSupplierRow,
-    purchaseOrderId: string,
-    headers: NatsHeaders,
-  ): Promise<void> {
-    await this.progressService.recordLegEvent(
-      purchase,
-      leg,
-      {
-        action: PurchaseEventActionValues.CREATE_PURCHASE_ORDER,
-        documentType: PurchaseEventDocumentTypeValues.PURCHASE_ORDER,
-        documentId: purchaseOrderId,
-      },
-      headers.userId || null,
-    );
-  }
-
   // Drafts a receipt of one of the leg's deliveries that is not received or cancelled and has no draft receipt
   private async receiveInboundDelivery(
     purchase: PurchaseRow,
     leg: PurchaseSupplierRow,
     dto: CreateLegGoodsReceiptDto,
     inboundDeliveryId: string,
-    headers: NatsHeaders,
   ): Promise<CreateResponseDto<GoodsReceiptDto>> {
     const delivery = await this.deliveriesService.findDetailOrThrow(inboundDeliveryId);
     if (delivery.purchaseId !== purchase.id || delivery.supplierId !== leg.supplierId) {
@@ -382,7 +300,7 @@ export class PurchasesLegsService {
     await this.supplierEnrollmentsService.assertPurchasable(leg.supplierId, purchase.siteId);
     return this.database.runInTransaction(async () => {
       const receipt = await this.documentsService.receiveDelivery(purchase, delivery.id, dto.receivedDate);
-      await this.recordReceived(purchase, leg, receipt.data.id, headers);
+      await this.progressService.syncLegStep(purchase, leg);
       return receipt;
     });
   }
@@ -394,7 +312,6 @@ export class PurchasesLegsService {
     leg: PurchaseSupplierRow,
     fulfilment: PurchaseLegFulfilment,
     dto: CreateLegGoodsReceiptDto,
-    headers: NatsHeaders,
     site: PurchaseSiteContext,
   ): Promise<CreateResponseDto<GoodsReceiptDto>> {
     if (leg.type === PurchaseTypeValues.ANNOUNCED) {
@@ -424,8 +341,8 @@ export class PurchasesLegsService {
 
     return this.database.runInTransaction(async () => {
       if (plan) {
-        const orders = await this.documentsService.createOrders(purchase, leg, plan, terms);
-        for (const po of orders) await this.recordOrdered(purchase, leg, po.id, headers);
+        await this.documentsService.createOrders(purchase, leg, plan, terms);
+        await this.progressService.syncLegStep(purchase, leg);
       }
       const current = plan ? await this.progressService.findLegFulfilment(purchase, leg) : fulfilment;
       const receipt = await this.documentsService.receiveOpenLines(
@@ -435,28 +352,9 @@ export class PurchasesLegsService {
         current.remainingByLine,
         dto,
       );
-      await this.recordReceived(purchase, leg, receipt.data.id, headers);
+      await this.progressService.syncLegStep(purchase, leg);
       return receipt;
     });
-  }
-
-  // Records a receipt the leg started and re-derives the leg's step
-  private async recordReceived(
-    purchase: PurchaseRow,
-    leg: PurchaseSupplierRow,
-    goodsReceiptId: string,
-    headers: NatsHeaders,
-  ): Promise<void> {
-    await this.progressService.recordLegEvent(
-      purchase,
-      leg,
-      {
-        action: PurchaseEventActionValues.CREATE_GOODS_RECEIPT,
-        documentType: PurchaseEventDocumentTypeValues.GOODS_RECEIPT,
-        documentId: goodsReceiptId,
-      },
-      headers.userId || null,
-    );
   }
 
   // Completes delivery of a confirmed PO, cancelling what its lines still had to receive, or cancels one only sent, in
@@ -509,7 +407,7 @@ export class PurchasesLegsService {
     return {
       userId: headers.userId || null,
       approverUserIds: approversByEnrollment.get(leg.supplierEnrollmentId) ?? [],
-      submitterId: await this.eventsService.findLastSubmitterId(leg.id),
+      submitterId: leg.submittedBy,
     };
   }
 }

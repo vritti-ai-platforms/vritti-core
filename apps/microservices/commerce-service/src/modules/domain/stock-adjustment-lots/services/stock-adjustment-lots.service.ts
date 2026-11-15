@@ -66,9 +66,9 @@ export class StockAdjustmentLotsDomainService {
     const created = await this.repository.create({
       stockAdjustmentId: adjustment.id,
       lotNumber,
-      manufacturingDate: data.manufacturingDate ?? null,
+      manufacturingDate: data.manufacturingDate,
       expiryDate: data.expiryDate,
-      mrp: data.mrp ?? null,
+      mrp: data.mrp,
     });
 
     this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustment.id}`);

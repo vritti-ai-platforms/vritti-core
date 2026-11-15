@@ -82,9 +82,6 @@ export class PurchaseOrderResponseDto {
   })
   latestExpectedDeliveryDate: string | null;
 
-  @ApiProperty({ description: 'IANA timezone of the site the PO was raised for', example: 'Asia/Kolkata' })
-  timezone: string;
-
   @ApiPropertyOptional({ description: 'Notes', nullable: true })
   notes: string | null;
 

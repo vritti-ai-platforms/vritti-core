@@ -38,7 +38,7 @@ import { LE_PURCHASE_ORDERS } from '@vritti/commerce-permissions/purchase-orders
 import type { FastifyReply } from 'fastify';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiAddItem,
   ApiChangeExchangeRate,
@@ -81,12 +81,9 @@ export class LePurchaseOrdersGatewayController {
   @RequirePermission(LE_PURCHASE_ORDERS.add)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
-  create(
-    @Body() dto: LeCreatePurchaseOrderDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+  create(@Body() dto: LeCreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchase-orders');
-    return this.service.create(dto, legalEntityId);
+    return this.service.create(dto);
   }
 
   // Adds a line to a purchase order

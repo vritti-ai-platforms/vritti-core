@@ -21,6 +21,7 @@ import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
+  currentSiteId,
   goodsReceiptItems,
   inventoryItems,
   type NewSupplierItem,
@@ -40,9 +41,9 @@ import {
 } from '@/db/schema';
 import type { SupplierSiteItemTermsRow } from '../dto/entity/supplier-site-item-terms.dto';
 
-// A site id as a typed SQL parameter; null yields no site terms (ORG views)
-function siteParam(siteId: string | null): SQL {
-  return siteId ? sql`${siteId}::uuid` : sql`NULL::uuid`;
+// A site id as a typed SQL parameter: the named site, the request's site when undefined, none for null (LE and ORG views)
+function siteParam(siteId: string | null | undefined): SQL {
+  return siteId === null ? sql`NULL::uuid` : sql`${siteId ?? currentSiteId()}::uuid`;
 }
 
 interface PriceLookup<T> {
@@ -58,7 +59,7 @@ type PriceColumn = 'unitPrice' | 'currencyCode' | 'schemeBuyQty' | 'schemeFreeQt
 // Correlated scalar subquery reading one column of the price row a site pays: its own in force, else its legal entity's
 function currentPriceColumnSql<T>(
   column: PriceColumn,
-  siteId: string | null,
+  siteId: string | null | undefined,
   { map, asOf, currency }: PriceLookup<T> = {},
 ): SQL<T | null> {
   const day = asOf ? sql`${asOf}::date` : sql`CURRENT_DATE`;
@@ -69,7 +70,9 @@ function currentPriceColumnSql<T>(
       and(
         eq(priceRows.supplierItemId, supplierItems.id),
         // A site pays its own price in force, else the legal entity's; with no site only the legal entity's applies
-        siteId ? or(eq(priceRows.siteId, siteId), isNull(priceRows.siteId)) : isNull(priceRows.siteId),
+        siteId === null
+          ? isNull(priceRows.siteId)
+          : or(eq(priceRows.siteId, siteId ?? currentSiteId()), isNull(priceRows.siteId)),
         lte(priceRows.validFrom, day),
         or(isNull(priceRows.validTo), gte(priceRows.validTo, day)),
         currency ? eq(priceRows.currencyCode, currency) : undefined,
@@ -81,12 +84,15 @@ function currentPriceColumnSql<T>(
   return map ? expr.mapWith((value: unknown) => (value == null ? null : map(value))) : expr;
 }
 
-function currentPriceSql(siteId: string | null, lookup: Omit<PriceLookup<bigint>, 'map'> = {}): SQL<bigint | null> {
+function currentPriceSql(
+  siteId: string | null | undefined,
+  lookup: Omit<PriceLookup<bigint>, 'map'> = {},
+): SQL<bigint | null> {
   return currentPriceColumnSql('unitPrice', siteId, { ...lookup, map: (value) => BigInt(value as string) });
 }
 
 // A site's operational settings (joined supplier_site_items row) and the price row in force there today
-function siteItemTermsSelect(siteId: string | null) {
+function siteItemTermsSelect(siteId: string | null | undefined) {
   return {
     supplierSiteItemId: supplierSiteItems.id,
     siteIsPreferred: supplierSiteItems.isPreferred,
@@ -101,7 +107,7 @@ function siteItemTermsSelect(siteId: string | null) {
 }
 
 // Joins the supplier item's supplier_site_items row at one site
-function siteItemJoin(siteId: string | null): SQL {
+function siteItemJoin(siteId: string | null | undefined): SQL {
   return and(
     eq(supplierSiteItems.supplierItemId, supplierItems.id),
     sql`${supplierSiteItems.siteId} = ${siteParam(siteId)}`,
@@ -189,17 +195,19 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
           .from(purchaseOrders)
           .where(eq(purchaseOrders.id, options.purchaseOrderId))
       : [];
-    const siteId = purchaseOrder?.siteId ?? options?.siteId ?? null;
+    const siteId = purchaseOrder?.siteId ?? options?.siteId;
     const lookup = { asOf: purchaseOrder?.orderDate, currency: purchaseOrder?.currencyCode };
     const conditions: SQL[] = [];
 
-    // At a site, the workspace's or the order's, only the items set up there; otherwise every item of its suppliers
-    if (siteId) {
-      conditions.push(sql`EXISTS (
+    // At a site — the order's, the named one, else the request's when it is a site workspace — only the items set up
+    // there; otherwise every item of its suppliers
+    if (siteId !== null) {
+      const setUpAtSite = sql`EXISTS (
         SELECT 1 FROM ${supplierSiteItems} ssi
         WHERE ssi.supplier_item_id = ${supplierItems.id}
           AND ssi.site_id = ${siteParam(siteId)}
-      )`);
+      )`;
+      conditions.push(siteId ? setUpAtSite : sql`(${currentSiteId()} is null or ${setUpAtSite})`);
     }
 
     if (options?.supplierId) {
@@ -279,9 +287,9 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   // Returns paginated supplier items carried by a site, with that site's terms and price in force
   async findSiteItemsAtSiteForTable(
     supplierId: string,
-    siteId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
     { carriedOnly }: { carriedOnly: boolean },
+    siteId?: string,
   ): Promise<{ result: SupplierSiteItemTableRow[]; count: number }> {
     const baseWhere = eq(supplierItems.supplierId, supplierId);
     const siteItemRow = { table: supplierSiteItems, on: siteItemJoin(siteId) };
@@ -308,8 +316,8 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   // current price
   async findSuppliersForItem(
     inventoryItemId: string,
-    siteId: string | null,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
+    siteId?: string | null,
   ): Promise<{ result: InventoryItemSupplierRow[]; count: number }> {
     const baseWhere = eq(supplierItems.inventoryItemId, inventoryItemId);
     return this.findAllAndCount<InventoryItemSupplierRow>({
@@ -339,8 +347,8 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   // Stable-ordered page for the mobile Relay suppliers feed: preferred at the site first, then newest, with an id
   // tie-breaker so the total order is deterministic (offset cursors don't skip/duplicate).
   async findSuppliersFeedKeyset(
-    siteId: string | null,
     options: { where?: SQL; orderBy: SQL[]; limit: number },
+    siteId?: string | null,
   ): Promise<{ rows: InventoryItemSupplierRow[]; hasMore: boolean }> {
     return this.findKeyset<InventoryItemSupplierRow>({
       select: {
@@ -424,7 +432,7 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
 
   // Finds a supplier item as one site sees it — its terms and price in force there, both empty when the site does not
   // carry it
-  async findSiteItemDetailById(id: string, siteId: string): Promise<SupplierSiteItemDetailRow | undefined> {
+  async findSiteItemDetailById(id: string, siteId?: string): Promise<SupplierSiteItemDetailRow | undefined> {
     const [row] = await this.db
       .select({
         ...getColumns(supplierItems),
@@ -501,6 +509,16 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   async findUomSymbol(uomId: string): Promise<string | null> {
     const [row] = await this.db.select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, uomId)).limit(1);
     return row?.symbol ?? null;
+  }
+
+  // Returns true when the supplier is enrolled at the named site, else at the request's site
+  async isEnrolledAt(supplierId: string, siteId?: string): Promise<boolean> {
+    return this.exists(
+      and(
+        eq(supplierEnrollments.supplierId, supplierId),
+        eq(supplierEnrollments.siteId, siteId ?? currentSiteId()),
+      ) as SQL,
+    );
   }
 
   async findEnrolledSiteIds(supplierId: string): Promise<string[]> {

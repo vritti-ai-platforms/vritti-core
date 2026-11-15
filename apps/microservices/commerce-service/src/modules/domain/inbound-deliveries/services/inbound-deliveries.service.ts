@@ -91,11 +91,11 @@ export class InboundDeliveriesDomainService {
       supplierId: dto.supplierId,
       deliveryNumber,
       expectedDeliveryDate: dto.expectedDeliveryDate,
-      carrier: dto.carrier ?? null,
-      trackingNumber: dto.trackingNumber ?? null,
-      supplierDeliveryNoteNumber: dto.supplierDeliveryNoteNumber ?? null,
-      supplierDeliveryNoteDate: dto.supplierDeliveryNoteDate ?? null,
-      notes: dto.notes ?? null,
+      carrier: dto.carrier,
+      trackingNumber: dto.trackingNumber,
+      supplierDeliveryNoteNumber: dto.supplierDeliveryNoteNumber,
+      supplierDeliveryNoteDate: dto.supplierDeliveryNoteDate,
+      notes: dto.notes,
     });
 
     this.logger.log(`Created inbound delivery ${deliveryNumber} for supplier ${dto.supplierId}`);

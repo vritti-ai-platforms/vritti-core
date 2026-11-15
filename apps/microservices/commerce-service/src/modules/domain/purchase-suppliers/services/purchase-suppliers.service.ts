@@ -55,6 +55,7 @@ export interface LegStart {
   snapshot: LegEnrollmentSnapshot | undefined;
   sourcing: LegSourcing;
   leCurrencyCode: string;
+  submittedBy: string | null;
 }
 
 export interface LegApprovers {
@@ -198,7 +199,7 @@ export class PurchaseSuppliersDomainService {
   }
 
   // Starts a leg in sourcing: copies its enrollment again, then sends it to APPROVAL when its approval applies and to
-  // its type's first fulfilment step otherwise; returns the step it reached
+  // its type's first fulfilment step otherwise, clearing its last rejection; returns the step it reached
   async start(leg: Leg, start: LegStart): Promise<PurchaseLegStep> {
     this.assertInSourcing(leg, 'Cannot Submit Supplier');
     const enrollment = this.requireActiveEnrollment(start.snapshot);
@@ -218,8 +219,13 @@ export class PurchaseSuppliersDomainService {
       approvalThreshold: enrollment.approvalThreshold,
       qualityCheckEnabled: enrollment.qualityCheckEnabled,
       step,
+      submittedAt: new Date(),
+      submittedBy: start.submittedBy,
       approvedBy: null,
       approvedAt: null,
+      rejectionReason: null,
+      rejectedAt: null,
+      rejectedBy: null,
     });
     this.logger.log(`Started leg ${leg.id} → ${step}`);
     return step;
@@ -242,8 +248,8 @@ export class PurchaseSuppliersDomainService {
     return step;
   }
 
-  // Sends a leg waiting for approval back to sourcing, leaving the purchase's other legs as they are
-  async reject(leg: Leg, approvers: LegApprovers): Promise<void> {
+  // Sends a leg waiting for approval back to sourcing with a reason, leaving the purchase's other legs as they are
+  async reject(leg: Leg, approvers: LegApprovers, reason: string): Promise<void> {
     this.assertAwaitingApproval(leg, 'Cannot Reject');
     if (!this.isApprover(approvers)) {
       throw new ForbiddenException({
@@ -251,7 +257,12 @@ export class PurchaseSuppliersDomainService {
         detail: "Only the approvers on the supplier's enrollment at this site can reject it.",
       });
     }
-    await this.repository.update(leg.id, { step: PurchaseLegStepValues.SOURCING });
+    await this.repository.update(leg.id, {
+      step: PurchaseLegStepValues.SOURCING,
+      rejectionReason: reason,
+      rejectedAt: new Date(),
+      rejectedBy: approvers.userId,
+    });
     this.logger.log(`Rejected leg ${leg.id} → SOURCING`);
   }
 
@@ -269,7 +280,7 @@ export class PurchaseSuppliersDomainService {
     }
     const step = this.deriveStep(leg, facts);
     if (step === PurchaseLegStepValues.CLOSED) {
-      await this.markClosed(leg);
+      await this.markClosed(leg, null);
       return { stepBefore: leg.step, stepAfter: step, isClosed: true };
     }
     if (step === leg.step) return unchanged;
@@ -278,10 +289,16 @@ export class PurchaseSuppliersDomainService {
     return { stepBefore: leg.step, stepAfter: step, isClosed: false };
   }
 
-  // Closes a fulfilling leg without a draft receipt or invoice; the caller has completed delivery of its open POs
-  async close(leg: Leg & { supplierName: string }, purchase: LegPurchase, facts: LegFulfilmentFacts): Promise<void> {
+  // Closes a fulfilling leg without a draft receipt or invoice, with an optional reason; the caller has completed
+  // delivery of its open POs
+  async close(
+    leg: Leg & { supplierName: string },
+    purchase: LegPurchase,
+    facts: LegFulfilmentFacts,
+    reason: string | null,
+  ): Promise<void> {
     this.assertActionAvailable(leg, purchase, facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
-    await this.markClosed(leg);
+    await this.markClosed(leg, reason);
   }
 
   // Returns the legs of a purchase with their suppliers' names
@@ -307,9 +324,9 @@ export class PurchaseSuppliersDomainService {
   // Returns a supplier's legs at a site that are fulfilling and of the given types, on the given purchases when named
   async findFulfillingForSupplierAtSite(
     supplierId: string,
-    siteId: string,
     types: PurchaseType[],
     purchaseIds?: string[],
+    siteId?: string,
   ): Promise<PurchaseSupplierRow[]> {
     const legs = await this.repository.findOpenForSupplierAtSite(supplierId, siteId);
     return legs.filter(
@@ -492,12 +509,13 @@ export class PurchaseSuppliersDomainService {
     return true;
   }
 
-  // Marks a leg closed in its last step
-  private async markClosed(leg: Leg): Promise<void> {
+  // Marks a leg closed in its last step, with the reason it was closed by hand
+  private async markClosed(leg: Leg, reason: string | null): Promise<void> {
     await this.repository.update(leg.id, {
       step: PurchaseLegStepValues.CLOSED,
       status: PurchaseLegStatusValues.CLOSED,
       closedAt: new Date(),
+      closeReason: reason,
     });
     this.logger.log(`Closed leg ${leg.id} from ${leg.step}`);
   }

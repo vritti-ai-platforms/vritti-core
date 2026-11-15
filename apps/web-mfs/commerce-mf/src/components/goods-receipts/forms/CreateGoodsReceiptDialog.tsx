@@ -7,6 +7,7 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { isoTodayDate } from '@vritti/quantum-ui/timezone';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   type CreateGoodsReceiptFromDeliveryFormData,
@@ -31,11 +32,16 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
   onSuccess,
   onCancel,
 }) => {
-  const timeZone = useWorkspaceTimeZone();
+  const [siteId, setSiteId] = useState<string>();
+  const today = isoTodayDate(useWorkspaceTimeZone(siteId));
   const form = useForm<CreateGoodsReceiptFromDeliveryFormData>({
     resolver: zodResolver(createGoodsReceiptFromDeliverySchema),
-    defaultValues: { inboundDeliveryId, receivedDate: isoTodayDate(timeZone), notes: '' },
+    defaultValues: { inboundDeliveryId, receivedDate: today, notes: '' },
   });
+
+  useEffect(() => {
+    if (!form.getFieldState('receivedDate').isDirty) form.resetField('receivedDate', { defaultValue: today });
+  }, [today, form]);
   const mutation = useCreateFromDelivery({ onSuccess: (response) => onSuccess(response.data) });
 
   return (
@@ -47,6 +53,10 @@ export const CreateGoodsReceiptDialog: React.FC<CreateGoodsReceiptDialogProps> =
     >
       <ReceivableInboundDeliverySelector
         name="inboundDeliveryId"
+        onOptionSelect={(option) => {
+          const optionSiteId = option?.additionals?.siteId;
+          setSiteId(typeof optionSiteId === 'string' ? optionSiteId : undefined);
+        }}
         description="Announced deliveries that are still open, have no draft receipt and carry lines of confirmed orders"
       />
       <DatePicker name="receivedDate" label="Received Date" />

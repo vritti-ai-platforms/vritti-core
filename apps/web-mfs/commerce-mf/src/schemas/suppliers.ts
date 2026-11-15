@@ -244,7 +244,6 @@ export interface SupplierItemPriceRow {
   // Set when a quotation posted the price; it then changes only through the quotation
   quotationSiteId: string | null;
   note: string | null;
-  createdBy: string | null;
   createdAt: string;
 }
 

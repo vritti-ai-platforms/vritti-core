@@ -9,7 +9,7 @@ import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/pu
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrderProblemsDto } from '@/modules/site/purchase-orders/root/dto/entity/purchase-order-problems.dto';
 import { PurchaseOrdersService } from '@/modules/site/purchase-orders/root/services/purchase-orders-root.service';
@@ -24,15 +24,15 @@ export class LePurchaseOrdersRootController {
     private readonly service: PurchaseOrdersService,
   ) {}
 
-  // Creates a purchase order at one of the legal entity's sites, in that site's timezone
+  // Creates a purchase order at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.purchaseOrders.create' })
   create(
     @Payload() dto: LeCreatePurchaseOrderDto,
     @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`le.purchaseOrders.create — supplier: ${dto.supplierId}, site: ${dto.siteId}`);
-    const { siteId, timezone, ...purchaseOrder } = dto;
-    return this.service.create(purchaseOrder, { siteId, timezone, leCurrencyCode });
+    const { siteId, ...purchaseOrder } = dto;
+    return this.service.create(purchaseOrder, { siteId, leCurrencyCode });
   }
 
   // Updates a purchase order's notes
@@ -51,12 +51,9 @@ export class LePurchaseOrdersRootController {
 
   // Moves a purchase order along its manual workflow: send, confirm or cancel
   @MessagePattern({ cmd: 'le.purchaseOrders.updateStatus' })
-  updateStatus(
-    @Payload() dto: UpdatePurchaseOrderStatusDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  updateStatus(@Payload() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
-    return this.service.updateStatus(dto, headers.userId || null);
+    return this.service.updateStatus(dto);
   }
 
   // Moves a draft purchase order to another supplier

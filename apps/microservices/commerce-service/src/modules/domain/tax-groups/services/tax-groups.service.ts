@@ -38,7 +38,7 @@ export class TaxGroupsDomainService {
       code: data.code,
       name: data.name,
       treatment: data.treatment,
-      legalText: data.legalText ?? null,
+      legalText: data.legalText,
       isActive: data.isActive,
     });
     this.logger.log(`Created tax group: ${entity.countryCode} ${entity.code} (${entity.id})`);

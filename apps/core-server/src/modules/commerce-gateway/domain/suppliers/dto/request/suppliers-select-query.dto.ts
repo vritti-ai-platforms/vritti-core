@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SelectOptionsQueryDto } from '@vritti/api-sdk/select';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsLeSite } from '@/security/validators/is-le-site.validator';
 
 export class SuppliersSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({ description: 'Only active suppliers' })
@@ -20,5 +21,6 @@ export class SuppliersSelectQueryDto extends SelectOptionsQueryDto {
   })
   @IsOptional()
   @IsUUID('7')
+  @IsLeSite()
   enrolledAtSiteId?: string;
 }

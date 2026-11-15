@@ -9,7 +9,15 @@ import { CheckCheck, ExternalLink, FileText, Plus } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { PurchaseActionValues, type PurchaseHeader, type PurchaseQuotation } from '@/schemas/purchases';
+import {
+  PurchaseActionValues,
+  type PurchaseHeader,
+  type PurchaseQuotation,
+  PurchaseStatusValues,
+  PurchaseStepValues,
+  purchaseStatusConfig,
+  purchaseStepConfig,
+} from '@/schemas/purchases';
 import { workspaceBase } from '@/utils/workspace';
 import type { PurchasesBinding } from '../../bindings';
 import { quotedSupplierIds } from '../../purchaseState';
@@ -116,16 +124,24 @@ export const QuotingView: React.FC<QuotingViewProps> = ({ binding, purchase, rea
     enableSorting: false,
   });
 
-  const requestAction = canRequest ? (
+  const isQuoting = !readOnly && purchase.step === PurchaseStepValues.QUOTING;
+  const lockedTip =
+    purchase.status !== PurchaseStatusValues.OPEN
+      ? `The purchase is ${purchaseStatusConfig[purchase.status].label.toLowerCase()}.`
+      : `The quotations were completed; the purchase is in ${purchaseStepConfig[purchase.step].label}.`;
+
+  const requestAction = (
     <Button
       size="sm"
       permission={permissions.edit}
       startAdornment={<Plus className="size-4" />}
       onClick={requestDialog.open}
+      disabled={!canRequest}
+      disabledTip={lockedTip}
     >
       Request Quotation
     </Button>
-  ) : undefined;
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -143,18 +159,20 @@ export const QuotingView: React.FC<QuotingViewProps> = ({ binding, purchase, rea
         table={quotationsTable}
         mode="stepper"
         permission={permissions.view}
-        toolbarActions={
-          readOnly
-            ? undefined
-            : {
-                actions: (
-                  <div className="flex items-center gap-2">
-                    {requestAction}
-                    <CompleteQuotationsButton binding={binding} purchase={purchase} quotedCount={quotedCount} />
-                  </div>
-                ),
-              }
-        }
+        toolbarActions={{
+          actions: (
+            <div className="flex items-center gap-2">
+              {requestAction}
+              <CompleteQuotationsButton
+                binding={binding}
+                purchase={purchase}
+                quotedCount={quotedCount}
+                canComplete={isQuoting}
+                lockedTip={lockedTip}
+              />
+            </div>
+          ),
+        }}
         emptyStateConfig={{
           icon: FileText,
           title: 'No quotations',
@@ -191,13 +209,22 @@ interface CompleteQuotationsButtonProps {
   binding: PurchasesBinding;
   purchase: PurchaseHeader;
   quotedCount: number;
+  // Whether the purchase is open in Quoting, so its quotations can still be completed
+  canComplete: boolean;
+  // Why they can't any more, shown on the disabled button
+  lockedTip: string;
 }
 
 // Completes the quotations once enough suppliers have posted one, moving the purchase on to sourcing
-const CompleteQuotationsButton: React.FC<CompleteQuotationsButtonProps> = ({ binding, purchase, quotedCount }) => {
+const CompleteQuotationsButton: React.FC<CompleteQuotationsButtonProps> = ({
+  binding,
+  purchase,
+  quotedCount,
+  canComplete,
+  lockedTip,
+}) => {
   const confirm = useConfirm();
   const completeMutation = binding.useCompleteQuotations();
-  if (!purchase.availableActions.includes(PurchaseActionValues.COMPLETE_QUOTATIONS)) return null;
 
   // Confirms and completes the quotations; drafts still open are no longer awaited
   const handleComplete = async () => {
@@ -216,8 +243,12 @@ const CompleteQuotationsButton: React.FC<CompleteQuotationsButtonProps> = ({ bin
       startAdornment={<CheckCheck className="size-4" />}
       onClick={handleComplete}
       isLoading={completeMutation.isPending}
-      disabled={quotedCount < purchase.minQuotations}
-      disabledTip={`Waiting for ${pluralize('supplier', purchase.minQuotations, true)} to post a quotation.`}
+      disabled={!canComplete || quotedCount < purchase.minQuotations}
+      disabledTip={
+        canComplete
+          ? `Waiting for ${pluralize('supplier', purchase.minQuotations, true)} to post a quotation.`
+          : lockedTip
+      }
     >
       Complete Quotations
     </Button>

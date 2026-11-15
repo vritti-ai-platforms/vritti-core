@@ -53,9 +53,9 @@ export class UomDomainService {
       dimensionId: data.dimensionId,
       name: data.name,
       symbol: data.symbol,
-      baseUnitId: data.baseUnitId ?? null,
-      baseUomQty: data.baseUomQty ?? 1,
-      uomQty: data.uomQty ?? 1,
+      baseUnitId: data.baseUnitId,
+      baseUomQty: data.baseUomQty,
+      uomQty: data.uomQty,
       allowDecimal: data.allowDecimal,
     });
 

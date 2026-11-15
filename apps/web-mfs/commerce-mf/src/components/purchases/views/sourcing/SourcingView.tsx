@@ -5,7 +5,14 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Send } from 'lucide-react';
 import type React from 'react';
 import { Suspense } from 'react';
-import { PurchaseActionValues, type PurchaseHeader } from '@/schemas/purchases';
+import {
+  PurchaseActionValues,
+  type PurchaseHeader,
+  PurchaseStatusValues,
+  PurchaseStepValues,
+  purchaseStatusConfig,
+  purchaseStepConfig,
+} from '@/schemas/purchases';
 import type { PurchasesBinding } from '../../bindings';
 import { PurchaseStageViewSkeleton } from '../../PurchaseDetailSkeleton';
 import { SourcingItemsTab } from './SourcingItemsTab';
@@ -21,11 +28,9 @@ interface SourcingViewProps {
 // the tab strip
 export const SourcingView: React.FC<SourcingViewProps> = ({ binding, purchase, readOnly }) => (
   <div className="relative">
-    {!readOnly && (
-      <div className="absolute top-0 right-0 z-10">
-        <SubmitSourcingButton binding={binding} purchase={purchase} />
-      </div>
-    )}
+    <div className="absolute top-0 right-0 z-10">
+      <SubmitSourcingButton binding={binding} purchase={purchase} readOnly={readOnly} />
+    </div>
     <Tabs
       tabs={[
         {
@@ -56,13 +61,20 @@ export const SourcingView: React.FC<SourcingViewProps> = ({ binding, purchase, r
 interface SubmitSourcingButtonProps {
   binding: PurchasesBinding;
   purchase: PurchaseHeader;
+  readOnly: boolean;
 }
 
 // Submits the sourcing, starting every supplier still in sourcing — to approval or its first step
-const SubmitSourcingButton: React.FC<SubmitSourcingButtonProps> = ({ binding, purchase }) => {
+const SubmitSourcingButton: React.FC<SubmitSourcingButtonProps> = ({ binding, purchase, readOnly }) => {
   const confirm = useConfirm();
   const submitMutation = binding.useSubmit();
-  if (!purchase.availableActions.includes(PurchaseActionValues.SUBMIT)) return null;
+  const canSubmit = !readOnly && purchase.availableActions.includes(PurchaseActionValues.SUBMIT);
+  const lockedTip =
+    purchase.status !== PurchaseStatusValues.OPEN
+      ? `The purchase is ${purchaseStatusConfig[purchase.status].label.toLowerCase()}.`
+      : purchase.step !== PurchaseStepValues.SOURCING
+        ? `The sourcing was already submitted; the purchase is in ${purchaseStepConfig[purchase.step].label}.`
+        : 'Allocate the items to a supplier before submitting.';
 
   // Confirms and submits the sourcing; the purchase moves on to Procuring
   const handleSubmit = async () => {
@@ -81,6 +93,8 @@ const SubmitSourcingButton: React.FC<SubmitSourcingButtonProps> = ({ binding, pu
       startAdornment={<Send className="size-4" />}
       onClick={handleSubmit}
       isLoading={submitMutation.isPending}
+      disabled={!canSubmit}
+      disabledTip={lockedTip}
     >
       Submit
     </Button>

@@ -5,6 +5,7 @@ import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
+  currentSiteId,
   type PartyIdentifierType,
   parties,
   partyBankAccounts,
@@ -47,11 +48,11 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
   // Every supplier of the legal entity with the site's enrollment when there is one — the site's suppliers table
   findForSiteTable(
     legalEntityId: string,
-    siteId: string,
     options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+    siteId?: string,
   ): Promise<{ result: SupplierEnrollmentRowRecord[]; count: number }> {
     return this.findAllAndCount<SupplierEnrollmentRowRecord>({
-      select: this.rowSelection(),
+      select: this.rowSelection(siteId),
       innerJoin: this.partyJoin(),
       leftJoins: this.enrollmentJoins(siteId),
       where: and(eq(suppliers.legalEntityId, legalEntityId), options.where),
@@ -64,12 +65,12 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
   // Loads a supplier of the legal entity as one site sees it, enrolled or not, throwing when it does not exist
   async findDetailOrThrow(
     legalEntityId: string,
-    siteId: string,
     supplierId: string,
+    siteId?: string,
   ): Promise<SupplierEnrollmentDetailRecord> {
     const row = await this.findById<SupplierEnrollmentDetailRecord>(supplierId, {
       select: {
-        ...this.rowSelection(),
+        ...this.rowSelection(siteId),
         partyTaxId: partyTaxIdField<string>(partyIdentifiers.idValue),
         partyTaxIdType: partyTaxIdField<PartyIdentifierType>(partyIdentifiers.idType),
       },
@@ -85,8 +86,8 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
   // when it no longer passes the picker's filters
   findForSiteSelect(
     legalEntityId: string,
-    siteId: string,
     query: SupplierEnrollmentSelectQueryDto,
+    siteId?: string,
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [eq(suppliers.legalEntityId, legalEntityId)];
     if (!query.values) {
@@ -133,9 +134,10 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Selects the shared enrollment row columns of a supplier at a site, enrolled or not
-  private rowSelection() {
+  private rowSelection(siteId?: string) {
     return {
       id: supplierEnrollments.id,
+      siteId: sql<string>`${siteId ?? currentSiteId()}`,
       supplierId: suppliers.id,
       supplierCode: suppliers.code,
       partyId: suppliers.partyId,
@@ -172,7 +174,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
   }
 
   // Joins the site's enrollment and its picks; every one is null when the supplier is not enrolled there
-  private enrollmentJoins(siteId: string): RepositoryJoin[] {
+  private enrollmentJoins(siteId?: string): RepositoryJoin[] {
     return [
       { table: supplierEnrollments, on: this.enrollmentAtSite(siteId) },
       { table: paymentTerms, on: eq(paymentTerms.id, supplierEnrollments.paymentTermId) },
@@ -186,8 +188,11 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
     ];
   }
 
-  // Matches the site's enrollment row of the supplier
-  private enrollmentAtSite(siteId: string): SQL {
-    return and(eq(supplierEnrollments.supplierId, suppliers.id), eq(supplierEnrollments.siteId, siteId)) as SQL;
+  // Matches the enrollment row of the supplier at the named site, else at the request's site
+  private enrollmentAtSite(siteId?: string): SQL {
+    return and(
+      eq(supplierEnrollments.supplierId, suppliers.id),
+      eq(supplierEnrollments.siteId, siteId ?? currentSiteId()),
+    ) as SQL;
   }
 }

@@ -61,9 +61,6 @@ export class SupplierItemPriceResponseDto {
   @ApiPropertyOptional({ description: 'Why the price was set or changed', nullable: true })
   note: string | null;
 
-  @ApiPropertyOptional({ description: 'User who created the price', nullable: true })
-  createdBy: string | null;
-
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
 }

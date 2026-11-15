@@ -30,7 +30,7 @@ export class UomDimensionsDomainService {
     const entity = await this.repository.create({
       code: data.code,
       name: data.name,
-      description: data.description ?? null,
+      description: data.description,
     });
     this.logger.log(`Created UOM dimension: ${entity.name} (${entity.code})`);
     return {

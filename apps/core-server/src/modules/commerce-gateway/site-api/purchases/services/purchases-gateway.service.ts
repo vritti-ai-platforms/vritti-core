@@ -8,7 +8,6 @@ import type { CreatePurchaseAllocationDto } from '@commerce/purchases/dto/reques
 import type { CreatePurchaseAllocationsFromQuotationDto } from '@commerce/purchases/dto/request/create-purchase-allocations-from-quotation.dto';
 import type { CreatePurchaseItemDto } from '@commerce/purchases/dto/request/create-purchase-item.dto';
 import type { CreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/create-purchase-supplier-invoice.dto';
-import type { PurchaseEventsQueryDto } from '@commerce/purchases/dto/request/purchase-events-query.dto';
 import type { ReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/receive-with-invoice.dto';
 import type { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import type { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
@@ -21,7 +20,6 @@ import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/d
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import type { PurchaseEventsPageResponseDto } from '@commerce/purchases/dto/response/purchase-events-page-response.dto';
 import type { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
 import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import type { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
@@ -35,7 +33,6 @@ import type { ReceiveWithInvoiceOpenLineResponseDto } from '@commerce/purchases/
 import type { RequestedPurchaseQuotationResponseDto } from '@commerce/purchases/dto/response/requested-purchase-quotation-response.dto';
 import {
   PurchaseNamesService,
-  type UnnamedPurchaseEventsPage,
   type UnnamedPurchaseHeader,
   type UnnamedPurchaseLeg,
 } from '@commerce/purchases/services/purchase-names.service';
@@ -58,7 +55,7 @@ export class PurchasesGatewayService {
 
   // Creates a purchase at the site, optionally with its items
   create(dto: CreatePurchaseDto): Promise<CreateResponseDto<PurchaseResponseDto>> {
-    this.logger.log(`site.purchases.create — items: ${dto.items?.length ?? 0}`);
+    this.logger.log('site.purchases.create');
     return this.nats.send('commerce', 'site.purchases.create', dto);
   }
 
@@ -290,18 +287,6 @@ export class PurchasesGatewayService {
       id,
     });
     return this.purchaseNames.withLegNames(orgId, legs);
-  }
-
-  // Returns one page of a purchase's events, newest first, with their actors named
-  async findEvents(id: string, query: PurchaseEventsQueryDto, orgId: string): Promise<PurchaseEventsPageResponseDto> {
-    this.logger.log(
-      `site.purchases.events.findByPurchase — id: ${id}, kind: ${query.kind ?? 'all'}, offset: ${query.offset}`,
-    );
-    const page = await this.nats.send<UnnamedPurchaseEventsPage>('commerce', 'site.purchases.events.findByPurchase', {
-      id,
-      ...query,
-    });
-    return this.purchaseNames.withEventNames(orgId, page);
   }
 
   // Returns the supplier's allocations still open to receive and invoice at once

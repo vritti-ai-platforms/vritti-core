@@ -47,8 +47,8 @@ export class TaxJurisdictionsDomainService {
       level: data.level,
       parentId: parent?.id ?? null,
       countryCode: data.countryCode,
-      regionCode: data.regionCode ?? null,
-      taxUnion: data.taxUnion ?? null,
+      regionCode: data.regionCode,
+      taxUnion: data.taxUnion,
       isActive: data.isActive,
     });
 

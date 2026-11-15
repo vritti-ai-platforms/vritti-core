@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."purchase_orders" DROP COLUMN "timezone";

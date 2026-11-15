@@ -1,8 +1,3 @@
-import {
-  type PurchaseEventAction,
-  PurchaseEventActionValues,
-} from '@domain/purchase-events/dto/entity/purchase-event.dto';
-import { PurchaseEventsDomainService } from '@domain/purchase-events/services/purchase-events.service';
 import type { PurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/entity/purchase-allocation.dto';
 import type { CreatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocation.dto';
 import type { CreatePurchaseAllocationsFromQuotationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocations-from-quotation.dto';
@@ -26,7 +21,6 @@ import { UomConversionsDomainService } from '@domain/uom-conversions/services/uo
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import _ from '@vritti/api-sdk/lodash';
-import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
@@ -49,7 +43,6 @@ export class PurchasesAllocationsService {
     private readonly itemsService: PurchaseItemsDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
-    private readonly eventsService: PurchaseEventsDomainService,
     private readonly suppliersService: SuppliersDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
@@ -59,10 +52,7 @@ export class PurchasesAllocationsService {
 
   // Allocates part of a purchase item to a supplier that supplies it at the site, opening the supplier's leg on its first
   // allocation; not on a purchase that requires quotations
-  async create(
-    dto: CreatePurchaseAllocationDto,
-    headers: NatsHeaders,
-  ): Promise<CreateResponseDto<PurchaseAllocationDto>> {
+  async create(dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<PurchaseAllocationDto>> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
     this.allocationsService.assertEnteredAllowed(purchase);
     const item = await this.itemsService.findOnPurchaseOrThrow(purchase.id, dto.purchaseItemId);
@@ -80,14 +70,12 @@ export class PurchasesAllocationsService {
 
     const allocation = await this.database.runInTransaction(async () => {
       const leg = await this.findOrOpenLeg(purchase, supplier.id);
-      const created = await this.allocationsService.create(
+      return this.allocationsService.create(
         this.contextOf(purchase, leg, item.id, supplier),
         dto,
         quantity,
         supplier.currencyCode,
       );
-      await this.recordAllocationEvent(purchase, leg, PurchaseEventActionValues.ADD_ALLOCATION, headers);
-      return created;
     });
     this.logger.log(
       `purchases.allocations.create — ${purchase.purchaseNumber}, item: ${item.id}, supplier: ${supplier.id}`,
@@ -101,10 +89,7 @@ export class PurchasesAllocationsService {
 
   // Allocates purchase items from posted quotation lines valid today: each line's purchase item gets the line's unit, price
   // and scheme for the requested quantity rounded up to whole units, opening its supplier's leg when needed
-  async createFromQuotation(
-    dto: CreatePurchaseAllocationsFromQuotationDto,
-    headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  async createFromQuotation(dto: CreatePurchaseAllocationsFromQuotationDto): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
     const terms = this.allocationsService.requireQuotedItems(
       dto.supplierQuotationItemIds,
@@ -148,7 +133,6 @@ export class PurchasesAllocationsService {
           term,
           quantity,
         );
-        await this.recordAllocationEvent(purchase, leg, PurchaseEventActionValues.ADD_ALLOCATION, headers);
       }
     });
     this.logger.log(`purchases.allocations.createFromQuotation — ${purchase.purchaseNumber}, lines: ${terms.length}`);
@@ -159,7 +143,7 @@ export class PurchasesAllocationsService {
   }
 
   // Changes an allocation's unit, quantity, price or scheme while its leg is in sourcing
-  async update(dto: UpdatePurchaseAllocationDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  async update(dto: UpdatePurchaseAllocationDto): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
     const allocation = await this.allocationsService.findOnPurchaseOrThrow(purchase.id, dto.allocationId);
     const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, allocation.purchaseSupplierId);
@@ -172,10 +156,7 @@ export class PurchasesAllocationsService {
       primaryUomQty: await this.uomConversionsService.toPrimaryUomQuantity(item.inventoryItemId, uomId, uomQty),
     };
 
-    await this.database.runInTransaction(async () => {
-      await this.allocationsService.update(this.contextOf(purchase, leg, item.id, supplier), allocation, dto, quantity);
-      await this.recordAllocationEvent(purchase, leg, PurchaseEventActionValues.UPDATE_ALLOCATION, headers);
-    });
+    await this.allocationsService.update(this.contextOf(purchase, leg, item.id, supplier), allocation, dto, quantity);
     return {
       success: true,
       message: `Allocation of "${item.inventoryItemName}" updated on "${purchase.purchaseNumber}".`,
@@ -183,7 +164,7 @@ export class PurchasesAllocationsService {
   }
 
   // Removes an allocation while its leg is in sourcing, removing the leg with its last allocation
-  async delete(id: string, allocationId: string, headers: NatsHeaders): Promise<SuccessResponseDto> {
+  async delete(id: string, allocationId: string): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesService.findDetailOrThrow(id);
     const allocation = await this.allocationsService.findOnPurchaseOrThrow(purchase.id, allocationId);
     const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, allocation.purchaseSupplierId);
@@ -194,7 +175,6 @@ export class PurchasesAllocationsService {
         this.contextOf(purchase, leg, allocation.purchaseItemId, supplier),
         allocation,
       );
-      await this.recordAllocationEvent(purchase, leg, PurchaseEventActionValues.REMOVE_ALLOCATION, headers);
       return this.legsService.removeIfUnallocated(leg, remainingCount);
     });
     return {
@@ -227,20 +207,5 @@ export class PurchasesAllocationsService {
       purchaseItemId,
       supplierCurrencies: supplier.currencyCodes,
     };
-  }
-
-  // Records an allocation change on the leg it belongs to
-  private async recordAllocationEvent(
-    purchase: PurchaseRow,
-    leg: PurchaseSupplier,
-    action: PurchaseEventAction,
-    headers: NatsHeaders,
-  ): Promise<void> {
-    await this.eventsService.record({
-      purchaseId: purchase.id,
-      purchaseSupplierId: leg.id,
-      action,
-      actorId: headers.userId || null,
-    });
   }
 }

@@ -27,7 +27,6 @@ import { addDays, formatISO, parseISO } from 'date-fns';
 import { InboundDeliverySourceValues, type PurchaseOrder, type PurchaseSupplier } from '@/db/schema';
 
 export interface PurchaseSiteContext {
-  timezone: string | null;
   leCurrencyCode: string;
 }
 
@@ -47,7 +46,6 @@ export interface PlannedPurchaseOrder {
 }
 
 export interface PurchaseOrdersPlan {
-  timezone: string;
   paymentTermId: string;
   orders: PlannedPurchaseOrder[];
 }
@@ -86,7 +84,6 @@ export class PurchaseLegDocumentsService {
       const po = await this.purchaseOrdersService.createForPurchase({
         purchaseId: purchase.id,
         siteId: purchase.siteId,
-        timezone: plan.timezone,
         supplierId: leg.supplierId,
         paymentTermId: plan.paymentTermId,
         currencyCode: order.currencyCode,
@@ -179,14 +176,13 @@ export class PurchaseLegDocumentsService {
     terms: PurchaseOrderTerms,
     site: PurchaseSiteContext,
   ): Promise<PurchaseOrdersPlan> {
-    const timezone = this.requireTimezone(site);
     await this.supplierEnrollmentsService.assertPurchasable(leg.supplierId, purchase.siteId);
     const enrollment = await this.supplierEnrollmentsService.findBySupplierAndSiteOrThrow(
       leg.supplierId,
       purchase.siteId,
     );
     const itemIds = _.uniq(allocations.map((allocation) => allocation.inventoryItemId));
-    await this.siteStockLevelsService.ensureStockLevels(purchase.siteId, itemIds, 'allocations');
+    await this.siteStockLevelsService.ensureStockLevels(itemIds, 'allocations', purchase.siteId);
     await this.supplierItemsService.assertSuppliedAt(leg.supplierId, purchase.siteId, itemIds, 'allocations');
     const leadTimes = await this.supplierItemsService.findSiteLeadTimes(leg.supplierId, purchase.siteId, allocations);
 
@@ -216,7 +212,7 @@ export class PurchaseLegDocumentsService {
           this.dateAfter(terms.orderDate, leadTimes.get(SupplierItemsDomainService.leadTimeKey(allocation)) ?? 0),
       })),
     }));
-    return { timezone, paymentTermId: enrollment.paymentTermId, orders };
+    return { paymentTermId: enrollment.paymentTermId, orders };
   }
 
   // Returns the calendar date of a date-time
@@ -232,16 +228,6 @@ export class PurchaseLegDocumentsService {
       label: 'Exchange Rate Required',
       detail: `Enter how much 1 ${missing.join(', 1 ')} is in ${leCurrencyCode} to order in ${missing.join(' and ')}.`,
       errors: [{ field: 'exchangeRates', message: `Rate for ${missing.join(', ')}` }],
-    });
-  }
-
-  // Returns the site's timezone a new PO is dated in, rejecting a legal-entity request that did not send it
-  private requireTimezone(site: PurchaseSiteContext): string {
-    if (site.timezone) return site.timezone;
-    throw new BadRequestException({
-      label: 'Site Timezone Required',
-      detail: "A purchase order is dated in its site's timezone; send the purchase's site timezone with the request.",
-      errors: [{ field: 'timezone', message: "The site's timezone" }],
     });
   }
 

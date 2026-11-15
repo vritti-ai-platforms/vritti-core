@@ -400,11 +400,11 @@ export class PartiesDomainService {
         partyType: data.partyType,
         displayName,
         isActive: data.isActive,
-        legalName: data.legalName ?? null,
+        legalName: data.legalName,
         countryCode,
-        jurisdictionId: data.jurisdictionId ?? null,
-        firstName: data.firstName ?? null,
-        lastName: data.lastName ?? null,
+        jurisdictionId: data.jurisdictionId,
+        firstName: data.firstName,
+        lastName: data.lastName,
       });
       await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.EMAIL, email);
       await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.PHONE, phone);

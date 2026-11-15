@@ -19,6 +19,6 @@ export class LePurchasesSupplierInvoicesController {
   ): Promise<CreateResponseDto<{ supplierInvoiceId: string }>> {
     this.logger.log(`le.purchases.supplierInvoices.create — site: ${dto.siteId}, supplier: ${dto.supplierId}`);
     const { siteId, ...invoice } = dto;
-    return this.service.create(invoice, { siteId, leCurrencyCode: headers.leCurrencyCode }, headers);
+    return this.service.create(invoice, { siteId, leCurrencyCode: headers.leCurrencyCode });
   }
 }

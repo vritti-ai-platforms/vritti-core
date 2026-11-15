@@ -17,7 +17,6 @@ export { useDeletePurchase } from './useDeletePurchase';
 export { useDiscardReceiveWithInvoice } from './useDiscardReceiveWithInvoice';
 export { usePostReceiveWithInvoice } from './usePostReceiveWithInvoice';
 export { usePurchase } from './usePurchase';
-export { usePurchaseEvents } from './usePurchaseEvents';
 export { usePurchaseItems } from './usePurchaseItems';
 export { usePurchaseQuotations } from './usePurchaseQuotations';
 export { usePurchaseSourcingItems } from './usePurchaseSourcingItems';

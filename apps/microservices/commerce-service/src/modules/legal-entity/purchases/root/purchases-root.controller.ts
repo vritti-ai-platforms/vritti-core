@@ -21,35 +21,32 @@ export class LePurchasesRootController {
     private readonly service: PurchasesService,
   ) {}
 
-  // Creates a purchase at one of the legal entity's sites, optionally with its items
+  // Creates a purchase at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.purchases.create' })
-  create(
-    @Payload() dto: LeCreatePurchaseDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<PurchaseDto>> {
-    this.logger.log(`le.purchases.create — site: ${dto.siteId}, items: ${dto.items?.length ?? 0}`);
-    return this.service.create(dto, dto.siteId, headers);
+  create(@Payload() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<PurchaseDto>> {
+    this.logger.log(`le.purchases.create — site: ${dto.siteId}`);
+    return this.service.create(dto, dto.siteId);
   }
 
   // Changes a purchase's header while it is in REQUESTING
   @MessagePattern({ cmd: 'le.purchases.update' })
-  update(@Payload() dto: UpdatePurchaseDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  update(@Payload() dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.update — id: ${dto.id}`);
-    return this.service.update(dto, headers);
+    return this.service.update(dto);
   }
 
   // Cancels a purchase with a reason
   @MessagePattern({ cmd: 'le.purchases.cancel' })
-  cancel(@Payload() dto: CancelPurchaseDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  cancel(@Payload() dto: CancelPurchaseDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.cancel — id: ${dto.id}`);
-    return this.service.cancel(dto, headers);
+    return this.service.cancel(dto);
   }
 
   // Submits a purchase's items, moving it to quoting or sourcing
   @MessagePattern({ cmd: 'le.purchases.submitItems' })
-  submitItems(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  submitItems(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.submitItems — id: ${data.id}`);
-    return this.service.submitItems(data.id, headers);
+    return this.service.submitItems(data.id);
   }
 
   // Starts every leg of a purchase still in sourcing, routing approval against the legal entity's currency
@@ -61,9 +58,9 @@ export class LePurchasesRootController {
 
   // Returns a purchase's header with its counts, progress and available actions
   @MessagePattern({ cmd: 'le.purchases.findById' })
-  findById(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<PurchaseHeaderDto> {
+  findById(@Payload() data: { id: string }): Promise<PurchaseHeaderDto> {
     this.logger.log(`le.purchases.findById — id: ${data.id}`);
-    return this.service.findHeader(data.id, headers);
+    return this.service.findHeader(data.id);
   }
 
   // Returns one page of the purchases of the site chosen in the legal entity's context bar
@@ -73,10 +70,10 @@ export class LePurchasesRootController {
     return this.purchasesService.findForTable(state);
   }
 
-  // Deletes a purchase nothing exists behind yet
+  // Deletes a purchase whose items are not submitted yet
   @MessagePattern({ cmd: 'le.purchases.delete' })
-  delete(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+  delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.delete — id: ${data.id}`);
-    return this.service.delete(data.id, headers);
+    return this.service.delete(data.id);
   }
 }

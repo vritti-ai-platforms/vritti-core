@@ -2,7 +2,6 @@ import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
 import { Module } from '@nestjs/common';
 import { SitePurchasesModule } from '@/modules/site/purchases/purchases.module';
 import { LePurchasesAllocationsController } from './allocations/purchases-allocations.controller';
-import { LePurchasesEventsController } from './events/purchases-events.controller';
 import { LePurchasesItemsController } from './items/purchases-items.controller';
 import { LePurchasesLegsController } from './legs/purchases-legs.controller';
 import { LePurchasesQuotationsController } from './quotations/purchases-quotations.controller';
@@ -24,7 +23,6 @@ import { LePurchasesSuppliersController } from './suppliers/purchases-suppliers.
     LePurchasesLegsController,
     LePurchasesSupplierInvoicesController,
     LePurchasesReceiveWithInvoicesController,
-    LePurchasesEventsController,
   ],
 })
 export class LePurchasesModule {}

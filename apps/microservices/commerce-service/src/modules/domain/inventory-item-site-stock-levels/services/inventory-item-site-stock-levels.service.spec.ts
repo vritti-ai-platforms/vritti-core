@@ -14,12 +14,12 @@ function serviceWith(names: string[]) {
 
 describe('InventoryItemSiteStockLevelsDomainService.ensureStockLevels', () => {
   it('accepts items with stock levels at the site', async () => {
-    await expect(serviceWith([]).ensureStockLevels('site-1', ['item-1'], 'items')).resolves.toBeUndefined();
+    await expect(serviceWith([]).ensureStockLevels(['item-1'], 'items', 'site-1')).resolves.toBeUndefined();
   });
 
   it('names every item without stock levels at the site on the given field', async () => {
     await expect(
-      serviceWith(['Paracetamol', 'Ibuprofen']).ensureStockLevels('site-1', ['a', 'b'], 'items'),
+      serviceWith(['Paracetamol', 'Ibuprofen']).ensureStockLevels(['a', 'b'], 'items', 'site-1'),
     ).rejects.toMatchObject({
       response: expect.objectContaining({
         label: 'No Stock Levels',

@@ -5,6 +5,8 @@ import { AgentSignatureGuard } from './guards/agent-signature.guard';
 import { RlsInterceptor } from './interceptors/rls.interceptor';
 import { AppRequestResolver } from './services/app-request.resolver';
 import { CloudRequestResolver } from './services/cloud-request.resolver';
+import { WorkspaceContextService } from './services/workspace-context.service';
+import { IsLeSiteConstraint } from './validators/is-le-site.validator';
 
 @Global()
 @Module({
@@ -13,6 +15,8 @@ import { CloudRequestResolver } from './services/cloud-request.resolver';
     AgentSignatureGuard,
     AppRequestResolver,
     CloudRequestResolver,
+    WorkspaceContextService,
+    IsLeSiteConstraint,
     RlsInterceptor,
     // RLS runs on every request — bind it globally here so the concern stays fully owned by this module
     { provide: APP_INTERCEPTOR, useExisting: RlsInterceptor },

@@ -188,6 +188,9 @@ export class PurchaseLegResponseDto {
   @ApiProperty({ description: 'Leg status', enum: PURCHASE_LEG_STATUSES })
   status: PurchaseLegStatus;
 
+  @ApiPropertyOptional({ description: 'Why the supplier was closed', type: String, nullable: true })
+  closeReason: string | null;
+
   @ApiPropertyOptional({ description: 'Last time the leg was started', type: String, nullable: true })
   submittedAt: string | null;
 

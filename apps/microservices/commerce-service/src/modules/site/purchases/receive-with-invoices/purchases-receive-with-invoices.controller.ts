@@ -25,11 +25,7 @@ export class PurchasesReceiveWithInvoicesController {
     this.logger.log(
       `site.purchases.receiveWithInvoices.create — supplier: ${dto.supplierId}, invoice: ${dto.invoiceNumber}`,
     );
-    return this.service.create(
-      dto,
-      { siteId: headers.siteId, timezone: headers.siteTimezone, leCurrencyCode: headers.leCurrencyCode },
-      headers,
-    );
+    return this.service.create(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Replaces a draft Receive with Invoice
@@ -39,11 +35,7 @@ export class PurchasesReceiveWithInvoicesController {
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchases.receiveWithInvoices.update — invoice: ${dto.invoiceId}`);
-    return this.service.update(
-      dto,
-      { timezone: headers.siteTimezone, leCurrencyCode: headers.leCurrencyCode },
-      headers,
-    );
+    return this.service.update(dto, { leCurrencyCode: headers.leCurrencyCode });
   }
 
   // Posts a draft Receive with Invoice's receipts and posts its invoice
@@ -65,21 +57,15 @@ export class PurchasesReceiveWithInvoicesController {
 
   // Returns the supplier's allocations at the site an invoice may still receive
   @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.openLines' })
-  openLines(
-    @Payload() query: ReceiveWithInvoiceOpenLinesQueryDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
+  openLines(@Payload() query: ReceiveWithInvoiceOpenLinesQueryDto): Promise<ReceiveWithInvoiceOpenLineDto[]> {
     this.logger.log(`site.purchases.receiveWithInvoices.openLines — supplier: ${query.supplierId}`);
-    return this.service.findOpenLines(query, headers.siteId);
+    return this.service.findOpenLines(query);
   }
 
   // Discards a draft Receive with Invoice and the documents it drafted
   @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.discard' })
-  discard(
-    @Payload() data: ReceiveWithInvoiceRefDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  discard(@Payload() data: ReceiveWithInvoiceRefDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchases.receiveWithInvoices.discard — invoice: ${data.invoiceId}`);
-    return this.service.discard(data.invoiceId, headers);
+    return this.service.discard(data.invoiceId);
   }
 }

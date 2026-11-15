@@ -46,7 +46,7 @@ export class TaxComponentsDomainService {
       code: data.code,
       name: data.name,
       authorityLevel: data.authorityLevel,
-      standsInForId: data.standsInForId ?? null,
+      standsInForId: data.standsInForId,
       isRecoverable: data.isRecoverable,
       isWithholding: data.isWithholding,
       isActive: data.isActive,

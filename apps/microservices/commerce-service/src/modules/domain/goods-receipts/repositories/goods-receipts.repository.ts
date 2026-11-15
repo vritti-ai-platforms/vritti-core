@@ -32,7 +32,6 @@ export type GoodsReceiptRow = GoodsReceipt & {
   supplierDeliveryNoteDate: string | null;
   poNumbers: string[];
   expectedDeliveryDate: string | null;
-  siteTimezone: string | null;
   itemCount: number;
   isPostable: boolean;
 };
@@ -96,7 +95,7 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
     return exists(this.receiptLinesWhere(ilike(purchaseOrders.poNumber, `%${search.value}%`)));
   }
 
-  // Selects a receipt with its supplier, purchase and inbound delivery (number, source, carrier, tracking, supplier's delivery note), the supplier invoice it is received with, its orders' numbers, latest line delivery date and timezone, item count and post readiness
+  // Selects a receipt with its supplier, purchase and inbound delivery (number, source, carrier, tracking, supplier's delivery note), the supplier invoice it is received with, its orders' numbers, latest line delivery date, item count and post readiness
   private selection() {
     const ownItems = eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id);
     const itemLines = eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id);
@@ -138,13 +137,6 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       .innerJoin(goodsReceiptItems, eq(goodsReceiptItems.id, supplierInvoiceLines.goodsReceiptItemId))
       .where(and(ownItems, eq(inboundDeliveries.source, InboundDeliverySourceValues.SUPPLIER_INVOICE)))
       .limit(1);
-    const siteTimezone = this.db
-      .select({ timezone: purchaseOrders.timezone })
-      .from(goodsReceiptItems)
-      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
-      .innerJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
-      .where(ownItems)
-      .limit(1);
 
     return {
       ...getColumns(goodsReceipts),
@@ -161,7 +153,6 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       expectedDeliveryDate: sql<string | null>`(${latestExpectedDeliveryDate})`.mapWith(
         purchaseOrderItems.expectedDeliveryDate,
       ),
-      siteTimezone: sql<string | null>`(${siteTimezone})`,
       itemCount: this.db.$count(goodsReceiptItems, ownItems),
       isPostable: sql<boolean>`${and(
         eq(goodsReceipts.status, GoodsReceiptStatusValues.DRAFT),

@@ -53,8 +53,8 @@ export class CategoriesDomainService {
       pathLabel,
       path,
       sortOrder: data.sortOrder ?? 1,
-      isActive: data.isActive ?? true,
-      defaultTaxClassId: data.defaultTaxClassId ?? null,
+      isActive: data.isActive,
+      defaultTaxClassId: data.defaultTaxClassId,
     });
 
     this.logger.log(`Created category: ${entity.name} (${entity.id}) path=${path}`);

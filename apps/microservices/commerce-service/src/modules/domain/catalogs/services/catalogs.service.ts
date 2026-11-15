@@ -36,7 +36,7 @@ export class CatalogsDomainService {
     await this.assertNameFree(data.name);
     const created = await this.repository.create({
       name: data.name,
-      taxInclusive: data.taxInclusive ?? false,
+      taxInclusive: data.taxInclusive,
     });
     this.logger.log(`Created catalog ${created.name} (${created.id})`);
     // Created here, so this workspace owns it — no need to read the ownership test back

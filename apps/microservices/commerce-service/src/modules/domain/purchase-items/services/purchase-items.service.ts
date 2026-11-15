@@ -22,11 +22,7 @@ export class PurchaseItemsDomainService {
 
   // Adds an item to a purchase's items, or adds the quantity to the line that already requests it; a new line is needed
   // by the purchase's date unless it names its own
-  async add(
-    purchase: ItemsPurchase,
-    fields: PurchaseItemFieldsDto,
-    createdBy: string | null,
-  ): Promise<PurchaseItemAddition> {
+  async add(purchase: ItemsPurchase, fields: PurchaseItemFieldsDto): Promise<PurchaseItemAddition> {
     this.assertItemsEditable(purchase);
     const existing = await this.repository.findForInventoryItem(purchase.id, fields.inventoryItemId);
     if (existing) {
@@ -46,7 +42,6 @@ export class PurchaseItemsDomainService {
       primaryQty: fields.primaryQty,
       neededBy: fields.neededBy ?? null,
       notes: fields.notes ?? null,
-      createdBy,
     });
     this.logger.log(`Added item ${fields.inventoryItemId} to purchase ${purchase.purchaseNumber}`);
     return { item, isMerged: false };

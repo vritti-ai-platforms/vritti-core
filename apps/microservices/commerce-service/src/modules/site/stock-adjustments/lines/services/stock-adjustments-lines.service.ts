@@ -55,9 +55,9 @@ export class StockAdjustmentsLinesService {
     }
 
     await this.siteStockLevelsService.ensureStockLevels(
-      adjustment.siteId,
       [adjustment.inventoryItemId],
       'inventoryItemId',
+      adjustment.siteId,
     );
     const line = await this.linesService.addOpeningLine(adjustment, { ...data, primaryUomQty });
     this.logger.log(`addOpeningLine [linesService.addOpeningLine] ${Date.now() - t0}ms`);
@@ -86,9 +86,9 @@ export class StockAdjustmentsLinesService {
       data.uomQty,
     );
     await this.siteStockLevelsService.ensureStockLevels(
-      adjustment.siteId,
       [adjustment.inventoryItemId],
       'inventoryItemId',
+      adjustment.siteId,
     );
     const line = await this.linesService.addChangeLine(adjustment, { ...data, primaryUomQty });
     return {

@@ -4,7 +4,6 @@ import { CreatePurchaseAllocationsFromQuotationDto } from '@domain/purchase-item
 import { UpdatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/update-purchase-allocation.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchasesAllocationsService } from '@/modules/site/purchases/allocations/services/purchases-allocations.service';
 
@@ -16,45 +15,33 @@ export class LePurchasesAllocationsController {
 
   // Allocates part of a purchase item to a supplier, opening its leg on the first allocation
   @MessagePattern({ cmd: 'le.purchases.allocations.create' })
-  create(
-    @Payload() dto: CreatePurchaseAllocationDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<PurchaseAllocationDto>> {
+  create(@Payload() dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<PurchaseAllocationDto>> {
     this.logger.log(
       `le.purchases.allocations.create — id: ${dto.id}, item: ${dto.purchaseItemId}, supplier: ${dto.supplierId}`,
     );
-    return this.service.create(dto, headers);
+    return this.service.create(dto);
   }
 
   // Allocates purchase items from posted quotation lines
   @MessagePattern({ cmd: 'le.purchases.allocations.createFromQuotation' })
-  createFromQuotation(
-    @Payload() dto: CreatePurchaseAllocationsFromQuotationDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  createFromQuotation(@Payload() dto: CreatePurchaseAllocationsFromQuotationDto): Promise<SuccessResponseDto> {
     this.logger.log(
       `le.purchases.allocations.createFromQuotation — id: ${dto.id}, lines: ${dto.supplierQuotationItemIds.length}`,
     );
-    return this.service.createFromQuotation(dto, headers);
+    return this.service.createFromQuotation(dto);
   }
 
   // Changes an allocation
   @MessagePattern({ cmd: 'le.purchases.allocations.update' })
-  update(
-    @Payload() dto: UpdatePurchaseAllocationDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  update(@Payload() dto: UpdatePurchaseAllocationDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.allocations.update — id: ${dto.id}, allocation: ${dto.allocationId}`);
-    return this.service.update(dto, headers);
+    return this.service.update(dto);
   }
 
   // Removes an allocation, removing its leg with the last one
   @MessagePattern({ cmd: 'le.purchases.allocations.delete' })
-  delete(
-    @Payload() data: { id: string; allocationId: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
+  delete(@Payload() data: { id: string; allocationId: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.allocations.delete — id: ${data.id}, allocation: ${data.allocationId}`);
-    return this.service.delete(data.id, data.allocationId, headers);
+    return this.service.delete(data.id, data.allocationId);
   }
 }

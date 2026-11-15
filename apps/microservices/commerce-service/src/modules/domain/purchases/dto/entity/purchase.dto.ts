@@ -37,7 +37,6 @@ export class PurchaseDto {
   quotationsRequired: boolean;
   minQuotations: number;
   notes: string | null;
-  createdBy: string | null;
   submittedAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
@@ -55,7 +54,6 @@ export class PurchaseDto {
     dto.quotationsRequired = row.quotationsRequired;
     dto.minQuotations = row.minQuotations;
     dto.notes = row.notes;
-    dto.createdBy = row.createdBy;
     dto.submittedAt = row.submittedAt?.toISOString() ?? null;
     dto.completedAt = row.completedAt?.toISOString() ?? null;
     dto.cancelledAt = row.cancelledAt?.toISOString() ?? null;

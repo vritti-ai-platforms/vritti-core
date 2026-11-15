@@ -12,6 +12,7 @@ import {
   PurchaseLegStatusValues,
   PurchaseLegStepValues,
   PurchaseOrderStatusValues,
+  PurchaseStatusValues,
   PurchaseStepValues,
   purchaseItemAllocations,
   purchaseItems,
@@ -45,7 +46,6 @@ export type PurchaseTableRow = PurchaseRow & { progress: PurchaseProgressRow };
 export type PurchaseHeaderRow = PurchaseTableRow & {
   supplierCount: number;
   hasSourcingLeg: boolean;
-  hasAllocations: boolean;
 };
 
 @Injectable()
@@ -68,7 +68,7 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
   }
 
   // Loads a purchase with its item line count, its progress through its step, its leg count and whether a leg is still
-  // open in sourcing and any item is allocated
+  // open in sourcing
   findHeader(id: string): Promise<PurchaseHeaderRow | undefined> {
     return this.findById<PurchaseHeaderRow>(id, {
       select: {
@@ -76,9 +76,23 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
         progress: this.progress(),
         supplierCount: this.db.$count(purchaseSuppliers, eq(purchaseSuppliers.purchaseId, purchases.id)),
         hasSourcingLeg: sql<boolean>`${exists(this.sourcingLegs())}`,
-        hasAllocations: sql<boolean>`${exists(this.itemAllocations())}`,
       },
     });
+  }
+
+  // Deletes the purchase only while it is open in REQUESTING, returning whether it did
+  async deleteRequesting(id: string): Promise<boolean> {
+    const deleted = await this.db
+      .delete(purchases)
+      .where(
+        and(
+          eq(purchases.id, id),
+          eq(purchases.status, PurchaseStatusValues.OPEN),
+          eq(purchases.step, PurchaseStepValues.REQUESTING),
+        ),
+      )
+      .returning({ id: purchases.id });
+    return deleted.length > 0;
   }
 
   // Returns one page of purchases with their item line counts and their progress through their step
@@ -114,15 +128,6 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
           eq(purchaseSuppliers.step, PurchaseLegStepValues.SOURCING),
         ),
       );
-  }
-
-  // Selects the allocations of the purchase's items
-  private itemAllocations() {
-    return this.db
-      .select({ one: sql`1` })
-      .from(purchaseItemAllocations)
-      .innerJoin(purchaseItems, eq(purchaseItems.id, purchaseItemAllocations.purchaseItemId))
-      .where(eq(purchaseItems.purchaseId, purchases.id));
   }
 
   // Selects the purchase's progress as JSON; only the branch for the purchase's own step runs
