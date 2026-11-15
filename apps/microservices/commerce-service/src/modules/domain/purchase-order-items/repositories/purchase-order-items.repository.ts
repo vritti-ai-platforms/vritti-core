@@ -13,14 +13,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-  ValidationException,
-} from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { isBefore, parseISO } from 'date-fns';
 import {
   categories,
   GoodsReceiptStatusValues,
@@ -30,10 +23,7 @@ import {
   inboundDeliveries,
   inboundDeliveryLines,
   inventoryItems,
-  type PurchaseOrder,
   type PurchaseOrderItem,
-  type PurchaseOrderStatus,
-  PurchaseOrderStatusValues,
   purchaseOrderItems,
   SupplierInvoiceStatusValues,
   supplierInvoiceLines,
@@ -49,23 +39,17 @@ export type PurchaseOrderItemRow = PurchaseOrderItem & {
   primaryUomSymbol: string | null;
   inboundDeliveryNumbers: string[];
   inboundDeliveryIds: string[];
+  inboundDeliveryDates: string[];
   isTaxDateLocked: boolean;
 };
 
-export type LinedPurchaseOrder = Pick<PurchaseOrder, 'poNumber' | 'status'> & { hasPublishedGoodsReceipt: boolean };
-
-export type PricedPurchaseOrder = Pick<PurchaseOrder, 'currencyCode' | 'conversionRates'>;
-
-export type LineTaxDateChange = { taxDate?: string; followPoTaxDate?: boolean };
+export type PurchaseOrderItemCounters = Pick<
+  PurchaseOrderItem,
+  'receivedPrimaryQty' | 'rejectedPrimaryQty' | 'invoicedPrimaryQty' | 'returnedPrimaryQty' | 'cancelledPrimaryQty'
+>;
 
 @Injectable()
 export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<typeof purchaseOrderItems> {
-  private static readonly EDITABLE_STATUSES: PurchaseOrderStatus[] = [
-    PurchaseOrderStatusValues.DRAFT,
-    PurchaseOrderStatusValues.SENT,
-    PurchaseOrderStatusValues.CONFIRMED,
-  ];
-
   constructor(database: PrimaryDatabaseService) {
     super(database, purchaseOrderItems);
   }
@@ -83,8 +67,11 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
       conditions: [eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId)],
       additionalExpressions: {
         orderedQty: sql`${purchaseOrderItems.uomQty}`,
-        expectedFreeQty: sql`${purchaseOrderItems.freeQty}`,
-        receivedQty: sql`${purchaseOrderItems.receivedQuantity}`,
+        primaryUomQty: sql`${purchaseOrderItems.primaryUomQty}`,
+        freePrimaryQty: sql`${purchaseOrderItems.freePrimaryQty}`,
+        receivedPrimaryQty: sql`${purchaseOrderItems.receivedPrimaryQty}`,
+        invoicedPrimaryQty: sql`${purchaseOrderItems.invoicedPrimaryQty}`,
+        cancelledPrimaryQty: sql`${purchaseOrderItems.cancelledPrimaryQty}`,
         uomSymbol: sql`${orderUom.symbol}`,
         allowDecimal: sql`${orderUom.allowDecimal}`,
       },
@@ -97,6 +84,17 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
       select: this.selection(),
       leftJoins: this.joins(),
       where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
+      orderBy: [asc(inventoryItems.name)],
+    });
+  }
+
+  // Returns every line of the given POs
+  async findByPurchaseOrderIds(purchaseOrderIds: string[]): Promise<PurchaseOrderItemRow[]> {
+    if (purchaseOrderIds.length === 0) return [];
+    return this.findAllWithSelect<PurchaseOrderItemRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: inArray(purchaseOrderItems.purchaseOrderId, purchaseOrderIds),
       orderBy: [asc(inventoryItems.name)],
     });
   }
@@ -120,22 +118,18 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
     return rows.map((row) => row.inventoryItemId);
   }
 
-  // Loads a line of the given PO, throwing when it is not on it
-  async findOnPurchaseOrderOrThrow(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItem> {
-    const item = await this.findOne({ id: itemId, purchaseOrderId });
-    if (!item) throw new NotFoundException('Purchase order line item not found.');
-    return item;
+  // Loads a line of the given PO
+  findOnPurchaseOrder(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItem | undefined> {
+    return this.findOne({ id: itemId, purchaseOrderId });
   }
 
-  // Loads a line of the given PO with its delivery numbers and tax date lock, throwing when it is not on it
-  async findDetailOnPurchaseOrderOrThrow(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItemRow> {
-    const item = await this.findById<PurchaseOrderItemRow>(itemId, {
+  // Loads a line of the given PO with its delivery numbers and tax date lock
+  findDetailOnPurchaseOrder(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItemRow | undefined> {
+    return this.findById<PurchaseOrderItemRow>(itemId, {
       select: this.selection(),
       leftJoins: this.joins(),
       where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
     });
-    if (!item) throw new NotFoundException('Purchase order line item not found.');
-    return item;
   }
 
   // Moves every line of a PO that follows its tax date to the new one
@@ -150,142 +144,35 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
     return count;
   }
 
-  // Sets the received quantity of every PO line a receipt counts to what all its published receipts accepted (received less rejected)
-  async syncReceivedQuantitiesForReceipt(goodsReceiptId: string): Promise<void> {
-    const acceptedOnPublishedReceipts = this.db
-      .select({
-        accepted: sql`coalesce(sum(${goodsReceiptItems.receivedQty} - ${goodsReceiptItems.rejectedQuantity}), 0)`,
-      })
-      .from(goodsReceiptItems)
-      .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
-      .where(
-        and(
-          eq(goodsReceiptItems.purchaseOrderItemId, purchaseOrderItems.id),
-          eq(goodsReceipts.status, GoodsReceiptStatusValues.PUBLISHED),
-        ),
-      );
-    await this.db
-      .update(purchaseOrderItems)
-      .set({ receivedQuantity: sql`(${acceptedOnPublishedReceipts})` })
-      .where(
-        inArray(
-          purchaseOrderItems.id,
-          this.db
-            .select({ id: goodsReceiptItems.purchaseOrderItemId })
-            .from(goodsReceiptItems)
-            .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId)),
-        ),
-      );
+  // Moves a line's counters by the given primary quantities in one statement; negative amounts move them back
+  async addToCounters(id: string, deltas: Partial<PurchaseOrderItemCounters>): Promise<void> {
+    const moved = Object.fromEntries(
+      Object.entries(deltas).map(([key, delta]) => {
+        const column = purchaseOrderItems[key as keyof PurchaseOrderItemCounters];
+        return [key, sql`${column} + ${delta}`];
+      }),
+    );
+    await this.db.update(purchaseOrderItems).set(moved).where(eq(purchaseOrderItems.id, id));
   }
 
-  // Sets each given line's expected delivery to the latest date of the live inbound deliveries holding it; a line on none keeps its date
-  async syncExpectedDeliveryDates(purchaseOrderItemIds: string[]): Promise<void> {
-    if (purchaseOrderItemIds.length === 0) return;
-    const latest = this.db
-      .select({
-        purchaseOrderItemId: inboundDeliveryLines.purchaseOrderItemId,
-        expectedDeliveryDate: sql<string>`max(${inboundDeliveries.expectedDeliveryDate})`.as(
-          'latest_expected_delivery_date',
-        ),
-      })
-      .from(inboundDeliveryLines)
-      .innerJoin(inboundDeliveries, eq(inboundDeliveries.id, inboundDeliveryLines.inboundDeliveryId))
-      .where(
-        and(
-          inArray(inboundDeliveryLines.purchaseOrderItemId, purchaseOrderItemIds),
-          ne(inboundDeliveries.status, InboundDeliveryStatusValues.CANCELLED),
-        ),
-      )
-      .groupBy(inboundDeliveryLines.purchaseOrderItemId)
-      .as('latest_delivery');
-    await this.db
-      .update(purchaseOrderItems)
-      .set({ expectedDeliveryDate: sql`${latest.expectedDeliveryDate}` })
-      .from(latest)
-      .where(
-        and(
-          eq(purchaseOrderItems.id, latest.purchaseOrderItemId),
-          sql`${purchaseOrderItems.expectedDeliveryDate} is distinct from ${latest.expectedDeliveryDate}`,
-        ),
-      );
-  }
-
-  // Rejects a line change once the PO is past confirmation or one of its receipts is published
-  assertLinesEditable(po: LinedPurchaseOrder): void {
-    const isEditableStatus = PurchaseOrderItemsDomainRepository.EDITABLE_STATUSES.includes(po.status);
-    if (isEditableStatus && !po.hasPublishedGoodsReceipt) return;
-    throw new BadRequestException({
-      label: 'Cannot Edit Line Items',
-      detail: `"${po.poNumber}" is ${po.status} or has a published goods receipt, so its line items are locked.`,
-    });
-  }
-
-  // Rejects a line expected before the PO's order date
-  assertDeliveryNotBeforeOrder(po: Pick<PurchaseOrder, 'orderDate'>, expectedDeliveryDate: string): void {
-    if (!isBefore(parseISO(expectedDeliveryDate), parseISO(po.orderDate))) return;
-    throw new BadRequestException({
-      label: 'Delivery Before Order Date',
-      detail: `The order is dated ${po.orderDate}, so this line cannot be expected on ${expectedDeliveryDate}.`,
-      errors: [{ field: 'expectedDeliveryDate', message: 'Before the order date' }],
-    });
-  }
-
-  // Rejects a new expected delivery for a line on an inbound delivery, whose date the deliveries set
-  assertDeliveryDateEditable(item: Pick<PurchaseOrderItemRow, 'inboundDeliveryNumbers'>): void {
-    if (item.inboundDeliveryNumbers.length === 0) return;
-    throw new BadRequestException({
-      label: 'Delivery Date Set By Deliveries',
-      detail: `This line is on inbound delivery ${item.inboundDeliveryNumbers.join(', ')}, so its expected delivery follows the delivery. Change the date on the delivery instead.`,
-      errors: [{ field: 'expectedDeliveryDate', message: 'Set by inbound delivery' }],
-    });
-  }
-
-  // Rejects a tax date change that both sets a date and asks the line to follow the PO
-  assertSingleTaxDateChange(change: LineTaxDateChange): void {
-    if (change.taxDate === undefined || !change.followPoTaxDate) return;
-    throw new BadRequestException({
-      label: 'Conflicting Tax Date',
-      detail: 'Either set a tax date for this line or let it follow the purchase order, not both.',
-      errors: [{ field: 'taxDate', message: 'Conflicts with following the PO' }],
-    });
-  }
-
-  // Rejects a tax date change on a line a published goods receipt or a posted supplier invoice counts
-  assertTaxDateUnlocked(item: Pick<PurchaseOrderItemRow, 'isTaxDateLocked'>): void {
-    if (!item.isTaxDateLocked) return;
-    throw new BadRequestException({
-      label: 'Tax Date Locked',
-      detail: 'A published goods receipt or a posted supplier invoice counts this line, so its tax date is locked.',
-      errors: [{ field: 'taxDate', message: 'Locked' }],
-    });
-  }
-
-  // Rejects moving a PO's tax date while a line that follows it is locked by a receipt or an invoice
-  async assertFollowersUnlocked(purchaseOrderId: string): Promise<void> {
-    const hasLockedFollower = await this.exists(
+  // Whether a line that follows the PO's tax date is counted by a posted goods receipt or a posted supplier invoice
+  hasLockedFollower(purchaseOrderId: string): Promise<boolean> {
+    return this.exists(
       and(
         eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
         eq(purchaseOrderItems.isTaxDateOverridden, false),
         this.taxDateLocked(),
       ) as SQL,
     );
-    if (!hasLockedFollower) return;
-    throw new BadRequestException({
-      label: 'Cannot Change Tax Date',
-      detail:
-        'A line that follows the tax date is counted by a published goods receipt or a posted supplier invoice, so the tax date is locked.',
-      errors: [{ field: 'taxDate', message: 'Locked' }],
-    });
   }
 
-  // Rejects ordering an item in a unit another line of the PO already orders it in
-  async assertNotOnPurchaseOrder(
+  // Whether another line of the PO already orders the item in the same unit
+  isOrderedInUnit(
     purchaseOrderId: string,
     line: { inventoryItemId: string; uomId: string },
-    field: 'supplierItemId' | 'inventoryItemId',
     excludeItemId?: string,
-  ): Promise<void> {
-    const isOrdered = await this.exists(
+  ): Promise<boolean> {
+    return this.exists(
       and(
         eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
         eq(purchaseOrderItems.inventoryItemId, line.inventoryItemId),
@@ -293,47 +180,19 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
         excludeItemId ? ne(purchaseOrderItems.id, excludeItemId) : undefined,
       ) as SQL,
     );
-    if (!isOrdered) return;
-    throw new ConflictException({
-      label: 'Already Ordered',
-      detail: 'This item is already on the purchase order in the same unit. Edit that line instead.',
-      errors: [{ field, message: 'Already on this order' }],
-    });
   }
 
-  // Rejects removing a line, or changing its item, once a goods receipt (draft or published) counts goods against it
-  async assertNotOnGoodsReceipt(itemId: string, label: string): Promise<void> {
+  // Whether a goods receipt (draft or posted) counts goods against the line
+  async isOnGoodsReceipt(itemId: string): Promise<boolean> {
     const [receiptItem] = await this.db
       .select({ id: goodsReceiptItems.id })
       .from(goodsReceiptItems)
       .where(eq(goodsReceiptItems.purchaseOrderItemId, itemId))
       .limit(1);
-    if (!receiptItem) return;
-    throw new BadRequestException({
-      label,
-      detail: 'A goods receipt counts goods against this line. Remove it from the receipt first.',
-    });
+    return receiptItem !== undefined;
   }
 
-  // Returns the PO's stored rate into its currency for a price quoted in another of the supplier's currencies
-  conversionRateOrThrow(po: PricedPurchaseOrder, currencyCode: string, supplierCurrencies: string[]): string {
-    if (!supplierCurrencies.includes(currencyCode)) {
-      throw new ValidationException({
-        label: 'Currency Not Accepted',
-        detail: `The unit price must be in one of the supplier's currencies (${supplierCurrencies.join(', ')}).`,
-        errors: [{ field: 'unitPrice', message: "Not one of the supplier's currencies" }],
-      });
-    }
-    const rate = po.conversionRates[currencyCode];
-    if (rate) return rate;
-    throw new ValidationException({
-      label: 'Conversion Rate Required',
-      detail: `Enter how much 1 ${currencyCode} is in ${po.currencyCode} to price this line.`,
-      errors: [{ field: 'conversionRate', message: `1 ${currencyCode} in ${po.currencyCode}` }],
-    });
-  }
-
-  // Selects a PO line with its item and unit names, its live inbound deliveries' numbers and ids and its tax date lock
+  // Selects a PO line with its item and unit names, its live inbound deliveries' numbers, ids and dates and its tax date lock
   private selection() {
     const liveDeliveries = (column: SQL) =>
       this.db
@@ -355,20 +214,23 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
         string[]
       >`coalesce((${liveDeliveries(sql`${inboundDeliveries.deliveryNumber}`)}), '{}')`,
       inboundDeliveryIds: sql<string[]>`coalesce((${liveDeliveries(sql`${inboundDeliveries.id}::text`)}), '{}')`,
+      inboundDeliveryDates: sql<
+        string[]
+      >`coalesce((${liveDeliveries(sql`${inboundDeliveries.expectedDeliveryDate}::text`)}), '{}')`,
       isTaxDateLocked: sql<boolean>`${this.taxDateLocked()}`,
     };
   }
 
-  // Whether a published goods receipt or a posted supplier invoice counts the line
+  // Whether a posted goods receipt or a posted supplier invoice counts the line
   private taxDateLocked(): SQL {
-    const publishedReceiptItem = this.db
+    const postedReceiptItem = this.db
       .select({ id: goodsReceiptItems.id })
       .from(goodsReceiptItems)
       .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
       .where(
         and(
           eq(goodsReceiptItems.purchaseOrderItemId, purchaseOrderItems.id),
-          eq(goodsReceipts.status, GoodsReceiptStatusValues.PUBLISHED),
+          eq(goodsReceipts.status, GoodsReceiptStatusValues.POSTED),
         ),
       );
     const postedInvoiceLine = this.db
@@ -381,7 +243,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
           eq(supplierInvoices.status, SupplierInvoiceStatusValues.POSTED),
         ),
       );
-    return or(exists(publishedReceiptItem), exists(postedInvoiceLine)) as SQL;
+    return or(exists(postedReceiptItem), exists(postedInvoiceLine)) as SQL;
   }
 
   // Joins the inventory item, the ordered unit and the item's primary unit

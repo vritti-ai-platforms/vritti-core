@@ -15,6 +15,11 @@ export class InventoryItemDto {
   hsnCode: string | null;
   taxClassId: string;
   taxClassName: string | null;
+  weight: number | null;
+  volume: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
@@ -41,6 +46,11 @@ export class InventoryItemDto {
     dto.hsnCode = entity.hsnCode ?? null;
     dto.taxClassId = entity.taxClassId;
     dto.taxClassName = taxClassName ?? null;
+    dto.weight = entity.weight ?? null;
+    dto.volume = entity.volume ?? null;
+    dto.length = entity.length ?? null;
+    dto.width = entity.width ?? null;
+    dto.height = entity.height ?? null;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();
     dto.updatedAt = entity.updatedAt.toISOString();

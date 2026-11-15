@@ -16,10 +16,10 @@ export class InventoryItemsLotsService {
   async findForTable(
     inventoryItemId: string,
     state: TableState,
-    siteCurrencyCode?: string,
+    leCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
-    return this.lotsService.findLotsForTable(inventoryItemId, state, siteCurrencyCode);
+    return this.lotsService.findLotsForTable(inventoryItemId, state, leCurrencyCode);
   }
 }

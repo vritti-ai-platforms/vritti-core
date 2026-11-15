@@ -8,9 +8,9 @@ export interface StockTransferData {
   inventoryItemId: string;
   inventoryItemName: string;
   fromSiteId: string;
-  fromSiteName: string | null;
+  fromSiteName: string;
   toSiteId: string;
-  toSiteName: string | null;
+  toSiteName: string;
   quantity: number;
   status: StockTransferStatus;
   requestedBy: string | null;

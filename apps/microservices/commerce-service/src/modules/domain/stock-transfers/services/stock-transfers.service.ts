@@ -4,7 +4,7 @@ import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type StockTransferStatus, StockTransferStatusValues, stockTransfers } from '@/db/schema';
-import { StockTransferDto } from '../dto/entity/stock-transfer.dto';
+import { StockTransferDto, StockTransferRowDto } from '../dto/entity/stock-transfer.dto';
 import type { CreateStockTransferDto } from '../dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '../dto/request/update-stock-transfer-status.dto';
 import { StockTransfersDomainRepository } from '../repositories/stock-transfers.repository';
@@ -20,7 +20,7 @@ export class StockTransfersDomainService {
   constructor(private readonly repository: StockTransfersDomainRepository) {}
 
   // Returns paginated stock transfers for the data table
-  async findForTable(state: TableState): Promise<{ result: StockTransferDto[]; count: number }> {
+  async findForTable(state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockTransfersDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockTransfersDomainService.FIELD_MAP);
     const where = and(filterWhere, searchWhere);
@@ -34,7 +34,7 @@ export class StockTransfersDomainService {
       offset,
     });
 
-    return { result: rows.map((r) => StockTransferDto.from(r, r.inventoryItemName)), count };
+    return { result: rows.map((row) => StockTransferRowDto.fromRow(row)), count };
   }
 
   // Creates a new stock transfer request

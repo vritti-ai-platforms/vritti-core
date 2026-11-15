@@ -20,9 +20,13 @@ export class UpdateSupplierInvoiceDto {
   @MaxLength(100)
   invoiceNumber?: string;
 
-  @ApiPropertyOptional({ description: 'Date on the invoice', example: '2026-11-07' })
+  @ApiPropertyOptional({
+    description: 'Date on the invoice (YYYY-MM-DD); a new date moves the due date',
+    example: '2026-11-07',
+  })
   @IsOptional()
-  @IsDateString()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'invoiceDate must be YYYY-MM-DD' })
   invoiceDate?: string;
 
   @ApiPropertyOptional({

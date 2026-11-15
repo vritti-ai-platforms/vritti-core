@@ -3,18 +3,20 @@ import type { PurchaseOrderInvoiceSummaryRow } from '../../repositories/supplier
 
 export class PurchaseOrderInvoiceSummaryDto {
   invoiceCount: number;
-  flaggedInvoiceCount: number;
-  billedQty: number;
-  billedPercent: number;
+  heldInvoiceCount: number;
+  invoicedPrimaryQty: number;
+  duePrimaryQty: number;
+  invoicedPercent: number;
 
   static from(row: PurchaseOrderInvoiceSummaryRow): PurchaseOrderInvoiceSummaryDto {
     const dto = new PurchaseOrderInvoiceSummaryDto();
-    const billed = new Decimal(row.billedQty);
-    const ordered = new Decimal(row.orderedQty);
+    const invoiced = new Decimal(row.invoicedPrimaryQty);
+    const due = new Decimal(row.duePrimaryQty);
     dto.invoiceCount = row.invoiceCount;
-    dto.flaggedInvoiceCount = row.flaggedInvoiceCount;
-    dto.billedQty = billed.toNumber();
-    dto.billedPercent = ordered.isZero() ? 0 : billed.div(ordered).times(100).toDecimalPlaces(1).toNumber();
+    dto.heldInvoiceCount = row.heldInvoiceCount;
+    dto.invoicedPrimaryQty = invoiced.toNumber();
+    dto.duePrimaryQty = due.toNumber();
+    dto.invoicedPercent = due.isZero() ? 0 : invoiced.div(due).times(100).toDecimalPlaces(1).toNumber();
     return dto;
   }
 }

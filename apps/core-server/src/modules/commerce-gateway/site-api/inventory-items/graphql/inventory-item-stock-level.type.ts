@@ -23,9 +23,6 @@ export class InventoryItemStockLevel {
 
   @Field(() => Float)
   availableQuantity: number;
-
-  @Field(() => Float, { nullable: true })
-  reorderLevel: number | null;
 }
 
 // Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.

@@ -1,18 +1,15 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
-import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/TreeView';
 import { TreeView } from '@vritti/quantum-ui/TreeView';
 import { Typography } from '@vritti/quantum-ui/Typography';
-import { Boxes, MapPin, Package, Plus } from 'lucide-react';
+import { Boxes, MapPin, Package } from 'lucide-react';
 import type React from 'react';
 import type { GoodsReceiptData, GoodsReceiptTreeNode } from '@/schemas/goods-receipts';
 import type { GoodsReceiptsBinding } from '../../bindings';
 import type { TreeSelection } from '../../types';
-import { AddPurchaseOrderDialog } from './forms/AddPurchaseOrderDialog';
 
 interface GoodsReceiptTreePanelProps {
   binding: GoodsReceiptsBinding;
@@ -97,8 +94,7 @@ function selectionNodeId(selection: TreeSelection | null): string | undefined {
   }
 }
 
-// The receipt's items with their lots and lines; a draft that created its own inbound delivery adds another purchase
-// order's open lines
+// The receipt's items — the open lines of its inbound delivery — with their lots and lines
 export const GoodsReceiptTreePanel: React.FC<GoodsReceiptTreePanelProps> = ({
   binding,
   receipt,
@@ -107,8 +103,6 @@ export const GoodsReceiptTreePanel: React.FC<GoodsReceiptTreePanelProps> = ({
   onSelect,
 }) => {
   const { data: tree = [], isLoading } = binding.useTree(receipt.id);
-  const addPurchaseOrderDialog = useDialog();
-  const takesPurchaseOrders = isDraft && receipt.deliverySource === 'RECEIPT';
 
   const treeData = toTreeData(tree);
   const { itemOfLot, itemAndLotOfLine } = buildParentMap(tree);
@@ -128,54 +122,36 @@ export const GoodsReceiptTreePanel: React.FC<GoodsReceiptTreePanelProps> = ({
   };
 
   return (
-    <>
-      <PageContentPanel
-        className="w-80"
-        header={
-          <div className="space-y-1">
-            <div className="text-sm font-semibold">Items</div>
-            <div className="text-xs text-muted-foreground">{pluralize('item', tree.length, true)}</div>
-          </div>
-        }
-        actions={
-          takesPurchaseOrders && (
-            <Button
-              size="sm"
-              permission={binding.permissions.edit}
-              startAdornment={<Plus className="size-3.5" />}
-              onClick={addPurchaseOrderDialog.open}
-            >
-              Add Purchase Order
-            </Button>
-          )
-        }
-        isLoading={isLoading}
-        isEmpty={tree.length === 0}
-        emptyState={
-          <Empty
-            icon={<Package />}
-            title="No items"
-            description={isDraft ? 'Every line was removed from this draft.' : 'No items on this receipt.'}
-          />
-        }
-      >
-        <TreeView
-          data={treeData}
-          isLoading={isLoading}
-          initialSelectedItemId={selectedId}
-          selectedItemId={selectedId ?? null}
-          defaultDraggable={false}
-          defaultDroppable={false}
-          onSelectChange={handleSelectChange}
-          renderItem={(params) => <TreeRow {...params} />}
-          defaultNodeIcon={Package}
-          defaultLeafIcon={MapPin}
+    <PageContentPanel
+      className="w-80"
+      header={
+        <div className="space-y-1">
+          <div className="text-sm font-semibold">Items</div>
+          <div className="text-xs text-muted-foreground">{pluralize('item', tree.length, true)}</div>
+        </div>
+      }
+      isLoading={isLoading}
+      isEmpty={tree.length === 0}
+      emptyState={
+        <Empty
+          icon={<Package />}
+          title="No items"
+          description={isDraft ? 'Every line was removed from this draft.' : 'No items on this receipt.'}
         />
-      </PageContentPanel>
-
-      {takesPurchaseOrders && (
-        <AddPurchaseOrderDialog binding={binding} receipt={receipt} handle={addPurchaseOrderDialog} />
-      )}
-    </>
+      }
+    >
+      <TreeView
+        data={treeData}
+        isLoading={isLoading}
+        initialSelectedItemId={selectedId}
+        selectedItemId={selectedId ?? null}
+        defaultDraggable={false}
+        defaultDroppable={false}
+        onSelectChange={handleSelectChange}
+        renderItem={(params) => <TreeRow {...params} />}
+        defaultNodeIcon={Package}
+        defaultLeafIcon={MapPin}
+      />
+    </PageContentPanel>
   );
 };

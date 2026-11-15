@@ -5,8 +5,11 @@ import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enr
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
+import { InvoiceableGoodsReceiptsQueryDto } from '@commerce/supplier-invoices/dto/request/invoiceable-goods-receipts-query.dto';
+import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
+import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -27,6 +30,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
@@ -40,8 +44,10 @@ import {
   ApiCreateSiteSupplierInvoiceLine,
   ApiDeleteSiteSupplierInvoiceLine,
   ApiFindForTableSiteSupplierInvoices,
+  ApiFindSiteSupplierInvoiceableGoodsReceipts,
   ApiFindSiteSupplierInvoiceById,
   ApiPostSiteSupplierInvoice,
+  ApiReleaseSiteSupplierInvoiceHold,
   ApiUpdateSiteSupplierInvoice,
   ApiUpdateSiteSupplierInvoiceLine,
 } from './docs/site-suppliers-gateway.docs';
@@ -167,7 +173,19 @@ export class SiteSuppliersGatewayController {
     return this.siteSuppliersGatewayService.findInvoicesTable(supplierId, userId, orgId);
   }
 
-  // Records a draft invoice billing one of this site's purchase orders from the supplier
+  // Returns the supplier's posted receipt lots at this site still to invoice, for an invoice's line picker
+  @Get(':id/invoices/invoiceable-goods-receipts')
+  @RequirePermission(SITE_SUPPLIERS.invoices.view)
+  @ApiFindSiteSupplierInvoiceableGoodsReceipts()
+  getInvoiceableGoodsReceipts(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Query() query: InvoiceableGoodsReceiptsQueryDto,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/invoiceable-goods-receipts`);
+    return this.siteSuppliersGatewayService.findInvoiceableGoodsReceipts(supplierId, query);
+  }
+
+  // Records a draft invoice of the supplier at this site
   @Post(':id/invoices')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_SUPPLIERS.invoices.add)
@@ -177,10 +195,10 @@ export class SiteSuppliersGatewayController {
     @Body() dto: CreateSupplierInvoiceDto,
   ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
     this.logger.log(`POST /commerce-api/site/suppliers/${supplierId}/invoices`);
-    return this.siteSuppliersGatewayService.createInvoice(dto);
+    return this.siteSuppliersGatewayService.createInvoice(supplierId, dto);
   }
 
-  // Returns one of the supplier's invoices with its lines, flags and linked receipts
+  // Returns one of the supplier's invoices with its lines and holds
   @Get(':id/invoices/:invoiceId')
   @RequirePermission(SITE_SUPPLIERS.invoices.view)
   @ApiFindSiteSupplierInvoiceById()
@@ -206,7 +224,7 @@ export class SiteSuppliersGatewayController {
     return this.siteSuppliersGatewayService.updateInvoice(invoiceId, dto);
   }
 
-  // Posts a draft invoice, setting the final cost of the stock it bills
+  // Posts a draft invoice, setting the final cost of the stock it invoices
   @Post(':id/invoices/:invoiceId/post')
   @HttpCode(HttpStatus.OK)
   @RequirePermission(SITE_SUPPLIERS.invoices.edit)
@@ -219,7 +237,22 @@ export class SiteSuppliersGatewayController {
     return this.siteSuppliersGatewayService.postInvoice(invoiceId);
   }
 
-  // Adds a billed line to an invoice
+  // Releases an open hold of an invoice with a reason
+  @Post(':id/invoices/:invoiceId/holds/:holdId/release')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(SITE_SUPPLIERS.invoices.edit)
+  @ApiReleaseSiteSupplierInvoiceHold()
+  releaseInvoiceHold(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
+    @Param('holdId', new ParseUUIDPipe()) holdId: string,
+    @Body() dto: ReleaseSupplierInvoiceHoldDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/holds/${holdId}/release`);
+    return this.siteSuppliersGatewayService.releaseInvoiceHold(invoiceId, holdId, dto);
+  }
+
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
   @Post(':id/invoices/:invoiceId/lines')
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_SUPPLIERS.invoices.edit)

@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type FieldMap, FilterProcessor, type SearchState, type SortCondition } from '@vritti/api-sdk/conditions';
+import {
+  compareMoney,
+  type FieldMap,
+  FilterOperators,
+  FilterProcessor,
+  type SearchState,
+  type SortCondition,
+} from '@vritti/api-sdk/conditions';
 import {
   CursorCodec,
   type KeysetOrderBy,
@@ -8,17 +15,18 @@ import {
   type TableFilters,
   type TableState,
 } from '@vritti/api-sdk/data-table';
-import { and, asc, Column, desc, eq, is, isNotNull, isNull } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, Column, desc, eq, is, not } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { CurrencyAmountDto, type CurrencyCode } from '@vritti/api-sdk/money';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { inventoryItemSites, inventoryItems } from '@/db/schema';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
+import { inventoryItems, siteStockStatusMatchesSql, siteStockValue } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
-import type { GroupInventoryItemDto, SiteInventoryItemDto } from '../dto/entity/scoped-inventory-item.dto';
+import type { SiteStockTableItemDto } from '../dto/entity/scoped-inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
-import { InventoryItemsDomainRepository } from '../repositories/inventory-items.repository';
+import { InventoryItemsDomainRepository, stockHeldUnderLocationsSql } from '../repositories/inventory-items.repository';
 
 interface InventoryItemsFeedQuery {
   filters: TableFilters;
@@ -42,12 +50,24 @@ export class InventoryItemsDomainService {
     categoryId: { column: inventoryItems.categoryId, type: 'string' },
     uomId: { column: inventoryItems.uomId, type: 'string' },
   };
+
+  // The site stock table's filters: the stock status, and the locations holding the stock, a picked
+  // location including everything below it
   private static readonly SITE_FILTER_FIELD_MAP: FieldMap = {
     ...InventoryItemsDomainService.FILTER_FIELD_MAP,
-    isEnabled: {
-      expression: (value) =>
-        String(value) === 'true' ? isNotNull(inventoryItemSites.id) : isNull(inventoryItemSites.id),
-      type: 'boolean',
+    stockStatus: {
+      multiExpression: (values, operator) => {
+        const matches = siteStockStatusMatchesSql(values);
+        return operator === FilterOperators.IS_NOT_ANY_OF ? not(matches) : matches;
+      },
+      type: 'string',
+    },
+    locationId: {
+      multiExpression: (values, operator) => {
+        const held = stockHeldUnderLocationsSql(values.map(String));
+        return operator === FilterOperators.IS_NOT_ANY_OF ? not(held) : held;
+      },
+      type: 'string',
     },
   };
 
@@ -171,81 +191,88 @@ export class InventoryItemsDomainService {
     return this.findForTable(state);
   }
 
-  // Every master item, marked with whether this site has it enabled and the stock it holds here
-  async findForSiteTable(
+  // Every master item with the site's stock levels for it, the stock it holds by location, its value in the site's
+  // currency and where that stock sits against the levels; RLS narrows everything to the request's site
+  async findForSiteStockTable(
     state: TableState,
-    siteId: string,
-  ): Promise<{ result: SiteInventoryItemDto[]; count: number }> {
-    const { result, count } = await this.repository.findForSiteTable(
-      siteId,
-      this.tableQuery(state, InventoryItemsDomainService.SITE_FILTER_FIELD_MAP),
-    );
-    return {
-      result: result.map((row) => ({
-        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
-        isEnabled: row.isEnabled,
-        isStocked: row.isStocked,
-        reorderPoint: row.reorderPoint,
-        stockedQuantity: row.stockedQuantity,
-      })),
-      count,
+    leCurrencyCode: CurrencyCode,
+  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
+    const filterFields: FieldMap = {
+      ...InventoryItemsDomainService.SITE_FILTER_FIELD_MAP,
+      stockValue: { moneyExpression: compareMoney(siteStockValue, leCurrencyCode), type: 'number' },
     };
-  }
-
-  // Every master item with how many of the group's sites have it enabled
-  async findForGroupTable(
-    state: TableState,
-    siteIds: string[],
-  ): Promise<{ result: GroupInventoryItemDto[]; count: number }> {
-    const { result, count } = await this.repository.findForGroupTable(
-      siteIds,
-      this.tableQuery(state, InventoryItemsDomainService.FILTER_FIELD_MAP),
-    );
-    return {
-      result: result.map((row) => ({
-        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
-        enabledSiteCount: Number(row.enabledSiteCount),
-      })),
-      count,
-    };
-  }
-
-  private tableQuery(state: TableState, filterFields: FieldMap) {
-    const where = and(
-      FilterProcessor.buildWhere(state.filters, filterFields),
-      FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),
-    );
     const orderBy = FilterProcessor.buildOrderBy(state.sort, {
       ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
-      ...filterFields,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
     });
     const { limit = 20, offset = 0 } = state.pagination;
-    return { where, orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)], limit, offset };
+
+    const { result, count } = await this.repository.findForSiteStockTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, filterFields),
+        FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
+      limit,
+      offset,
+    });
+
+    return {
+      result: result.map((row) => ({
+        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
+        hasStockLevels: row.hasStockLevels,
+        reorderPoint: row.reorderPoint,
+        safetyStock: row.safetyStock,
+        maxStockLevel: row.maxStockLevel,
+        onHand: row.onHand,
+        stockValue: CurrencyAmountDto.from(row.stockValue, leCurrencyCode),
+        stockStatus: row.stockStatus,
+        locations: row.locations,
+      })),
+      count,
+    };
   }
 
-  // Item × site availability matrix across the given sites (group workspace view).
-  findGroupMatrix(siteIds: string[]) {
-    return this.repository.findGroupMatrix(siteIds);
-  }
-
-  findForSelect(query: SelectOptionsQueryDto, options?: { excludeOnSupplierId?: string }): Promise<SelectQueryResult> {
-    return this.repository.findForSelect(
+  async findForSelect(
+    query: SelectOptionsQueryDto,
+    options?: {
+      excludeOnSupplierId?: string;
+      withoutStockLevels?: boolean;
+      categoryIds?: string[];
+      // Only the items with stock levels at the site, each with its stock and levels there
+      stockLevelsAt?: { siteId: string; stockStatus?: string[]; leCurrencyCode: CurrencyCode };
+    },
+  ): Promise<SelectQueryResult> {
+    const { stockLevelsAt, ...filters } = options ?? {};
+    const result = await this.repository.findForSelect(
       {
+        ...selectPageOptions(query),
         value: query.valueKey || 'id',
         label: query.labelKey || 'name',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         groupIdKey: query.groupIdKey,
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
         orderByKey: query.orderByKey || 'name',
         orderDirection: query.orderDirection || 'asc',
       },
-      options,
+      { ...filters, stockLevelsAtSiteId: stockLevelsAt?.siteId, stockStatus: stockLevelsAt?.stockStatus },
     );
+    if (!stockLevelsAt) return result;
+
+    // The stock's value comes in minor units of the legal entity's currency and goes out as an amount in it
+    return {
+      ...result,
+      options: result.options.map((option) => ({
+        ...option,
+        additionals: {
+          ...option.additionals,
+          stockValue: CurrencyAmountDto.from(
+            BigInt(String(option.additionals?.stockValue)),
+            stockLevelsAt.leCurrencyCode,
+          ),
+        },
+      })),
+    };
   }
 
   async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {

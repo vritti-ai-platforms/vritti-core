@@ -10,15 +10,20 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
-import { ListPlus, Pencil, Plus, Trash2 } from 'lucide-react';
+import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { ListPlus, Pencil, Plus, Trash2, Truck } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import type { SupplierInvoiceDetail, SupplierInvoiceLine } from '@/schemas/supplier-invoices';
+import {
+  SUPPLIER_INVOICE_LINE_TYPE_LABELS,
+  type SupplierInvoiceDetail,
+  type SupplierInvoiceLine,
+} from '@/schemas/supplier-invoices';
 import type { SupplierInvoicesBinding } from './bindings';
-import { SupplierInvoiceLineDialog } from './forms/SupplierInvoiceLineDialog';
+import { SupplierInvoiceChargeLineDialog } from './forms/SupplierInvoiceChargeLineDialog';
+import { SupplierInvoiceItemLineDialog } from './forms/SupplierInvoiceItemLineDialog';
 import { invoiceLineMrp } from './lineMrp';
-import { SupplierInvoiceFlagBadges } from './SupplierInvoiceFlags';
+import { SupplierInvoiceLineHolds } from './SupplierInvoiceHoldBadges';
 
 interface SupplierInvoiceLinesTableProps {
   binding: SupplierInvoicesBinding;
@@ -27,20 +32,21 @@ interface SupplierInvoiceLinesTableProps {
 
 const CANCELLED_TIP = 'A cancelled invoice cannot be changed';
 
-// An invoice's billed lines with their batch, amounts, the receipts they bill and their match flags
+// An invoice's lines: received batches it covers, with the receipt's batch, expiry and MRP, and landed charges; each
+// with its amounts and the holds it raised
 export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps> = ({ binding, invoice }) => {
-  const fmt = useFormatters();
   const confirm = useConfirm();
-  const addDialog = useDialog();
+  const addItemDialog = useDialog();
+  const addChargeDialog = useDialog();
   const removeMutation = binding.useRemoveLine();
   const isPosted = invoice.status === 'POSTED';
 
   const handleRemove = useCallback(
     async (line: SupplierInvoiceLine) => {
       const confirmed = await confirm({
-        title: `Remove "${line.inventoryItemName}"?`,
+        title: `Remove "${line.inventoryItemName ?? line.costCategoryName}"?`,
         description: isPosted
-          ? 'The line is removed from the posted invoice and the stock it billed goes back to its provisional cost.'
+          ? 'The line is removed from the posted invoice: the stock it invoiced goes back to its provisional cost and its order is open to invoice again.'
           : 'The line is removed from the invoice.',
         confirmLabel: 'Remove',
         variant: 'destructive',
@@ -52,8 +58,38 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
 
   const columns = useMemo<ColumnDef<SupplierInvoiceLine>[]>(
     () => [
-      { accessorKey: 'inventoryItemName', header: 'Item' },
-      { accessorKey: 'uomSymbol', header: 'Unit', cell: ({ row }) => <StringCell value={row.original.uomSymbol} /> },
+      {
+        accessorKey: 'lineType',
+        header: 'Type',
+        cell: ({ row }) => SUPPLIER_INVOICE_LINE_TYPE_LABELS[row.original.lineType],
+      },
+      {
+        id: 'name',
+        header: 'Item / Charge',
+        meta: { grow: true },
+        cell: ({ row }) => (
+          <span className="flex flex-col">
+            <span>{row.original.inventoryItemName ?? row.original.costCategoryName}</span>
+            {row.original.description && (
+              <span className="text-xs text-muted-foreground">{row.original.description}</span>
+            )}
+          </span>
+        ),
+      },
+      {
+        id: 'receipt',
+        header: 'Receipt',
+        cell: ({ row }) => (
+          <span className="flex flex-col">
+            <StringCell value={row.original.grNumber} mono />
+            {row.original.poNumber && (
+              <span className="text-xs text-muted-foreground">
+                <StringCell value={row.original.poNumber} mono />
+              </span>
+            )}
+          </span>
+        ),
+      },
       {
         accessorKey: 'lotNumber',
         header: 'Batch',
@@ -61,7 +97,12 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
       },
       { accessorKey: 'expiryDate', header: 'Expiry', cell: ({ row }) => <DateCell value={row.original.expiryDate} /> },
       { accessorKey: 'mrp', header: 'MRP', cell: ({ row }) => <CurrencyCell value={invoiceLineMrp(row.original)} /> },
-      { accessorKey: 'billedQty', header: 'Billed', cell: ({ row }) => <NumberCell value={row.original.billedQty} /> },
+      { accessorKey: 'uomSymbol', header: 'Unit', cell: ({ row }) => <StringCell value={row.original.uomSymbol} /> },
+      {
+        accessorKey: 'invoicedQty',
+        header: 'Invoiced',
+        cell: ({ row }) => <NumberCell value={row.original.invoicedQty} />,
+      },
       { accessorKey: 'freeQty', header: 'Free', cell: ({ row }) => <NumberCell value={row.original.freeQty} /> },
       {
         accessorKey: 'unitPrice',
@@ -89,73 +130,68 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
           ]
         : []),
       {
-        id: 'receipts',
-        header: 'Receipts',
-        cell: ({ row }) =>
-          row.original.receipts.length > 0 ? (
-            <div className="flex flex-col gap-0.5">
-              {row.original.receipts.map((receipt) => (
-                <span key={`${receipt.goodsReceiptId}-${receipt.lotNumber}`} className="text-sm">
-                  <StringCell value={receipt.grNumber} mono />
-                  {receipt.lotNumber && <span className="text-muted-foreground"> · {receipt.lotNumber}</span>}
-                  <span className="text-muted-foreground"> × {fmt.number(receipt.quantity).primary}</span>
-                </span>
-              ))}
-            </div>
-          ) : (
-            <StringCell value={null} />
-          ),
-      },
-      {
-        id: 'flags',
-        header: 'Flags',
-        cell: ({ row }) => <SupplierInvoiceFlagBadges flags={row.original.flags} />,
+        id: 'holds',
+        header: 'Holds',
+        cell: ({ row }) => <SupplierInvoiceLineHolds holds={row.original.holds} />,
       },
       {
         id: 'actions',
         header: '',
         enableHiding: false,
-        cell: ({ row }) => (
-          <RowActions
-            actions={[
-              {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                permission: binding.permissions.edit,
-                disabled: !invoice.canEdit,
-                disabledTip: CANCELLED_TIP,
-                dialog: {
-                  title: 'Edit Line',
-                  className: 'max-w-2xl',
-                  description: `Change what the invoice bills for ${row.original.inventoryItemName}.`,
-                  content: (close) => (
-                    <SupplierInvoiceLineDialog
-                      binding={binding}
-                      invoice={invoice}
-                      line={row.original}
-                      onSuccess={close}
-                      onCancel={close}
-                    />
-                  ),
+        cell: ({ row }) => {
+          const line = row.original;
+          const isCharge = line.lineType === 'CHARGE';
+          return (
+            <RowActions
+              actions={[
+                {
+                  id: 'edit',
+                  icon: Pencil,
+                  label: 'Edit',
+                  permission: binding.permissions.edit,
+                  disabled: !invoice.canEdit,
+                  disabledTip: CANCELLED_TIP,
+                  dialog: {
+                    title: isCharge ? 'Edit Charge' : 'Edit Line',
+                    className: 'max-w-2xl',
+                    description: `Change what the invoice covers for ${line.inventoryItemName ?? line.costCategoryName}.`,
+                    content: (close) =>
+                      isCharge ? (
+                        <SupplierInvoiceChargeLineDialog
+                          binding={binding}
+                          invoice={invoice}
+                          line={line}
+                          onSuccess={close}
+                          onCancel={close}
+                        />
+                      ) : (
+                        <SupplierInvoiceItemLineDialog
+                          binding={binding}
+                          invoice={invoice}
+                          line={line}
+                          onSuccess={close}
+                          onCancel={close}
+                        />
+                      ),
+                  },
                 },
-              },
-              {
-                id: 'remove',
-                icon: Trash2,
-                label: 'Remove',
-                variant: 'destructive',
-                permission: binding.permissions.edit,
-                disabled: !invoice.canEdit,
-                disabledTip: CANCELLED_TIP,
-                onClick: () => handleRemove(row.original),
-              },
-            ]}
-          />
-        ),
+                {
+                  id: 'remove',
+                  icon: Trash2,
+                  label: 'Remove',
+                  variant: 'destructive',
+                  permission: binding.permissions.edit,
+                  disabled: !invoice.canEdit,
+                  disabledTip: CANCELLED_TIP,
+                  onClick: () => handleRemove(line),
+                },
+              ]}
+            />
+          );
+        },
       },
     ],
-    [binding, invoice, isPosted, fmt, handleRemove],
+    [binding, invoice, isPosted, handleRemove],
   );
 
   const linesTable = useDataTable({
@@ -167,17 +203,30 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
     enableSorting: false,
   });
 
-  const addButton = (
-    <Button
-      size="sm"
-      permission={binding.permissions.edit}
-      startAdornment={<Plus className="size-4" />}
-      onClick={addDialog.open}
-      disabled={!invoice.canEdit}
-      disabledTip={CANCELLED_TIP}
-    >
-      Add Line
-    </Button>
+  const addActions = (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="outline"
+        permission={binding.permissions.edit}
+        startAdornment={<Truck className="size-4" />}
+        onClick={addChargeDialog.open}
+        disabled={!invoice.canEdit}
+        disabledTip={CANCELLED_TIP}
+      >
+        Add Charge
+      </Button>
+      <Button
+        size="sm"
+        permission={binding.permissions.edit}
+        startAdornment={<Plus className="size-4" />}
+        onClick={addItemDialog.open}
+        disabled={!invoice.canEdit}
+        disabledTip={CANCELLED_TIP}
+      >
+        Add Line
+      </Button>
+    </div>
   );
 
   return (
@@ -186,22 +235,32 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
         table={linesTable}
         mode="tab"
         permission={binding.permissions.view}
-        toolbarActions={{ actions: addButton }}
+        toolbarActions={{ actions: addActions }}
         emptyStateConfig={{
           icon: ListPlus,
           title: 'No lines yet',
-          description: 'Add a line for each item and batch the supplier billed.',
-          action: addButton,
+          description: 'Add a line for each received batch the supplier invoiced, and a charge for freight or duty.',
+          action: addActions,
         }}
       />
       <Dialog
-        handle={addDialog}
+        handle={addItemDialog}
         icon={ListPlus}
         title="Add Line"
         className="max-w-2xl"
-        description={`Bill one of the lines of purchase order ${invoice.poNumber}.`}
+        description={`Invoice a batch ${invoice.supplierName} delivered and the site received.`}
         content={(close) => (
-          <SupplierInvoiceLineDialog binding={binding} invoice={invoice} onSuccess={close} onCancel={close} />
+          <SupplierInvoiceItemLineDialog binding={binding} invoice={invoice} onSuccess={close} onCancel={close} />
+        )}
+      />
+      <Dialog
+        handle={addChargeDialog}
+        icon={Truck}
+        title="Add Charge"
+        className="max-w-2xl"
+        description="A landed cost on the invoice, spread over the stock its lines cover when it is posted."
+        content={(close) => (
+          <SupplierInvoiceChargeLineDialog binding={binding} invoice={invoice} onSuccess={close} onCancel={close} />
         )}
       />
     </>

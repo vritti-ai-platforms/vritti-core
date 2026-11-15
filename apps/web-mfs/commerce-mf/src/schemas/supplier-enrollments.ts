@@ -1,6 +1,9 @@
+import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import Decimal from '@vritti/quantum-ui/decimal';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z } from '@vritti/quantum-ui/zod';
+import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { IdentifierType } from './party-identifiers';
+import { type PurchaseType, PurchaseTypeValues } from './purchases';
 import type { RegistrationType } from './tax-registrations';
 
 // The enrollment's own active flag (null when not enrolled), and the supplier's active flag and blocks
@@ -66,8 +69,8 @@ interface SupplierEnrollmentRowBase extends SupplierEnrollmentKey {
   partyId: string;
   partyName: string;
   partyType: 'COMPANY' | 'PERSON';
-  siteName: string | null;
-  siteCode: string | null;
+  siteName: string;
+  siteCode: string;
   currencyCode: string;
   defaultPaymentTermId: string;
   isSupplierActive: boolean;
@@ -183,3 +186,62 @@ export interface UpdateSupplierEnrollmentVars extends SupplierEnrollmentKey {
 export interface SetSupplierEnrollmentActiveVars extends SupplierEnrollmentKey {
   isActive: boolean;
 }
+
+export interface EnrollmentPurchasing {
+  purchaseType: PurchaseType;
+  approvalEnabled: boolean;
+  approverUserIds: string[];
+  approverNames: string[];
+  approvalThreshold: CurrencyValue;
+  qualityCheckEnabled: boolean;
+  quarantineLocationId: string | null;
+  quarantineLocationName: string | null;
+  defaultReceiptLocationId: string | null;
+  defaultReceiptLocationName: string | null;
+  priceTolerancePct: number;
+  qtyTolerancePct: number;
+  amountTolerance: CurrencyValue;
+}
+
+export type LeSupplierEnrollmentDetail = SupplierEnrollmentDetail & { purchasing: EnrollmentPurchasing | null };
+
+export type UpdateEnrollmentPurchasingPayload = Omit<
+  EnrollmentPurchasing,
+  'approverNames' | 'quarantineLocationName' | 'defaultReceiptLocationName'
+>;
+
+export interface UpdateEnrollmentPurchasingVars extends SupplierEnrollmentKey {
+  data: UpdateEnrollmentPurchasingPayload;
+}
+
+// A tolerance percentage — zero or more
+function tolerancePctField(label: string) {
+  return zodNumericField({ required: `${label} tolerance is required`, min: 0, minMessage: 'Cannot be negative' });
+}
+
+export const enrollmentPurchasingSchema = z
+  .object({
+    purchaseType: z.enum(PurchaseTypeValues, { error: 'Purchase type is required' }),
+    approvalEnabled: z.boolean(),
+    approverUserIds: z.array(z.uuid()),
+    approvalThreshold: zodCurrencyField({ optional: true }),
+    qualityCheckEnabled: z.boolean(),
+    quarantineLocationId: z.uuid().optional(),
+    defaultReceiptLocationId: z.uuid().optional(),
+    priceTolerancePct: tolerancePctField('Price'),
+    qtyTolerancePct: tolerancePctField('Quantity'),
+    amountTolerance: z
+      .object({ currency: z.string(), value: z.string() }, { error: 'Amount tolerance is required' })
+      .refine((amount) => amount.value !== '', 'Amount tolerance is required')
+      .refine((amount) => amount.value === '' || !new Decimal(amount.value).isNegative(), 'Cannot be negative'),
+  })
+  .superRefine((data, ctx) => {
+    if (data.approvalEnabled && data.approverUserIds.length === 0) {
+      ctx.addIssue({ code: 'custom', path: ['approverUserIds'], message: 'Pick at least one approver' });
+    }
+    if (data.qualityCheckEnabled && !data.quarantineLocationId) {
+      ctx.addIssue({ code: 'custom', path: ['quarantineLocationId'], message: 'Quarantine location is required' });
+    }
+  });
+
+export type EnrollmentPurchasingFormData = z.infer<typeof enrollmentPurchasingSchema>;

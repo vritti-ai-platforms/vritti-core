@@ -30,7 +30,7 @@ export const parties = commerceSchema.table(
   'parties',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyType: partyTypeEnum('party_type').notNull(),
     displayName: varchar('display_name', { length: 255 }).notNull(),
     isActive: boolean('is_active').notNull().default(true),
@@ -59,7 +59,7 @@ export const partyAddresses = commerceSchema.table(
   'party_addresses',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -90,7 +90,7 @@ export const partyIdentifiers = commerceSchema.table(
   'party_identifiers',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -119,7 +119,7 @@ export const partyRelationships = commerceSchema.table(
   'party_relationships',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     parentPartyId: uuid('parent_party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -149,7 +149,7 @@ export const partyTaxRegistrations = commerceSchema.table(
   'party_tax_registrations',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -183,7 +183,7 @@ export const partyLicenses = commerceSchema.table(
   'party_licenses',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -213,7 +213,7 @@ export const partyBankAccounts = commerceSchema.table(
   'party_bank_accounts',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -245,7 +245,7 @@ export const partyCommunications = commerceSchema.table(
   'party_communications',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -277,7 +277,7 @@ export const partyCommunicationApps = commerceSchema.table(
   'party_communication_apps',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     communicationId: uuid('communication_id')
       .notNull()
       .references(() => partyCommunications.id, { onDelete: 'cascade' }),
@@ -303,7 +303,7 @@ export const partySocialProfiles = commerceSchema.table(
   'party_social_profiles',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),
@@ -325,7 +325,7 @@ export const partyFunctions = commerceSchema.table(
   'party_functions',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),

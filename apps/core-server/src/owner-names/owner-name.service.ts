@@ -2,6 +2,7 @@ import { LegalEntityDomainRepository } from '@domain/legal-entity/repositories/l
 import { OrganizationDomainRepository } from '@domain/organization/repositories/organization.repository';
 import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable } from '@nestjs/common';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { OwnerNameCacheService } from './owner-name-cache.service';
 
 export interface OwnedRow {
@@ -47,14 +48,52 @@ export class OwnerNameService {
     }));
   }
 
-  // Fills each row's site name and code, leaving a row with no site (the legal entity's) unnamed
-  async withSiteNames<T extends { siteId: string | null }>(
+  // Fills each row's site name and code; every row belongs to a site, and one that no longer exists is an error
+  async withSiteNames<T extends { siteId: string }>(
+    orgId: string,
+    rows: T[],
+  ): Promise<(T & { siteName: string; siteCode: string })[]> {
+    const sites = await this.siteNamesAndCodes(orgId, [...new Set(rows.map((row) => row.siteId))]);
+    return rows.map((row) => {
+      const site = sites.get(row.siteId);
+      if (!site) throw new NotFoundException(`Site ${row.siteId} was not found.`);
+      return { ...row, siteName: site.name, siteCode: site.code };
+    });
+  }
+
+  // Fills the site name and code of the rows that belong to a site; a row with no site is the legal entity's own and
+  // stays unnamed
+  async withOptionalSiteNames<T extends { siteId: string | null }>(
     orgId: string,
     rows: T[],
   ): Promise<(T & { siteName: string | null; siteCode: string | null })[]> {
-    if (rows.length === 0) return [];
-
     const siteIds = [...new Set(rows.flatMap((row) => (row.siteId ? [row.siteId] : [])))];
+    const sites = await this.siteNamesAndCodes(orgId, siteIds);
+    return rows.map((row) => {
+      if (!row.siteId) return { ...row, siteName: null, siteCode: null };
+      const site = sites.get(row.siteId);
+      if (!site) throw new NotFoundException(`Site ${row.siteId} was not found.`);
+      return { ...row, siteName: site.name, siteCode: site.code };
+    });
+  }
+
+  // Names every site of a row by its id fields (e.g. a transfer's from and to sites); a site that no longer exists is an
+  // error
+  async requireSiteNames(orgId: string, siteIds: string[]): Promise<Map<string, string>> {
+    const unique = [...new Set(siteIds)];
+    const sites = await this.siteNamesAndCodes(orgId, unique);
+    const missing = unique.find((siteId) => !sites.has(siteId));
+    if (missing) throw new NotFoundException(`Site ${missing} was not found.`);
+    return new Map([...sites].map(([siteId, site]) => [siteId, site.name]));
+  }
+
+  // Reads the names and codes of the given sites from the cache, fetching and caching whatever it lacks; a site that no
+  // longer exists is left out, so callers decide whether that is an error
+  private async siteNamesAndCodes(
+    orgId: string,
+    siteIds: string[],
+  ): Promise<Map<string, { name: string; code: string }>> {
+    if (siteIds.length === 0) return new Map();
     const [names, codes] = await Promise.all([
       this.cache.getMany('site', siteIds),
       this.cache.getMany('siteCode', siteIds),
@@ -77,12 +116,13 @@ export class OwnerNameService {
         codes.names.set(site.id, site.code);
       }
     }
-
-    return rows.map((row) => ({
-      ...row,
-      siteName: row.siteId ? (names.names.get(row.siteId) ?? null) : null,
-      siteCode: row.siteId ? (codes.names.get(row.siteId) ?? null) : null,
-    }));
+    const sites = new Map<string, { name: string; code: string }>();
+    for (const siteId of siteIds) {
+      const name = names.names.get(siteId);
+      const code = codes.names.get(siteId);
+      if (name !== undefined && code !== undefined) sites.set(siteId, { name, code });
+    }
+    return sites;
   }
 
   // Serves what the cache holds and reads only the rest, caching whatever it had to fetch

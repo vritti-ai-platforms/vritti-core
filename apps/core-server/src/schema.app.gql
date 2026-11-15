@@ -246,7 +246,7 @@ type GoodsReceipt {
   supplierId: String!
   supplierName: String!
   status: String!
-  isPublishable: Boolean!
+  isPostable: Boolean!
   itemCount: Int!
   inboundDeliveryId: ID!
   deliveryNumber: String!
@@ -259,7 +259,7 @@ type GoodsReceipt {
   expectedDeliveryDate: String
   receivedDate: String!
   notes: String
-  publishedAt: String
+  postedAt: String
   createdAt: String!
 }
 
@@ -300,7 +300,7 @@ type InventoryItemLocation {
   locationId: ID!
   locationName: String
   locationPath: String
-  reorderLevel: Float!
+  isBlocked: Boolean!
 }
 
 type InventoryItemLocationPageInfo {
@@ -346,7 +346,6 @@ type InventoryItemStockLevel {
   stockedQuantity: Float!
   reservedQuantity: Float!
   availableQuantity: Float!
-  reorderLevel: Float
 }
 
 type InventoryItemStockLevelPageInfo {

@@ -2,7 +2,7 @@ import { bigint, index, primaryKey, timestamp, uuid } from '@vritti/api-sdk/driz
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemCosts } from './inventory-item-costs';
 import { inventoryItemQuants } from './inventory-item-quants';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
 
 export const inventoryItemQuantCosts = commerceSchema.table(
   'inventory_item_quant_costs',
@@ -14,13 +14,13 @@ export const inventoryItemQuantCosts = commerceSchema.table(
       .notNull()
       .references(() => inventoryItemCosts.id, { onDelete: 'restrict' }),
     allocatedAmount: bigint('allocated_amount', { mode: 'bigint' }).notNull(),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     primaryKey({ name: 'pk_inventory_item_quant_costs', columns: [table.quantId, table.costId] }),
     index('idx_inventory_item_quant_costs_cost').on(table.costId),
-    orgIsolationPolicy(),
+    ...scopeFromOwnerPolicies({ owner: inventoryItemQuants, fk: table.quantId, ownerIs: 'siteDocument' }),
   ],
 );
 

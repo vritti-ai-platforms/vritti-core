@@ -21,7 +21,7 @@ interface ItemsCostTabProps {
 }
 
 // The provisional cost of the accepted goods, read-only: the PO line's value spread over its ordered and expected free
-// quantity, in the legal entity's currency; a published item opens the stock batches it created
+// quantity, in the legal entity's currency; a posted item opens the stock batches it created
 export const ItemsCostTab: React.FC<ItemsCostTabProps> = ({ binding, goodsReceiptId, isDraft }) => {
   const { data: cost, isLoading } = binding.useItemsCost(goodsReceiptId);
   const costRows = useMemo(() => ({ result: cost?.rows ?? [], count: cost?.rows.length ?? 0 }), [cost]);

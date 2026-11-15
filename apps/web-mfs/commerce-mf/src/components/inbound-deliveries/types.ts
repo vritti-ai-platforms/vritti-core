@@ -1,7 +1,6 @@
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import type {
   AddInboundDeliveryLinesPayload,
   CreateInboundDeliveryPayload,
@@ -9,7 +8,6 @@ import type {
   InboundDeliveryData,
   InboundDeliveryLineRef,
   InboundDeliveryLinesTableResponse,
-  ReceiveInboundDeliveryPayload,
   UpdateInboundDeliveryLinePayload,
   UpdateInboundDeliveryPayload,
   UpdateInboundDeliveryStatusPayload,
@@ -43,4 +41,3 @@ export type UseDeleteInboundDelivery = Mutation<SuccessResponse, string>;
 export type UseAddInboundDeliveryLines = Mutation<SuccessResponse, AddInboundDeliveryLinesPayload>;
 export type UseUpdateInboundDeliveryLine = Mutation<SuccessResponse, UpdateInboundDeliveryLinePayload>;
 export type UseRemoveInboundDeliveryLine = Mutation<SuccessResponse, InboundDeliveryLineRef>;
-export type UseReceiveInboundDelivery = Mutation<CreateResponse<GoodsReceiptData>, ReceiveInboundDeliveryPayload>;

@@ -1,7 +1,5 @@
-import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import type { InboundDeliveryDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery.dto';
 import { CreateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/create-inbound-delivery.dto';
-import { ReceiveInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/receive-inbound-delivery.dto';
 import { SetInboundDeliveryStatusDto } from '@domain/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import { UpdateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
@@ -59,17 +57,10 @@ export class InboundDeliveriesRootController {
     return this.service.setStatus(dto);
   }
 
-  // Creates a draft goods receipt pre-filled with the inbound delivery's open lines
-  @MessagePattern({ cmd: 'site.inboundDeliveries.receive' })
-  receive(@Payload() dto: ReceiveInboundDeliveryDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
-    this.logger.log(`site.inboundDeliveries.receive — id: ${dto.id}`);
-    return this.service.receive(dto);
-  }
-
   // Deletes a planned inbound delivery without lines
   @MessagePattern({ cmd: 'site.inboundDeliveries.delete' })
   delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`site.inboundDeliveries.delete — id: ${data.id}`);
-    return this.deliveriesService.delete(data.id);
+    return this.service.delete(data.id);
   }
 }

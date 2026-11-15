@@ -2,11 +2,11 @@ import { BottomSheet, type BottomSheetRef } from '@vritti/quantum-ui-native/Bott
 import { Button } from '@vritti/quantum-ui-native/Button';
 import { Form } from '@vritti/quantum-ui-native/Form';
 import { StaticAlert } from '@vritti/quantum-ui-native/StaticAlert';
+import { Switch } from '@vritti/quantum-ui-native/Switch';
 import { Text } from '@vritti/quantum-ui-native/Text';
-import { TextField } from '@vritti/quantum-ui-native/TextField';
 import { zodResolver } from '@vritti/quantum-ui-native/zod';
 import { forwardRef, useCallback, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { View } from 'react-native';
 import { useCreateItemLocation, useUpdateItemLocation } from '../../../../hooks/site/item-locations';
 import {
@@ -18,21 +18,18 @@ import type { ItemLocation } from '../../../../types/item-locations';
 
 interface ItemLocationFormSheetProps {
   inventoryItemId: string;
-  // The item's primary UOM symbol — shown in the Min. Stock Level field label.
-  uomSymbol: string | null;
   // The config being edited, or null to create a new one.
   editing: ItemLocation | null;
 }
 
-const EMPTY: CreateItemLocationFormValues = {
-  locationId: '',
-  reorderLevel: Number.NaN,
+const EMPTY: Partial<CreateItemLocationFormValues> = {
+  isBlocked: false,
 };
 
 // Create/edit an item-location config in a bottom sheet (opened by the tab's FAB / a card's edit). Create shows
-// the location picker; edit keeps the location fixed (only the reorder level changes). Mirrors UomConversionFormSheet.
+// the location picker; edit keeps the location fixed (only the blocked flag changes). Mirrors UomConversionFormSheet.
 export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationFormSheetProps>(
-  ({ inventoryItemId, uomSymbol, editing }, ref) => {
+  ({ inventoryItemId, editing }, ref) => {
     const isEdit = editing != null;
     const [createLocation, { loading: creating, error: createError, reset: resetCreate }] = useCreateItemLocation();
     const [updateLocation, { loading: updating, error: updateError, reset: resetUpdate }] = useUpdateItemLocation();
@@ -42,11 +39,13 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
       resolver: zodResolver(createItemLocationSchema),
       defaultValues: EMPTY,
     });
+    // Switch types `checked` as required; <Form> overrides it with the bound value, so pass the same live value.
+    const isBlocked = useWatch({ control: form.control, name: 'isBlocked' });
 
     // Seed from the current target on every open (onPresent) so reopening restores original values and clears
     // any stale mutation error. On edit the location is fixed (prefilled so the schema passes).
     const seedForm = useCallback(() => {
-      form.reset(editing ? { locationId: editing.locationId, reorderLevel: editing.reorderLevel } : EMPTY);
+      form.reset(editing ? { locationId: editing.locationId, isBlocked: editing.isBlocked } : EMPTY);
       resetCreate();
       resetUpdate();
     }, [editing, form, resetCreate, resetUpdate]);
@@ -60,14 +59,13 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
     };
 
     const handleSubmit = async (values: CreateItemLocationFormValues) => {
-      const reorderLevel = values.reorderLevel;
       if (isEdit && editing) {
-        const result = await updateLocation({ variables: { id: editing.id, input: { reorderLevel } } });
+        const result = await updateLocation({ variables: { id: editing.id, input: { isBlocked: values.isBlocked } } });
         if (!result.error) close();
         return;
       }
       const result = await createLocation({
-        variables: { inventoryItemId, input: { locationId: values.locationId, reorderLevel } },
+        variables: { inventoryItemId, input: { locationId: values.locationId, isBlocked: values.isBlocked } },
       });
       if (!result.error) close();
     };
@@ -104,7 +102,12 @@ export const ItemLocationFormSheet = forwardRef<BottomSheetRef, ItemLocationForm
                 params={{ locationRoles: 'RESERVED_STORAGE' }}
               />
             )}
-            <TextField name="reorderLevel" label={`Min. Stock Level (${uomSymbol ?? 'units'})`} min={0} />
+            <Switch
+              name="isBlocked"
+              checked={isBlocked}
+              label="Blocked"
+              description="No new putaway of this item into this location"
+            />
             <Button isLoading={creating || updating} onPress={form.handleSubmit(handleSubmit)}>
               <Text>{isEdit ? 'Save changes' : 'Add location'}</Text>
             </Button>

@@ -25,7 +25,7 @@ export const categories = commerceSchema.table(
   'categories',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     name: varchar('name', { length: 255 }).notNull(),
     image: varchar('image', { length: 255 }),
     parentId: uuid('parent_id'),

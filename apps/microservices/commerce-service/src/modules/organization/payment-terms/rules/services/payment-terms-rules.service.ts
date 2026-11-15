@@ -4,7 +4,7 @@ import type { AddPaymentTermRuleDto } from '@domain/payment-term-rules/dto/reque
 import type { PreviewPaymentScheduleDto } from '@domain/payment-term-rules/dto/request/preview-payment-schedule.dto';
 import type { UpdatePaymentTermRuleDto } from '@domain/payment-term-rules/dto/request/update-payment-term-rule.dto';
 import { PaymentTermRulesDomainService } from '@domain/payment-term-rules/services/payment-term-rules.service';
-import { PaymentTermsDomainRepository } from '@domain/payment-terms/repositories/payment-terms.repository';
+import { PaymentTermsDomainService } from '@domain/payment-terms/services/payment-terms.service';
 import { Injectable } from '@nestjs/common';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 
@@ -13,32 +13,32 @@ import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 @Injectable()
 export class PaymentTermsRulesService {
   constructor(
-    private readonly termsRepository: PaymentTermsDomainRepository,
+    private readonly termsService: PaymentTermsDomainService,
     private readonly rulesService: PaymentTermRulesDomainService,
   ) {}
 
   async findAll(paymentTermId: string): Promise<PaymentTermRulesDto> {
-    const term = await this.termsRepository.findByIdOrThrow(paymentTermId);
+    const term = await this.termsService.findByIdOrThrow(paymentTermId);
     return this.rulesService.findByTerm(term.id);
   }
 
   async add(data: AddPaymentTermRuleDto): Promise<SuccessResponseDto> {
-    const term = await this.termsRepository.findDraftOrThrow(data.paymentTermId);
+    const term = await this.termsService.findDraftOrThrow(data.paymentTermId);
     return this.rulesService.add(term, data);
   }
 
   async update(data: UpdatePaymentTermRuleDto): Promise<SuccessResponseDto> {
-    const term = await this.termsRepository.findDraftOrThrow(data.paymentTermId);
+    const term = await this.termsService.findDraftOrThrow(data.paymentTermId);
     return this.rulesService.update(term, data);
   }
 
   async delete(paymentTermId: string, id: string): Promise<SuccessResponseDto> {
-    const term = await this.termsRepository.findDraftOrThrow(paymentTermId);
+    const term = await this.termsService.findDraftOrThrow(paymentTermId);
     return this.rulesService.delete(term, id);
   }
 
   async previewSchedule(data: PreviewPaymentScheduleDto): Promise<PaymentScheduleDto> {
-    const term = await this.termsRepository.findByIdOrThrow(data.paymentTermId);
+    const term = await this.termsService.findByIdOrThrow(data.paymentTermId);
     return this.rulesService.previewSchedule(term, data);
   }
 }

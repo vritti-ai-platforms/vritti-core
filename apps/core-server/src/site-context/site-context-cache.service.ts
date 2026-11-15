@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from '@vritti/api-sdk/cache';
 
 const TTL_SECONDS = 5 * 60;
-const PREFIX = 'site:ctx';
+const PREFIX = 'site:context';
 
 export interface SiteContext {
   siteTimezone: string;
-  siteCurrencyCode: string;
+  leCurrencyCode: string;
   legalEntityId: string;
 }
 

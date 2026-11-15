@@ -1,13 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
 export class CreateInventoryItemLocationDto {
-  @ApiProperty({ description: 'Storage location ID' })
+  @ApiProperty({ description: 'Storage location the item is fixed to' })
   @IsUUID('7')
   locationId: string;
 
-  @ApiProperty({ description: 'Minimum stock level threshold for reorder at this location' })
-  @IsNumber()
-  @Min(0)
-  reorderLevel: number;
+  @ApiPropertyOptional({ description: 'Whether new putaway of the item into this location is blocked', default: false })
+  @IsOptional()
+  @IsBoolean()
+  isBlocked?: boolean;
 }

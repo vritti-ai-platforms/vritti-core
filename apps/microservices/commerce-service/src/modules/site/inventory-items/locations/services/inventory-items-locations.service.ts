@@ -40,14 +40,14 @@ export class InventoryItemsLocationsService {
 
   async create(
     inventoryItemId: string,
-    data: { locationId: string; reorderLevel: number },
+    data: { locationId: string; isBlocked?: boolean },
   ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
     this.logger.log(`create — inventoryItemId=${inventoryItemId}, locationId=${data.locationId}`);
     await this.inventoryItemsService.findById(inventoryItemId);
     return this.itemLocationsService.create(inventoryItemId, data);
   }
 
-  async update(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
+  async update(id: string, data: { isBlocked: boolean }): Promise<SuccessResponseDto> {
     this.logger.log(`update — id=${id}`);
     return this.itemLocationsService.update(id, data);
   }

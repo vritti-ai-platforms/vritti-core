@@ -4,9 +4,7 @@ import type {
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
-  AddGoodsReceiptPurchaseOrderPayload,
   CreateGoodsReceiptFromDeliveryPayload,
-  CreateGoodsReceiptFromPurchaseOrdersPayload,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -48,31 +46,14 @@ export function createGoodsReceiptFromDelivery(
     .then((r) => r.data);
 }
 
-// Starts a draft goods receipt of a supplier's purchase orders that arrived without an announced delivery
-export function createGoodsReceiptFromPurchaseOrders(
-  data: CreateGoodsReceiptFromPurchaseOrdersPayload,
-): Promise<CreateResponse<GoodsReceiptData>> {
-  return axios
-    .post<CreateResponse<GoodsReceiptData>>('commerce-api/le/goods-receipts/from-purchase-orders', data)
-    .then((r) => r.data);
-}
-
-// Adds every open line of another purchase order of the supplier to a draft goods receipt
-export function addGoodsReceiptPurchaseOrder(
-  id: string,
-  data: AddGoodsReceiptPurchaseOrderPayload,
-): Promise<SuccessResponse> {
-  return axios.post<SuccessResponse>(`commerce-api/le/goods-receipts/${id}/purchase-orders`, data).then((r) => r.data);
-}
-
-// Changes a draft receipt's notes and the supplier's delivery note on the inbound delivery it created
+// Changes a draft receipt's notes
 export function updateGoodsReceipt(id: string, data: UpdateGoodsReceiptPayload): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`commerce-api/le/goods-receipts/${id}`, data).then((r) => r.data);
 }
 
-// Publishes a goods receipt: its stock lands at its site and its purchase order lines' received quantities move
-export function publishGoodsReceipt(id: string): Promise<GoodsReceiptData> {
-  return axios.post<GoodsReceiptData>(`commerce-api/le/goods-receipts/${id}/publish`).then((r) => r.data);
+// Posts a goods receipt: its stock lands at its site and its purchase order lines' received quantities move
+export function postGoodsReceipt(id: string): Promise<GoodsReceiptData> {
+  return axios.post<GoodsReceiptData>(`commerce-api/le/goods-receipts/${id}/post`).then((r) => r.data);
 }
 
 // Deletes a draft goods receipt
@@ -85,7 +66,7 @@ export function getGoodsReceiptItemsCost(id: string): Promise<GoodsReceiptItemsC
   return axios.get<GoodsReceiptItemsCostData>(`commerce-api/le/goods-receipts/${id}/items/cost`).then((r) => r.data);
 }
 
-// Fetches the stock batches a published goods receipt item created
+// Fetches the stock batches a posted goods receipt item created
 export function getGoodsReceiptItemQuants(id: string, itemId: string): Promise<GoodsReceiptItemQuantsData> {
   return axios
     .get<GoodsReceiptItemQuantsData>(`commerce-api/le/goods-receipts/${id}/items/${itemId}/quants`)

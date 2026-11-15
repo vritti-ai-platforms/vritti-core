@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
   DataTable,
@@ -8,17 +7,14 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Eye, PackageCheck, Plus } from 'lucide-react';
+import { Eye, PackageCheck } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CreateGoodsReceiptDialog } from '@/components/goods-receipts/forms/CreateGoodsReceiptDialog';
 import { GoodsReceiptStatusBadge } from '@/components/goods-receipts/GoodsReceiptStatusBadge';
 import type { GoodsReceiptData } from '@/schemas/goods-receipts';
-import { type PurchaseOrderDetail, RECEIVABLE_PURCHASE_ORDER_STATUSES } from '@/schemas/purchase-orders';
+import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 import { workspaceBase } from '@/utils/workspace';
 import type { PurchaseOrdersBinding } from '../bindings';
 
@@ -27,13 +23,13 @@ interface GoodsReceiptsTabProps {
   purchaseOrder: PurchaseOrderDetail;
 }
 
-// The goods receipts counting any of the order's lines, where a new one is started; a row opens the receipt in the goods receipts feature
+// The goods receipts counting any of the order's lines; a receipt is started from an inbound delivery, and a row opens
+// the receipt in the goods receipts feature
 export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, purchaseOrder }) => {
   const purchaseOrderId = purchaseOrder.id;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
-  const createReceiptDialog = useDialog();
   const goodsReceiptsTableQuery = binding.useGoodsReceiptsTable(purchaseOrderId);
 
   const openReceipt = useCallback(
@@ -94,50 +90,17 @@ export const GoodsReceiptsTab: React.FC<GoodsReceiptsTabProps> = ({ binding, pur
     onStatePush: () => queryClient.invalidateQueries({ queryKey: binding.goodsReceiptsTableKey(purchaseOrderId) }),
   });
 
-  const createReceiptAction = RECEIVABLE_PURCHASE_ORDER_STATUSES.includes(purchaseOrder.status) && (
-    <Button
-      size="sm"
-      permission={binding.goodsReceipts.addPermission}
-      startAdornment={<Plus className="size-4" />}
-      onClick={createReceiptDialog.open}
-    >
-      Create Goods Receipt
-    </Button>
-  );
-
   return (
-    <>
-      <DataTable
-        table={goodsReceiptsTable}
-        mode="tab"
-        permission={binding.permissions.view}
-        onRowClick={openReceipt}
-        toolbarActions={{ actions: createReceiptAction }}
-        emptyStateConfig={{
-          icon: PackageCheck,
-          title: 'No goods receipts',
-          description: 'Goods receipts counting lines of this purchase order will appear here.',
-          action: createReceiptAction,
-        }}
-      />
-
-      <Dialog
-        handle={createReceiptDialog}
-        icon={PackageCheck}
-        title="Create Goods Receipt"
-        description={`Receive goods of ${purchaseOrder.poNumber} that arrived without an announced delivery: a draft receipt and its inbound delivery carry every open line, and more of ${purchaseOrder.supplierName}'s orders can be picked.`}
-        content={(close) => (
-          <CreateGoodsReceiptDialog
-            mutations={binding.goodsReceipts}
-            purchaseOrder={{ id: purchaseOrderId, supplierId: purchaseOrder.supplierId }}
-            onSuccess={(receipt) => {
-              close();
-              openReceipt(receipt);
-            }}
-            onCancel={close}
-          />
-        )}
-      />
-    </>
+    <DataTable
+      table={goodsReceiptsTable}
+      mode="tab"
+      permission={binding.permissions.view}
+      emptyStateConfig={{
+        icon: PackageCheck,
+        title: 'No goods receipts',
+        description:
+          'Goods receipts counting lines of this purchase order will appear here. Receive an inbound delivery carrying its lines to start one.',
+      }}
+    />
   );
 };

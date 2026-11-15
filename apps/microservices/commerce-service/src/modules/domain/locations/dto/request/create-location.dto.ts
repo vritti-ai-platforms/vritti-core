@@ -40,4 +40,12 @@ export class CreateLocationDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsUUID('7')
+  storageTypeId?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  inheritStorageType?: boolean;
 }

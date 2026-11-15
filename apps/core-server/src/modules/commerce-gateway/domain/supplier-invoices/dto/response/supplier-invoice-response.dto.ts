@@ -1,42 +1,72 @@
+import { PurchaseReferenceResponseDto } from '@commerce/purchases/dto/response/purchase-reference-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export const SUPPLIER_INVOICE_STATUSES = ['DRAFT', 'POSTED', 'CANCELLED'] as const;
 export type SupplierInvoiceStatus = (typeof SUPPLIER_INVOICE_STATUSES)[number];
 
-export const SUPPLIER_INVOICE_FLAG_CODES = [
-  'BATCH_NOT_RECEIVED',
-  'EXPIRY_DIFFERS',
-  'MRP_DIFFERS',
-  'BILLED_MORE_THAN_RECEIVED',
-  'BILLED_MORE_THAN_ORDERED',
-  'PRICE_DIFFERS',
-  'FREE_SHORT',
-  'SHORT_EXPIRY',
-  'RATE_DIFFERS',
-] as const;
-export type SupplierInvoiceFlagCode = (typeof SUPPLIER_INVOICE_FLAG_CODES)[number];
+export const SUPPLIER_INVOICE_SOURCES = ['ENTERED', 'SELF_INVOICED'] as const;
+export type SupplierInvoiceSource = (typeof SUPPLIER_INVOICE_SOURCES)[number];
 
-export class SupplierInvoiceFlagResponseDto {
-  @ApiProperty({ description: 'Match check that failed', enum: SUPPLIER_INVOICE_FLAG_CODES })
-  code: SupplierInvoiceFlagCode;
+export const SUPPLIER_INVOICE_PAYMENT_STATUSES = ['UNPAID', 'PARTIAL', 'PAID'] as const;
+export type SupplierInvoicePaymentStatus = (typeof SUPPLIER_INVOICE_PAYMENT_STATUSES)[number];
+
+export const SUPPLIER_INVOICE_LINE_TYPES = ['ITEM', 'CHARGE'] as const;
+export type SupplierInvoiceLineType = (typeof SUPPLIER_INVOICE_LINE_TYPES)[number];
+
+export const SUPPLIER_INVOICE_HOLD_CODES = [
+  'PRICE_DIFFERS',
+  'INVOICED_MORE_THAN_ORDERED',
+  'FREE_SHORT',
+  'RATE_DIFFERS',
+  'SHORT_EXPIRY',
+  'QTY_NOT_RECEIVED',
+  'QTY_NOT_RELEASED',
+] as const;
+export type SupplierInvoiceHoldCode = (typeof SUPPLIER_INVOICE_HOLD_CODES)[number];
+
+export const SUPPLIER_INVOICE_HOLD_STATUSES = ['OPEN', 'RELEASED', 'RESOLVED'] as const;
+export type SupplierInvoiceHoldStatus = (typeof SUPPLIER_INVOICE_HOLD_STATUSES)[number];
+
+export class SupplierInvoiceHoldResponseDto {
+  @ApiProperty({ description: 'Hold ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Invoice ID' })
+  supplierInvoiceId: string;
+
+  @ApiPropertyOptional({ description: 'Line the hold is on; null for a header hold', type: String, nullable: true })
+  supplierInvoiceLineId: string | null;
+
+  @ApiProperty({ description: 'Match check that raised the hold', enum: SUPPLIER_INVOICE_HOLD_CODES })
+  code: SupplierInvoiceHoldCode;
 
   @ApiProperty({ description: 'What differs, for people', example: 'PO INR 20.00, invoice INR 21.00.' })
   detail: string;
-}
 
-export class SupplierInvoiceLineReceiptResponseDto {
-  @ApiProperty({ description: 'Goods receipt ID' })
-  goodsReceiptId: string;
+  @ApiProperty({ description: 'Whether the hold stops payment while open; SHORT_EXPIRY is information only' })
+  blocksPayment: boolean;
 
-  @ApiProperty({ description: 'Goods receipt number' })
-  grNumber: string;
+  @ApiProperty({
+    description: 'OPEN until released by a person or resolved when its cause goes away',
+    enum: SUPPLIER_INVOICE_HOLD_STATUSES,
+  })
+  status: SupplierInvoiceHoldStatus;
 
-  @ApiPropertyOptional({ description: 'Received batch', type: String, nullable: true })
-  lotNumber: string | null;
+  @ApiPropertyOptional({ description: 'User who released the hold', type: String, nullable: true })
+  releasedBy: string | null;
 
-  @ApiProperty({ description: "Quantity of the receipt the line bills, in the order line's unit" })
-  quantity: number;
+  @ApiPropertyOptional({ description: 'ISO timestamp of release', type: String, nullable: true })
+  releasedAt: string | null;
+
+  @ApiPropertyOptional({ description: 'Why the hold was released', type: String, nullable: true })
+  releaseReason: string | null;
+
+  @ApiProperty({ description: 'ISO timestamp of creation' })
+  createdAt: string;
+
+  @ApiProperty({ description: 'ISO timestamp of last update' })
+  updatedAt: string;
 }
 
 export class SupplierInvoiceLineResponseDto {
@@ -46,37 +76,90 @@ export class SupplierInvoiceLineResponseDto {
   @ApiProperty({ description: 'Invoice ID' })
   supplierInvoiceId: string;
 
-  @ApiProperty({ description: 'Order line billed' })
-  purchaseOrderItemId: string;
+  @ApiProperty({
+    description: 'ITEM invoices received stock, CHARGE is a landed cost',
+    enum: SUPPLIER_INVOICE_LINE_TYPES,
+  })
+  lineType: SupplierInvoiceLineType;
 
-  @ApiProperty({ description: 'Inventory item ID' })
-  inventoryItemId: string;
+  @ApiPropertyOptional({ description: 'Order line invoiced', type: String, nullable: true })
+  purchaseOrderItemId: string | null;
 
-  @ApiProperty({ description: 'Inventory item name' })
-  inventoryItemName: string;
+  @ApiPropertyOptional({ description: 'Purchase order of that line', type: String, nullable: true })
+  purchaseOrderId: string | null;
 
-  @ApiProperty({ description: "Order line's unit" })
-  uomId: string;
+  @ApiPropertyOptional({ description: 'Purchase order number', type: String, nullable: true })
+  poNumber: string | null;
 
-  @ApiPropertyOptional({ description: 'Unit symbol', type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiPropertyOptional({ description: 'Receipt item invoiced', type: String, nullable: true })
+  goodsReceiptItemId: string | null;
 
-  @ApiPropertyOptional({ description: 'Batch number', type: String, nullable: true })
+  @ApiPropertyOptional({ description: 'Goods receipt of that item', type: String, nullable: true })
+  goodsReceiptId: string | null;
+
+  @ApiPropertyOptional({ description: 'Goods receipt number', type: String, nullable: true })
+  grNumber: string | null;
+
+  @ApiPropertyOptional({ description: 'Receipt lot invoiced', type: String, nullable: true })
+  goodsReceiptLotId: string | null;
+
+  @ApiPropertyOptional({ description: "Batch number, the receipt lot's", type: String, nullable: true })
   lotNumber: string | null;
 
-  @ApiPropertyOptional({ description: 'Batch expiry date', type: String, nullable: true })
+  @ApiPropertyOptional({ description: "Batch expiry date, the receipt lot's", type: String, nullable: true })
   expiryDate: string | null;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'MRP printed on the pack; zero when not given' })
+  @ApiProperty({
+    type: CurrencyAmountDto,
+    description: "The receipt lot's MRP in the legal entity's currency; zero when none",
+  })
   mrp: CurrencyAmountDto;
 
-  @ApiProperty({ description: 'Quantity billed' })
-  billedQty: number;
+  @ApiPropertyOptional({ description: 'Inventory item ID', type: String, nullable: true })
+  inventoryItemId: string | null;
 
-  @ApiProperty({ description: 'Quantity supplied free' })
-  freeQty: number;
+  @ApiPropertyOptional({ description: 'Inventory item name', type: String, nullable: true })
+  inventoryItemName: string | null;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'Billed price per unit' })
+  @ApiPropertyOptional({ description: "Order line's unit", type: String, nullable: true })
+  uomId: string | null;
+
+  @ApiPropertyOptional({ description: "Symbol of the order line's unit", type: String, nullable: true })
+  uomSymbol: string | null;
+
+  @ApiPropertyOptional({ description: "Symbol of the item's primary unit", type: String, nullable: true })
+  primaryUomSymbol: string | null;
+
+  @ApiPropertyOptional({ description: "Quantity invoiced, in the order line's unit", type: Number, nullable: true })
+  invoicedQty: number | null;
+
+  @ApiPropertyOptional({
+    description: "Quantity supplied free, in the order line's unit",
+    type: Number,
+    nullable: true,
+  })
+  freeQty: number | null;
+
+  @ApiPropertyOptional({ description: "Quantity invoiced, in the item's primary unit", type: Number, nullable: true })
+  invoicedPrimaryQty: number | null;
+
+  @ApiPropertyOptional({
+    description: "Quantity supplied free, in the item's primary unit",
+    type: Number,
+    nullable: true,
+  })
+  freePrimaryQty: number | null;
+
+  @ApiPropertyOptional({ description: 'Cost category charged', type: String, nullable: true })
+  costCategoryId: string | null;
+
+  @ApiPropertyOptional({ description: 'Cost category name', type: String, nullable: true })
+  costCategoryName: string | null;
+
+  @ApiPropertyOptional({ description: 'Line description', type: String, nullable: true })
+  description: string | null;
+
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Invoiced price per unit, or the charge amount' })
   unitPrice: CurrencyAmountDto;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Discount on the line' })
@@ -85,7 +168,7 @@ export class SupplierInvoiceLineResponseDto {
   @ApiProperty({ type: CurrencyAmountDto, description: 'Tax on the line' })
   taxAmount: CurrencyAmountDto;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'Billed × unit price − discount + tax' })
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Invoiced × unit price − discount + tax' })
   lineTotal: CurrencyAmountDto;
 
   @ApiProperty({
@@ -94,11 +177,8 @@ export class SupplierInvoiceLineResponseDto {
   })
   varianceAmount: CurrencyAmountDto;
 
-  @ApiProperty({ type: [SupplierInvoiceFlagResponseDto], description: 'Match checks the line fails' })
-  flags: SupplierInvoiceFlagResponseDto[];
-
-  @ApiProperty({ type: [SupplierInvoiceLineReceiptResponseDto], description: 'Received stock the line bills' })
-  receipts: SupplierInvoiceLineReceiptResponseDto[];
+  @ApiProperty({ type: [SupplierInvoiceHoldResponseDto], description: "The line's holds, every status" })
+  holds: SupplierInvoiceHoldResponseDto[];
 }
 
 export class SupplierInvoiceResponseDto {
@@ -108,14 +188,14 @@ export class SupplierInvoiceResponseDto {
   @ApiProperty({ description: 'Legal entity ID' })
   legalEntityId: string;
 
-  @ApiProperty({ description: 'Site the billed stock was received at' })
+  @ApiProperty({ description: 'Site the invoiced stock was received at' })
   siteId: string;
 
-  @ApiPropertyOptional({ description: 'Site name', type: String, nullable: true })
-  siteName: string | null;
+  @ApiProperty({ description: 'Site name' })
+  siteName: string;
 
-  @ApiPropertyOptional({ description: 'Site code', type: String, nullable: true })
-  siteCode: string | null;
+  @ApiProperty({ description: 'Site code' })
+  siteCode: string;
 
   @ApiProperty({ description: 'Supplier ID' })
   supplierId: string;
@@ -123,22 +203,33 @@ export class SupplierInvoiceResponseDto {
   @ApiProperty({ description: 'Supplier name' })
   supplierName: string;
 
-  @ApiProperty({ description: 'Purchase order the invoice bills' })
-  purchaseOrderId: string;
+  @ApiProperty({ description: 'Numbers of the purchase orders its lines invoice', type: [String] })
+  poNumbers: string[];
 
-  @ApiProperty({ description: 'Purchase order number' })
-  poNumber: string;
+  @ApiProperty({
+    type: [PurchaseReferenceResponseDto],
+    description: 'Purchases whose purchase orders its lines invoice',
+  })
+  purchases: PurchaseReferenceResponseDto[];
+
+  @ApiProperty({
+    description: 'Whether it is a Receive with Invoice, edited, posted and discarded only through its purchases',
+  })
+  isReceiveWithInvoice: boolean;
 
   @ApiProperty({ description: "The supplier's invoice number" })
   invoiceNumber: string;
 
-  @ApiProperty({ description: 'Date on the invoice' })
+  @ApiProperty({ description: 'Date on the invoice (YYYY-MM-DD)' })
   invoiceDate: string;
 
   @ApiProperty({ description: 'Date tax is determined on (YYYY-MM-DD)' })
   taxDate: string;
 
-  @ApiProperty({ description: "Invoice currency, the order's (ISO 4217)", example: 'INR' })
+  @ApiProperty({ description: "Entered from the supplier's document or self-invoiced", enum: SUPPLIER_INVOICE_SOURCES })
+  source: SupplierInvoiceSource;
+
+  @ApiProperty({ description: "Invoice currency, one of the supplier's (ISO 4217)", example: 'INR' })
   currencyCode: string;
 
   @ApiProperty({
@@ -146,13 +237,22 @@ export class SupplierInvoiceResponseDto {
   })
   exchangeRate: number;
 
-  @ApiProperty({ description: "The order's exchange rate" })
-  poExchangeRate: number;
+  @ApiProperty({ description: "Payment term, from the supplier's enrollment at the site" })
+  paymentTermId: string;
+
+  @ApiPropertyOptional({ description: 'Payment term name', type: String, nullable: true })
+  paymentTermName: string | null;
+
+  @ApiProperty({ description: "Due date (YYYY-MM-DD), the term's last instalment from its baseline" })
+  dueDate: string;
 
   @ApiProperty({ description: 'Draft, posted (stock costed) or cancelled', enum: SUPPLIER_INVOICE_STATUSES })
   status: SupplierInvoiceStatus;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'Lines billed before discount and tax' })
+  @ApiProperty({ description: 'How much of the invoice is paid', enum: SUPPLIER_INVOICE_PAYMENT_STATUSES })
+  paymentStatus: SupplierInvoicePaymentStatus;
+
+  @ApiProperty({ type: CurrencyAmountDto, description: 'Lines invoiced before discount and tax' })
   subtotal: CurrencyAmountDto;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Discount over the lines' })
@@ -164,11 +264,8 @@ export class SupplierInvoiceResponseDto {
   @ApiProperty({ type: CurrencyAmountDto, description: 'Invoice total' })
   totalAmount: CurrencyAmountDto;
 
-  @ApiProperty({ type: [SupplierInvoiceFlagResponseDto], description: 'Match checks the header fails' })
-  flags: SupplierInvoiceFlagResponseDto[];
-
-  @ApiProperty({ description: 'Failed match checks over the header and its lines' })
-  flagCount: number;
+  @ApiProperty({ description: 'Open holds that block payment' })
+  openHoldCount: number;
 
   @ApiProperty({ description: 'Number of lines' })
   lineCount: number;
@@ -178,6 +275,11 @@ export class SupplierInvoiceResponseDto {
 
   @ApiPropertyOptional({ description: 'ISO timestamp of posting', type: String, nullable: true })
   postedAt: string | null;
+
+  @ApiProperty({
+    description: "Posted, with no open blocking hold and the supplier's payments not blocked",
+  })
+  isPayable: boolean;
 
   @ApiProperty({ description: 'Whether the header and lines can be edited (not cancelled)' })
   canEdit: boolean;
@@ -199,6 +301,9 @@ export class SupplierInvoiceResponseDto {
 }
 
 export class SupplierInvoiceDetailResponseDto extends SupplierInvoiceResponseDto {
-  @ApiProperty({ type: [SupplierInvoiceLineResponseDto], description: 'Billed lines in entry order' })
+  @ApiProperty({ type: [SupplierInvoiceLineResponseDto], description: 'Item and charge lines in entry order' })
   lines: SupplierInvoiceLineResponseDto[];
+
+  @ApiProperty({ type: [SupplierInvoiceHoldResponseDto], description: 'Every hold of the invoice and its lines' })
+  holds: SupplierInvoiceHoldResponseDto[];
 }

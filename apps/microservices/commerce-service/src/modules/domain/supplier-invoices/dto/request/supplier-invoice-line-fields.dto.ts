@@ -1,32 +1,43 @@
 import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsDateString, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min, ValidateIf } from 'class-validator';
+import { type SupplierInvoiceLineType, SupplierInvoiceLineTypeValues } from '@/db/schema';
 
 export class SupplierInvoiceLineFieldsDto {
+  @IsIn(Object.values(SupplierInvoiceLineTypeValues))
+  lineType: SupplierInvoiceLineType;
+
+  @ValidateIf((line: SupplierInvoiceLineFieldsDto) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
   @IsUUID('7')
-  purchaseOrderItemId: string;
+  purchaseOrderItemId?: string;
+
+  @ValidateIf((line: SupplierInvoiceLineFieldsDto) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
+  @IsUUID('7')
+  goodsReceiptItemId?: string;
+
+  @IsOptional()
+  @IsUUID('7')
+  goodsReceiptLotId?: string | null;
+
+  @ValidateIf((line: SupplierInvoiceLineFieldsDto) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  invoicedQty?: number;
+
+  @ValidateIf((line: SupplierInvoiceLineFieldsDto) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @Min(0)
+  freeQty?: number;
+
+  @ValidateIf((line: SupplierInvoiceLineFieldsDto) => line.lineType === SupplierInvoiceLineTypeValues.CHARGE)
+  @IsUUID('7')
+  costCategoryId?: string;
 
   @Trim()
   @IsOptional()
   @IsString()
-  @MaxLength(100)
-  lotNumber?: string | null;
-
-  @IsOptional()
-  @IsDateString()
-  expiryDate?: string | null;
-
-  @IsOptional()
-  @IsCurrency()
-  mrp?: CurrencyAmountDto | null;
-
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @IsPositive()
-  billedQty: number;
-
-  @IsNumber({ maxDecimalPlaces: 3 })
-  @Min(0)
-  freeQty: number;
+  @MaxLength(200)
+  description?: string | null;
 
   @IsCurrency()
   unitPrice: CurrencyAmountDto;

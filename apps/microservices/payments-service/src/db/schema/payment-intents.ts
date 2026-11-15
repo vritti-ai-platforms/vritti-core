@@ -25,7 +25,7 @@ export const paymentIntents = paymentsSchema.table(
   'payment_intents',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     // Null for a checkout that spans legal entities — the split legs then say who is paid
     legalEntityId: uuid('legal_entity_id'),
     siteId: uuid('site_id'),

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { ScopeType, SiteType } from '@vritti/api-sdk/catalog-resolver';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { countDistinct, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type Role, roles, userRoleAssignments } from '@/db/schema';
 
 export type RoleWithCount = Role & { assignedUserCount: number };
@@ -28,13 +28,9 @@ export class RoleDomainRepository extends PrimaryBaseRepository<typeof roles> {
     }
 
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'name',
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: { organizationId: orgId, scope },
       orderBy: { name: 'asc' },
       conditions,

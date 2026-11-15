@@ -5,6 +5,14 @@
         "typescript": { "suggestionActions": { "enabled": false } },
         "javascript": { "suggestionActions": { "enabled": false } }
       }
+    },
+    // Zed starts Biome in each app's folder, but node-linker=hoisted installs it only at the repo root, so the
+    // extension's <app>/node_modules lookup fails; `pnpm exec` resolves the workspace's own Biome from any folder
+    "biome": {
+      "binary": {
+        "path": "pnpm",
+        "arguments": ["exec", "biome", "lsp-proxy"]
+      }
     }
   }
 }

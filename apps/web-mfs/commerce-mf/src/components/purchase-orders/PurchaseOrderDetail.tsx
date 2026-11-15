@@ -2,9 +2,15 @@ import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
+import { PartOfPurchaseChips } from '@/components/purchases/PartOfPurchaseChips';
+import { documentPurchases } from '@/components/purchases/purchaseDocuments';
 import type { PurchaseOrdersBinding } from './bindings';
 import { PurchaseOrderActions } from './PurchaseOrderActions';
-import { PurchaseOrderStatusBadge } from './PurchaseOrderStatusBadge';
+import {
+  PurchaseOrderInvoiceStatusBadge,
+  PurchaseOrderReceiptStatusBadge,
+  PurchaseOrderStatusBadge,
+} from './PurchaseOrderStatusBadge';
 import { GoodsReceiptsTab } from './tabs/GoodsReceiptsTab';
 import { InboundDeliveriesTab } from './tabs/InboundDeliveriesTab';
 import { LineItemsTab } from './tabs/line-items/LineItemsTab';
@@ -14,19 +20,28 @@ interface PurchaseOrderDetailProps {
   binding: PurchaseOrdersBinding;
 }
 
-// `…/purchase-orders/<number~id>` — an order, its lines, the deliveries carrying them and the goods received against it; the legal entity's names
-// its site, and where the binding carries invoices the order's invoices get a tab
+// `…/purchase-orders/<number~id>` — an order, its lines, the deliveries carrying them and the goods received against it;
+// once confirmed its header shows how much is received and invoiced. The legal entity's names its site, and where the
+// binding carries invoices the order's invoices get a tab
 export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ binding }) => {
   const { permissions, invoices } = binding;
   const { id } = useSlugParams('poSlug');
   const { data: purchaseOrder } = binding.usePurchaseOrder(id);
   const { data: itemIds } = binding.useItemIds(id);
+  const tracksReceipts = purchaseOrder.status === 'CONFIRMED' || purchaseOrder.status === 'DELIVERY_COMPLETED';
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={purchaseOrder.poNumber}
-        titleSlot={<PurchaseOrderStatusBadge status={purchaseOrder.status} />}
+        titleSlot={
+          <div className="flex items-center gap-2">
+            <PurchaseOrderStatusBadge status={purchaseOrder.status} />
+            {tracksReceipts && <PurchaseOrderReceiptStatusBadge status={purchaseOrder.receiptStatus} />}
+            {tracksReceipts && <PurchaseOrderInvoiceStatusBadge status={purchaseOrder.invoiceStatus} />}
+            <PartOfPurchaseChips purchases={documentPurchases(purchaseOrder)} />
+          </div>
+        }
         description={
           purchaseOrder.siteName
             ? `${purchaseOrder.supplierName} · ${purchaseOrder.siteName}`
@@ -67,7 +82,7 @@ export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ bindin
                   value: 'invoices',
                   label: 'Invoices',
                   permission: invoices.permission,
-                  content: <invoices.Tab purchaseOrderId={purchaseOrder.id} />,
+                  content: <invoices.Tab purchaseOrder={purchaseOrder} />,
                 },
               ]
             : []),

@@ -6,7 +6,7 @@ import type { SupplierInvoicesTableResponse } from '@/schemas/supplier-invoices'
 import { getPurchaseOrderInvoicesTable } from '@/services/legal-entity/supplier-invoices.service';
 import { LE_PURCHASE_ORDER_INVOICES_TABLE_KEY } from './keys';
 
-// Fetches the invoices billing a purchase order; self-gates on the order invoices view permission
+// Fetches the invoices on a purchase order; self-gates on the order invoices view permission
 export function usePurchaseOrderInvoicesTable(purchaseOrderId: string) {
   const { available } = usePermission(LE_PURCHASE_ORDERS.invoices.view);
   return useQuery<SupplierInvoicesTableResponse, AxiosError>({

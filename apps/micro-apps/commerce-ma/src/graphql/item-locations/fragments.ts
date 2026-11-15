@@ -9,6 +9,6 @@ export const ItemLocationFieldsFragment = graphql(`
     locationId
     locationName
     locationPath
-    reorderLevel
+    isBlocked
   }
 `);

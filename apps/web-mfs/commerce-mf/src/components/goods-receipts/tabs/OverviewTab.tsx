@@ -25,9 +25,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ binding, receipt }) =>
           <div className="grid grid-cols-2 gap-6">
             <DetailField label="GR Number" type="string" mono value={receipt.grNumber} />
             <DetailField label="Supplier" type="string" value={receipt.supplierName} />
-            {binding.spansSites && (
-              <DetailField label="Site" type="string" value={receipt.siteName ?? receipt.siteCode} />
-            )}
+            {binding.spansSites && <DetailField label="Site" type="string" value={receipt.siteName} />}
             <DetailField label="Status" type="string" value={<GoodsReceiptStatusBadge status={receipt.status} />} />
             <DetailField label="Purchase Orders" type="string" mono value={receipt.poNumbers.join(', ')} />
             <DetailField label="Inbound Delivery" type="string" mono value={receipt.deliveryNumber} />
@@ -49,7 +47,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ binding, receipt }) =>
             <DetailField label="Received Date" type="date" value={receipt.receivedDate} />
             <DetailField label="Provisional Value" type="currency" value={cost?.grandTotal} />
             <DetailField label="Created At" type="dateTime" value={receipt.createdAt} />
-            <DetailField label="Published At" type="dateTime" value={receipt.publishedAt} />
+            <DetailField label="Posted At" type="dateTime" value={receipt.postedAt} />
             <DetailField label="Notes" type="string" value={receipt.notes} className="col-span-2" />
           </div>
         </CardContent>

@@ -49,6 +49,11 @@ export const PaymentTermSelector = remoteSelector<
   Omit<SelectProps, 'optionsEndpoint'> & { allowUnpublished?: boolean }
 >('commerce/Selectors/PaymentTerm', 'PaymentTermSelector');
 
+export const PurchaseSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'>>(
+  'commerce/Selectors/Purchase',
+  'PurchaseSelector',
+);
+
 export const SupplierSelector = remoteSelector<Omit<SelectProps, 'optionsEndpoint'> & { activeOnly?: boolean }>(
   'commerce/Selectors/Supplier',
   'SupplierSelector',

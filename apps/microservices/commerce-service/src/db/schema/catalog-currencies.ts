@@ -8,7 +8,7 @@ export const catalogCurrencies = commerceSchema.table(
   'catalog_currencies',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     catalogId: uuid('catalog_id')
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),

@@ -10,7 +10,7 @@ export const catalogListingChannelExclusions = commerceSchema.table(
   'catalog_listing_channel_exclusions',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     catalogListingId: uuid('catalog_listing_id')
       .notNull()
       .references(() => catalogListings.id, { onDelete: 'cascade' }),

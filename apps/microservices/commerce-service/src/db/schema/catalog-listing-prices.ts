@@ -8,14 +8,13 @@ export const catalogListingPrices = commerceSchema.table(
   'catalog_listing_prices',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     catalogListingId: uuid('catalog_listing_id')
       .notNull()
       .references(() => catalogListings.id, { onDelete: 'cascade' }),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     amount: bigint('amount', { mode: 'bigint' }).notNull(),
-    legalEntityId: workspaceScopeColumns.legalEntityId,
-    siteId: workspaceScopeColumns.siteId,
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

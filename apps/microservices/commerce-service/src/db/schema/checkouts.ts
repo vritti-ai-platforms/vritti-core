@@ -23,7 +23,7 @@ export const checkouts = commerceSchema.table(
   'checkouts',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     // No foreign key — the row lives in core's `apps`, as with `carts.app_id`
     appId: uuid('app_id').notNull(),
     partyId: uuid('party_id')
@@ -78,7 +78,7 @@ export const checkoutLines = commerceSchema.table(
   'checkout_lines',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     checkoutId: uuid('checkout_id')
       .notNull()
       .references(() => checkouts.id, { onDelete: 'cascade' }),

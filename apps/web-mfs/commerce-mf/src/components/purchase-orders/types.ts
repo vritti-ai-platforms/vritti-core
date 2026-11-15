@@ -65,6 +65,6 @@ export type UseSetPurchaseOrderConversionRate = Mutation<SuccessResponse, SetPur
 export type UseUpdatePurchaseOrderStatus = Mutation<SuccessResponse, UpdatePurchaseOrderStatusPayload>;
 export type UseUpdatePurchaseOrderTaxDate = Mutation<SuccessResponse, UpdatePurchaseOrderTaxDatePayload>;
 export type UseSendPurchaseOrderEmail = Mutation<SuccessResponse, SendPurchaseOrderEmailPayload>;
-export type UseClosePurchaseOrder = Mutation<SuccessResponse, string>;
+export type UseCompletePurchaseOrderDelivery = Mutation<SuccessResponse, string>;
 export type UseDeletePurchaseOrder = Mutation<SuccessResponse, string>;
 export type UseDownloadPurchaseOrderPdf = Mutation<Blob, string>;

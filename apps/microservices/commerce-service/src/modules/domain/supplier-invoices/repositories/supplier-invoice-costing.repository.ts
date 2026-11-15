@@ -1,111 +1,194 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type AnyPgColumn, alias } from '@vritti/api-sdk/drizzle-pg-core';
+import { type AnyColumn, and, eq, exists, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   CostCategoryKindValues,
   CostSourceTypeValues,
   costCategories,
-  goodsReceiptItems,
   goodsReceiptLines,
   inventoryItemCosts,
   inventoryItemQuantCosts,
   inventoryItemQuants,
-  type NewInventoryItemCost,
   purchaseOrderItems,
   purchaseOrders,
-  supplierInvoiceLineReceipts,
+  SupplierInvoiceLineTypeValues,
   supplierInvoiceLines,
   supplierInvoices,
 } from '@/db/schema';
 
+const lotLines = alias(goodsReceiptLines, 'lot_lines');
+const quantLines = alias(goodsReceiptLines, 'quant_lines');
+
 export type CostingSlice = {
   supplierInvoiceLineId: string;
-  billedQty: number;
-  freeQty: number;
+  invoicedQty: number;
+  invoicedPrimaryQty: number;
+  freePrimaryQty: number;
   unitPrice: bigint;
   discountAmount: bigint;
   currencyCode: string;
   exchangeRate: number;
-  orderedQty: number;
   orderedPrimaryQty: number;
-  expectedFreeQty: number;
+  orderedFreePrimaryQty: number;
   orderedTotalPrice: bigint;
+  orderCurrencyCode: string;
   orderExchangeRate: number;
-  linkedQty: number;
-  receivedQty: number;
+  invoicedReceiptPrimaryQty: number;
   receivedPrimaryQty: number;
   quantId: string;
   quantQuantity: number;
   quantInflowQty: number;
 };
 
-export type QuantVarianceAllocation = {
+export type ChargeLine = {
+  id: string;
+  costCategoryId: string;
+  unitPrice: bigint;
+  discountAmount: bigint;
+  currencyCode: string;
+  exchangeRate: number;
+};
+
+export type ReceiptQuant = {
+  quantId: string;
+  receivedPrimaryQty: number;
+  unitCost: bigint;
+  quantQuantity: number;
+  quantInflowQty: number;
+};
+
+export type ChargeAllocation = {
   quantId: string;
   allocatedAmount: bigint;
+  quantQuantity: number;
+  quantInflowQty: number;
 };
 
 @Injectable()
-export class SupplierInvoiceCostingDomainRepository extends PrimaryBaseRepository<typeof inventoryItemCosts> {
+export class SupplierInvoiceCostingDomainRepository extends PrimaryBaseRepository<typeof supplierInvoiceLines> {
   constructor(database: PrimaryDatabaseService) {
-    super(database, inventoryItemCosts);
+    super(database, supplierInvoiceLines);
   }
 
-  // Returns one slice per goods receipt line the invoice's linked receipts put away, with the invoice line, order line and quant facts its costing needs
+  // Returns one slice per goods receipt line of the lot (or item without lots) each item line invoices, with the
+  // invoice line, order line and quant facts its costing needs
   async findCostingSlices(supplierInvoiceId: string): Promise<CostingSlice[]> {
-    const receiptLines = alias(goodsReceiptLines, 'receipt_lines');
-    const quantLines = alias(goodsReceiptLines, 'quant_lines');
-    const putAwayByReceipt = (goodsReceiptItemId: AnyPgColumn, goodsReceiptLotId: AnyPgColumn): SQL =>
+    const invoicedReceipt = (receiptLines: typeof goodsReceiptLines | typeof lotLines): SQL =>
       and(
-        eq(goodsReceiptItemId, supplierInvoiceLineReceipts.goodsReceiptItemId),
+        eq(receiptLines.goodsReceiptItemId, supplierInvoiceLines.goodsReceiptItemId),
         or(
-          isNull(supplierInvoiceLineReceipts.goodsReceiptLotId),
-          eq(goodsReceiptLotId, supplierInvoiceLineReceipts.goodsReceiptLotId),
+          isNull(supplierInvoiceLines.goodsReceiptLotId),
+          eq(receiptLines.goodsReceiptLotId, supplierInvoiceLines.goodsReceiptLotId),
         ),
       ) as SQL;
 
-    return this.db
+    const rows = await this.db
       .select({
         supplierInvoiceLineId: supplierInvoiceLines.id,
-        billedQty: supplierInvoiceLines.billedQty,
-        freeQty: supplierInvoiceLines.freeQty,
+        invoicedQty: supplierInvoiceLines.invoicedQty,
+        invoicedPrimaryQty: supplierInvoiceLines.invoicedPrimaryQty,
+        freePrimaryQty: supplierInvoiceLines.freePrimaryQty,
         unitPrice: supplierInvoiceLines.unitPrice,
         discountAmount: supplierInvoiceLines.discountAmount,
         currencyCode: supplierInvoices.currencyCode,
         exchangeRate: supplierInvoices.exchangeRate,
-        orderedQty: purchaseOrderItems.uomQty,
         orderedPrimaryQty: purchaseOrderItems.primaryUomQty,
-        expectedFreeQty: purchaseOrderItems.freeQty,
+        orderedFreePrimaryQty: purchaseOrderItems.freePrimaryQty,
         orderedTotalPrice: purchaseOrderItems.totalPrice,
+        orderCurrencyCode: purchaseOrderItems.currencyCode,
         orderExchangeRate: purchaseOrders.exchangeRate,
-        linkedQty: supplierInvoiceLineReceipts.quantity,
-        receivedQty: sql<number>`(${this.db
-          .select({ total: sql`coalesce(sum(${receiptLines.quantity}), 0)` })
-          .from(receiptLines)
-          .where(putAwayByReceipt(receiptLines.goodsReceiptItemId, receiptLines.goodsReceiptLotId))})`.mapWith(Number),
+        invoicedReceiptPrimaryQty: sql<number>`(${this.db
+          .select({ total: sql`coalesce(sum(${lotLines.primaryUomQty}), 0)` })
+          .from(lotLines)
+          .where(invoicedReceipt(lotLines))})`.mapWith(Number),
         receivedPrimaryQty: goodsReceiptLines.primaryUomQty,
         quantId: inventoryItemQuants.id,
         quantQuantity: inventoryItemQuants.quantity,
-        quantInflowQty: sql<number>`(${this.db
-          .select({ total: sql`coalesce(sum(${quantLines.primaryUomQty}), 0)` })
-          .from(quantLines)
-          .where(eq(quantLines.resolvedQuantId, goodsReceiptLines.resolvedQuantId))})`.mapWith(Number),
+        quantInflowQty: this.inflow(goodsReceiptLines.resolvedQuantId),
       })
       .from(supplierInvoiceLines)
       .innerJoin(supplierInvoices, eq(supplierInvoices.id, supplierInvoiceLines.supplierInvoiceId))
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, supplierInvoiceLines.purchaseOrderItemId))
       .innerJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
-      .innerJoin(
-        supplierInvoiceLineReceipts,
-        eq(supplierInvoiceLineReceipts.supplierInvoiceLineId, supplierInvoiceLines.id),
-      )
-      .innerJoin(goodsReceiptItems, eq(goodsReceiptItems.id, supplierInvoiceLineReceipts.goodsReceiptItemId))
-      .innerJoin(
-        goodsReceiptLines,
-        putAwayByReceipt(goodsReceiptLines.goodsReceiptItemId, goodsReceiptLines.goodsReceiptLotId),
-      )
+      .innerJoin(goodsReceiptLines, invoicedReceipt(goodsReceiptLines))
       .innerJoin(inventoryItemQuants, eq(inventoryItemQuants.id, goodsReceiptLines.resolvedQuantId))
-      .where(eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoiceId));
+      .where(
+        and(
+          eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoiceId),
+          eq(supplierInvoiceLines.lineType, SupplierInvoiceLineTypeValues.ITEM),
+        ),
+      );
+    return rows as CostingSlice[];
+  }
+
+  // Returns the charge lines of an invoice with its currency and rate
+  async findChargeLines(supplierInvoiceId: string): Promise<ChargeLine[]> {
+    const rows = await this.db
+      .select({
+        id: supplierInvoiceLines.id,
+        costCategoryId: supplierInvoiceLines.costCategoryId,
+        unitPrice: supplierInvoiceLines.unitPrice,
+        discountAmount: supplierInvoiceLines.discountAmount,
+        currencyCode: supplierInvoices.currencyCode,
+        exchangeRate: supplierInvoices.exchangeRate,
+      })
+      .from(supplierInvoiceLines)
+      .innerJoin(supplierInvoices, eq(supplierInvoices.id, supplierInvoiceLines.supplierInvoiceId))
+      .where(
+        and(
+          eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoiceId),
+          eq(supplierInvoiceLines.lineType, SupplierInvoiceLineTypeValues.CHARGE),
+        ),
+      );
+    return rows as ChargeLine[];
+  }
+
+  // Returns each quant the receipt lots (or items without lots) of an invoice's item lines landed in, with the primary
+  // quantity they put into it, its unit cost and how much of its inflow is still on hand
+  async findReceiptQuants(supplierInvoiceId: string): Promise<ReceiptQuant[]> {
+    const invoicedByInvoice = this.db
+      .select({ id: supplierInvoiceLines.id })
+      .from(supplierInvoiceLines)
+      .where(
+        and(
+          eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoiceId),
+          eq(supplierInvoiceLines.lineType, SupplierInvoiceLineTypeValues.ITEM),
+          eq(supplierInvoiceLines.goodsReceiptItemId, goodsReceiptLines.goodsReceiptItemId),
+          or(
+            isNull(supplierInvoiceLines.goodsReceiptLotId),
+            eq(supplierInvoiceLines.goodsReceiptLotId, goodsReceiptLines.goodsReceiptLotId),
+          ),
+        ),
+      );
+    return this.db
+      .select({
+        quantId: inventoryItemQuants.id,
+        receivedPrimaryQty: sql<number>`sum(${goodsReceiptLines.primaryUomQty})`.mapWith(Number),
+        unitCost: inventoryItemQuants.unitCost,
+        quantQuantity: inventoryItemQuants.quantity,
+        quantInflowQty: this.inflow(inventoryItemQuants.id),
+      })
+      .from(goodsReceiptLines)
+      .innerJoin(inventoryItemQuants, eq(inventoryItemQuants.id, goodsReceiptLines.resolvedQuantId))
+      .where(exists(invoicedByInvoice))
+      .groupBy(inventoryItemQuants.id, inventoryItemQuants.unitCost, inventoryItemQuants.quantity);
+  }
+
+  // Returns the quant allocations of the costs booked by the given sources, with each quant's on-hand facts
+  async findAllocationsBySources(sourceIds: string[]): Promise<ChargeAllocation[]> {
+    if (sourceIds.length === 0) return [];
+    return this.db
+      .select({
+        quantId: inventoryItemQuantCosts.quantId,
+        allocatedAmount: inventoryItemQuantCosts.allocatedAmount,
+        quantQuantity: inventoryItemQuants.quantity,
+        quantInflowQty: this.inflow(inventoryItemQuantCosts.quantId),
+      })
+      .from(inventoryItemQuantCosts)
+      .innerJoin(inventoryItemCosts, eq(inventoryItemCosts.id, inventoryItemQuantCosts.costId))
+      .innerJoin(inventoryItemQuants, eq(inventoryItemQuants.id, inventoryItemQuantCosts.quantId))
+      .where(this.bookedBy(sourceIds));
   }
 
   // Resolves the org's single ITEM-kind cost category, which item costs are booked under
@@ -118,44 +201,19 @@ export class SupplierInvoiceCostingDomainRepository extends PrimaryBaseRepositor
     return category?.id ?? null;
   }
 
-  // Moves a quant's cost laid in by the full cost difference and its value by the on-hand share, then re-derives its
-  // unit cost from the value per unit left so later outflows carry the revalued cost
-  async revalueQuant(quantId: string, costDelta: bigint, onHandDelta: bigint): Promise<void> {
-    const revaluedPerUnit = sql`round((${inventoryItemQuants.quantValue} + ${onHandDelta}) / ${inventoryItemQuants.quantity})`;
-    await this.db
-      .update(inventoryItemQuants)
-      .set({
-        quantCost: sql`${inventoryItemQuants.quantCost} + ${costDelta}`,
-        quantValue: sql`${inventoryItemQuants.quantValue} + ${onHandDelta}`,
-        unitCost: sql`case when ${inventoryItemQuants.quantity} > 0 and ${revaluedPerUnit} > 0
-          then ${revaluedPerUnit}::bigint else ${inventoryItemQuants.unitCost} end`,
-      })
-      .where(eq(inventoryItemQuants.id, quantId));
-  }
-
-  // Books an invoice's price variance on one goods receipt as a cost header with one allocation per quant, keeping the
-  // sum of each quant's allocations equal to its cost laid in
-  async recordVariance(cost: NewInventoryItemCost, allocations: QuantVarianceAllocation[]): Promise<void> {
-    const header = await this.create(cost);
-    await this.db
-      .insert(inventoryItemQuantCosts)
-      .values(allocations.map((allocation) => ({ ...allocation, costId: header.id })));
-  }
-
-  // Removes the price variance an invoice booked, allocations first
-  async deleteVariance(supplierInvoiceId: string): Promise<void> {
-    const invoiceVariance = and(
+  // Matches the supplier invoice costs booked by the given sources
+  private bookedBy(sourceIds: string[]): SQL {
+    return and(
       eq(inventoryItemCosts.sourceType, CostSourceTypeValues.SUPPLIER_INVOICE),
-      eq(inventoryItemCosts.sourceId, supplierInvoiceId),
+      inArray(inventoryItemCosts.sourceId, sourceIds),
     ) as SQL;
-    await this.db
-      .delete(inventoryItemQuantCosts)
-      .where(
-        inArray(
-          inventoryItemQuantCosts.costId,
-          this.db.select({ id: inventoryItemCosts.id }).from(inventoryItemCosts).where(invoiceVariance),
-        ),
-      );
-    await this.deleteMany(invoiceVariance);
+  }
+
+  // Sums the primary quantity every receipt line put into the quant
+  private inflow(quantId: AnyColumn) {
+    return sql<number>`(${this.db
+      .select({ total: sql`coalesce(sum(${quantLines.primaryUomQty}), 0)` })
+      .from(quantLines)
+      .where(eq(quantLines.resolvedQuantId, quantId))})`.mapWith(Number);
   }
 }

@@ -8,9 +8,10 @@ import { MrpTab } from './tabs/MrpTab';
 import { PriceHistoryTab } from './tabs/PriceHistoryTab';
 import { PricesTableTab } from './tabs/PricesTableTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
+import { SiteStockLevelsTab } from './tabs/site-stock-levels/SiteStockLevelsTab';
 
-// A master item as a legal entity sees it: read-only details, the legal entity's suppliers for it, their prices at a
-// site, and its MRPs
+// A master item as a legal entity sees it: read-only details, its stock levels at each site, the legal entity's suppliers
+// for it, their prices at a site, and its MRPs
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const { data: item } = useInventoryItem(id);
@@ -33,6 +34,14 @@ export const InventoryItemDetailPage = () => {
             label: 'Suppliers',
             permission: LE_INVENTORY_ITEMS.view,
             content: <SuppliersTab inventoryItemId={item.id} />,
+          },
+          {
+            value: 'site-stock-levels',
+            label: 'Site Stock Levels',
+            permission: LE_INVENTORY_ITEMS.siteStockLevels.view,
+            content: (
+              <SiteStockLevelsTab inventoryItemId={item.id} itemName={item.name} uomSymbol={item.uomSymbol ?? null} />
+            ),
           },
           {
             value: 'prices',

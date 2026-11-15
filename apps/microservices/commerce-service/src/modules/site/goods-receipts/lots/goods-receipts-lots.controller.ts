@@ -4,7 +4,7 @@ import { UpdateGoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/request
 import { GoodsReceiptLotsDomainService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsLotsService } from './services/goods-receipts-lots.service';
 
@@ -21,7 +21,7 @@ export class GoodsReceiptsLotsController {
   @MessagePattern({ cmd: 'site.goodsReceipts.lots' })
   lots(
     @Payload() data: { goodsReceiptId: string; itemId: string },
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto[]> {
     this.logger.log(`site.goodsReceipts.lots — item: ${data.itemId}`);
     return this.lotsService.findByItem(data.itemId, leCurrencyCode);
@@ -31,7 +31,7 @@ export class GoodsReceiptsLotsController {
   @MessagePattern({ cmd: 'site.goodsReceipts.addLot' })
   addLot(
     @Payload() dto: AddGoodsReceiptLotDto,
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`site.goodsReceipts.addLot — item: ${dto.itemId}, lot: ${dto.lotNumber}`);
     return this.service.addLot(dto, leCurrencyCode);
@@ -41,7 +41,7 @@ export class GoodsReceiptsLotsController {
   @MessagePattern({ cmd: 'site.goodsReceipts.updateLot' })
   updateLot(
     @Payload() dto: UpdateGoodsReceiptLotDto,
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.goodsReceipts.updateLot — lot: ${dto.lotId}`);
     return this.service.updateLot(dto, leCurrencyCode);

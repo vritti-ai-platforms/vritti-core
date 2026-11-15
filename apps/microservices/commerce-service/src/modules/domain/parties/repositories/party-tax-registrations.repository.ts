@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, inArray, isNull, ne, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException } from '@vritti/api-sdk/exceptions';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   type PartyTaxRegistration,
   partyTaxRegistrations,
@@ -111,16 +111,12 @@ export class PartyTaxRegistrationsDomainRepository extends PrimaryBaseRepository
       );
     }
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'registrationNumber',
       description: 'registrationType',
       additionalKeys: ['isPrimary', 'registrationType'],
-      search: query.search,
       searchKeys: ['registrationNumber'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderBy: { isPrimary: 'desc', registrationNumber: 'asc' },
       where: { partyId, isActive: true },
       conditions,

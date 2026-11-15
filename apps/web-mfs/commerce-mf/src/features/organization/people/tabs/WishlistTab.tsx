@@ -72,6 +72,7 @@ export const WishlistTab: React.FC<WishlistTabProps> = ({ partyId }) => {
   return (
     <DataTable
       table={wishlistTable}
+      mode="tab"
       permission={ORG_PEOPLE.wishlist.view}
       emptyStateConfig={{
         icon: Heart,

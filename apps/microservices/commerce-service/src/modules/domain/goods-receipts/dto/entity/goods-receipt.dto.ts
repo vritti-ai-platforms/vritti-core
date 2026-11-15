@@ -8,8 +8,11 @@ export class GoodsReceiptDto {
   siteId: string;
   supplierId: string;
   supplierName: string;
+  purchaseId: string | null;
+  purchaseNumber: string | null;
+  receiveWithInvoiceInvoiceId: string | null;
   status: GoodsReceiptStatus;
-  isPublishable: boolean;
+  isPostable: boolean;
   itemCount: number;
   inboundDeliveryId: string;
   deliveryNumber: string;
@@ -22,7 +25,7 @@ export class GoodsReceiptDto {
   expectedDeliveryDate: string | null;
   receivedDate: string;
   notes: string | null;
-  publishedAt: string | null;
+  postedAt: string | null;
   createdAt: string;
 
   static from(row: GoodsReceiptRow): GoodsReceiptDto {
@@ -33,8 +36,11 @@ export class GoodsReceiptDto {
     dto.siteId = row.siteId;
     dto.supplierId = row.supplierId;
     dto.supplierName = row.supplierName ?? '';
+    dto.purchaseId = row.purchaseId;
+    dto.purchaseNumber = row.purchaseNumber;
+    dto.receiveWithInvoiceInvoiceId = row.receiveWithInvoiceInvoiceId;
     dto.status = row.status;
-    dto.isPublishable = row.isPublishable;
+    dto.isPostable = row.isPostable;
     dto.itemCount = row.itemCount;
     dto.inboundDeliveryId = row.inboundDeliveryId;
     dto.deliveryNumber = row.deliveryNumber;
@@ -47,7 +53,7 @@ export class GoodsReceiptDto {
     dto.expectedDeliveryDate = row.expectedDeliveryDate;
     dto.receivedDate = row.receivedDate;
     dto.notes = row.notes;
-    dto.publishedAt = row.publishedAt?.toISOString() ?? null;
+    dto.postedAt = row.postedAt?.toISOString() ?? null;
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { LocationRoleValues } from '@/db/schema';
 
 @Injectable()
@@ -30,16 +30,12 @@ export class PosTerminalsService {
   // Returns POS-role storage location options for select dropdowns
   findLocationsForSelect(data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.locationsRepository.findForSelect({
+      ...selectPageOptions(data),
       value: data.valueKey || 'id',
       label: data.labelKey || 'name',
       description: data.descriptionKey,
       additionalKeys: data.additionalKeys,
       groupIdKey: data.groupIdKey,
-      search: data.search,
-      limit: data.limit,
-      offset: data.offset,
-      values: data.values,
-      excludeIds: data.excludeIds,
       where: { locationRole: LocationRoleValues.RESERVED_STORAGE },
       orderByKey: data.orderByKey || 'name',
       orderDirection: data.orderDirection || 'asc',

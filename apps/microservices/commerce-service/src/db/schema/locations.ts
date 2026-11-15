@@ -4,7 +4,6 @@ import {
   customType,
   index,
   integer,
-  pgPolicy,
   text,
   timestamp,
   unique,
@@ -13,7 +12,8 @@ import {
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { LocationRoleValues, locationRoleEnum } from './enums';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { storageTypes } from './storage-types';
+import { organizationIdColumn, siteDocumentColumns, siteDocumentPolicies } from './workspace-scope';
 
 const ltreeType = customType<{ data: string }>({
   dataType() {
@@ -25,8 +25,8 @@ export const locations = commerceSchema.table(
   'locations',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    ...siteDocumentColumns(),
     name: varchar('name', { length: 100 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     parentId: uuid('parent_id'),
@@ -36,6 +36,8 @@ export const locations = commerceSchema.table(
     area: varchar('area', { length: 100 }),
     managerId: uuid('manager_id'),
     locationRole: locationRoleEnum('location_role').notNull().default(LocationRoleValues.STORAGE),
+    storageTypeId: uuid('storage_type_id').references(() => storageTypes.id, { onDelete: 'restrict' }),
+    isStorageTypeOverridden: boolean('is_storage_type_overridden').notNull().default(false),
     isActive: boolean('is_active').notNull().default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -48,23 +50,8 @@ export const locations = commerceSchema.table(
     index('idx_locations_site').on(table.organizationId, table.siteId),
     index('idx_locations_parent').on(table.parentId),
     index('idx_locations_path').using('gist', table.path.asc()),
-    orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
+    index('idx_locations_storage_type').on(table.storageTypeId),
+    ...siteDocumentPolicies(),
   ],
 );
 

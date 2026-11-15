@@ -25,7 +25,7 @@ export class GoodsReceipt {
   status: string;
 
   @Field(() => Boolean)
-  isPublishable: boolean;
+  isPostable: boolean;
 
   @Field(() => Int)
   itemCount: number;
@@ -64,7 +64,7 @@ export class GoodsReceipt {
   notes: string | null;
 
   @Field(() => String, { nullable: true })
-  publishedAt: string | null;
+  postedAt: string | null;
 
   @Field(() => String)
   createdAt: string;

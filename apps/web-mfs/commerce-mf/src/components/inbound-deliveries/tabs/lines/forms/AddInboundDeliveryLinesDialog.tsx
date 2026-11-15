@@ -33,14 +33,15 @@ function toDeliverableLine(option: SelectOption): DeliverablePurchaseOrderLine {
     poNumber: String(additionals.poNumber ?? option.description ?? ''),
     uomSymbol: String(additionals.uomSymbol ?? ''),
     allowDecimal: additionals.allowDecimal === true,
-    orderedQty: Number(additionals.orderedQty ?? 0),
-    receivedQty: Number(additionals.receivedQty ?? 0),
+    uomQty: Number(additionals.uomQty ?? 0),
+    primaryUomQty: Number(additionals.primaryUomQty ?? 0),
     deliverableQty: Number(additionals.deliverableQty ?? 0),
+    deliverablePrimaryQty: Number(additionals.deliverablePrimaryQty ?? 0),
   };
 }
 
-// Puts open lines of the supplier's purchase orders at the site on the delivery in one batch, each with the quantity
-// coming — by default all that is left to deliver of it
+// Puts open lines of the supplier's confirmed purchase orders at the site on the delivery in one batch, each with the
+// quantity coming — by default all that is left to deliver of it
 export const AddInboundDeliveryLinesDialog: React.FC<AddInboundDeliveryLinesDialogProps> = ({
   mutations,
   deliveryId,
@@ -109,12 +110,10 @@ export const AddInboundDeliveryLinesDialog: React.FC<AddInboundDeliveryLinesDial
           return (
             <div key={field.id} className="flex items-start gap-3 rounded-lg border p-3">
               <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <span className="truncate font-medium text-sm">
-                  {line?.inventoryItemName ?? field.purchaseOrderItemId}
-                </span>
+                <span className="truncate font-medium text-sm">{line?.inventoryItemName}</span>
                 <span className="text-muted-foreground text-xs">
                   {line &&
-                    `${line.poNumber} · ${fmt.number(line.deliverableQty).primary}${unit} left to deliver of ${fmt.number(line.orderedQty).primary}${unit}`}
+                    `${line.poNumber} · ${fmt.number(line.deliverableQty).primary}${unit} left to deliver of ${fmt.number(line.uomQty).primary}${unit} ordered`}
                 </span>
               </div>
               <div className="w-40">

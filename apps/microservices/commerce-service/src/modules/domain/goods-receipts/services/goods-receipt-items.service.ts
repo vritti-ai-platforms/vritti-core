@@ -3,17 +3,17 @@ import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
-import { pluralize } from '@vritti/api-sdk/pluralize';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { convertMinor } from '@vritti/api-sdk/money';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { convertMinor } from '@/common/convert-minor';
-import { goodsReceiptItems, inventoryItems } from '@/db/schema';
+import { GoodsReceiptStatusValues, goodsReceiptItems, inventoryItems } from '@/db/schema';
 import { GoodsReceiptItemDto } from '../dto/entity/goods-receipt-item.dto';
 import { GoodsReceiptItemsCostDto } from '../dto/entity/goods-receipt-items-cost.dto';
 import type { GoodsReceiptTreeNode } from '../dto/entity/goods-receipt-tree.dto';
 import { PurchaseOrderReceiptItemFlagsDto } from '../dto/entity/purchase-order-receipt-item-flags.dto';
 import type { UpdateGoodsReceiptItemDto } from '../dto/request/update-goods-receipt-item.dto';
 import {
-  type GoodsReceiptDraftLine,
+  type GoodsReceiptItemContext,
   type GoodsReceiptItemRow,
   GoodsReceiptItemsDomainRepository,
 } from '../repositories/goods-receipt-items.repository';
@@ -64,13 +64,36 @@ export class GoodsReceiptItemsDomainService {
 
   // Returns one item of a receipt with its purchase order context and flags
   async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {
-    return GoodsReceiptItemDto.from(await this.itemsRepository.findOnReceiptOrThrow(goodsReceiptId, itemId));
+    return GoodsReceiptItemDto.from(await this.findOnReceiptOrThrow(goodsReceiptId, itemId));
+  }
+
+  // Loads an item of the given receipt, throwing when it is not on it
+  async findOnReceiptOrThrow(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemRow> {
+    const item = await this.itemsRepository.findOnReceipt(goodsReceiptId, itemId);
+    if (!item) throw new NotFoundException('Goods receipt item not found.');
+    return item;
+  }
+
+  // Loads what the item's lots, lines and serials are written against, throwing unless its receipt is a draft
+  async findDraftContextOrThrow(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemContext> {
+    const context = await this.itemsRepository.findContext(goodsReceiptId, itemId);
+    if (!context) throw new NotFoundException('Goods receipt item not found.');
+    if (context.receiptStatus === GoodsReceiptStatusValues.DRAFT) return context;
+    throw new BadRequestException({
+      label: 'Goods Receipt Posted',
+      detail: 'The goods receipt is posted, so its lots, lines and serials can no longer change.',
+    });
   }
 
   // Returns the flagged items of a purchase order's receipts, newest receipt first, each with its receipt and flags
   async findFlaggedForPurchaseOrder(purchaseOrderId: string): Promise<PurchaseOrderReceiptItemFlagsDto[]> {
     const items = await this.itemsRepository.findByPurchaseOrderId(purchaseOrderId);
     return items.map(PurchaseOrderReceiptItemFlagsDto.from).filter((item) => item.flags.length > 0);
+  }
+
+  // Returns every item of a receipt with its PO line and distribution progress, in entry order
+  findByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptItemRow[]> {
+    return this.itemsRepository.findByReceiptId(goodsReceiptId);
   }
 
   // Returns the inventory items counted on a receipt
@@ -90,12 +113,9 @@ export class GoodsReceiptItemsDomainService {
       const lineTotal = new Decimal(
         convertMinor(item.poTotalPrice, item.poCurrencyCode, leCurrencyCode, item.poExchangeRate).toString(),
       );
-      const primaryPerOrderUnit = new Decimal(item.poPrimaryUomQty).dividedBy(item.orderedQty);
-      const expectedPrimaryQty = new Decimal(item.poPrimaryUomQty).plus(
-        new Decimal(item.expectedFreeQty).times(primaryPerOrderUnit),
-      );
+      const expectedPrimaryQty = new Decimal(item.poPrimaryUomQty).plus(item.poFreePrimaryQty);
       const acceptedQty = new Decimal(item.receivedQty).minus(item.rejectedQuantity);
-      const acceptedPrimaryQty = acceptedQty.times(primaryPerOrderUnit);
+      const acceptedPrimaryQty = new Decimal(item.receivedPrimaryQty).minus(item.rejectedPrimaryQty);
       return {
         item,
         acceptedQty: acceptedQty.toNumber(),
@@ -116,23 +136,7 @@ export class GoodsReceiptItemsDomainService {
     );
   }
 
-  // Adds the open lines of another purchase order to a draft receipt, each at its open quantity
-  async addPurchaseOrderLines(
-    receipt: GoodsReceiptRow,
-    poNumber: string,
-    lines: GoodsReceiptDraftLine[],
-  ): Promise<SuccessResponseDto> {
-    await this.itemsRepository.insertMany(
-      lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: receipt.siteId })),
-    );
-    this.logger.log(`Added ${lines.length} lines of ${poNumber} to goods receipt ${receipt.grNumber}`);
-    return {
-      success: true,
-      message: `${pluralize('line', lines.length, true)} of "${poNumber}" added to goods receipt "${receipt.grNumber}".`,
-    };
-  }
-
-  // Changes the received or rejected quantity of an item on a draft receipt
+  // Changes the received or rejected quantity of an item on a draft receipt, in primary units too by its PO line's ratio
   async updateItem(
     receipt: GoodsReceiptRow,
     item: GoodsReceiptItemRow,
@@ -140,9 +144,18 @@ export class GoodsReceiptItemsDomainService {
   ): Promise<SuccessResponseDto> {
     const receivedQty = dto.receivedQty ?? item.receivedQty;
     const rejectedQuantity = dto.rejectedQuantity ?? item.rejectedQuantity;
-    this.itemsRepository.assertRejectedWithinReceived(receivedQty, rejectedQuantity);
+    this.assertRejectedWithinReceived(receivedQty, rejectedQuantity);
+    const primaryPerOrderUnit = new Decimal(item.poPrimaryUomQty).dividedBy(item.orderedQty);
 
-    await this.itemsRepository.update(item.id, { receivedQty, rejectedQuantity });
+    await this.itemsRepository.update(item.id, {
+      receivedQty,
+      rejectedQuantity,
+      receivedPrimaryQty: primaryPerOrderUnit.times(receivedQty).toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber(),
+      rejectedPrimaryQty: primaryPerOrderUnit
+        .times(rejectedQuantity)
+        .toDecimalPlaces(3, Decimal.ROUND_HALF_UP)
+        .toNumber(),
+    });
     this.logger.log(`Updated item ${item.id} on goods receipt ${receipt.grNumber}`);
     return { success: true, message: `"${item.inventoryItemName}" updated on goods receipt "${receipt.grNumber}".` };
   }
@@ -152,5 +165,15 @@ export class GoodsReceiptItemsDomainService {
     await this.itemsRepository.delete(item.id);
     this.logger.log(`Removed item ${item.id} from goods receipt ${receipt.grNumber}`);
     return { success: true, message: `"${item.inventoryItemName}" removed from goods receipt "${receipt.grNumber}".` };
+  }
+
+  // Rejects rejecting more than was received
+  private assertRejectedWithinReceived(receivedQty: number, rejectedQuantity: number): void {
+    if (rejectedQuantity <= receivedQty) return;
+    throw new BadRequestException({
+      label: 'Too Many Rejected',
+      detail: `Only ${receivedQty} were received, so no more than that can be rejected.`,
+      errors: [{ field: 'rejectedQuantity', message: 'More than received' }],
+    });
   }
 }

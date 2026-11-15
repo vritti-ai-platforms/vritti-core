@@ -80,6 +80,14 @@ export const LocationRoleValues = {
 };
 export type LocationRole = (typeof locationRoleEnum.enumValues)[number];
 
+export const storageCapacityCheckEnum = commerceSchema.enum('storage_capacity_check', ['NONE', 'WARN', 'BLOCK']);
+export type StorageCapacityCheck = (typeof storageCapacityCheckEnum.enumValues)[number];
+export const StorageCapacityCheckValues = {
+  NONE: 'NONE',
+  WARN: 'WARN',
+  BLOCK: 'BLOCK',
+} as const satisfies Record<StorageCapacityCheck, StorageCapacityCheck>;
+
 export const categoryRoleEnum = commerceSchema.enum('category_role', ['GROUP', 'CATEGORY']);
 export const CategoryRoleValues = {
   GROUP: 'GROUP' as const,
@@ -192,9 +200,7 @@ export const purchaseOrderStatusEnum = commerceSchema.enum('purchase_order_statu
   'DRAFT',
   'SENT',
   'CONFIRMED',
-  'PARTIALLY_RECEIVED',
-  'RECEIVED',
-  'CLOSED',
+  'DELIVERY_COMPLETED',
   'CANCELLED',
 ]);
 export const PurchaseOrderStatusValues = {
@@ -204,17 +210,41 @@ export const PurchaseOrderStatusValues = {
   DRAFT: 'DRAFT' as const,
   SENT: 'SENT' as const,
   CONFIRMED: 'CONFIRMED' as const,
-  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED' as const,
-  RECEIVED: 'RECEIVED' as const,
-  CLOSED: 'CLOSED' as const,
+  DELIVERY_COMPLETED: 'DELIVERY_COMPLETED' as const,
   CANCELLED: 'CANCELLED' as const,
 };
 export type PurchaseOrderStatus = (typeof purchaseOrderStatusEnum.enumValues)[number];
 
-export const goodsReceiptStatusEnum = commerceSchema.enum('goods_receipt_status', ['DRAFT', 'PUBLISHED']);
+export const purchaseOrderReceiptStatusEnum = commerceSchema.enum('purchase_order_receipt_status', [
+  'NOT_RECEIVED',
+  'PARTIAL',
+  'RECEIVED',
+]);
+export type PurchaseOrderReceiptStatus = (typeof purchaseOrderReceiptStatusEnum.enumValues)[number];
+export const PurchaseOrderReceiptStatusValues = {
+  NOT_RECEIVED: 'NOT_RECEIVED',
+  PARTIAL: 'PARTIAL',
+  RECEIVED: 'RECEIVED',
+} as const satisfies Record<PurchaseOrderReceiptStatus, PurchaseOrderReceiptStatus>;
+
+export const purchaseOrderInvoiceStatusEnum = commerceSchema.enum('purchase_order_invoice_status', [
+  'NOTHING_TO_INVOICE',
+  'TO_INVOICE',
+  'PARTIAL',
+  'INVOICED',
+]);
+export type PurchaseOrderInvoiceStatus = (typeof purchaseOrderInvoiceStatusEnum.enumValues)[number];
+export const PurchaseOrderInvoiceStatusValues = {
+  NOTHING_TO_INVOICE: 'NOTHING_TO_INVOICE',
+  TO_INVOICE: 'TO_INVOICE',
+  PARTIAL: 'PARTIAL',
+  INVOICED: 'INVOICED',
+} as const satisfies Record<PurchaseOrderInvoiceStatus, PurchaseOrderInvoiceStatus>;
+
+export const goodsReceiptStatusEnum = commerceSchema.enum('goods_receipt_status', ['DRAFT', 'POSTED']);
 export const GoodsReceiptStatusValues = {
   DRAFT: 'DRAFT' as const,
-  PUBLISHED: 'PUBLISHED' as const,
+  POSTED: 'POSTED' as const,
 };
 export type GoodsReceiptStatus = (typeof goodsReceiptStatusEnum.enumValues)[number];
 
@@ -236,10 +266,15 @@ export const InboundDeliveryStatusValues = {
 };
 export type InboundDeliveryStatus = (typeof inboundDeliveryStatusEnum.enumValues)[number];
 
-export const inboundDeliverySourceEnum = commerceSchema.enum('inbound_delivery_source', ['ANNOUNCED', 'RECEIPT']);
+export const inboundDeliverySourceEnum = commerceSchema.enum('inbound_delivery_source', [
+  'ANNOUNCED',
+  'GOODS_RECEIPT',
+  'SUPPLIER_INVOICE',
+]);
 export const InboundDeliverySourceValues = {
   ANNOUNCED: 'ANNOUNCED' as const,
-  RECEIPT: 'RECEIPT' as const,
+  GOODS_RECEIPT: 'GOODS_RECEIPT' as const,
+  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE' as const,
 };
 export type InboundDeliverySource = (typeof inboundDeliverySourceEnum.enumValues)[number];
 
@@ -254,6 +289,144 @@ export const SupplierInvoiceStatusValues = {
   CANCELLED: 'CANCELLED' as const,
 };
 export type SupplierInvoiceStatus = (typeof supplierInvoiceStatusEnum.enumValues)[number];
+
+export const supplierInvoiceSourceEnum = commerceSchema.enum('supplier_invoice_source', ['ENTERED', 'SELF_INVOICED']);
+export type SupplierInvoiceSource = (typeof supplierInvoiceSourceEnum.enumValues)[number];
+export const SupplierInvoiceSourceValues = {
+  ENTERED: 'ENTERED',
+  SELF_INVOICED: 'SELF_INVOICED',
+} as const satisfies Record<SupplierInvoiceSource, SupplierInvoiceSource>;
+
+export const supplierInvoicePaymentStatusEnum = commerceSchema.enum('supplier_invoice_payment_status', [
+  'UNPAID',
+  'PARTIAL',
+  'PAID',
+]);
+export type SupplierInvoicePaymentStatus = (typeof supplierInvoicePaymentStatusEnum.enumValues)[number];
+export const SupplierInvoicePaymentStatusValues = {
+  UNPAID: 'UNPAID',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID',
+} as const satisfies Record<SupplierInvoicePaymentStatus, SupplierInvoicePaymentStatus>;
+
+export const supplierInvoiceLineTypeEnum = commerceSchema.enum('supplier_invoice_line_type', ['ITEM', 'CHARGE']);
+export type SupplierInvoiceLineType = (typeof supplierInvoiceLineTypeEnum.enumValues)[number];
+export const SupplierInvoiceLineTypeValues = {
+  ITEM: 'ITEM',
+  CHARGE: 'CHARGE',
+} as const satisfies Record<SupplierInvoiceLineType, SupplierInvoiceLineType>;
+
+export const supplierInvoiceHoldCodeEnum = commerceSchema.enum('supplier_invoice_hold_code', [
+  'PRICE_DIFFERS',
+  'QTY_NOT_RECEIVED',
+  'INVOICED_MORE_THAN_ORDERED',
+  'FREE_SHORT',
+  'RATE_DIFFERS',
+  'QTY_NOT_RELEASED',
+  'SHORT_EXPIRY',
+]);
+export type SupplierInvoiceHoldCode = (typeof supplierInvoiceHoldCodeEnum.enumValues)[number];
+export const SupplierInvoiceHoldCodeValues = {
+  PRICE_DIFFERS: 'PRICE_DIFFERS',
+  QTY_NOT_RECEIVED: 'QTY_NOT_RECEIVED',
+  INVOICED_MORE_THAN_ORDERED: 'INVOICED_MORE_THAN_ORDERED',
+  FREE_SHORT: 'FREE_SHORT',
+  RATE_DIFFERS: 'RATE_DIFFERS',
+  QTY_NOT_RELEASED: 'QTY_NOT_RELEASED',
+  SHORT_EXPIRY: 'SHORT_EXPIRY',
+} as const satisfies Record<SupplierInvoiceHoldCode, SupplierInvoiceHoldCode>;
+
+export const supplierInvoiceHoldStatusEnum = commerceSchema.enum('supplier_invoice_hold_status', [
+  'OPEN',
+  'RELEASED',
+  'RESOLVED',
+]);
+export type SupplierInvoiceHoldStatus = (typeof supplierInvoiceHoldStatusEnum.enumValues)[number];
+export const SupplierInvoiceHoldStatusValues = {
+  OPEN: 'OPEN',
+  RELEASED: 'RELEASED',
+  RESOLVED: 'RESOLVED',
+} as const satisfies Record<SupplierInvoiceHoldStatus, SupplierInvoiceHoldStatus>;
+
+export const purchaseTypeEnum = commerceSchema.enum('purchase_type', [
+  'DIRECT_PURCHASE',
+  'DIRECT_RECEIPT',
+  'ORDER_INVOICE_WITH_GOODS',
+  'STANDARD',
+  'ANNOUNCED',
+  'PREPAID',
+  'SELF_INVOICING',
+]);
+export type PurchaseType = (typeof purchaseTypeEnum.enumValues)[number];
+export const PurchaseTypeValues = {
+  DIRECT_PURCHASE: 'DIRECT_PURCHASE',
+  DIRECT_RECEIPT: 'DIRECT_RECEIPT',
+  ORDER_INVOICE_WITH_GOODS: 'ORDER_INVOICE_WITH_GOODS',
+  STANDARD: 'STANDARD',
+  ANNOUNCED: 'ANNOUNCED',
+  PREPAID: 'PREPAID',
+  SELF_INVOICING: 'SELF_INVOICING',
+} as const satisfies Record<PurchaseType, PurchaseType>;
+
+export const purchaseStepEnum = commerceSchema.enum('purchase_step', [
+  'REQUESTING',
+  'QUOTING',
+  'SOURCING',
+  'PROCURING',
+]);
+export type PurchaseStep = (typeof purchaseStepEnum.enumValues)[number];
+export const PurchaseStepValues = {
+  REQUESTING: 'REQUESTING',
+  QUOTING: 'QUOTING',
+  SOURCING: 'SOURCING',
+  PROCURING: 'PROCURING',
+} as const satisfies Record<PurchaseStep, PurchaseStep>;
+
+export const purchaseStatusEnum = commerceSchema.enum('purchase_status', ['OPEN', 'COMPLETED', 'CANCELLED']);
+export type PurchaseStatus = (typeof purchaseStatusEnum.enumValues)[number];
+export const PurchaseStatusValues = {
+  OPEN: 'OPEN',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const satisfies Record<PurchaseStatus, PurchaseStatus>;
+
+export const purchaseLegStepEnum = commerceSchema.enum('purchase_leg_step', [
+  'SOURCING',
+  'APPROVAL',
+  'PURCHASE_ORDER',
+  'INBOUND_DELIVERY',
+  'GOODS_RECEIPT',
+  'RECEIVE_WITH_INVOICE',
+  'SUPPLIER_INVOICE',
+  'APPROVE_INVOICE',
+  'CLOSED',
+]);
+export type PurchaseLegStep = (typeof purchaseLegStepEnum.enumValues)[number];
+export const PurchaseLegStepValues = {
+  SOURCING: 'SOURCING',
+  APPROVAL: 'APPROVAL',
+  PURCHASE_ORDER: 'PURCHASE_ORDER',
+  INBOUND_DELIVERY: 'INBOUND_DELIVERY',
+  GOODS_RECEIPT: 'GOODS_RECEIPT',
+  RECEIVE_WITH_INVOICE: 'RECEIVE_WITH_INVOICE',
+  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE',
+  APPROVE_INVOICE: 'APPROVE_INVOICE',
+  CLOSED: 'CLOSED',
+} as const satisfies Record<PurchaseLegStep, PurchaseLegStep>;
+
+export const purchaseLegStatusEnum = commerceSchema.enum('purchase_leg_status', ['OPEN', 'CLOSED', 'CANCELLED']);
+export type PurchaseLegStatus = (typeof purchaseLegStatusEnum.enumValues)[number];
+export const PurchaseLegStatusValues = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
+  CANCELLED: 'CANCELLED',
+} as const satisfies Record<PurchaseLegStatus, PurchaseLegStatus>;
+
+export const purchaseItemSourceEnum = commerceSchema.enum('purchase_item_source', ['MANUAL']);
+export type PurchaseItemSource = (typeof purchaseItemSourceEnum.enumValues)[number];
+export const PurchaseItemSourceValues = {
+  MANUAL: 'MANUAL',
+} as const satisfies Record<PurchaseItemSource, PurchaseItemSource>;
 
 export const conversionStatusEnum = commerceSchema.enum('conversion_status', [
   'DRAFT',

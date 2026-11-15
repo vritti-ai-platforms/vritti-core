@@ -7,7 +7,7 @@ export const uomDimensions = commerceSchema.table(
   'uom_dimensions',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     description: text('description'),

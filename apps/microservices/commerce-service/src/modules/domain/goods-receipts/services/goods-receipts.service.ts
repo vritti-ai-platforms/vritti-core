@@ -8,6 +8,7 @@ import {
   type TableState,
 } from '@vritti/api-sdk/data-table';
 import { and, asc, desc, or } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type GoodsReceipt, GoodsReceiptStatusValues, goodsReceipts, inboundDeliveries, parties } from '@/db/schema';
@@ -21,6 +22,7 @@ import { type GoodsReceiptRow, GoodsReceiptsDomainRepository } from '../reposito
 export const MIN_SHELF_LIFE_DAYS = 180;
 
 export interface GoodsReceiptDraft {
+  purchaseId?: string | null;
   supplierId: string;
   inboundDeliveryId: string;
   siteId: string;
@@ -125,9 +127,41 @@ export class GoodsReceiptsDomainService {
     return { edges, pageInfo: { hasNextPage: hasMore, endCursor: edges.at(-1)?.cursor ?? null } };
   }
 
-  // Returns one goods receipt header with its supplier, delivery, purchase orders and publish readiness
+  // Returns one goods receipt header with its supplier, delivery, purchase orders and post readiness
   async findById(id: string): Promise<GoodsReceiptDto> {
-    return GoodsReceiptDto.from(await this.repository.findDetailOrThrow(id));
+    return GoodsReceiptDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Returns the receipts a purchase created, with their deliveries and post readiness
+  findForPurchase(purchaseId: string): Promise<GoodsReceiptRow[]> {
+    return this.repository.findForPurchase(purchaseId);
+  }
+
+  // Loads a receipt with its supplier, inbound delivery, purchase orders and post readiness, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<GoodsReceiptRow> {
+    const receipt = await this.repository.findDetail(id);
+    if (!receipt) throw new NotFoundException('Goods receipt not found.');
+    return receipt;
+  }
+
+  // Loads a receipt that is still a draft — the only state whose items, lots and lines may change
+  async findDraftOrThrow(id: string, label: string): Promise<GoodsReceiptRow> {
+    const receipt = await this.findDetailOrThrow(id);
+    if (receipt.status === GoodsReceiptStatusValues.DRAFT) return receipt;
+    throw new BadRequestException({
+      label,
+      detail: `"${receipt.grNumber}" is posted, so it can no longer change.`,
+    });
+  }
+
+  // Rejects posting a receipt until every item's accepted quantity is fully distributed to balanced lines
+  assertPostable(receipt: GoodsReceiptRow): void {
+    if (receipt.isPostable) return;
+    const detail =
+      receipt.itemCount === 0
+        ? `Add at least one item to "${receipt.grNumber}" before posting it.`
+        : 'Distribute the accepted quantity of every item to lines, and finish their serials, before posting.';
+    throw new BadRequestException({ label: 'Not Ready to Post', detail });
   }
 
   // Creates a draft receipt against an inbound delivery with its lines, in the caller's transaction
@@ -135,6 +169,7 @@ export class GoodsReceiptsDomainService {
     const grNumber = await this.repository.generateGrNumber();
     const receipt = await this.repository.create({
       grNumber,
+      purchaseId: draft.purchaseId ?? null,
       supplierId: draft.supplierId,
       inboundDeliveryId: draft.inboundDeliveryId,
       siteId: draft.siteId,
@@ -163,10 +198,10 @@ export class GoodsReceiptsDomainService {
     this.logger.log(`Updated the notes of goods receipt ${receipt.grNumber}`);
   }
 
-  // Marks a draft receipt published once its stock has landed
-  async markPublished(id: string): Promise<void> {
-    await this.repository.update(id, { status: GoodsReceiptStatusValues.PUBLISHED, publishedAt: new Date() });
-    this.logger.log(`Published goods receipt ${id}`);
+  // Marks a draft receipt posted once its stock has landed
+  async markPosted(id: string): Promise<void> {
+    await this.repository.update(id, { status: GoodsReceiptStatusValues.POSTED, postedAt: new Date() });
+    this.logger.log(`Posted goods receipt ${id}`);
   }
 
   // Deletes a draft goods receipt with everything counted on it

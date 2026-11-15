@@ -50,7 +50,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         header: 'Quant (Lot @ Location)',
         cell: ({ row }) => {
           const lot = row.original.quantLotNumber ? `${row.original.quantLotNumber} @ ` : '';
-          return `${lot}${row.original.quantLocationName ?? row.original.quantLocationId ?? '—'}`;
+          return `${lot}${row.original.quantLocationName ?? '—'}`;
         },
         enableSorting: false,
       },

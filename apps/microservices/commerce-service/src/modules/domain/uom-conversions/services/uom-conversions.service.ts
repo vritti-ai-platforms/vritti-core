@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { UomFactorLookup } from '../dto/entity/uom-factor-lookup.dto';
 import {
   type ConversionPair,
   UomConversionsDomainRepository,
@@ -16,6 +17,33 @@ export class UomConversionsDomainService {
   async toPrimaryUomQuantity(inventoryItemId: string, uomId: string, qty: number): Promise<number> {
     const factor = await this.resolveFactor(inventoryItemId, uomId);
     return roundQty(new Decimal(qty).times(factor));
+  }
+
+  // Resolves the "primary units per uom unit" factor of many (inventory item, uom) pairs in three reads; a pair with
+  // no per-item or global conversion is left out of the lookup
+  async resolveFactors(pairs: { inventoryItemId: string; uomId: string }[]): Promise<UomFactorLookup> {
+    const inventoryItemIds = [...new Set(pairs.map((pair) => pair.inventoryItemId))];
+    const [primaryUomIds, conversionRows] = await Promise.all([
+      this.repository.findInventoryItemPrimaryUomIds(inventoryItemIds),
+      this.repository.findInventoryItemConversions(inventoryItemIds),
+    ]);
+    const uomRows = await this.repository.findUoms([
+      ...new Set([...pairs.map((pair) => pair.uomId), ...primaryUomIds.values()]),
+    ]);
+
+    const conversions = new Map<string, Map<string, ConversionPair>>();
+    for (const row of conversionRows) {
+      const byUom = conversions.get(row.inventoryItemId) ?? new Map<string, ConversionPair>();
+      byUom.set(row.uomId, row);
+      conversions.set(row.inventoryItemId, byUom);
+    }
+
+    const factors = new Map<string, Decimal>();
+    for (const { inventoryItemId, uomId } of pairs) {
+      const factor = factorFromMaps(inventoryItemId, uomId, primaryUomIds, conversions, uomRows);
+      if (factor) factors.set(UomFactorLookup.key(inventoryItemId, uomId), factor);
+    }
+    return new UomFactorLookup(factors);
   }
 
   // Resolves the "primary units per uom unit" factor for an (inventory item, uom) pair.
@@ -80,15 +108,16 @@ function assertSharedBase(
   }
 }
 
-function _resolveFactorFromMaps(
+// Resolves a factor from pre-loaded maps without throwing: primary → 1, per-item conversion, else the global family
+function factorFromMaps(
   inventoryItemId: string,
   uomId: string,
   inventoryItemPrimaryUomIds: Map<string, string>,
   inventoryItemConversions: Map<string, Map<string, ConversionPair>>,
-  uomRows: Map<string, UomRow & { id: string }>,
-): Decimal {
+  uomRows: Map<string, UomRow>,
+): Decimal | undefined {
   const inventoryItemPrimaryUomId = inventoryItemPrimaryUomIds.get(inventoryItemId);
-  if (!inventoryItemPrimaryUomId) throw new NotFoundException(`Inventory item ${inventoryItemId} not found.`);
+  if (!inventoryItemPrimaryUomId) return undefined;
   if (inventoryItemPrimaryUomId === uomId) return new Decimal(1);
 
   const conversion = inventoryItemConversions.get(inventoryItemId)?.get(uomId);
@@ -96,10 +125,9 @@ function _resolveFactorFromMaps(
 
   const inventoryItemPrimaryUom = uomRows.get(inventoryItemPrimaryUomId);
   const targetUom = uomRows.get(uomId);
-  if (!inventoryItemPrimaryUom) {
-    throw new NotFoundException(`Inventory item primary UOM ${inventoryItemPrimaryUomId} not found.`);
+  if (!inventoryItemPrimaryUom || !targetUom) return undefined;
+  if (effectiveBaseId(inventoryItemPrimaryUom, inventoryItemPrimaryUomId) !== effectiveBaseId(targetUom, uomId)) {
+    return undefined;
   }
-  if (!targetUom) throw new NotFoundException(`UOM ${uomId} not found.`);
-  assertSharedBase(inventoryItemPrimaryUom, inventoryItemPrimaryUomId, targetUom, uomId, inventoryItemId);
   return globalPairToInventoryItemFactor(targetUom, inventoryItemPrimaryUom);
 }

@@ -32,14 +32,15 @@ export class LeInventoryItemsController {
     return this.service.findById(data.id);
   }
 
-  // The legal entity's suppliers carrying the item; the session's legal entity scopes the suppliers
+  // The legal entity's suppliers carrying the item, narrowed to one site's when the table's context picks one; the
+  // session's legal entity scopes the suppliers
   @MessagePattern({ cmd: 'le.inventoryItems.suppliers.table' })
   async suppliersTable(
     @Payload() data: { inventoryItemId: string } & TableState,
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.suppliers.table — inventoryItemId: ${inventoryItemId}`);
-    return this.supplierItemsService.findSuppliersForItem(inventoryItemId, null, state);
+    return this.supplierItemsService.findSuppliersForItemAtContextSite(inventoryItemId, state);
   }
 
   // The item's MRPs for the data table, read-only from a legal entity

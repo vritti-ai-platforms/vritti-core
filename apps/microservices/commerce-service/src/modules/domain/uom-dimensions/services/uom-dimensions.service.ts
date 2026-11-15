@@ -3,7 +3,7 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { UomDimensionDto } from '../dto/entity/uom-dimension.dto';
 import type { CreateUomDimensionDto } from '../dto/request/create-uom-dimension.dto';
 import type { UpdateUomDimensionDto } from '../dto/request/update-uom-dimension.dto';
@@ -32,16 +32,12 @@ export class UomDimensionsDomainService {
   // Returns paginated dimension options for the select component
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
     });

@@ -1,7 +1,5 @@
-import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
 import { AddInboundDeliveryLinesDto } from '@commerce/inbound-deliveries/dto/request/add-inbound-delivery-lines.dto';
 import { CreateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/create-inbound-delivery.dto';
-import { ReceiveInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/receive-inbound-delivery.dto';
 import { SetInboundDeliveryStatusDto } from '@commerce/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import { UpdateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import { UpdateInboundDeliveryLineDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
@@ -12,7 +10,6 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Pat
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { SITE_GOODS_RECEIPTS } from '@vritti/commerce-permissions/goods-receipts';
 import { SITE_INBOUND_DELIVERIES } from '@vritti/commerce-permissions/inbound-deliveries';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
@@ -23,7 +20,6 @@ import {
   ApiFindById,
   ApiFindForTable,
   ApiLinesTable,
-  ApiReceive,
   ApiRemoveLine,
   ApiSetStatus,
   ApiUpdate,
@@ -85,19 +81,6 @@ export class InboundDeliveriesGatewayController {
   setStatus(@Param('id') id: string, @Body() dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/inbound-deliveries/${id}/status`);
     return this.service.setStatus(id, dto);
-  }
-
-  // Creates a draft goods receipt pre-filled with the inbound delivery's open lines
-  @Post(':id/receive')
-  @RequirePermission(SITE_GOODS_RECEIPTS.add)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiReceive()
-  receive(
-    @Param('id') id: string,
-    @Body() dto: ReceiveInboundDeliveryDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log(`POST /commerce-api/inbound-deliveries/${id}/receive`);
-    return this.service.receive(id, dto);
   }
 
   // Deletes a planned inbound delivery without lines

@@ -19,6 +19,12 @@ export class InboundDeliveryLineResponseDto {
   @ApiProperty({ description: 'Status of the purchase order' })
   poStatus: string;
 
+  @ApiProperty({
+    description: 'Receipt status of the purchase order',
+    enum: ['NOT_RECEIVED', 'PARTIAL', 'RECEIVED'],
+  })
+  poReceiptStatus: string;
+
   @ApiProperty({ description: 'Inventory item ordered' })
   inventoryItemId: string;
 
@@ -34,19 +40,25 @@ export class InboundDeliveryLineResponseDto {
   @ApiProperty({ description: 'Whether the unit takes fractional quantities' })
   allowDecimal: boolean;
 
-  @ApiProperty({ description: 'Ordered on the PO line, paid and free together' })
+  @ApiProperty({ description: 'Due on the PO line: ordered + free − cancelled' })
   orderedQty: number;
 
-  @ApiProperty({ description: 'Accepted on all published receipts of the PO line' })
+  @ApiProperty({ description: 'Accepted on all posted receipts of the PO line' })
   poReceivedQty: number;
 
-  @ApiProperty({ description: 'Quantity announced on this delivery' })
+  @ApiProperty({ description: 'Quantity on this delivery' })
   quantity: number;
 
-  @ApiProperty({ description: 'Accepted on published receipts against this delivery' })
+  @ApiProperty({ description: "Quantity on this delivery, in the item's primary unit" })
+  primaryUomQty: number;
+
+  @ApiProperty({ description: 'Accepted on posted receipts of this delivery line' })
   receivedOnDeliveryQty: number;
 
-  @ApiProperty({ description: 'Still to receive against this delivery' })
+  @ApiProperty({ description: "Accepted on posted receipts of this delivery line, in the item's primary unit" })
+  receivedOnDeliveryPrimaryQty: number;
+
+  @ApiProperty({ description: 'Delivery quantity less accepted on this delivery line' })
   openQty: number;
 
   @ApiProperty({

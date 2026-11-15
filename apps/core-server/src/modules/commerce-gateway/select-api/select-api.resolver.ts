@@ -89,6 +89,14 @@ export class SelectApiResolver {
     });
   }
 
+  @Query(() => SelectOptions, { name: 'purchasesOptions' })
+  purchasesOptions(
+    @Args('input', { type: () => SelectOptionsInput, nullable: true }) input?: SelectOptionsInput,
+  ): Promise<SelectOptions> {
+    this.logger.log('QUERY purchasesOptions');
+    return this.nats.send<SelectOptions>('commerce', 'select.purchases', input ?? {});
+  }
+
   @Query(() => SelectOptions, { name: 'purchaseOrderItemsOptions' })
   purchaseOrderItemsOptions(
     @Args('purchaseOrderId', { type: () => String }) purchaseOrderId: string,

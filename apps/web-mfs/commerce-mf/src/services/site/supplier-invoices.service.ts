@@ -3,6 +3,9 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddSupplierInvoiceLineVars,
   CreateSupplierInvoicePayload,
+  InvoiceableGoodsReceipt,
+  InvoiceableGoodsReceiptsParams,
+  ReleaseSupplierInvoiceHoldVars,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
   SupplierInvoiceDetail,
@@ -13,23 +16,29 @@ import type {
 } from '@/schemas/supplier-invoices';
 
 const supplierBase = (supplierId: string) => `commerce-api/site/suppliers/${supplierId}/invoices`;
-const purchaseOrderBase = (purchaseOrderId: string) => `commerce-api/purchase-orders/${purchaseOrderId}/invoices`;
 
 // Fetches the supplier's invoices at the session site
 export function getSupplierInvoicesTable(supplierId: string): Promise<SupplierInvoicesTableResponse> {
   return axios.get<SupplierInvoicesTableResponse>(`${supplierBase(supplierId)}/table`).then((r) => r.data);
 }
 
-// Fetches one of the supplier's invoices with its lines, flags and linked receipts
+// Fetches one of the supplier's invoices with its lines and holds
 export function getSupplierInvoice(supplierId: string, invoiceId: string): Promise<SupplierInvoiceDetail> {
   return axios.get<SupplierInvoiceDetail>(`${supplierBase(supplierId)}/${invoiceId}`).then((r) => r.data);
 }
 
-// Records a draft invoice billing one of the session site's purchase orders from the supplier
-export function createSupplierInvoice(
+// Fetches the supplier's posted receipt batches at the session site with quantity left to invoice, oldest first
+export function getInvoiceableGoodsReceipts(
   supplierId: string,
-  data: CreateSupplierInvoicePayload,
-): Promise<SupplierInvoice> {
+  params: InvoiceableGoodsReceiptsParams,
+): Promise<InvoiceableGoodsReceipt[]> {
+  return axios
+    .get<InvoiceableGoodsReceipt[]>(`${supplierBase(supplierId)}/invoiceable-goods-receipts`, { params })
+    .then((r) => r.data);
+}
+
+// Records a draft invoice from the supplier at the session site; the supplier travels in the URL, not the body
+export function createSupplierInvoice({ supplierId, ...data }: CreateSupplierInvoicePayload): Promise<SupplierInvoice> {
   return axios.post<CreateResponse<SupplierInvoice>>(supplierBase(supplierId), data).then((r) => r.data.data);
 }
 
@@ -38,12 +47,12 @@ export function updateSupplierInvoice({ invoice, data }: UpdateSupplierInvoiceVa
   return axios.patch<SuccessResponse>(`${supplierBase(invoice.supplierId)}/${invoice.id}`, data).then((r) => r.data);
 }
 
-// Posts a draft invoice through its supplier, setting the final cost of the stock it bills
+// Posts a draft invoice through its supplier, setting the final cost of the stock it covers
 export function postSupplierInvoice(invoice: SupplierInvoiceRef): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${supplierBase(invoice.supplierId)}/${invoice.id}/post`).then((r) => r.data);
 }
 
-// Adds a billed line to an invoice through its supplier
+// Adds an item or charge line to an invoice through its supplier
 export function addSupplierInvoiceLine({ invoice, data }: AddSupplierInvoiceLineVars): Promise<SuccessResponse> {
   return axios
     .post<SuccessResponse>(`${supplierBase(invoice.supplierId)}/${invoice.id}/lines`, data)
@@ -71,15 +80,20 @@ export function removeSupplierInvoiceLine({
     .then((r) => r.data);
 }
 
-// Fetches the invoices billing a purchase order of the session site
-export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
-  return axios.get<SupplierInvoicesTableResponse>(`${purchaseOrderBase(purchaseOrderId)}/table`).then((r) => r.data);
+// Releases an open hold on an invoice through its supplier, recording why
+export function releaseSupplierInvoiceHold({
+  invoice,
+  holdId,
+  reason,
+}: ReleaseSupplierInvoiceHoldVars): Promise<SuccessResponse> {
+  return axios
+    .post<SuccessResponse>(`${supplierBase(invoice.supplierId)}/${invoice.id}/holds/${holdId}/release`, { reason })
+    .then((r) => r.data);
 }
 
-// Records a draft invoice billing the purchase order; the order travels in the URL, not the body
-export function createPurchaseOrderInvoice({
-  purchaseOrderId,
-  ...data
-}: CreateSupplierInvoicePayload): Promise<SupplierInvoice> {
-  return axios.post<CreateResponse<SupplierInvoice>>(purchaseOrderBase(purchaseOrderId), data).then((r) => r.data.data);
+// Fetches the invoices with a line on a purchase order of the session site
+export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
+  return axios
+    .get<SupplierInvoicesTableResponse>(`commerce-api/purchase-orders/${purchaseOrderId}/invoices/table`)
+    .then((r) => r.data);
 }

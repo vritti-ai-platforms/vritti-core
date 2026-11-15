@@ -68,7 +68,7 @@ export interface CategoryData {
 export interface CategoryItemRow {
   id: string;
   name: string;
-  code: string;
+  sku: string;
   type: InventoryItemType;
   tracking: InventoryTracking;
   uomSymbol: string | null;

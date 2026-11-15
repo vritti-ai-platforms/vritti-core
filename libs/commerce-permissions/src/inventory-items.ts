@@ -16,11 +16,23 @@ export const ORG_INVENTORY_ITEMS = {
     edit: 'org.inventory-items.mrp.edit',
     delete: 'org.inventory-items.mrp.delete',
   },
+  storageTypes: {
+    view: 'org.inventory-items.storage-types.view',
+    add: 'org.inventory-items.storage-types.add',
+    edit: 'org.inventory-items.storage-types.edit',
+    delete: 'org.inventory-items.storage-types.delete',
+  },
 } as const;
 
 export const LE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'le.inventory-items.view',
+  siteStockLevels: {
+    view: 'le.inventory-items.site-stock-levels.view',
+    add: 'le.inventory-items.site-stock-levels.add',
+    edit: 'le.inventory-items.site-stock-levels.edit',
+    delete: 'le.inventory-items.site-stock-levels.delete',
+  },
   prices: {
     view: 'le.inventory-items.prices.view',
   },
@@ -35,8 +47,12 @@ export const LE_INVENTORY_ITEMS = {
 export const SITE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'site.inventory-items.view',
-  enable: 'site.inventory-items.enable',
-  edit: 'site.inventory-items.edit',
+  stockLevels: {
+    view: 'site.inventory-items.stock-levels.view',
+    add: 'site.inventory-items.stock-levels.add',
+    edit: 'site.inventory-items.stock-levels.edit',
+    delete: 'site.inventory-items.stock-levels.delete',
+  },
   prices: {
     view: 'site.inventory-items.prices.view',
   },
@@ -51,9 +67,4 @@ export const SITE_INVENTORY_ITEMS = {
     edit: 'site.inventory-items.locations.edit',
     delete: 'site.inventory-items.locations.delete',
   },
-} as const;
-
-export const SITE_GROUP_INVENTORY_ITEMS = {
-  featureCode: 'inventory-items',
-  view: 'site-group.inventory-items.view',
 } as const;

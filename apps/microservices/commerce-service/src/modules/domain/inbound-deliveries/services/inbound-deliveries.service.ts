@@ -2,26 +2,38 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   type InboundDelivery,
+  type InboundDeliverySource,
   InboundDeliverySourceValues,
   type InboundDeliveryStatus,
+  InboundDeliveryStatusValues,
   inboundDeliveries,
   parties,
 } from '@/db/schema';
 import { InboundDeliveryDto } from '../dto/entity/inbound-delivery.dto';
 import type { CreateInboundDeliveryDto } from '../dto/request/create-inbound-delivery.dto';
 import type { UpdateInboundDeliveryDto } from '../dto/request/update-inbound-delivery.dto';
-import type { OpenPurchaseOrderLine } from '../repositories/deliverable-purchase-order-items.repository';
 import {
   InboundDeliveriesDomainRepository,
-  type InboundDeliveryNote,
+  type InboundDeliveryReceiptProgress,
   type InboundDeliveryRow,
-  type ReceiptDeliveryDraft,
 } from '../repositories/inbound-deliveries.repository';
-import { InboundDeliveryLinesDomainRepository } from '../repositories/inbound-delivery-lines.repository';
+
+export interface PurchaseDeliveryDraft {
+  purchaseId: string;
+  supplierId: string;
+  siteId: string;
+  source: InboundDeliverySource;
+  expectedDeliveryDate: string;
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  supplierDeliveryNoteNumber?: string | null;
+  supplierDeliveryNoteDate?: string | null;
+}
 
 @Injectable()
 export class InboundDeliveriesDomainService {
@@ -48,11 +60,23 @@ export class InboundDeliveriesDomainService {
     supplierDeliveryNoteDate: { column: inboundDeliveries.supplierDeliveryNoteDate, type: 'string' },
     createdAt: { column: inboundDeliveries.createdAt, type: 'string' },
   };
+  private static readonly STATUS_TRANSITIONS: Record<InboundDeliveryStatus, InboundDeliveryStatus[]> = {
+    [InboundDeliveryStatusValues.PLANNED]: [
+      InboundDeliveryStatusValues.IN_TRANSIT,
+      InboundDeliveryStatusValues.ARRIVED,
+      InboundDeliveryStatusValues.CANCELLED,
+    ],
+    [InboundDeliveryStatusValues.IN_TRANSIT]: [
+      InboundDeliveryStatusValues.ARRIVED,
+      InboundDeliveryStatusValues.CANCELLED,
+    ],
+    [InboundDeliveryStatusValues.ARRIVED]: [InboundDeliveryStatusValues.CANCELLED],
+    [InboundDeliveryStatusValues.PARTIALLY_RECEIVED]: [],
+    [InboundDeliveryStatusValues.RECEIVED]: [],
+    [InboundDeliveryStatusValues.CANCELLED]: [],
+  };
 
-  constructor(
-    private readonly repository: InboundDeliveriesDomainRepository,
-    private readonly linesRepository: InboundDeliveryLinesDomainRepository,
-  ) {}
+  constructor(private readonly repository: InboundDeliveriesDomainRepository) {}
 
   // Returns one page of inbound deliveries, only those carrying a line of the purchase order when one is given
   async findForTable(
@@ -77,17 +101,24 @@ export class InboundDeliveriesDomainService {
 
   // Returns one inbound delivery with its supplier, purchase orders, receipts and what may still happen to it
   async findById(id: string): Promise<InboundDeliveryDto> {
-    return InboundDeliveryDto.from(await this.repository.findDetailOrThrow(id));
+    return InboundDeliveryDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Loads a delivery with its supplier, lines, purchase orders, receipts and what may still happen to it, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<InboundDeliveryRow> {
+    const delivery = await this.repository.findDetail(id);
+    if (!delivery) throw new NotFoundException('Inbound delivery not found.');
+    return delivery;
   }
 
   // Creates a planned delivery of one supplier at the session site, without lines yet, with the supplier's delivery note when it is known
   async create(dto: CreateInboundDeliveryDto): Promise<CreateResponseDto<InboundDeliveryDto>> {
-    this.repository.assertDeliveryNoteDate(
+    this.assertDeliveryNoteDate(
       InboundDeliverySourceValues.ANNOUNCED,
       dto.supplierDeliveryNoteDate,
       dto.expectedDeliveryDate,
     );
-    await this.repository.assertDeliveryNoteAvailable(dto.supplierId, dto.supplierDeliveryNoteNumber);
+    await this.assertDeliveryNoteAvailable(dto.supplierId, dto.supplierDeliveryNoteNumber);
     const deliveryNumber = await this.repository.generateDeliveryNumber();
     const created = await this.repository.create({
       supplierId: dto.supplierId,
@@ -108,47 +139,73 @@ export class InboundDeliveriesDomainService {
     };
   }
 
-  // Returns the site's announced deliveries a goods receipt can be created from, by delivery number
+  // Creates a purchase's delivery of one supplier at the purchase's site, without lines yet, in the caller's transaction;
+  // an ANNOUNCED one is planned, one created behind a receipt or invoice has already arrived
+  async createForPurchase(draft: PurchaseDeliveryDraft): Promise<InboundDelivery> {
+    this.assertDeliveryNoteDate(draft.source, draft.supplierDeliveryNoteDate, draft.expectedDeliveryDate);
+    await this.assertDeliveryNoteAvailable(draft.supplierId, draft.supplierDeliveryNoteNumber);
+    const deliveryNumber = await this.repository.generateDeliveryNumber();
+    const created = await this.repository.create({
+      purchaseId: draft.purchaseId,
+      supplierId: draft.supplierId,
+      siteId: draft.siteId,
+      source: draft.source,
+      status:
+        draft.source === InboundDeliverySourceValues.ANNOUNCED
+          ? InboundDeliveryStatusValues.PLANNED
+          : InboundDeliveryStatusValues.ARRIVED,
+      deliveryNumber,
+      expectedDeliveryDate: draft.expectedDeliveryDate,
+      carrier: draft.carrier ?? null,
+      trackingNumber: draft.trackingNumber ?? null,
+      supplierDeliveryNoteNumber: draft.supplierDeliveryNoteNumber ?? null,
+      supplierDeliveryNoteDate: draft.supplierDeliveryNoteDate ?? null,
+    });
+    this.logger.log(`Created ${draft.source} inbound delivery ${deliveryNumber} for purchase ${draft.purchaseId}`);
+    return created;
+  }
+
+  // Returns the deliveries a purchase created, with their receipts and what may still happen to them
+  findForPurchase(purchaseId: string): Promise<InboundDeliveryRow[]> {
+    return this.repository.findForPurchase(purchaseId);
+  }
+
+  // Deletes a delivery a purchase created behind a receipt or invoice once no receipt names it, with its lines, in the
+  // caller's transaction
+  async deleteForPurchase(delivery: Pick<InboundDeliveryRow, 'id' | 'deliveryNumber' | 'source'>): Promise<void> {
+    if (delivery.source === InboundDeliverySourceValues.ANNOUNCED) {
+      throw new ConflictException({
+        label: 'Cannot Delete',
+        detail: `"${delivery.deliveryNumber}" was entered in Inbound Deliveries, so it is cancelled there instead.`,
+      });
+    }
+    await this.repository.delete(delivery.id);
+    this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id}) of its purchase`);
+  }
+
+  // Returns the site's ANNOUNCED inbound deliveries a goods receipt can be created from, by delivery number
   findForSelectReceivable(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelectReceivable({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'deliveryNumber',
       description: query.descriptionKey || 'displayName',
       additionalKeys: query.additionalKeys,
-      search: query.search,
       searchKeys: ['deliveryNumber', 'displayName'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderBy: { expectedDeliveryDate: 'asc', deliveryNumber: 'asc' },
     });
   }
 
-  // Creates the arrived delivery a goods receipt without an announced delivery stands on, carrying the receipt's lines
-  async createFromReceipt(
-    draft: ReceiptDeliveryDraft,
-    receivedDate: string,
-    timezone: string,
-    lines: OpenPurchaseOrderLine[],
-  ): Promise<InboundDelivery> {
-    const delivery = await this.repository.createFromReceipt(draft, receivedDate, timezone);
-    await this.linesRepository.insertMany(
-      lines.map((line) => ({
-        inboundDeliveryId: delivery.id,
-        purchaseOrderItemId: line.purchaseOrderItemId,
-        quantity: line.quantity,
-      })),
-    );
-    this.logger.log(
-      `Created inbound delivery ${delivery.deliveryNumber} from a goods receipt with ${lines.length} lines`,
-    );
-    return delivery;
-  }
-
-  // Changes the expected date, carrier, tracking number, supplier's delivery note or notes of a delivery that is not yet received or cancelled
+  // Changes the expected date, carrier, tracking number, supplier's delivery note or notes of a delivery that is not yet
+  // received or cancelled, keeping the supplier's delivery note unique and not dated after the delivery
   async update(delivery: InboundDeliveryRow, dto: UpdateInboundDeliveryDto): Promise<SuccessResponseDto> {
-    this.repository.assertEditable(delivery, 'Cannot Edit Delivery');
+    this.assertEditable(delivery, 'Cannot Edit Delivery');
+    this.assertDeliveryNoteDate(
+      delivery.source,
+      dto.supplierDeliveryNoteDate === undefined ? delivery.supplierDeliveryNoteDate : dto.supplierDeliveryNoteDate,
+      dto.expectedDeliveryDate ?? delivery.expectedDeliveryDate,
+    );
+    await this.assertDeliveryNoteAvailable(delivery.supplierId, dto.supplierDeliveryNoteNumber, delivery.id);
     await this.repository.update(delivery.id, {
       expectedDeliveryDate: dto.expectedDeliveryDate,
       carrier: dto.carrier,
@@ -161,38 +218,140 @@ export class InboundDeliveriesDomainService {
     return { success: true, message: `Inbound delivery "${delivery.deliveryNumber}" updated successfully.` };
   }
 
-  // Changes the supplier's delivery note on the delivery a draft goods receipt created, in the caller's transaction
-  async updateNoteFromReceipt(id: string, note: Partial<InboundDeliveryNote>): Promise<void> {
-    await this.repository.update(id, note);
-    this.logger.log(`Updated the supplier's delivery note of inbound delivery ${id} from its goods receipt`);
-  }
-
   // Moves a delivery along its manual workflow: in transit, arrived, or cancelled while nothing is received against it
   async setStatus(delivery: InboundDeliveryRow, status: InboundDeliveryStatus): Promise<SuccessResponseDto> {
-    this.repository.assertStatusChange(delivery, status);
+    this.assertStatusChange(delivery, status);
     await this.repository.update(delivery.id, { status });
     this.logger.log(`Inbound delivery ${delivery.deliveryNumber} status → ${status}`);
     return { success: true, message: `Inbound delivery "${delivery.deliveryNumber}" status updated to ${status}.` };
   }
 
-  // Moves a delivery to received or partially received from what its published goods receipts accepted
+  // Moves a delivery a posted receipt counts to received once every line is fully accepted against it, else to
+  // partially received; a delivery a purchase created behind its receipt is received with that receipt
   async syncReceiptStatus(id: string): Promise<void> {
-    const moved = await this.repository.syncReceiptStatus(id);
-    if (moved) this.logger.log(`Inbound delivery ${moved.deliveryNumber} status → ${moved.status} from its receipts`);
-  }
-
-  // Deletes the delivery a draft goods receipt created, with its lines, once the receipt is gone
-  async deleteFromReceipt(id: string): Promise<void> {
-    await this.repository.delete(id);
-    this.logger.log(`Deleted inbound delivery ${id} with its goods receipt`);
+    const progress = await this.repository.findReceiptProgress(id);
+    if (!progress || progress.status === InboundDeliveryStatusValues.CANCELLED) return;
+    const nextStatus = this.receiptStatusOf(progress);
+    if (nextStatus === progress.status) return;
+    await this.repository.update(progress.id, { status: nextStatus });
+    this.logger.log(`Inbound delivery ${progress.deliveryNumber} status → ${nextStatus} from its receipts`);
   }
 
   // Deletes a planned delivery that has no lines and no goods receipts
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const delivery = await this.repository.findDetailOrThrow(id);
-    this.repository.assertDeletable(delivery);
+  async delete(delivery: InboundDeliveryRow): Promise<SuccessResponseDto> {
+    this.assertDeletable(delivery);
     await this.repository.delete(delivery.id);
     this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id})`);
     return { success: true, message: `Inbound delivery "${delivery.deliveryNumber}" deleted successfully.` };
+  }
+
+  // Rejects a change to a delivery's date, lines or details once it is received or cancelled, or when a purchase created it
+  assertEditable(
+    delivery: Pick<InboundDeliveryRow, 'deliveryNumber' | 'status' | 'source' | 'isEditable'>,
+    label: string,
+  ): void {
+    if (delivery.isEditable) return;
+    const detail =
+      delivery.source === InboundDeliverySourceValues.ANNOUNCED
+        ? `"${delivery.deliveryNumber}" is ${delivery.status}, so it can no longer change.`
+        : `"${delivery.deliveryNumber}" was created by its purchase. Change it on that purchase.`;
+    throw new BadRequestException({ label, detail });
+  }
+
+  // Rejects receiving a delivery that is received, cancelled, created by a purchase, already has a draft receipt, or has
+  // nothing left to receive
+  assertReceivable(
+    delivery: Pick<
+      InboundDeliveryRow,
+      'deliveryNumber' | 'status' | 'source' | 'isEditable' | 'draftGoodsReceiptId' | 'canReceive'
+    >,
+  ): void {
+    this.assertEditable(delivery, 'Cannot Receive');
+    if (delivery.draftGoodsReceiptId) {
+      throw new ConflictException({
+        label: 'Draft Receipt Exists',
+        detail: `A draft goods receipt for "${delivery.deliveryNumber}" is already open. Post or delete it before receiving again.`,
+      });
+    }
+    if (delivery.canReceive) return;
+    throw new BadRequestException({
+      label: 'Nothing Left to Receive',
+      detail: `Every line of "${delivery.deliveryNumber}" is fully received.`,
+    });
+  }
+
+  // Derives the status a delivery's posted receipts give it, keeping its status while no receipt is posted
+  private receiptStatusOf(progress: InboundDeliveryReceiptProgress): InboundDeliveryStatus {
+    if (!progress.hasPostedReceipt) return progress.status;
+    if (progress.source !== InboundDeliverySourceValues.ANNOUNCED) return InboundDeliveryStatusValues.RECEIVED;
+    if (!progress.hasShortLine) return InboundDeliveryStatusValues.RECEIVED;
+    return InboundDeliveryStatusValues.PARTIALLY_RECEIVED;
+  }
+
+  // Rejects a supplier delivery note number already on another non-cancelled delivery of the supplier
+  private async assertDeliveryNoteAvailable(
+    supplierId: string,
+    noteNumber: string | null | undefined,
+    excludeDeliveryId?: string,
+  ): Promise<void> {
+    if (!noteNumber) return;
+    const takenBy = await this.repository.findDeliveryNumberByNote(supplierId, noteNumber, excludeDeliveryId);
+    if (!takenBy) return;
+    throw new ConflictException({
+      label: 'Delivery Note Already Recorded',
+      detail: `The supplier's delivery note "${noteNumber}" is already recorded on inbound delivery "${takenBy}".`,
+      errors: [{ field: 'supplierDeliveryNoteNumber', message: 'Already on another delivery' }],
+    });
+  }
+
+  // Rejects a supplier delivery note dated after the day an inbound delivery is expected
+  private assertDeliveryNoteDate(
+    source: InboundDeliverySource,
+    noteDate: string | null | undefined,
+    expectedDeliveryDate: string,
+  ): void {
+    if (source !== InboundDeliverySourceValues.ANNOUNCED) return;
+    if (!noteDate || noteDate <= expectedDeliveryDate) return;
+    throw new BadRequestException({
+      label: 'Delivery Note Date Too Late',
+      detail: `An inbound delivery's note cannot be dated after the day it is expected (${expectedDeliveryDate}).`,
+      errors: [{ field: 'supplierDeliveryNoteDate', message: 'After the expected delivery date' }],
+    });
+  }
+
+  // Rejects a status the user may not move the delivery to: forward from planned through in transit to arrived, or
+  // cancelled while nothing is received against it
+  private assertStatusChange(
+    delivery: Pick<InboundDeliveryRow, 'deliveryNumber' | 'status' | 'source' | 'isEditable' | 'canCancel'>,
+    status: InboundDeliveryStatus,
+  ): void {
+    if (delivery.source !== InboundDeliverySourceValues.ANNOUNCED)
+      this.assertEditable(delivery, 'Cannot Change Status');
+    const allowedNext = InboundDeliveriesDomainService.STATUS_TRANSITIONS[delivery.status];
+    if (!allowedNext.includes(status)) {
+      throw new BadRequestException({
+        label: 'Cannot Change Status',
+        detail: `A ${delivery.status} inbound delivery cannot move to ${status}.`,
+        errors: [{ field: 'status', message: `Not allowed from ${delivery.status}` }],
+      });
+    }
+    if (status === InboundDeliveryStatusValues.CANCELLED && !delivery.canCancel) {
+      throw new BadRequestException({
+        label: 'Cannot Cancel',
+        detail: `A goods receipt is recorded against "${delivery.deliveryNumber}". Delete its draft receipts first; a delivery with posted receipts stays.`,
+      });
+    }
+  }
+
+  // Rejects deleting a delivery unless it is planned, has no lines and no goods receipt names it
+  private assertDeletable(
+    delivery: Pick<InboundDeliveryRow, 'deliveryNumber' | 'status' | 'lineCount' | 'canDelete'>,
+  ): void {
+    if (delivery.canDelete) return;
+    const hasLinesToRemove = delivery.status === InboundDeliveryStatusValues.PLANNED && delivery.lineCount > 0;
+    const detail = hasLinesToRemove
+      ? `Remove the lines of "${delivery.deliveryNumber}" before deleting it, or cancel it instead.`
+      : `Only a planned inbound delivery without lines or goods receipts can be deleted. Cancel "${delivery.deliveryNumber}" instead.`;
+    throw new BadRequestException({ label: 'Cannot Delete', detail });
   }
 }

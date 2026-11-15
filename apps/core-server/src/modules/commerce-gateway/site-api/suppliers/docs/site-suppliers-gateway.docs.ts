@@ -1,6 +1,8 @@
 import { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
+import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
+import { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
 import {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -15,10 +17,26 @@ export function ApiFindForTableSiteSupplierInvoices() {
     ApiOperation({
       summary: "List a supplier's invoices at the site",
       description:
-        "Returns a page of the supplier's invoices at the session site with their flag counts, using the user's saved table state.",
+        "Returns a page of the supplier's invoices at the session site with the purchase orders their lines invoice and their open hold counts, using the user's saved table state.",
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiResponse({ status: 200, description: 'Supplier invoices retrieved.', type: SupplierInvoiceTableResponseDto }),
+  );
+}
+
+export function ApiFindSiteSupplierInvoiceableGoodsReceipts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "List a supplier's receipts still to invoice at the site",
+      description:
+        "Returns the posted receipt lots (or receipt items without lots) of the supplier's purchase orders at the session site with primary quantity left to invoice, oldest receipt first — the invoice line picker.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiResponse({
+      status: 200,
+      description: 'Invoiceable goods receipts retrieved.',
+      type: [InvoiceableGoodsReceiptResponseDto],
+    }),
   );
 }
 
@@ -26,7 +44,8 @@ export function ApiFindSiteSupplierInvoiceById() {
   return applyDecorators(
     ApiOperation({
       summary: "Get one of a supplier's invoices",
-      description: 'Returns the invoice with its lines, their match flags and the received stock each line bills.',
+      description:
+        'Returns the invoice with its item and charge lines, the receipt lot each item line invoices and every hold.',
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
@@ -40,12 +59,16 @@ export function ApiCreateSiteSupplierInvoice() {
     ApiOperation({
       summary: 'Create a supplier invoice at the site',
       description:
-        "Records a draft invoice billing one of the site's confirmed purchase orders; currency and exchange rate come from the order.",
+        "Records a draft invoice of the supplier at the session site. The currency defaults to the supplier's and must be one of its currencies; the rate is 1 in the legal entity's currency and required otherwise. Payment term and due date come from the supplier's enrollment at the site.",
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiBody({ type: CreateSupplierInvoiceDto }),
     ApiResponse({ status: 201, description: 'Supplier invoice created.', type: SupplierInvoiceResponseDto }),
-    ApiResponse({ status: 400, description: 'The purchase order is not confirmed.' }),
+    ApiResponse({
+      status: 400,
+      description: "The currency is not one of the supplier's, or the exchange rate is missing or does not fit it.",
+    }),
+    ApiResponse({ status: 404, description: 'The supplier is not enrolled at the site.' }),
     ApiResponse({ status: 409, description: 'The supplier already has an invoice with this number.' }),
   );
 }
@@ -55,7 +78,7 @@ export function ApiUpdateSiteSupplierInvoice() {
     ApiOperation({
       summary: 'Update a supplier invoice',
       description:
-        'Updates the header of a draft or posted invoice; a posted invoice is re-costed and every change rematches.',
+        'Updates the header of a draft or posted invoice; a new invoice date moves the due date, a posted invoice is re-costed and the holds are recomputed.',
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
@@ -66,6 +89,11 @@ export function ApiUpdateSiteSupplierInvoice() {
       description:
         'The invoice is cancelled, the exchange rate does not fit its currency, or the tax date changes on a posted invoice.',
     }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The supplier already has an invoice with this number; or the invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -73,12 +101,39 @@ export function ApiPostSiteSupplierInvoice() {
   return applyDecorators(
     ApiOperation({
       summary: 'Post a supplier invoice',
-      description: 'Posts a draft with lines and revalues the stock it bills at the final cost.',
+      description:
+        "Posts a draft: sets the final cost of the stock it invoices, spreads its charges as landed cost, recomputes the holds and moves the order lines' invoiced quantities and the orders' invoice status.",
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
     ApiResponse({ status: 200, description: 'Supplier invoice posted.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The invoice is not a draft, has no lines or needs an exchange rate.' }),
+    ApiResponse({
+      status: 400,
+      description:
+        "The invoice is not a draft, has no lines, has a rate other than 1 in the legal entity's currency, names a receipt that is not posted, or has charges without item lines.",
+    }),
+    ApiResponse({
+      status: 409,
+      description:
+        'A lot is invoiced beyond its accepted quantity across live invoices; or the invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
+  );
+}
+
+export function ApiReleaseSiteSupplierInvoiceHold() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Release a supplier invoice hold',
+      description:
+        'Releases an open hold with a reason; it stays released unless its detail changes when the holds are recomputed.',
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
+    ApiParam({ name: 'holdId', description: 'Hold ID' }),
+    ApiBody({ type: ReleaseSupplierInvoiceHoldDto }),
+    ApiResponse({ status: 200, description: 'Hold released.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'The hold is not open, or the invoice is cancelled.' }),
+    ApiResponse({ status: 404, description: 'Hold not found.' }),
   );
 }
 
@@ -86,7 +141,8 @@ export function ApiCreateSiteSupplierInvoiceLine() {
   return applyDecorators(
     ApiOperation({
       summary: 'Add a line to a supplier invoice',
-      description: 'Adds a billed line for an order line, links it to the received stock and rematches the invoice.',
+      description:
+        "Adds an ITEM line invoicing a posted receipt lot of an order line, or a CHARGE line for a landed cost, and recomputes the holds. On a posted invoice the stock is re-costed and the order's invoiced quantities move in the same transaction.",
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
@@ -94,7 +150,14 @@ export function ApiCreateSiteSupplierInvoiceLine() {
     ApiResponse({ status: 201, description: 'Line added.', type: SuccessResponseDto }),
     ApiResponse({
       status: 400,
-      description: 'The order line is not on the order, or an amount is in another currency.',
+      description:
+        'The receipt is not on the order line, not posted, of another supplier, site or currency; the lot is missing or not on the receipt; more is invoiced than received; an amount is in another currency or the discount is too large; or the category is not a charge category.',
+    }),
+    ApiResponse({ status: 404, description: 'Receipt item or cost category not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
     }),
   );
 }
@@ -103,14 +166,20 @@ export function ApiUpdateSiteSupplierInvoiceLine() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update a supplier invoice line',
-      description: 'Replaces the billed fields of a line, relinks it to the received stock and rematches the invoice.',
+      description: 'Replaces the fields of a line with the same checks as adding one and recomputes the holds.',
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
     ApiParam({ name: 'lineId', description: 'Invoice line ID' }),
     ApiBody({ type: SupplierInvoiceLineDto }),
     ApiResponse({ status: 200, description: 'Line updated.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'The line fails one of the checks of adding a line.' }),
     ApiResponse({ status: 404, description: 'Invoice line not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -118,12 +187,17 @@ export function ApiDeleteSiteSupplierInvoiceLine() {
   return applyDecorators(
     ApiOperation({
       summary: 'Remove a supplier invoice line',
-      description: 'Removes a line and rematches the invoice.',
+      description: 'Removes a line and recomputes the holds.',
     }),
     ApiParam({ name: 'id', description: 'Supplier ID' }),
     ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
     ApiParam({ name: 'lineId', description: 'Invoice line ID' }),
     ApiResponse({ status: 200, description: 'Line removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Invoice line not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }

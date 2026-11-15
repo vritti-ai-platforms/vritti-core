@@ -2,25 +2,33 @@ import { CatalogDomainService } from '@domain/catalog/services/catalog.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { type WorkspaceFeatureLocks } from '@vritti/api-sdk/catalog-resolver';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
 import { AUTH_STATUS_EVENTS, SiteUpdatedEvent } from '@/common/events/auth-status.events';
-import { type LegalEntity, type SiteMetadata, type SiteType } from '@/db/schema';
+import { type LegalEntity, type SiteMetadata, type SiteType, sites } from '@/db/schema';
 import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { PermissionSetCacheService } from '@/rbac/services/permission-set-cache.service';
 import { SiteContextCacheService } from '@/site-context/site-context-cache.service';
 import { sequentialSortOrders } from '@/utils/sort-order';
+import type { AppSiteRow } from '../dto/entity/app-site.dto';
 import { SiteDto } from '../dto/entity/site.dto';
 import type { CreateSiteInternalDto } from '../dto/request/create-site-internal.dto';
 import type { UpdateSiteInternalDto } from '../dto/request/update-site-internal.dto';
-import { SiteDomainRepository, type SiteSelectScope } from '../repositories/site.repository';
+import { SiteDomainRepository, type SiteIdScope } from '../repositories/site.repository';
 
 @Injectable()
 export class SiteDomainService {
   private readonly logger = new Logger(SiteDomainService.name);
+
+  private static readonly TABLE_FIELD_MAP: FieldMap = {
+    name: { column: sites.name, type: 'string' },
+    code: { column: sites.code, type: 'string' },
+  };
 
   constructor(
     private readonly siteRepository: SiteDomainRepository,
@@ -72,6 +80,46 @@ export class SiteDomainService {
     return sites.map(SiteDto.from);
   }
 
+  // Returns an organization's sites among the given ids
+  async findByIds(orgId: string, ids: string[]): Promise<SiteDto[]> {
+    const sites = await this.siteRepository.findByIds(orgId, ids);
+    return sites.map(SiteDto.from);
+  }
+
+  // Returns a legal entity's sites in their display order
+  async findByLegalEntityOrdered(orgId: string, legalEntityId: string): Promise<SiteDto[]> {
+    const sites = await this.siteRepository.siblingsOrdered(orgId, legalEntityId);
+    return sites.map(SiteDto.from);
+  }
+
+  // A legal entity's sites for a data table: searched by name or code, sorted and paged, kept to the scope's sites
+  async findForTable(
+    orgId: string,
+    legalEntityId: string,
+    state: TableState,
+    scope: SiteIdScope = {},
+  ): Promise<{ result: SiteDto[]; count: number }> {
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SiteDomainService.TABLE_FIELD_MAP);
+    const { result, count } = await this.siteRepository.findForTable(orgId, legalEntityId, scope, {
+      where: FilterProcessor.buildSearch(state.search, SiteDomainService.TABLE_FIELD_MAP),
+      orderBy,
+      limit,
+      offset,
+    });
+    return { result: result.map(SiteDto.from), count };
+  }
+
+  // Returns the sites an organization can sell from, each carrying its legal entity's currency
+  findForAppByOrg(orgId: string): Promise<AppSiteRow[]> {
+    return this.siteRepository.findForAppByOrg(orgId);
+  }
+
+  // Counts the sites trading under a registration
+  countByRegistration(registrationId: string): Promise<number> {
+    return this.siteRepository.countByRegistration(registrationId);
+  }
+
   // Returns an organization's active sites as select options, optionally within one legal entity
   findForSelect(orgId: string, query: SelectOptionsQueryDto & { legalEntityId?: string }): Promise<SelectQueryResult> {
     return this.siteRepository.findForOrgSelectOptions(orgId, query);
@@ -82,7 +130,7 @@ export class SiteDomainService {
   findForLegalEntitySelect(
     legalEntityId: string | undefined,
     query: SelectOptionsQueryDto,
-    scope?: SiteSelectScope,
+    scope?: SiteIdScope,
   ): Promise<SelectQueryResult> {
     if (!legalEntityId) return Promise.resolve({ options: [], hasMore: false, totalCount: 0 });
     return this.siteRepository.findForSelectOptions(legalEntityId, query, scope);

@@ -7,7 +7,7 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   type Party,
   PartyCommunicationChannelValues,
@@ -130,16 +130,12 @@ export class PartiesDomainService {
   // Returns paginated party options of the given type for select dropdowns
   findForSelect(query: SelectOptionsQueryDto, partyType: PartyType): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'displayName',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: { partyType },
       orderByKey: query.orderByKey || 'displayName',
       orderDirection: query.orderDirection || 'asc',

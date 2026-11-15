@@ -17,17 +17,34 @@ import { ClipboardList, Eye, Plus } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type PurchaseOrderData, purchaseOrderStatusConfig } from '@/schemas/purchase-orders';
+import {
+  type PurchaseOrderData,
+  purchaseOrderInvoiceStatusConfig,
+  purchaseOrderReceiptStatusConfig,
+  purchaseOrderStatusConfig,
+} from '@/schemas/purchase-orders';
 import { SiteFilter } from '@/selectors/site';
 import type { PurchaseOrdersBinding } from './bindings';
 import { CreatePurchaseOrderDialog } from './forms/CreatePurchaseOrderDialog';
-import { PurchaseOrderStatusBadge } from './PurchaseOrderStatusBadge';
+import {
+  PurchaseOrderInvoiceStatusBadge,
+  PurchaseOrderReceiptStatusBadge,
+  PurchaseOrderStatusBadge,
+} from './PurchaseOrderStatusBadge';
 
 interface PurchaseOrdersTableProps {
   binding: PurchaseOrdersBinding;
 }
 
 const STATUS_OPTIONS = Object.entries(purchaseOrderStatusConfig).map(([value, { label }]) => ({ label, value }));
+const RECEIPT_STATUS_OPTIONS = Object.entries(purchaseOrderReceiptStatusConfig).map(([value, { label }]) => ({
+  label,
+  value,
+}));
+const INVOICE_STATUS_OPTIONS = Object.entries(purchaseOrderInvoiceStatusConfig).map(([value, { label }]) => ({
+  label,
+  value,
+}));
 
 // Purchase orders, newest first; across the legal entity's sites they are narrowed by site and name it, and a row opens its order
 export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ binding }) => {
@@ -55,7 +72,7 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
             {
               accessorKey: 'siteName',
               header: 'Site',
-              cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+              cell: ({ row }) => <StringCell value={row.original.siteName} />,
               enableSorting: false,
             } satisfies ColumnDef<PurchaseOrderData>,
           ]
@@ -75,6 +92,16 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => <PurchaseOrderStatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: 'receiptStatus',
+        header: 'Receipt',
+        cell: ({ row }) => <PurchaseOrderReceiptStatusBadge status={row.original.receiptStatus} />,
+      },
+      {
+        accessorKey: 'invoiceStatus',
+        header: 'Invoice',
+        cell: ({ row }) => <PurchaseOrderInvoiceStatusBadge status={row.original.invoiceStatus} />,
       },
       {
         accessorKey: 'totalAmount',
@@ -132,7 +159,6 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
       <DataTable
         table={purchaseOrdersTable}
         permission={permissions.view}
-        onRowClick={openPurchaseOrder}
         contextBar={
           binding.spansSites && (
             <SiteFilter name="sites" label="Sites" placeholder="All sites" mode="context" multiple />
@@ -147,6 +173,20 @@ export const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({ bindin
         }}
         filters={[
           <SelectFilter key="status" name="status" label="Status" multiple options={STATUS_OPTIONS} />,
+          <SelectFilter
+            key="receiptStatus"
+            name="receiptStatus"
+            label="Receipt"
+            multiple
+            options={RECEIPT_STATUS_OPTIONS}
+          />,
+          <SelectFilter
+            key="invoiceStatus"
+            name="invoiceStatus"
+            label="Invoice"
+            multiple
+            options={INVOICE_STATUS_OPTIONS}
+          />,
           <suppliers.Filter key="supplierId" />,
         ]}
         toolbarActions={{ actions: newPurchaseOrderAction }}

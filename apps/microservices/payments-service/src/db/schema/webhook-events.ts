@@ -8,7 +8,7 @@ export const webhookEvents = paymentsSchema.table(
   'webhook_events',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     configId: uuid('config_id').notNull(),
     gatewayCode: varchar('gateway_code', { length: 100 }).notNull(),
     // Derived from signed content by the transport — what makes a delivery unique within an organization

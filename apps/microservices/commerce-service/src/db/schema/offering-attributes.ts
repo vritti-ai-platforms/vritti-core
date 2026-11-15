@@ -8,7 +8,7 @@ export const offeringAttributes = commerceSchema.table(
   'offering_attributes',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
@@ -38,7 +38,7 @@ export const offeringAttributeValues = commerceSchema.table(
   'offering_attribute_values',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     attributeId: uuid('attribute_id')
       .notNull()
       .references(() => offeringAttributes.id, { onDelete: 'cascade' }),

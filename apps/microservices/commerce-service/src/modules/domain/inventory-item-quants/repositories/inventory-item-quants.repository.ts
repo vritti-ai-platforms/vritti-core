@@ -208,6 +208,21 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
     return results[0] as InventoryItemQuant;
   }
 
+  // Moves a quant's cost laid in by the full cost difference and its value by the on-hand share, then re-derives its
+  // unit cost from the value per unit left so later outflows carry the revalued cost
+  async revalueQuant(quantId: string, costDelta: bigint, onHandDelta: bigint): Promise<void> {
+    const revaluedPerUnit = sql`round((${inventoryItemQuants.quantValue} + ${onHandDelta}) / ${inventoryItemQuants.quantity})`;
+    await this.db
+      .update(inventoryItemQuants)
+      .set({
+        quantCost: sql`${inventoryItemQuants.quantCost} + ${costDelta}`,
+        quantValue: sql`${inventoryItemQuants.quantValue} + ${onHandDelta}`,
+        unitCost: sql`case when ${inventoryItemQuants.quantity} > 0 and ${revaluedPerUnit} > 0
+          then ${revaluedPerUnit}::bigint else ${inventoryItemQuants.unitCost} end`,
+      })
+      .where(eq(inventoryItemQuants.id, quantId));
+  }
+
   async createQuant(data: typeof inventoryItemQuants.$inferInsert): Promise<InventoryItemQuant> {
     const results = await this.db.insert(inventoryItemQuants).values(data).returning();
     return results[0] as InventoryItemQuant;
@@ -347,7 +362,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       stockedQuantity: string;
       reservedQuantity: string;
       availableQuantity: string;
-      reorderLevel: number | null;
     }[]
   > {
     return this.db
@@ -358,7 +372,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         stockedQuantity: inventoryStockLevels.stockedQuantity,
         reservedQuantity: inventoryStockLevels.reservedQuantity,
         availableQuantity: inventoryStockLevels.availableQuantity,
-        reorderLevel: inventoryStockLevels.reorderLevel,
       })
       .from(inventoryStockLevels)
       .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))
@@ -375,7 +388,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       stockedQuantity: string;
       reservedQuantity: string;
       availableQuantity: string;
-      reorderLevel: number | null;
     }[];
     hasMore: boolean;
   }> {
@@ -387,7 +399,6 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         stockedQuantity: inventoryStockLevels.stockedQuantity,
         reservedQuantity: inventoryStockLevels.reservedQuantity,
         availableQuantity: inventoryStockLevels.availableQuantity,
-        reorderLevel: inventoryStockLevels.reorderLevel,
       })
       .from(inventoryStockLevels)
       .leftJoin(locations, eq(inventoryStockLevels.locationId, locations.id))

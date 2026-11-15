@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { dimensionTemplates, dimensionTemplateValues } from '@/db/schema';
 import { DimensionTemplateDto } from '../dto/entity/dimension-template.dto';
 import type { CreateDimensionTemplateDto } from '../dto/request/create-dimension-template.dto';
@@ -37,15 +37,11 @@ export class DimensionTemplatesDomainService {
   // Returns template options for select dropdowns, restricted to active templates
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       conditions: [eq(dimensionTemplates.isActive, true)],

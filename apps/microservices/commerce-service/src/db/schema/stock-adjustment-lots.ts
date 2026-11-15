@@ -1,16 +1,16 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, check, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemLots } from './inventory-item-lots';
 import { stockAdjustments } from './stock-adjustments';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, scopeFromOwnerPolicies, siteIdColumn } from './workspace-scope';
 
 export const stockAdjustmentLots = commerceSchema.table(
   'stock_adjustment_lots',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
@@ -33,23 +33,7 @@ export const stockAdjustmentLots = commerceSchema.table(
       'ck_stock_adjustment_lots_expiry_after_mfg',
       sql`${table.manufacturingDate} IS NULL OR ${table.expiryDate} > ${table.manufacturingDate}`,
     ),
-    orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
+    ...scopeFromOwnerPolicies({ owner: stockAdjustments, fk: table.stockAdjustmentId, ownerIs: 'siteDocument' }),
   ],
 );
 

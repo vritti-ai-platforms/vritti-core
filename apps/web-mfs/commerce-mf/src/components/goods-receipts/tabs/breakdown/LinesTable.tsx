@@ -231,7 +231,6 @@ export const LinesTable: React.FC<LinesTableProps> = ({
         table={linesTable}
         mode="compact"
         permission={permissions.view}
-        onRowClick={onSelectLine ? (line) => onSelectLine(line.id) : undefined}
         toolbarActions={{ actions: addLineAction }}
         emptyStateConfig={{
           icon: ClipboardList,

@@ -3,7 +3,7 @@ import { Trim } from '@vritti/api-sdk/decorators';
 import { IsDateString, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 export class CreateInboundDeliveryDto {
-  @ApiProperty({ description: 'Supplier announcing the delivery; it must be enrolled and purchasable at the site' })
+  @ApiProperty({ description: 'Supplier delivering the goods; it must be enrolled and purchasable at the site' })
   @IsUUID('7')
   supplierId: string;
 

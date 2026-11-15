@@ -311,7 +311,7 @@ type GoodsReceipt {
   supplierId: String!
   supplierName: String!
   status: String!
-  isPublishable: Boolean!
+  isPostable: Boolean!
   itemCount: Int!
   inboundDeliveryId: ID!
   deliveryNumber: String!
@@ -324,7 +324,7 @@ type GoodsReceipt {
   expectedDeliveryDate: String
   receivedDate: String!
   notes: String
-  publishedAt: String
+  postedAt: String
   createdAt: String!
 }
 
@@ -375,7 +375,7 @@ type InventoryItemLocation {
   locationId: ID!
   locationName: String
   locationPath: String
-  reorderLevel: Float!
+  isBlocked: Boolean!
 }
 
 type InventoryItemLocationPageInfo {
@@ -431,7 +431,6 @@ type InventoryItemStockLevel {
   stockedQuantity: Float!
   reservedQuantity: Float!
   availableQuantity: Float!
-  reorderLevel: Float
 }
 
 type InventoryItemStockLevelPageInfo {
@@ -771,6 +770,7 @@ type Query {
   inventoryItemsOptions(input: SelectOptionsInput, excludeOnSupplierId: ID): SelectOptions!
   inventoryItemLotsOptions(input: SelectOptionsInput, inventoryItemId: ID): SelectOptions!
   purchaseOrdersOptions(input: SelectOptionsInput, status: String, supplierId: ID): SelectOptions!
+  purchasesOptions(input: SelectOptionsInput): SelectOptions!
   purchaseOrderItemsOptions(purchaseOrderId: String!, input: SelectOptionsInput): SelectOptions!
   supplierItemsOptions(supplierId: String, purchaseOrderId: String, excludeOnGoodsReceiptId: String, input: SelectOptionsInput): SelectOptions!
   locationsOptions(input: SelectOptionsInput, locationRoles: String, inventoryItemId: ID, excludeUsedOnGoodsReceiptItemId: ID, goodsReceiptLotId: ID): SelectOptions!
@@ -807,6 +807,7 @@ input SelectOptionsInput {
   offset: Int
   values: String
   excludeIds: String
+  withTotalCount: Boolean
   valueKey: String
   labelKey: String
   descriptionKey: String
@@ -870,11 +871,11 @@ input UpdateInventoryItemInput {
 
 input CreateInventoryItemLocationInput {
   locationId: ID!
-  reorderLevel: Float!
+  isBlocked: Boolean
 }
 
 input UpdateInventoryItemLocationInput {
-  reorderLevel: Float!
+  isBlocked: Boolean!
 }
 
 input CreateInventoryItemUomConversionInput {

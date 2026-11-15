@@ -10,17 +10,19 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useDialog } from '@vritti/quantum-ui/hooks';
+import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Eye, PackageCheck, Plus } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { type GoodsReceiptData, goodsReceiptStatusConfig } from '@/schemas/goods-receipts';
 import { SiteFilter } from '@/selectors/site';
 import type { GoodsReceiptsBinding } from './bindings';
 import { CreateGoodsReceiptDialog } from './forms/CreateGoodsReceiptDialog';
 import { GoodsReceiptStatusBadge } from './GoodsReceiptStatusBadge';
+import { RECEIVE_DELIVERY_PARAM } from './receiveDeliverySearch';
 
 interface GoodsReceiptsTableProps {
   binding: GoodsReceiptsBinding;
@@ -28,14 +30,33 @@ interface GoodsReceiptsTableProps {
 
 const STATUS_OPTIONS = Object.entries(goodsReceiptStatusConfig).map(([value, { label }]) => ({ label, value }));
 
-// Goods receipts, newest first, each of one supplier across its purchase orders; across the legal entity's sites they are narrowed by
-// site and name it, and a row opens its receipt
+// Goods receipts, newest first, each receiving one inbound delivery across its purchase orders; across the legal
+// entity's sites they are narrowed by site and name it, and a row opens its receipt. A link carrying a delivery (its
+// Receive action) opens New Goods Receipt with that delivery preselected
 export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding }) => {
   const { permissions } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const createDialog = useDialog();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { available: canAdd } = usePermission(permissions.add);
+  const [preselectedDeliveryId, setPreselectedDeliveryId] = useState<string>();
+  const createDialog = useDialog({ onClose: () => setPreselectedDeliveryId(undefined) });
+  const { open: openCreateDialog } = createDialog;
   const goodsReceiptsTableQuery = binding.useTable();
+  const requestedDeliveryId = searchParams.get(RECEIVE_DELIVERY_PARAM);
+
+  useEffect(() => {
+    if (!requestedDeliveryId || !canAdd) return;
+    setPreselectedDeliveryId(requestedDeliveryId);
+    openCreateDialog();
+    setSearchParams(
+      (params) => {
+        params.delete(RECEIVE_DELIVERY_PARAM);
+        return params;
+      },
+      { replace: true },
+    );
+  }, [requestedDeliveryId, canAdd, openCreateDialog, setSearchParams]);
 
   const openReceipt = useCallback(
     (receipt: Pick<GoodsReceiptData, 'grNumber' | 'id'>) => navigate(buildSlug(receipt.grNumber, receipt.id)),
@@ -55,7 +76,7 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
             {
               accessorKey: 'siteName',
               header: 'Site',
-              cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+              cell: ({ row }) => <StringCell value={row.original.siteName} />,
               enableSorting: false,
             } satisfies ColumnDef<GoodsReceiptData>,
           ]
@@ -143,7 +164,6 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
       <DataTable
         table={goodsReceiptsTable}
         permission={permissions.view}
-        onRowClick={openReceipt}
         contextBar={
           binding.spansSites && (
             <SiteFilter name="sites" label="Sites" placeholder="All sites" mode="context" multiple />
@@ -163,7 +183,8 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
         emptyStateConfig={{
           icon: PackageCheck,
           title: 'No goods receipts',
-          description: "Receive goods against a supplier's confirmed purchase orders to start a goods receipt.",
+          description:
+            "Receive an inbound delivery created for a supplier's confirmed purchase orders to start a goods receipt.",
           action: newReceiptAction,
         }}
       />
@@ -172,10 +193,11 @@ export const GoodsReceiptsTable: React.FC<GoodsReceiptsTableProps> = ({ binding 
         handle={createDialog}
         icon={PackageCheck}
         title="New Goods Receipt"
-        description="Receive an announced inbound delivery, or the supplier's purchase orders when the goods arrived without one; then count them on the draft."
+        description="Receive an announced inbound delivery; then count its goods on the draft."
         content={(close) => (
           <CreateGoodsReceiptDialog
-            mutations={binding}
+            useCreateFromDelivery={binding.useCreateFromDelivery}
+            inboundDeliveryId={preselectedDeliveryId}
             onSuccess={(receipt) => {
               close();
               openReceipt(receipt);

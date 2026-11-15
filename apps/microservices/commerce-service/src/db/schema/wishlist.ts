@@ -3,12 +3,13 @@ import { foreignKey, index, pgPolicy, timestamp, unique, uuid, varchar } from '@
 import { commerceSchema } from './commerce-schema';
 import { offeringVariants } from './offering-variants';
 import { parties } from './parties';
+import { organizationIdColumn } from './workspace-scope';
 
 export const wishlistItems = commerceSchema.table(
   'wishlist_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)")),
+    organizationId: organizationIdColumn(),
     // No foreign key — the row lives in core's `apps`, as with `carts.app_id`
     appId: uuid('app_id').notNull(),
     partyId: uuid('party_id')

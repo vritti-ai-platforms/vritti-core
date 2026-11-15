@@ -1,6 +1,5 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
-import type { GoodsReceiptData } from '@/schemas/goods-receipts';
 import type {
   AddInboundDeliveryLinesPayload,
   CreateInboundDeliveryPayload,
@@ -8,7 +7,6 @@ import type {
   InboundDeliveryData,
   InboundDeliveryLineRef,
   InboundDeliveryLinesTableResponse,
-  ReceiveInboundDeliveryPayload,
   UpdateInboundDeliveryLinePayload,
   UpdateInboundDeliveryPayload,
   UpdateInboundDeliveryStatusPayload,
@@ -31,7 +29,7 @@ export function getInboundDeliveryLinesTable(id: string): Promise<InboundDeliver
     .then((r) => r.data);
 }
 
-// Announces a delivery from a supplier at the site
+// Creates an inbound delivery from a supplier at the site
 export function createInboundDelivery(
   data: CreateInboundDeliveryPayload,
 ): Promise<CreateResponse<InboundDeliveryData>> {
@@ -75,14 +73,4 @@ export function updateInboundDeliveryLine({
 // Takes a line off a delivery
 export function removeInboundDeliveryLine({ id, lineId }: InboundDeliveryLineRef): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`commerce-api/inbound-deliveries/${id}/lines/${lineId}`).then((r) => r.data);
-}
-
-// Starts a draft goods receipt pre-filled with the delivery's open lines
-export function receiveInboundDelivery({
-  id,
-  ...data
-}: ReceiveInboundDeliveryPayload): Promise<CreateResponse<GoodsReceiptData>> {
-  return axios
-    .post<CreateResponse<GoodsReceiptData>>(`commerce-api/inbound-deliveries/${id}/receive`, data)
-    .then((r) => r.data);
 }

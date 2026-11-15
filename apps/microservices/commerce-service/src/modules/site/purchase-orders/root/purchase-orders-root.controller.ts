@@ -10,7 +10,7 @@ import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/pu
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcNatsHeaders, RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrderProblemsDto } from './dto/entity/purchase-order-problems.dto';
 import { PurchaseOrdersService } from './services/purchase-orders-root.service';
@@ -38,7 +38,7 @@ export class PurchaseOrdersRootController {
     return this.purchaseOrdersService.findById(data.id);
   }
 
-  // Returns the flags raised on a purchase order's receipts and invoices, grouped by order line
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoices, grouped by order line
   @MessagePattern({ cmd: 'site.purchaseOrders.problems' })
   problems(@Payload() data: { id: string }): Promise<PurchaseOrderProblemsDto> {
     this.logger.log(`site.purchaseOrders.problems — id: ${data.id}`);
@@ -55,7 +55,7 @@ export class PurchaseOrdersRootController {
     return this.service.create(dto, {
       siteId: headers.siteId,
       timezone: headers.siteTimezone,
-      leCurrencyCode: headers.siteCurrencyCode,
+      leCurrencyCode: headers.leCurrencyCode,
     });
   }
 
@@ -77,7 +77,7 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'site.purchaseOrders.changeSupplier' })
   changeSupplier(
     @Payload() dto: ChangePurchaseOrderSupplierDto,
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.changeSupplier — id: ${dto.id}, supplier: ${dto.supplierId}`);
     return this.service.changeSupplier(dto, leCurrencyCode);
@@ -87,10 +87,10 @@ export class PurchaseOrdersRootController {
   @MessagePattern({ cmd: 'site.purchaseOrders.changeExchangeRate' })
   changeExchangeRate(
     @Payload() dto: ChangePurchaseOrderExchangeRateDto,
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.changeExchangeRate — id: ${dto.id}, rate: ${dto.exchangeRate}`);
-    return this.purchaseOrdersService.changeExchangeRate(dto, leCurrencyCode);
+    return this.service.changeExchangeRate(dto, leCurrencyCode);
   }
 
   // Sets the rate from another of the supplier's currencies into the purchase order's
@@ -100,24 +100,27 @@ export class PurchaseOrdersRootController {
     return this.service.setConversionRate(dto);
   }
 
-  // Closes a purchase order short
-  @MessagePattern({ cmd: 'site.purchaseOrders.closeShort' })
-  closeShort(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.closeShort — id: ${data.id}`);
-    return this.purchaseOrdersService.closeShort(data.id);
+  // Marks a confirmed purchase order delivery completed, cancelling what its lines still had to receive
+  @MessagePattern({ cmd: 'site.purchaseOrders.completeDelivery' })
+  completeDelivery(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.completeDelivery — id: ${data.id}`);
+    return this.service.completeDelivery(data.id);
   }
 
-  // Moves a purchase order along its manual workflow
+  // Moves a purchase order along its manual workflow: send, confirm or cancel
   @MessagePattern({ cmd: 'site.purchaseOrders.updateStatus' })
-  updateStatus(@Payload() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
+  updateStatus(
+    @Payload() dto: UpdatePurchaseOrderStatusDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
-    return this.purchaseOrdersService.updateStatus(dto);
+    return this.service.updateStatus(dto, headers.userId || null);
   }
 
   // Deletes a draft purchase order
   @MessagePattern({ cmd: 'site.purchaseOrders.delete' })
   delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.delete — id: ${data.id}`);
-    return this.purchaseOrdersService.delete(data.id);
+    return this.service.delete(data.id);
   }
 }

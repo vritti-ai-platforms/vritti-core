@@ -52,11 +52,11 @@ export function LocationsTab({ item }: { item: InventoryItem }) {
         ItemSeparatorComponent={() => <View className="h-3" />}
         emptyText={feed.isError ? "Couldn't load locations." : 'No locations configured yet.'}
         renderItem={({ item: location }) => (
-          <ItemLocationCard location={location} uomSymbol={item.uomSymbol} onEdit={openEdit} onDelete={handleDelete} />
+          <ItemLocationCard location={location} onEdit={openEdit} onDelete={handleDelete} />
         )}
       />
       <Fab onPress={openCreate} accessibilityLabel="Add location" />
-      <ItemLocationFormSheet ref={sheetRef} inventoryItemId={item.id} uomSymbol={item.uomSymbol} editing={editing} />
+      <ItemLocationFormSheet ref={sheetRef} inventoryItemId={item.id} editing={editing} />
     </View>
   );
 }

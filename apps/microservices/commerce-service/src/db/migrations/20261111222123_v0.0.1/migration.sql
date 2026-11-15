@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."inventory_item_sites" ALTER COLUMN "legal_entity_id" SET NOT NULL;

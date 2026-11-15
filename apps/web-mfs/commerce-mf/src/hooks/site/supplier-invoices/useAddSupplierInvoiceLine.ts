@@ -6,7 +6,7 @@ import type { AddSupplierInvoiceLineVars } from '@/schemas/supplier-invoices';
 import { addSupplierInvoiceLine } from '@/services/site/supplier-invoices.service';
 import { SITE_SUPPLIER_INVOICES_KEY } from './keys';
 
-// Adds a billed line to an invoice through its supplier and refreshes the site's invoices and purchase orders
+// Adds an item line to an invoice through its supplier and refreshes the site's invoices and purchase orders
 export function useAddSupplierInvoiceLine(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, AddSupplierInvoiceLineVars>, 'mutationFn'>,
 ) {

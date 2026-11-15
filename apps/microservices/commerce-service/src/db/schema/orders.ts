@@ -19,14 +19,14 @@ import { orderSourceEnum, orderStatusEnum, orderTypeEnum } from './enums';
 import { offeringVariants } from './offering-variants';
 import { offerings } from './offerings';
 import { parties } from './parties';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, orgIsolationPolicy, siteIdColumn } from './workspace-scope';
 
 export const orders = commerceSchema.table(
   'orders',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     orderNumber: varchar('order_number', { length: 50 }).notNull(),
     type: orderTypeEnum('type').notNull(),
     channel: orderSourceEnum('channel').notNull(),
@@ -95,7 +95,7 @@ export const orderItems = commerceSchema.table(
   'order_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     orderId: uuid('order_id')
       .notNull()
       .references(() => orders.id, { onDelete: 'cascade' }),

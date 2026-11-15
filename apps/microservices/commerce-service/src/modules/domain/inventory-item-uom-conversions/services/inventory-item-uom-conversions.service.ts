@@ -11,6 +11,14 @@ interface ConversionPair {
   uomQty: number;
 }
 
+interface PackMeasures {
+  weight?: number | null;
+  volume?: number | null;
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+}
+
 import { InventoryItemUomConversionDto } from '../dto/entity/inventory-item-uom-conversion.dto';
 import { InventoryItemUomConversionsDomainRepository } from '../repositories/inventory-item-uom-conversions.repository';
 
@@ -53,10 +61,10 @@ export class InventoryItemUomConversionsDomainService {
     };
   }
 
-  // Creates a per-item UOM conversion.
+  // Creates a per-item UOM conversion with its optional per-pack weight, volume and dimensions
   async create(
     inventoryItemId: string,
-    dto: { uomId: string } & ConversionPair,
+    dto: { uomId: string } & ConversionPair & PackMeasures,
     uomContext: { baseUnitId: string | null; name: string; symbol: string },
   ): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     if (uomContext.baseUnitId !== null) {
@@ -91,6 +99,11 @@ export class InventoryItemUomConversionsDomainService {
       uomId: dto.uomId,
       primaryUomQty: dto.primaryUomQty,
       uomQty: dto.uomQty,
+      weight: dto.weight ?? null,
+      volume: dto.volume ?? null,
+      length: dto.length ?? null,
+      width: dto.width ?? null,
+      height: dto.height ?? null,
     });
     this.logger.log(
       `Created UOM conversion for inventory item ${inventoryItemId}: uomId=${dto.uomId}, primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`,
@@ -106,8 +119,8 @@ export class InventoryItemUomConversionsDomainService {
     };
   }
 
-  // Updates an existing UOM conversion's ratio
-  async update(id: string, dto: ConversionPair): Promise<SuccessResponseDto> {
+  // Updates an existing UOM conversion's ratio and its per-pack weight, volume and dimensions
+  async update(id: string, dto: ConversionPair & PackMeasures): Promise<SuccessResponseDto> {
     const existing = await this.repository.findByIdWithUom(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
 
@@ -116,6 +129,11 @@ export class InventoryItemUomConversionsDomainService {
     await this.repository.update(id, {
       primaryUomQty: dto.primaryUomQty,
       uomQty: dto.uomQty,
+      weight: dto.weight,
+      volume: dto.volume,
+      length: dto.length,
+      width: dto.width,
+      height: dto.height,
       updatedAt: new Date(),
     });
     this.logger.log(`Updated UOM conversion ${id}: primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`);

@@ -1,8 +1,6 @@
 import { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
-import { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
 import { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
-import { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import { LeAddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-add-goods-receipt-lot.dto';
 import { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-update-goods-receipt-lot.dto';
 import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
@@ -28,14 +26,12 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_GOODS_RECEIPTS } from '@vritti/commerce-permissions/goods-receipts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { LegalEntityId, OrgId } from '@/security/decorators';
+import { OrgId } from '@/security/decorators';
 import {
   ApiAddLine,
   ApiAddLineItem,
   ApiAddLot,
-  ApiAddPurchaseOrder,
   ApiCreateFromDelivery,
-  ApiCreateFromPurchaseOrders,
   ApiDelete,
   ApiFindById,
   ApiFindForTable,
@@ -49,7 +45,7 @@ import {
   ApiLinesByLotTable,
   ApiLinesTable,
   ApiLots,
-  ApiPublish,
+  ApiPost,
   ApiRemoveItem,
   ApiRemoveLine,
   ApiRemoveLineItem,
@@ -84,30 +80,6 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.createFromDelivery(dto);
   }
 
-  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
-  @Post('from-purchase-orders')
-  @RequirePermission(LE_GOODS_RECEIPTS.add)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCreateFromPurchaseOrders()
-  createFromPurchaseOrders(
-    @Body() dto: CreateGoodsReceiptFromPurchaseOrdersDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log('POST /commerce-api/le/goods-receipts/from-purchase-orders');
-    return this.service.createFromPurchaseOrders(dto);
-  }
-
-  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
-  @Post(':id/purchase-orders')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @ApiAddPurchaseOrder()
-  addPurchaseOrder(
-    @Param('id') goodsReceiptId: string,
-    @Body() dto: AddGoodsReceiptPurchaseOrderDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/purchase-orders`);
-    return this.service.addPurchaseOrder(goodsReceiptId, dto);
-  }
-
   // Returns the goods receipts of the legal entity's sites for the data table
   @Get('table')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
@@ -126,7 +98,7 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.findById(id, orgId);
   }
 
-  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  // Changes a draft goods receipt's notes
   @Patch(':id')
   @RequirePermission(LE_GOODS_RECEIPTS.edit)
   @ApiUpdate()
@@ -144,16 +116,13 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.findTree(id);
   }
 
-  // Publishes a goods receipt, landing its stock at its site
-  @Post(':id/publish')
-  @RequirePermission(LE_GOODS_RECEIPTS.publish)
-  @ApiPublish()
-  publish(
-    @Param('id') id: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${id}/publish`);
-    return this.service.publish(id, legalEntityId);
+  // Posts a goods receipt, landing its stock at its site
+  @Post(':id/post')
+  @RequirePermission(LE_GOODS_RECEIPTS.post)
+  @ApiPost()
+  post(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`POST /commerce-api/le/goods-receipts/${id}/post`);
+    return this.service.post(id);
   }
 
   // Deletes a draft goods receipt
@@ -187,15 +156,12 @@ export class LeGoodsReceiptsGatewayController {
   @Get(':id/items/cost')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
   @ApiItemsCost()
-  itemsCost(
-    @Param('id') goodsReceiptId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<GoodsReceiptItemsCostResponseDto> {
+  itemsCost(@Param('id') goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
     this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/cost`);
-    return this.service.findItemsCost(goodsReceiptId, legalEntityId);
+    return this.service.findItemsCost(goodsReceiptId);
   }
 
-  // Returns the quants a published goods receipt item landed in
+  // Returns the quants a posted goods receipt item landed in
   @Get(':id/items/:itemId/quants')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
   @ApiItemQuants()
@@ -245,13 +211,9 @@ export class LeGoodsReceiptsGatewayController {
   @Get(':id/items/:itemId/lots')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
   @ApiLots()
-  lots(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<GoodsReceiptLotResponseDto[]> {
+  lots(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
     this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
-    return this.service.findLots(goodsReceiptId, itemId, legalEntityId);
+    return this.service.findLots(goodsReceiptId, itemId);
   }
 
   // Adds a lot to a goods receipt item
@@ -263,10 +225,9 @@ export class LeGoodsReceiptsGatewayController {
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
     @Body() dto: LeAddGoodsReceiptLotDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
     this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
-    return this.service.addLot(goodsReceiptId, itemId, dto, legalEntityId);
+    return this.service.addLot(goodsReceiptId, itemId, dto);
   }
 
   // Changes a lot of a goods receipt item
@@ -278,10 +239,9 @@ export class LeGoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Param('lotId') lotId: string,
     @Body() dto: LeUpdateGoodsReceiptLotDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
-    return this.service.updateLot(goodsReceiptId, itemId, lotId, dto, legalEntityId);
+    return this.service.updateLot(goodsReceiptId, itemId, lotId, dto);
   }
 
   // Removes a lot from a goods receipt item

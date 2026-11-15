@@ -22,13 +22,9 @@ interface EnrollmentsTableProps {
   mode?: 'page' | 'tab';
 }
 
-function siteLabel(row: SupplierEnrollmentRow): string {
-  return row.siteName ?? row.siteCode ?? 'the site';
-}
-
 // The other side of the row's pair, as a confirm or dialog names it
 function counterpartLabel(row: SupplierEnrollmentRow, rows: 'sites' | 'suppliers'): string {
-  return rows === 'sites' ? siteLabel(row) : row.partyName;
+  return rows === 'sites' ? row.siteName : row.partyName;
 }
 
 // Every (supplier, site) pair on one side of an enrollment — a supplier's sites, or a site's suppliers
@@ -52,7 +48,7 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
   const handleUnenroll = useCallback(
     async (row: SupplierEnrollmentRow) => {
       const confirmed = await confirm({
-        title: `Unenroll "${row.partyName}" from ${siteLabel(row)}?`,
+        title: `Unenroll "${row.partyName}" from ${row.siteName}?`,
         description: 'The site will no longer be able to purchase from this supplier. Its price history is kept.',
         confirmLabel: 'Unenroll',
         variant: 'destructive',
@@ -69,7 +65,7 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
             {
               accessorKey: 'siteName',
               header: 'Site',
-              cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+              cell: ({ row }) => <StringCell value={row.original.siteName} />,
               enableSorting: true,
             } satisfies ColumnDef<SupplierEnrollmentRow>,
             {
@@ -125,7 +121,7 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
                     isActive,
                   })
                 }
-                ariaLabel={`Mark ${row.original.partyName} active at ${siteLabel(row.original)}`}
+                ariaLabel={`Mark ${row.original.partyName} active at ${row.original.siteName}`}
               />
             </div>
           ),
@@ -152,7 +148,7 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
       {
         accessorKey: 'orderContactName',
         header: 'Order Contact',
-        cell: ({ row }) => <StringCell value={row.original.orderContactName ?? row.original.orderContactLabel} />,
+        cell: ({ row }) => <StringCell value={row.original.orderContactName} />,
         enableSorting: false,
       },
       {
@@ -246,7 +242,6 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
         table={enrollmentsTable}
         mode={mode}
         permission={permissions.view}
-        onRowClick={openRow}
         searchConfig={{
           columns: listsSites
             ? [

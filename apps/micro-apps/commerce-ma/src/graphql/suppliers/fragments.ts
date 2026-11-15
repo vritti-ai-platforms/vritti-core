@@ -17,6 +17,5 @@ export const SupplierFieldsFragment = graphql(`
     minOrderQuantity
     leadTimeDays
     isPreferred
-    isActive
   }
 `);

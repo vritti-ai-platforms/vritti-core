@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import {
   type ColumnDef,
@@ -16,6 +17,7 @@ import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { purchaseLockTip } from '@/components/purchases/purchaseDocuments';
 import {
   type PurchaseOrderDetail,
   type PurchaseOrderItemData,
@@ -30,18 +32,26 @@ import { TaxDateCell } from '../../TaxDateCell';
 import { AddPurchaseOrderItemDialog } from './forms/AddPurchaseOrderItemDialog';
 import { UpdatePurchaseOrderItemDialog } from './forms/UpdatePurchaseOrderItemDialog';
 import { LineProblemsMenu } from './problems/LineProblemsMenu';
-import { OrderProblemsAlert } from './problems/OrderProblemsAlert';
 
 const LINE_EDITABLE_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED'];
-const PRICING_LOCKED_TIP = 'A goods receipt of this order is published, so its supplier, prices and rates are locked.';
+const PRICING_LOCKED_TIP = 'A goods receipt of this order is posted, so its supplier, prices and rates are locked.';
 
 // Explains why the order's lines can no longer change, or nothing while they still can
 function linesLockedReason(purchaseOrder: PurchaseOrderDetail): string | undefined {
-  if (purchaseOrder.hasPublishedGoodsReceipt) return PRICING_LOCKED_TIP;
+  if (purchaseOrder.purchaseNumber) return purchaseLockTip(purchaseOrder.purchaseNumber);
+  if (purchaseOrder.hasPostedGoodsReceipt) return PRICING_LOCKED_TIP;
   if (LINE_EDITABLE_STATUSES.includes(purchaseOrder.status)) return undefined;
   const statusLabel = purchaseOrderStatusConfig[purchaseOrder.status].label.toLowerCase();
   return `This order is ${statusLabel}, so its lines can no longer change.`;
 }
+
+// A counter kept in the item's primary unit, with that unit beside it
+const PrimaryQuantityCell = ({ line, qty }: { line: PurchaseOrderItemData; qty: number }) => (
+  <span className="flex items-baseline gap-1">
+    <NumberCell value={qty} />
+    {line.primaryUomSymbol && <span className="text-xs text-muted-foreground">{line.primaryUomSymbol}</span>}
+  </span>
+);
 
 // A line quantity in its own unit; a line ordered in a pack unit adds the item's primary-unit quantity under it
 const LineQuantityCell = ({
@@ -68,8 +78,9 @@ interface LineItemsTabProps {
   purchaseOrder: PurchaseOrderDetail;
 }
 
-// The order's lines with the free quantity their scheme gives, what has been received of them and what its receipts and
-// invoices flagged on them; lines are edited until the order is past confirmation or a receipt of it is published
+// The order's lines with the free quantity their scheme gives, what is received and still to receive, what is invoiced
+// and still to invoice (SAP's PO history), a line marked delivery completed, and what its receipts flagged and its
+// invoices hold on them; lines are edited until the order is past confirmation or a receipt of it is posted
 export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrder }) => {
   const { permissions, invoices } = binding;
   const purchaseOrderId = purchaseOrder.id;
@@ -91,7 +102,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
     [problems],
   );
 
-  // Opens a receipt in the goods receipts feature and an invoice on its own page, which bills the order's supplier
+  // Opens a receipt in the goods receipts feature and an invoice on its own page, which invoices the order's supplier
   const openProblemDocument = useCallback(
     (problem: PurchaseOrderProblem) => {
       if (problem.source === 'GOODS_RECEIPT') {
@@ -134,6 +145,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
           return (
             <span className="inline-flex items-center gap-1.5">
               <span>{row.original.inventoryItemName}</span>
+              {row.original.cancelledPrimaryQty > 0 && <Badge variant="secondary">Delivery completed</Badge>}
               {lineProblems && (
                 <LineProblemsMenu
                   itemName={row.original.inventoryItemName}
@@ -177,7 +189,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
             ),
           },
           {
-            accessorKey: 'receivedQty',
+            accessorKey: 'receivedPrimaryQty',
             header: 'Received',
             size: 110,
             cell: ({ row }) => (
@@ -187,6 +199,32 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
                 primaryQty={row.original.receivedPrimaryQty}
               />
             ),
+          },
+          {
+            accessorKey: 'openToReceivePrimaryQty',
+            header: 'To Receive',
+            size: 96,
+            enableSorting: false,
+            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.openToReceivePrimaryQty} />,
+          },
+        ],
+      },
+      {
+        id: 'invoiced',
+        header: 'Invoiced',
+        columns: [
+          {
+            accessorKey: 'invoicedPrimaryQty',
+            header: 'Invoiced',
+            size: 96,
+            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.invoicedPrimaryQty} />,
+          },
+          {
+            accessorKey: 'openToInvoicePrimaryQty',
+            header: 'To Invoice',
+            size: 96,
+            enableSorting: false,
+            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.openToInvoicePrimaryQty} />,
           },
         ],
       },
@@ -242,6 +280,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
                 date={row.original.expectedDeliveryDate}
                 deliveryNumbers={row.original.inboundDeliveryNumbers}
                 deliveryIds={row.original.inboundDeliveryIds}
+                deliveryDates={row.original.inboundDeliveryDates}
               />
             ),
           },
@@ -338,10 +377,6 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
 
   return (
     <div className="flex flex-col gap-4">
-      {problems && problems.orderProblems.length > 0 && (
-        <OrderProblemsAlert problems={problems.orderProblems} onOpen={openProblemDocument} />
-      )}
-
       <DataTable
         table={itemsTable}
         mode="tab"

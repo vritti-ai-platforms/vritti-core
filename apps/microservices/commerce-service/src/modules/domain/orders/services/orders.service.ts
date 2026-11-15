@@ -4,7 +4,6 @@ import { type TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { variantLabel } from '@/common/variant-label';
 import {
   type Order,
   type OrderSource,
@@ -13,6 +12,7 @@ import {
   OrderStatusValues,
   type OrderType,
   orders,
+  variantLabel,
 } from '@/db/schema';
 import { OrderDetailDto, OrderDto, OrderItemDto } from '../dto/entity/order.dto';
 import type { CreateOrderDto, CreateOrderItemDto } from '../dto/request/create-order.dto';

@@ -5,7 +5,7 @@ import { and, asc, desc, ilike, or } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { CostCategoryKindValues, costCategories } from '@/db/schema';
 import { CostCategoryDto } from '../dto/entity/cost-category.dto';
 import { CreateCostCategoryDto } from '../dto/request/create-cost-category.dto';
@@ -60,21 +60,21 @@ export class CostCategoriesDomainService {
     return rows.map((row, i) => CostCategoryDto.from(row, refCounts[i].costRows === 0 && !row.isSystem));
   }
 
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey || 'kind',
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
+  // Returns paginated cost category options, only the active chargeable ones with chargeOnly
+  findForSelect(query: SelectOptionsQueryDto, options?: { chargeOnly?: boolean }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
+      {
+        ...selectPageOptions(query),
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey || 'kind',
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey,
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
   }
 
   async create(data: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {

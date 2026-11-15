@@ -216,9 +216,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {line?.locationPath ?? line?.locationName ?? line?.locationId ?? '—'}
-            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{line?.locationPath ?? '—'}</p>
           </div>
           {isDraft && (
             <div className="flex items-center gap-2">

@@ -9,7 +9,7 @@ export const cartItems = commerceSchema.table(
   'cart_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     cartId: uuid('cart_id')
       .notNull()
       .references(() => carts.id, { onDelete: 'cascade' }),

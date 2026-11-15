@@ -1,7 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { TextField } from '@vritti/quantum-ui/TextField';
+import { Switch } from '@vritti/quantum-ui/Switch';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
@@ -26,20 +26,20 @@ export const AddInventoryItemLocationForm: React.FC<AddInventoryItemLocationForm
 }) => {
   const form = useForm<CreateInventoryItemLocationFormData>({
     resolver: zodResolver(createInventoryItemLocationSchema),
-    defaultValues: { reorderLevel: 0 },
+    defaultValues: { isBlocked: false },
   });
 
   const createMutation = useCreateInventoryItemLocation(inventoryItemId, { onSuccess });
 
   return (
-    <Form form={form} mutation={createMutation} onCancel={onCancel}>
+    <Form form={form} mutation={createMutation} resetOnSuccess onCancel={onCancel}>
       <LocationSelector
         name="locationId"
         label="Location"
         placeholder="Select location"
         params={{ locationRoles: LocationRoleValues.RESERVED_STORAGE }}
       />
-      <TextField name="reorderLevel" label="Min. Stock Level" type="number" min={0} step="any" />
+      <Switch name="isBlocked" label="Blocked" description="No new stock of this item is put away here" />
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel

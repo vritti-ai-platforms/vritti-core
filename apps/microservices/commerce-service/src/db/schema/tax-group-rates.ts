@@ -21,7 +21,7 @@ export const taxGroupRates = commerceSchema.table(
   'tax_group_rates',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     taxGroupId: uuid('tax_group_id')
       .notNull()
       .references(() => taxGroups.id, { onDelete: 'cascade' }),

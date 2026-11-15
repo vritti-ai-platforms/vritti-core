@@ -1,5 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DateCell } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import type React from 'react';
 import { Fragment } from 'react';
@@ -10,10 +11,18 @@ interface ExpectedDeliveryCellProps {
   date: string;
   deliveryNumbers: string[];
   deliveryIds: string[];
+  deliveryDates: string[];
 }
 
-// A line's expected delivery, linking the inbound deliveries that set it while the line is on any
-export const ExpectedDeliveryCell: React.FC<ExpectedDeliveryCellProps> = ({ date, deliveryNumbers, deliveryIds }) => {
+// A line's own expected delivery, with the inbound deliveries carrying it and the day each is expected — read-only here,
+// a delivery's date is changed on the delivery and never moves the line's
+export const ExpectedDeliveryCell: React.FC<ExpectedDeliveryCellProps> = ({
+  date,
+  deliveryNumbers,
+  deliveryIds,
+  deliveryDates,
+}) => {
+  const fmt = useFormatters();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -25,6 +34,7 @@ export const ExpectedDeliveryCell: React.FC<ExpectedDeliveryCellProps> = ({ date
           {'On '}
           {deliveryNumbers.map((deliveryNumber, index) => {
             const deliveryId = deliveryIds[index];
+            const deliveryDate = deliveryDates[index];
             return (
               <Fragment key={deliveryId ?? deliveryNumber}>
                 {index > 0 && ', '}
@@ -42,6 +52,7 @@ export const ExpectedDeliveryCell: React.FC<ExpectedDeliveryCellProps> = ({ date
                 ) : (
                   deliveryNumber
                 )}
+                {deliveryDate && ` (${fmt.date(deliveryDate).primary})`}
               </Fragment>
             );
           })}

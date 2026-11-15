@@ -26,7 +26,7 @@ function StatCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-// Read-only supplier link card: header (name + code, preferred/active pills), divider, then a 2-col grid
+// Read-only supplier link card: header (name + code, preferred pill), divider, then a 2-col grid
 // of the per-supplier item terms (item code, UOM, unit price, min order, lead time).
 export function SupplierCard({ supplier }: { supplier: Supplier }) {
   const fmt = useFormatters();
@@ -61,13 +61,6 @@ export function SupplierCard({ supplier }: { supplier: Supplier }) {
               <Text className="text-xs font-semibold text-success">Preferred</Text>
             </Badge>
           ) : null}
-          <Badge variant={supplier.isActive ? 'secondary' : 'outline'}>
-            <Text
-              className={`text-xs font-semibold ${supplier.isActive ? 'text-secondary-foreground' : 'text-muted-foreground'}`}
-            >
-              {supplier.isActive ? 'Active' : 'Inactive'}
-            </Text>
-          </Badge>
         </View>
       </View>
 

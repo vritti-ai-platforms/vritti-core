@@ -1,7 +1,5 @@
-import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { AddInboundDeliveryLinesDto } from '@commerce/inbound-deliveries/dto/request/add-inbound-delivery-lines.dto';
 import type { CreateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/create-inbound-delivery.dto';
-import type { ReceiveInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/receive-inbound-delivery.dto';
 import type { SetInboundDeliveryStatusDto } from '@commerce/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import type { UpdateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import type { UpdateInboundDeliveryLineDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
@@ -60,12 +58,6 @@ export class InboundDeliveriesGatewayService {
   setStatus(id: string, dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.inboundDeliveries.setStatus — id: ${id}, status: ${dto.status}`);
     return this.nats.send('commerce', 'site.inboundDeliveries.setStatus', { id, ...dto });
-  }
-
-  // Creates a draft goods receipt pre-filled with the inbound delivery's open lines
-  receive(id: string, dto: ReceiveInboundDeliveryDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log(`site.inboundDeliveries.receive — id: ${id}`);
-    return this.nats.send('commerce', 'site.inboundDeliveries.receive', { id, ...dto });
   }
 
   // Deletes a planned inbound delivery without lines

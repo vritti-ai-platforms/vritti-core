@@ -4,20 +4,21 @@ import {
   SupplierItemDto,
 } from '@domain/suppliers/dto/entity/supplier.dto';
 import { Injectable } from '@nestjs/common';
-import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
+import { conditionValue, type FieldMap, FilterOperators, FilterProcessor, isUuid } from '@vritti/api-sdk/conditions';
 import { CursorCodec, type KeysetOrderBy, KeysetProcessor, type TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, inArray, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   inventoryItems,
   type NewSupplierItem,
   type NewSupplierSiteItem,
   parties,
   type Supplier,
+  type SupplierItem,
   type SupplierSiteItem,
   supplierItems,
   supplierSiteItems,
@@ -117,16 +118,12 @@ export class SupplierItemsDomainService {
   ): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {
+        ...selectPageOptions(query),
         value: query.valueKey || 'id',
         label: query.labelKey || 'name',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         groupIdKey: query.groupIdKey || 'categoryId',
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
         orderByKey: query.orderByKey || 'name',
         orderDirection: query.orderDirection || 'asc',
       },
@@ -166,10 +163,30 @@ export class SupplierItemsDomainService {
   }
 
   // Returns paginated suppliers carrying an inventory item with a site's terms; no site leaves them empty
+  // The legal entity's suppliers of the item; with a site in the table's context, only those supplying it to that site,
+  // with their terms there
+  findSuppliersForItemAtContextSite(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
+    const contextSite = conditionValue(state.filters.context, 'site');
+    const siteId = contextSite && isUuid(contextSite) ? contextSite : null;
+    const context = state.filters.context.filter((condition) => condition.field !== 'site');
+    return this.findSuppliersForItem(
+      inventoryItemId,
+      siteId,
+      { ...state, filters: { ...state.filters, context } },
+      {
+        onlyAtSite: siteId !== null,
+      },
+    );
+  }
+
   async findSuppliersForItem(
     inventoryItemId: string,
     siteId: string | null,
     state: TableState,
+    options: { onlyAtSite?: boolean } = {},
   ): Promise<{ result: InventoryItemSupplierDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(
       state.filters,
@@ -179,7 +196,7 @@ export class SupplierItemsDomainService {
       state.search,
       SupplierItemsDomainService.SUPPLIERS_FOR_ITEM_FIELD_MAP,
     );
-    const where = and(filterWhere, searchWhere);
+    const where = and(filterWhere, searchWhere, options.onlyAtSite ? isNotNull(supplierSiteItems.id) : undefined);
     const orderBy = FilterProcessor.buildOrderBy(state.sort, SupplierItemsDomainService.SUPPLIERS_FOR_ITEM_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -226,6 +243,16 @@ export class SupplierItemsDomainService {
       edges,
       pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
     };
+  }
+
+  // Returns a supplier item by id, or undefined when it is out of reach
+  findById(supplierItemId: string): Promise<SupplierItem | undefined> {
+    return this.repository.findById(supplierItemId);
+  }
+
+  // Returns a supplier item's setup at a site, or undefined when it is not set up there
+  findSiteItem(supplierItemId: string, siteId: string): Promise<SupplierSiteItem | undefined> {
+    return this.repository.findSiteItem(supplierItemId, siteId);
   }
 
   // Returns the inventory_item_id that owns a given supplier_items row, or null if not found.
@@ -525,6 +552,54 @@ export class SupplierItemsDomainService {
       ]);
     }
     return item.id;
+  }
+
+  // Returns the unit the supplier sells each item in at the site, keyed by inventory item; items it does not supply there
+  // are left out
+  async findSiteUnits(supplierId: string, siteId: string, inventoryItemIds: string[]): Promise<Map<string, string>> {
+    if (inventoryItemIds.length === 0) return new Map();
+    const rows = await this.repository.findSiteUnits(supplierId, siteId, [...new Set(inventoryItemIds)]);
+    return new Map(rows.map((row) => [row.inventoryItemId, row.uomId]));
+  }
+
+  // Returns the supplier's lead time at the site for each item in its unit, keyed by item and unit: the site item in that
+  // unit, else the item's preferred (or first) site item; items it does not supply there are left out
+  async findSiteLeadTimes(
+    supplierId: string,
+    siteId: string,
+    items: { inventoryItemId: string; uomId: string }[],
+  ): Promise<Map<string, number>> {
+    if (items.length === 0) return new Map();
+    const rows = await this.repository.findSiteLeadTimes(supplierId, siteId, [
+      ...new Set(items.map((item) => item.inventoryItemId)),
+    ]);
+    const leadTimes = new Map<string, number>();
+    for (const item of items) {
+      const ofItem = rows.filter((row) => row.inventoryItemId === item.inventoryItemId);
+      const match = ofItem.find((row) => row.uomId === item.uomId) ?? ofItem[0];
+      if (match) leadTimes.set(SupplierItemsDomainService.leadTimeKey(item), match.leadTimeDays);
+    }
+    return leadTimes;
+  }
+
+  // Keys a lead time by item and unit
+  static leadTimeKey(item: { inventoryItemId: string; uomId: string }): string {
+    return `${item.inventoryItemId}:${item.uomId}`;
+  }
+
+  // Rejects items the supplier does not supply at the site, naming them
+  async assertSuppliedAt(supplierId: string, siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
+    if (inventoryItemIds.length === 0) return;
+    const missingNames = await this.repository.findNamesNotSuppliedAt(supplierId, siteId, [
+      ...new Set(inventoryItemIds),
+    ]);
+    if (missingNames.length === 0) return;
+    const quotedNames = missingNames.map((name) => `"${name}"`).join(', ');
+    throw new BadRequestException({
+      label: 'Item Not Supplied at Site',
+      detail: `This supplier does not supply ${quotedNames} at this site. Set it up on the supplier's items for this site first.`,
+      errors: [{ field, message: 'Not supplied at this site' }],
+    });
   }
 
   // Writes site item settings; marking preferred first clears the flag from the item's other suppliers at that site

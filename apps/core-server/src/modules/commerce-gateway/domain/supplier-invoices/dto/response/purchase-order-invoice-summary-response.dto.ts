@@ -1,15 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PurchaseOrderInvoiceSummaryResponseDto {
-  @ApiProperty({ description: 'Invoices billing the order, cancelled ones excluded' })
+  @ApiProperty({ description: 'Invoices with a line invoicing the order, cancelled ones excluded' })
   invoiceCount: number;
 
-  @ApiProperty({ description: 'Of those, the invoices with at least one failed match check' })
-  flaggedInvoiceCount: number;
+  @ApiProperty({ description: 'Of those, the invoices with an open hold that blocks payment' })
+  heldInvoiceCount: number;
 
-  @ApiProperty({ description: "Quantity billed over the order's lines" })
-  billedQty: number;
+  @ApiProperty({ description: "Invoiced and free quantity posted against the order's lines, in primary units" })
+  invoicedPrimaryQty: number;
 
-  @ApiProperty({ description: 'Quantity billed as a percentage of the quantity ordered', example: 62.5 })
-  billedPercent: number;
+  @ApiProperty({ description: 'Ordered and free less cancelled over the lines, in primary units' })
+  duePrimaryQty: number;
+
+  @ApiProperty({ description: 'Invoiced as a percentage of due', example: 62.5 })
+  invoicedPercent: number;
 }

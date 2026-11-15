@@ -274,8 +274,8 @@ export interface PriceWindow {
 
 export interface SitePriceHistory {
   siteId: string;
-  siteName?: string | null;
-  siteCode?: string | null;
+  siteName: string;
+  siteCode: string;
   current: PriceWindow | null;
   previous: PriceWindow | null;
   next: PriceWindow | null;
@@ -361,8 +361,8 @@ export interface SupplierSiteItemRow {
   legalEntityId: string;
   siteId: string;
   inventoryItemId: string;
-  siteName: string | null;
-  siteCode: string | null;
+  siteName: string;
+  siteCode: string;
   isPreferred: boolean;
   leadTimeDays: number;
   // True when the site sets its own lead time instead of following the supplier item's default

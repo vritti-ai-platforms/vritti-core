@@ -89,14 +89,12 @@ export interface SupplierQuotationItemData {
   taxInclusive: boolean;
 }
 
-export interface SupplierQuotationSiteData {
+// A quotation posted to one named site, or to all of the legal entity's sites (no site)
+export type SupplierQuotationSiteData = {
   id: string;
-  siteId: string | null;
-  siteName: string | null;
-  siteCode: string | null;
   postedBy: string | null;
   postedAt: string;
-}
+} & ({ siteId: string; siteName: string; siteCode: string } | { siteId: null; siteName: null; siteCode: null });
 
 export interface SupplierQuotationDetail extends SupplierQuotationData {
   items: SupplierQuotationItemData[];

@@ -4,6 +4,7 @@ import { and, desc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-s
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
+  locations,
   type PartyCommunicationChannel,
   PartyCommunicationChannelValues,
   PartyFunctionTypeValues,
@@ -32,6 +33,8 @@ const orderContactEmail = alias(partyCommunications, 'order_contact_email');
 const orderContactPhone = alias(partyCommunications, 'order_contact_phone');
 export const orderEmail = alias(partyCommunications, 'order_email');
 export const orderPhone = alias(partyCommunications, 'order_phone');
+const quarantineLocation = alias(locations, 'quarantine_location');
+const defaultReceiptLocation = alias(locations, 'default_receipt_location');
 
 const orderContactJoins = [
   { table: orderRel, on: eq(orderRel.id, supplierEnrollments.orderRelationshipId) },
@@ -139,6 +142,25 @@ export type SupplierEnrollmentWithPicks = SupplierEnrollment & {
   orderPhone: string;
 };
 
+export type SupplierEnrollmentPurchasingRecord = Pick<
+  SupplierEnrollment,
+  | 'purchaseType'
+  | 'approvalEnabled'
+  | 'approverUserIds'
+  | 'approvalThreshold'
+  | 'qualityCheckEnabled'
+  | 'quarantineLocationId'
+  | 'defaultReceiptLocationId'
+  | 'priceTolerancePct'
+  | 'qtyTolerancePct'
+  | 'amountTolerance'
+> & {
+  quarantineLocationName: string | null;
+  defaultReceiptLocationName: string | null;
+};
+
+export type SupplierEnrollmentPurchasingSnapshotRecord = SupplierEnrollment & { purchasingBlocked: boolean };
+
 export interface SupplierEnrollmentPicks {
   paymentTermId?: string;
   partyTaxRegistrationId?: string | null;
@@ -200,11 +222,10 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
     return result[0];
   }
 
-  // Loads a supplier row for enrollment validation, throwing when it does not exist
-  async findSupplierOrThrow(supplierId: string): Promise<Supplier> {
+  // Loads a supplier row for enrollment validation
+  async findSupplier(supplierId: string): Promise<Supplier | undefined> {
     const [row] = await this.db.select().from(suppliers).where(eq(suppliers.id, supplierId)).limit(1);
-    if (!row) throw new NotFoundException('Supplier not found.');
-    return row as Supplier;
+    return row;
   }
 
   // Loads the supplier's enrollment at a site
@@ -212,36 +233,53 @@ export class SupplierEnrollmentsDomainRepository extends PrimaryBaseRepository<t
     return this.model.findFirst({ where: { supplierId, siteId } }) as Promise<SupplierEnrollment | undefined>;
   }
 
-  // Loads the supplier's enrollment at a site, throwing when the supplier is not enrolled there
-  async findBySupplierAndSiteOrThrow(supplierId: string, siteId: string): Promise<SupplierEnrollment> {
-    const enrollment = await this.findBySupplierAndSite(supplierId, siteId);
-    if (!enrollment) throw new NotFoundException('Supplier is not enrolled for this site.');
+  // Loads an enrollment's purchasing settings with the names of its quarantine and default receipt locations
+  findPurchasing(id: string): Promise<SupplierEnrollmentPurchasingRecord | undefined> {
+    return this.findById<SupplierEnrollmentPurchasingRecord>(id, {
+      select: {
+        purchaseType: supplierEnrollments.purchaseType,
+        approvalEnabled: supplierEnrollments.approvalEnabled,
+        approverUserIds: supplierEnrollments.approverUserIds,
+        approvalThreshold: supplierEnrollments.approvalThreshold,
+        qualityCheckEnabled: supplierEnrollments.qualityCheckEnabled,
+        quarantineLocationId: supplierEnrollments.quarantineLocationId,
+        quarantineLocationName: quarantineLocation.name,
+        defaultReceiptLocationId: supplierEnrollments.defaultReceiptLocationId,
+        defaultReceiptLocationName: defaultReceiptLocation.name,
+        priceTolerancePct: supplierEnrollments.priceTolerancePct,
+        qtyTolerancePct: supplierEnrollments.qtyTolerancePct,
+        amountTolerance: supplierEnrollments.amountTolerance,
+      },
+      leftJoins: [
+        { table: quarantineLocation, on: eq(quarantineLocation.id, supplierEnrollments.quarantineLocationId) },
+        {
+          table: defaultReceiptLocation,
+          on: eq(defaultReceiptLocation.id, supplierEnrollments.defaultReceiptLocationId),
+        },
+      ],
+    });
+  }
+
+  // Returns the current approvers of each of the given enrollments
+  // Loads the supplier's enrollment at a site with whether the supplier is blocked from purchasing
+  async findPurchasingSnapshot(
+    supplierId: string,
+    siteId: string,
+  ): Promise<SupplierEnrollmentPurchasingSnapshotRecord | undefined> {
+    const [enrollment] = await this.db
+      .select({ ...getColumns(supplierEnrollments), purchasingBlocked: suppliers.purchasingBlocked })
+      .from(supplierEnrollments)
+      .innerJoin(suppliers, eq(suppliers.id, supplierEnrollments.supplierId))
+      .where(and(eq(supplierEnrollments.supplierId, supplierId), eq(supplierEnrollments.siteId, siteId)))
+      .limit(1);
     return enrollment;
   }
 
-  // Rejects buying from a supplier that is not enrolled, not active or purchasing-blocked at the site
-  async assertPurchasable(supplierId: string, siteId: string): Promise<void> {
-    const enrollment = await this.findBySupplierAndSite(supplierId, siteId);
-    if (!enrollment) {
-      throw new BadRequestException({
-        label: 'Not Enrolled',
-        detail: 'This supplier is not enrolled for this site. Enroll it here before creating this document.',
-      });
-    }
-    if (!enrollment.isSupplierActive || !enrollment.isActive) {
-      throw new BadRequestException({
-        label: 'Supplier Inactive',
-        detail: enrollment.isSupplierActive
-          ? "This supplier's enrollment at this site is inactive. Activate it at this site before purchasing."
-          : 'This supplier is inactive. Activate the supplier before purchasing from it.',
-      });
-    }
-    if ((await this.findSupplierOrThrow(supplierId)).purchasingBlocked) {
-      throw new BadRequestException({
-        label: 'Supplier Blocked',
-        detail: 'Purchasing is blocked for this supplier. Lift the block on the supplier before purchasing from it.',
-      });
-    }
+  findApprovers(ids: string[]): Promise<{ id: string; approverUserIds: string[] }[]> {
+    return this.findAllWithSelect<{ id: string; approverUserIds: string[] }>({
+      select: { id: supplierEnrollments.id, approverUserIds: supplierEnrollments.approverUserIds },
+      where: inArray(supplierEnrollments.id, ids),
+    });
   }
 
   // Rejects any of the given picks that does not belong to the supplier's party or is unusable

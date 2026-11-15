@@ -3,7 +3,8 @@ import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/Tree
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Box, type LucideIcon, MapPin, PackageCheck, Warehouse } from 'lucide-react';
 import type React from 'react';
-import { type LocationRole, LocationRoleValues } from '@/schemas/locations';
+import { type LocationRole, LocationRoleValues, type LocationTreeNode } from '@/schemas/locations';
+import { LocationFillPercent } from './LocationFill';
 
 // Icon per location role: zone is a container, storage/reserved are leaf bins.
 export const LOCATION_ROLE_ICON: Record<LocationRole, LucideIcon> = {
@@ -12,9 +13,9 @@ export const LOCATION_ROLE_ICON: Record<LocationRole, LucideIcon> = {
   [LocationRoleValues.RESERVED_STORAGE]: PackageCheck,
 };
 
-// Custom tree row: role-based icon, name, and child-count pill.
+// Custom tree row: role-based icon, name, fill percentage, and child-count pill.
 export const LocationRow: React.FC<TreeRenderItemParams> = ({ item, isOpen }) => {
-  const node = item as TreeDataItem & { locationRole?: LocationRole };
+  const node = item as TreeDataItem & Partial<Pick<LocationTreeNode, 'locationRole' | 'fill'>>;
   const childCount = node.children?.length ?? 0;
   const isZone = node.locationRole === LocationRoleValues.ZONE;
 
@@ -29,6 +30,7 @@ export const LocationRow: React.FC<TreeRenderItemParams> = ({ item, isOpen }) =>
         {item.name}
       </Typography>
       <div className="flex items-center gap-1 shrink-0 ml-auto">
+        <LocationFillPercent fill={node.fill} />
         {childCount > 0 && (
           <Badge variant="secondary" className="text-xs rounded-full px-1.5 py-0.5 leading-none">
             {childCount}

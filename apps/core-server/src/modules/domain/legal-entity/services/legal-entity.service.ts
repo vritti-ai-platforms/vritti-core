@@ -8,6 +8,7 @@ import { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { AUTH_STATUS_EVENTS, LegalEntityUpdatedEvent } from '@/common/events/auth-status.events';
 import type { TaxRegime } from '@/db/schema';
+import { LegalEntityContextCacheService } from '@/legal-entity-context/legal-entity-context-cache.service';
 import { OwnerNameCacheService } from '@/owner-names/owner-name-cache.service';
 import { normalizeLocks } from '@/rbac/permission-dependencies';
 import { sequentialSortOrders } from '@/utils/sort-order';
@@ -25,6 +26,7 @@ export class LegalEntityDomainService {
     private readonly catalogService: CatalogDomainService,
     private readonly eventEmitter: EventEmitter2,
     private readonly ownerNameCache: OwnerNameCacheService,
+    private readonly legalEntityContextCache: LegalEntityContextCacheService,
   ) {}
 
   // Returns legal entities as select options, excluding a node and its descendant subtree
@@ -144,6 +146,7 @@ export class LegalEntityDomainService {
     if (reparented) await this.compactSiblings(legalEntity.organizationId, oldParentId);
 
     if (dto.name) await this.ownerNameCache.invalidate('le', id);
+    if (dto.currencyCode) await this.legalEntityContextCache.invalidate(id);
 
     this.logger.log(`Updated legal entity ${id}`);
     this.eventEmitter.emit(

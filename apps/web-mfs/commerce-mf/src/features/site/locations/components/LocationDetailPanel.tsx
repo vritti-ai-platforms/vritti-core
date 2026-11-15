@@ -28,12 +28,14 @@ import {
   useLocationChildrenTable,
   useLocationItemsTable,
 } from '@/hooks/site/locations';
-import { type LocationData, type LocationItemRow, LocationRoleLabels } from '@/schemas/locations';
+import { type LocationData, type LocationItemRow, LocationRoleLabels, LocationRoleValues } from '@/schemas/locations';
 import { AddLocationDialog } from '../forms/AddLocationDialog';
 import { EditLocationDialog } from '../forms/EditLocationDialog';
 import { LocationDetailPanelSkeleton } from './LocationDetailPanelSkeleton';
+import { LocationFillBar, LocationFillDetails } from './LocationFill';
 import { LocationItemQuantsDialogContent } from './LocationItemQuantsDialogContent';
 import { LOCATION_ROLE_ICON } from './LocationRow';
+import { LocationStorageType } from './LocationStorageType';
 
 interface LocationDetailPanelProps {
   selectedId: string | null;
@@ -74,7 +76,7 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
   const editDialog = useDialog();
   const deleteMutation = useDeleteLocation();
   const locationChildrenTableQuery = useLocationChildrenTable(location.id);
-  const canAddChild = location.locationRole === 'ZONE';
+  const isZone = location.locationRole === LocationRoleValues.ZONE;
   const RoleIcon = LOCATION_ROLE_ICON[location.locationRole];
 
   const columns = useMemo<ColumnDef<LocationData>[]>(
@@ -95,6 +97,16 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
         accessorKey: 'locationRole',
         header: 'Role',
         cell: ({ row }) => LocationRoleLabels[row.original.locationRole],
+      },
+      {
+        accessorKey: 'storageTypeName',
+        header: 'Storage Type',
+        cell: ({ row }) => <LocationStorageType location={row.original} />,
+      },
+      {
+        id: 'fill',
+        header: 'Fill',
+        cell: ({ row }) => <LocationFillBar fill={row.original.fill} />,
       },
       {
         accessorKey: 'isActive',
@@ -211,10 +223,23 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
           />
           <DetailField className="px-4 py-2" label="Parent" type="string" value={location.parentName} />
           <DetailField className="px-4 py-2" label="Area" type="string" value={location.area} />
+          <DetailField
+            className="px-4 py-2"
+            label={isZone ? 'Default Storage Type' : 'Storage Type'}
+            type="string"
+            value={<LocationStorageType location={location} />}
+          />
         </DetailSection>
       </div>
 
-      {location.locationRole === 'ZONE' ? (
+      <div>
+        <Typography variant="overline" intent="muted" className="mb-3">
+          {isZone ? 'Fill across storage locations' : 'Fill'}
+        </Typography>
+        <LocationFillDetails fill={location.fill} />
+      </div>
+
+      {isZone ? (
         <div>
           <Typography variant="overline" intent="muted" className="mb-3">
             Child Locations ({locationChildrenTableQuery.data?.count ?? 0})
@@ -228,8 +253,6 @@ const LocationDetailContent: React.FC<LocationDetailContentProps> = ({ location,
                   size="sm"
                   startAdornment={<Plus className="size-4" />}
                   onClick={addChildDialog.open}
-                  disabled={!canAddChild}
-                  title={!canAddChild ? 'Only ZONE locations can have child locations.' : undefined}
                   permission={SITE_LOCATIONS.add}
                 >
                   Add Child Location

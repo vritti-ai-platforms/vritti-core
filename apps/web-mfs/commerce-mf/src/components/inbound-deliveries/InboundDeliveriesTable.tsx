@@ -34,7 +34,7 @@ interface InboundDeliveriesTableProps {
 const STATUS_OPTIONS = Object.entries(inboundDeliveryStatusConfig).map(([value, { label }]) => ({ label, value }));
 const SOURCE_OPTIONS = Object.entries(inboundDeliverySourceConfig).map(([value, { label }]) => ({ label, value }));
 
-// Inbound deliveries announced by suppliers or created by goods receipts (shown by their receipt number); across the legal entity's sites each names its site, and a row opens the delivery
+// Inbound deliveries created ahead of a shipment or by goods receipts (shown by their receipt number); across the legal entity's sites each names its site, and a row opens the delivery
 export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ binding }) => {
   const { mutations, SupplierFilter } = binding;
   const navigate = useNavigate();
@@ -60,7 +60,7 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
             {
               accessorKey: 'siteName',
               header: 'Site',
-              cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+              cell: ({ row }) => <StringCell value={row.original.siteName} />,
               enableSorting: false,
             } satisfies ColumnDef<InboundDeliveryData>,
           ]
@@ -79,12 +79,7 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
       {
         accessorKey: 'source',
         header: 'Source',
-        cell: ({ row }) =>
-          row.original.source === 'RECEIPT' ? (
-            <StringCell value={row.original.sourceGrNumber} mono />
-          ) : (
-            inboundDeliverySourceConfig[row.original.source].label
-          ),
+        cell: ({ row }) => inboundDeliverySourceConfig[row.original.source].label,
         enableSorting: false,
       },
       {
@@ -164,7 +159,7 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
       startAdornment={<Plus className="size-4" />}
       onClick={createDialog.open}
     >
-      New Delivery
+      New Inbound Delivery
     </Button>
   );
 
@@ -173,7 +168,6 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
       <DataTable
         table={inboundDeliveriesTable}
         permission={binding.viewPermission}
-        onRowClick={openDelivery}
         contextBar={
           binding.spansSites && (
             <SiteFilter name="sites" label="Sites" placeholder="All sites" mode="context" multiple />
@@ -198,8 +192,8 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
           icon: Truck,
           title: 'No inbound deliveries',
           description: mutations
-            ? 'Announce a delivery when a supplier ships goods against your purchase orders.'
-            : 'No supplier has announced a delivery to any site yet.',
+            ? 'Create an inbound delivery when a supplier ships goods against your purchase orders.'
+            : 'No inbound delivery has been created for any site yet.',
           action: newDeliveryAction || undefined,
         }}
       />
@@ -208,8 +202,8 @@ export const InboundDeliveriesTable: React.FC<InboundDeliveriesTableProps> = ({ 
         <Dialog
           handle={createDialog}
           icon={Truck}
-          title="New Delivery"
-          description="Announce a delivery a supplier is sending to this site."
+          title="New Inbound Delivery"
+          description="Create an inbound delivery a supplier is sending to this site."
           content={(close) => (
             <CreateInboundDeliveryDialog
               mutations={mutations}

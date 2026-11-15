@@ -55,4 +55,22 @@ export class CreateLocationDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      "Storage type of the location. On a STORAGE location it overrides the inherited type; on a ZONE it becomes the default for its subtree. Omit to inherit the nearest typed ancestor zone's type",
+    type: String,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsUUID('7')
+  storageTypeId?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      "True clears the override and re-inherits the nearest typed ancestor zone's storage type. Send it without `storageTypeId`",
+  })
+  @IsOptional()
+  @IsBoolean()
+  inheritStorageType?: boolean;
 }

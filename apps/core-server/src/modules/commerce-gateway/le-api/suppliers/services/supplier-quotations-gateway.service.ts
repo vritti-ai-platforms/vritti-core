@@ -7,12 +7,13 @@ import type {
   SupplierQuotationResponseDto,
 } from '@commerce/supplier-quotations/dto/response/supplier-quotation-response.dto';
 import type { SupplierQuotationTableResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-table-response.dto';
-import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
+import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { OwnerNameService } from '@/owner-names/owner-name.service';
 
 @Injectable()
 export class SupplierQuotationsGatewayService {
@@ -21,7 +22,8 @@ export class SupplierQuotationsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteRepository: SiteDomainRepository,
+    private readonly siteService: SiteDomainService,
+    private readonly ownerNames: OwnerNameService,
   ) {}
 
   async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
@@ -64,19 +66,7 @@ export class SupplierQuotationsGatewayService {
       'le.suppliers.quotations.findById',
       { id },
     );
-    const sites = await this.siteRepository.findByIds(
-      orgId,
-      quotation.sites.flatMap((site) => (site.siteId ? [site.siteId] : [])),
-    );
-    const sitesById = new Map(sites.map((site) => [site.id, site]));
-    return {
-      ...quotation,
-      sites: quotation.sites.map((site) => ({
-        ...site,
-        siteName: site.siteId ? (sitesById.get(site.siteId)?.name ?? null) : null,
-        siteCode: site.siteId ? (sitesById.get(site.siteId)?.code ?? null) : null,
-      })),
-    };
+    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
   }
 
   create(
@@ -113,7 +103,7 @@ export class SupplierQuotationsGatewayService {
     orgId: string,
     legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
-    const [site] = await this.siteRepository.findByIds(orgId, [siteId]);
+    const [site] = await this.siteService.findByIds(orgId, [siteId]);
     if (!legalEntityId || !site || site.legalEntityId !== legalEntityId) {
       throw new BadRequestException({
         label: 'Invalid Site',

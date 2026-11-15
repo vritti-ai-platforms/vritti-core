@@ -65,7 +65,7 @@ export const OpeningLinesSidePanel = ({
           {lines.map((line) => (
             <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>
               <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-medium truncate">{line.locationName ?? line.locationId ?? '—'}</div>
+                <div className="text-sm font-medium truncate">{line.locationName ?? '—'}</div>
                 <Badge variant={line.isBalanced ? 'success' : 'warning'}>
                   {line.lineItemsCount}/{line.uomQty}
                 </Badge>

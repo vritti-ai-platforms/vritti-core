@@ -20,6 +20,8 @@ import { PaymentTermsDomainModule } from '@domain/payment-terms/payment-terms.mo
 import { PosTerminalsDomainModule } from '@domain/pos-terminals/pos-terminals.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
+import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
+import { StorageTypesDomainModule } from '@domain/storage-types/storage-types.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { TaxClassesDomainModule } from '@domain/tax-classes/tax-classes.module';
@@ -55,10 +57,12 @@ import { SelectController } from './select.controller';
     PurchaseOrderItemsDomainModule,
     InboundDeliveriesDomainModule,
     PurchaseOrdersDomainModule,
+    PurchasesDomainModule,
     CostCategoriesDomainModule,
     SupplierItemsDomainModule,
     SuppliersDomainModule,
     PaymentTermsDomainModule,
+    StorageTypesDomainModule,
     TaxClassesDomainModule,
     TaxComponentsDomainModule,
     TaxGroupsDomainModule,

@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsCode, Trim } from '@vritti/api-sdk/decorators';
-import { IsEnum, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength } from 'class-validator';
 
 export class UpdateInventoryItemDto {
   @Trim({ nullify: false })
@@ -63,4 +63,57 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsUUID('7')
   taxClassId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Weight of one primary unit, in grams (g), greater than 0 with up to 3 decimals; null clears it',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  weight?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Volume of one primary unit, in millilitres (ml), greater than 0 with up to 3 decimals; null clears it',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  volume?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Length of one primary unit, in millimetres (mm), greater than 0 with up to 3 decimals; null clears it',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  length?: number | null;
+
+  @ApiPropertyOptional({
+    description: 'Width of one primary unit, in millimetres (mm), greater than 0 with up to 3 decimals; null clears it',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  width?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Height of one primary unit, in millimetres (mm), greater than 0 with up to 3 decimals; null clears it',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  height?: number | null;
 }

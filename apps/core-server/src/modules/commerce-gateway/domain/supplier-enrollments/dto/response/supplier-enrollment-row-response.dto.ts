@@ -33,11 +33,11 @@ export class SupplierEnrollmentRowResponseDto {
   @ApiProperty({ description: 'Site ID' })
   siteId: string;
 
-  @ApiPropertyOptional({ description: 'Site name (gateway-enriched)', nullable: true })
-  siteName: string | null;
+  @ApiProperty({ description: 'Site name (gateway-enriched)' })
+  siteName: string;
 
-  @ApiPropertyOptional({ description: 'Site code (gateway-enriched)', nullable: true })
-  siteCode: string | null;
+  @ApiProperty({ description: 'Site code (gateway-enriched)' })
+  siteCode: string;
 
   @ApiProperty({ description: 'Whether the supplier is enrolled at the site', enum: SUPPLIER_ENROLLMENT_STATUSES })
   enrollmentStatus: SupplierEnrollmentStatus;
@@ -69,7 +69,7 @@ export class SupplierEnrollmentRowResponseDto {
   @ApiPropertyOptional({ description: 'Name of the payment term, when enrolled', nullable: true })
   paymentTermName: string | null;
 
-  @ApiPropertyOptional({ description: "Supplier's tax registration the site is billed under", nullable: true })
+  @ApiPropertyOptional({ description: "Supplier's tax registration the site is invoiced under", nullable: true })
   partyTaxRegistrationId: string | null;
 
   @ApiPropertyOptional({ description: 'Registration number of the picked tax registration', nullable: true })

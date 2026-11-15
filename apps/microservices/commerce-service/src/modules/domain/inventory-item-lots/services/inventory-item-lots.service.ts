@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, ilike } from '@vritti/api-sdk/drizzle-orm';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type InventoryItemLot, inventoryItemLots } from '@/db/schema';
 import { InventoryItemLotDto } from '../dto/entity/inventory-item-lot.dto';
 import { InventoryItemLotsDomainRepository } from '../repositories/inventory-item-lots.repository';
@@ -20,7 +20,7 @@ export class InventoryItemLotsDomainService {
   async findLotsForTable(
     inventoryItemId: string,
     state: TableState,
-    _siteCurrencyCode?: string,
+    _leCurrencyCode?: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLotsDomainService.LOTS_FIELD_MAP);
@@ -93,14 +93,12 @@ export class InventoryItemLotsDomainService {
   async findForSelect(query: SelectOptionsQueryDto & { inventoryItemId?: string }): Promise<SelectQueryResult> {
     const search = query.search?.trim();
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      search: undefined,
       value: query.valueKey || 'id',
       label: query.labelKey || 'lotNumber',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      values: query.values,
-      excludeIds: query.excludeIds,
-      limit: query.limit,
-      offset: query.offset,
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
       where: query.inventoryItemId ? { inventoryItemId: query.inventoryItemId } : undefined,

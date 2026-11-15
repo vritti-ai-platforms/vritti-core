@@ -1,4 +1,8 @@
+import { INBOUND_DELIVERY_SOURCES } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export const GOODS_RECEIPT_STATUSES = ['DRAFT', 'POSTED'] as const;
+export type GoodsReceiptStatus = (typeof GOODS_RECEIPT_STATUSES)[number];
 
 export class GoodsReceiptResponseDto {
   @ApiProperty({ description: 'Goods receipt ID' })
@@ -19,13 +23,27 @@ export class GoodsReceiptResponseDto {
   @ApiProperty({ description: 'Supplier name' })
   supplierName: string;
 
-  @ApiProperty({ description: 'Receipt status', enum: ['DRAFT', 'PUBLISHED'] })
+  @ApiPropertyOptional({ description: 'Purchase that created the receipt', type: String, nullable: true })
+  purchaseId: string | null;
+
+  @ApiPropertyOptional({ description: 'Number of that purchase', type: String, nullable: true })
+  purchaseNumber: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Supplier invoice of the Receive with Invoice the receipt belongs to; it is edited only through that invoice',
+    type: String,
+    nullable: true,
+  })
+  receiveWithInvoiceInvoiceId: string | null;
+
+  @ApiProperty({ description: 'Receipt status', enum: GOODS_RECEIPT_STATUSES })
   status: string;
 
   @ApiProperty({
-    description: 'True for a draft whose every item is fully distributed to balanced lines — the Publish gate',
+    description: 'True for a draft whose every item is fully distributed to balanced lines — the Post gate',
   })
-  isPublishable: boolean;
+  isPostable: boolean;
 
   @ApiProperty({ description: 'Number of items counted on the receipt' })
   itemCount: number;
@@ -37,8 +55,9 @@ export class GoodsReceiptResponseDto {
   deliveryNumber: string;
 
   @ApiProperty({
-    description: 'ANNOUNCED when received against a delivery announced ahead, RECEIPT when the receipt created it',
-    enum: ['ANNOUNCED', 'RECEIPT'],
+    description:
+      'Source of the delivery received: ANNOUNCED for every manual receipt; GOODS_RECEIPT or SUPPLIER_INVOICE when a Purchase created it',
+    enum: INBOUND_DELIVERY_SOURCES,
   })
   deliverySource: string;
 
@@ -75,8 +94,8 @@ export class GoodsReceiptResponseDto {
   @ApiPropertyOptional({ description: 'Notes', nullable: true })
   notes: string | null;
 
-  @ApiPropertyOptional({ description: 'ISO timestamp of publishing', nullable: true })
-  publishedAt: string | null;
+  @ApiPropertyOptional({ description: 'ISO timestamp of posting', nullable: true })
+  postedAt: string | null;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

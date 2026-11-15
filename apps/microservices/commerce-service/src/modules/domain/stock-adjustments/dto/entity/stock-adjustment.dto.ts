@@ -34,7 +34,7 @@ export class StockAdjustmentDto {
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
     },
-    siteCurrencyCode?: string,
+    leCurrencyCode?: string,
   ): StockAdjustmentDto {
     const dto = new StockAdjustmentDto();
     dto.id = entity.id;
@@ -55,8 +55,8 @@ export class StockAdjustmentDto {
     dto.status = entity.status;
     dto.reason = entity.reason ?? null;
     dto.unitCost =
-      entity.unitCost != null && siteCurrencyCode
-        ? CurrencyAmountDto.from(BigInt(entity.unitCost as unknown as string), siteCurrencyCode)
+      entity.unitCost != null && leCurrencyCode
+        ? CurrencyAmountDto.from(BigInt(entity.unitCost as unknown as string), leCurrencyCode)
         : null;
     dto.isPublishable = Boolean(entity.isPublishable);
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;

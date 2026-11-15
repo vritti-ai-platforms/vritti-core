@@ -10,18 +10,17 @@ import {
   useInboundDeliveriesTable,
   useInboundDelivery,
   useInboundDeliveryLinesTable,
-  useReceiveInboundDelivery,
   useRemoveInboundDeliveryLine,
   useUpdateInboundDelivery,
   useUpdateInboundDeliveryLine,
   useUpdateInboundDeliveryStatus,
 } from '@/hooks/site/inbound-deliveries';
-import { SiteSupplierFilter } from '@/selectors/site-supplier';
-import { EnrolledSupplierSelector } from '../purchase-orders/EnrolledSupplierSelector';
+import { EnrolledSiteSupplierSelector, SiteSupplierFilter } from '@/selectors/site-supplier';
 
-// The session site's inbound deliveries: announced, moved along and received here
+// The session site's inbound deliveries: created and moved along here, and received in its goods receipts
 export const binding: InboundDeliveriesBinding = {
   viewPermission: SITE_INBOUND_DELIVERIES.view,
+  receivePermission: SITE_GOODS_RECEIPTS.add,
   spansSites: false,
   SupplierFilter: SiteSupplierFilter,
 
@@ -36,8 +35,7 @@ export const binding: InboundDeliveriesBinding = {
 
   mutations: {
     permissions: SITE_INBOUND_DELIVERIES,
-    receivePermission: SITE_GOODS_RECEIPTS.add,
-    SupplierSelector: EnrolledSupplierSelector,
+    SupplierSelector: EnrolledSiteSupplierSelector,
 
     useCreate: useCreateInboundDelivery,
     useUpdate: useUpdateInboundDelivery,
@@ -46,6 +44,5 @@ export const binding: InboundDeliveriesBinding = {
     useAddLines: useAddInboundDeliveryLines,
     useUpdateLine: useUpdateInboundDeliveryLine,
     useRemoveLine: useRemoveInboundDeliveryLine,
-    useReceive: useReceiveInboundDelivery,
   },
 };

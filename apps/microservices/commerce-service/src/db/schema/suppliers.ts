@@ -15,14 +15,19 @@ import { inventoryItems } from './inventory-items';
 import { parties } from './parties';
 import { paymentTerms } from './payment-terms';
 import { uom } from './uom';
-import { legalEntityOwnedPolicies, organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
+import {
+  legalEntityIdColumn,
+  legalEntityOwnedPolicies,
+  organizationIdColumn,
+  scopeFromOwnerPolicies,
+} from './workspace-scope';
 
 export const suppliers = commerceSchema.table(
   'suppliers',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    legalEntityId: legalEntityIdColumn().notNull(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id),
@@ -61,7 +66,7 @@ export const supplierItems = commerceSchema.table(
   'supplier_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'cascade' }),

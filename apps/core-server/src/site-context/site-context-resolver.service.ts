@@ -22,7 +22,7 @@ export class SiteContextResolverService {
 
     const context: SiteContext = {
       siteTimezone: workspaceContext.timezone,
-      siteCurrencyCode: workspaceContext.currencyCode,
+      leCurrencyCode: workspaceContext.currencyCode,
       legalEntityId: workspaceContext.legalEntityId,
     };
 

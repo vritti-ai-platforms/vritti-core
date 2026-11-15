@@ -2,7 +2,8 @@ import {
   type PayableGateway,
   PayoutChannelDomainService,
 } from '@domain/payout-channel/services/payout-channel.service';
-import { type AppSiteRow, SiteDomainRepository } from '@domain/site/repositories/site.repository';
+import type { AppSiteRow } from '@domain/site/dto/entity/app-site.dto';
+import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
@@ -101,7 +102,7 @@ export class CartsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteRepository: SiteDomainRepository,
+    private readonly siteService: SiteDomainService,
     private readonly payoutChannelService: PayoutChannelDomainService,
   ) {}
 
@@ -201,7 +202,7 @@ export class CartsGatewayService {
   // The party's cart at every store the organization sells from, each read under its own store since a cart and its
   // prices belong to one store, with the gateways able to take one payment for all of them
   async findPartyCart(orgId: string, appId: string, partyId: string, currencyCode: string): Promise<CartPayload> {
-    const sites = await this.siteRepository.findForAppByOrg(orgId);
+    const sites = await this.siteService.findForAppByOrg(orgId);
     this.logger.log(`site.carts.findAtSites — party: ${partyId}, sites: ${sites.length}`);
     const carts = await this.nats.send<{ siteId: string; cart: SiteCartResponse }[]>(
       'commerce',

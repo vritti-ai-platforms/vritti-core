@@ -1,7 +1,12 @@
 // Hand type mirroring the GraphQL GoodsReceipt. `status` is a union (the server field is String — the
 // enum-precision caveat in native-graphql.md); a receipt counts lines of one or more purchase orders of its supplier,
 // always through an inbound delivery — announced ahead, or created by the receipt itself (`deliverySource`).
-export type GoodsReceiptStatus = 'DRAFT' | 'PUBLISHED';
+export const GoodsReceiptStatusValues = {
+  DRAFT: 'DRAFT',
+  POSTED: 'POSTED',
+} as const;
+
+export type GoodsReceiptStatus = (typeof GoodsReceiptStatusValues)[keyof typeof GoodsReceiptStatusValues];
 
 export type InboundDeliverySource = 'ANNOUNCED' | 'RECEIPT';
 
@@ -22,7 +27,7 @@ export interface GoodsReceipt {
   expectedDeliveryDate: string | null;
   receivedDate: string;
   notes: string | null;
-  publishedAt: string | null;
+  postedAt: string | null;
   createdAt: string;
 }
 

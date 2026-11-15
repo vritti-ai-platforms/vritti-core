@@ -20,7 +20,7 @@ interface ChangeExchangeRateDialogProps {
   onCancel: () => void;
 }
 
-// Changes how much 1 unit of the order's currency is in the legal entity's, until a receipt of the order is published
+// Changes how much 1 unit of the order's currency is in the legal entity's, until a receipt of the order is posted
 export const ChangeExchangeRateDialog: React.FC<ChangeExchangeRateDialogProps> = ({
   binding,
   purchaseOrder,

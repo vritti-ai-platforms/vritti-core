@@ -1,24 +1,27 @@
+import type { BadgeProps } from '@vritti/quantum-ui/Badge';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { GoodsReceiptItemFlagCode, GoodsReceiptStatus } from '@/schemas/goods-receipts';
-import type { SupplierInvoiceFlagCode, SupplierInvoiceStatus } from '@/schemas/supplier-invoices';
+import type { SupplierInvoiceHoldCode, SupplierInvoiceStatus } from '@/schemas/supplier-invoices';
 
-export type PurchaseOrderStatus =
-  | 'PENDING_APPROVAL'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'DRAFT'
-  | 'SENT'
-  | 'CONFIRMED'
-  | 'PARTIALLY_RECEIVED'
-  | 'RECEIVED'
-  | 'CLOSED'
-  | 'CANCELLED';
+export const PurchaseOrderStatusValues = {
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  CONFIRMED: 'CONFIRMED',
+  DELIVERY_COMPLETED: 'DELIVERY_COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export type PurchaseOrderStatus = (typeof PurchaseOrderStatusValues)[keyof typeof PurchaseOrderStatusValues];
 
-export const RECEIVABLE_PURCHASE_ORDER_STATUSES: PurchaseOrderStatus[] = ['CONFIRMED', 'PARTIALLY_RECEIVED'];
+export type PurchaseOrderReceiptStatus = 'NOT_RECEIVED' | 'PARTIAL' | 'RECEIVED';
 
-export type ManualPurchaseOrderStatus = Extract<PurchaseOrderStatus, 'SENT' | 'CONFIRMED' | 'CLOSED' | 'CANCELLED'>;
+export type PurchaseOrderInvoiceStatus = 'NOTHING_TO_INVOICE' | 'TO_INVOICE' | 'PARTIAL' | 'INVOICED';
+
+export type ManualPurchaseOrderStatus = Extract<PurchaseOrderStatus, 'SENT' | 'CONFIRMED' | 'CANCELLED'>;
 
 export const purchaseOrderStatusConfig: Record<
   PurchaseOrderStatus,
@@ -30,10 +33,27 @@ export const purchaseOrderStatusConfig: Record<
   DRAFT: { label: 'Draft', variant: 'outline' },
   SENT: { label: 'Sent', variant: 'secondary' },
   CONFIRMED: { label: 'Confirmed', variant: 'success' },
-  PARTIALLY_RECEIVED: { label: 'Partially Received', variant: 'warning' },
-  RECEIVED: { label: 'Received', variant: 'success' },
-  CLOSED: { label: 'Closed', variant: 'secondary' },
+  DELIVERY_COMPLETED: { label: 'Delivery completed', variant: 'secondary' },
   CANCELLED: { label: 'Cancelled', variant: 'destructive' },
+};
+
+export const purchaseOrderReceiptStatusConfig: Record<
+  PurchaseOrderReceiptStatus,
+  { label: string; variant: BadgeProps['variant'] }
+> = {
+  NOT_RECEIVED: { label: 'Not Received', variant: 'outline' },
+  PARTIAL: { label: 'Partially Received', variant: 'warning' },
+  RECEIVED: { label: 'Received', variant: 'success' },
+};
+
+export const purchaseOrderInvoiceStatusConfig: Record<
+  PurchaseOrderInvoiceStatus,
+  { label: string; variant: BadgeProps['variant'] }
+> = {
+  NOTHING_TO_INVOICE: { label: 'Nothing to Invoice', variant: 'outline' },
+  TO_INVOICE: { label: 'To Invoice', variant: 'warning' },
+  PARTIAL: { label: 'Partially Invoiced', variant: 'warning' },
+  INVOICED: { label: 'Invoiced', variant: 'success' },
 };
 
 export const nextPurchaseOrderStatusAction: Partial<
@@ -47,12 +67,17 @@ export interface PurchaseOrderData {
   id: string;
   legalEntityId: string;
   siteId: string;
-  siteName?: string | null;
-  siteCode?: string | null;
+  siteName?: string;
+  siteCode?: string;
   supplierId: string;
   supplierName: string;
   poNumber: string;
   status: PurchaseOrderStatus;
+  receiptStatus: PurchaseOrderReceiptStatus;
+  invoiceStatus: PurchaseOrderInvoiceStatus;
+  paymentTermId: string;
+  purchaseId: string | null;
+  purchaseNumber: string | null;
   currencyCode: string;
   exchangeRate: number;
   conversionRates: Record<string, string>;
@@ -62,7 +87,7 @@ export interface PurchaseOrderData {
   timezone: string;
   notes: string | null;
   totalAmount: CurrencyValue;
-  hasPublishedGoodsReceipt: boolean;
+  hasPostedGoodsReceipt: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +102,7 @@ export interface PurchaseOrderItemData {
   expectedDeliveryDate: string;
   inboundDeliveryNumbers: string[];
   inboundDeliveryIds: string[];
+  inboundDeliveryDates: string[];
   taxDate: string;
   isTaxDateOverridden: boolean;
   isTaxDateLocked: boolean;
@@ -88,6 +114,13 @@ export interface PurchaseOrderItemData {
   primaryUomQty: number;
   expectedFreePrimaryQty: number;
   receivedPrimaryQty: number;
+  rejectedPrimaryQty: number;
+  invoicedPrimaryQty: number;
+  returnedPrimaryQty: number;
+  cancelledPrimaryQty: number;
+  duePrimaryQty: number;
+  openToReceivePrimaryQty: number;
+  openToInvoicePrimaryQty: number;
   primaryUomSymbol: string | null;
   currencyCode: string;
   unitPrice: CurrencyValue;
@@ -104,20 +137,30 @@ export type PurchaseOrderItemsTableResponse = TableResponse<PurchaseOrderItemDat
 
 interface PurchaseOrderProblemBase {
   detail: string;
+  blocksPayment: boolean;
   documentId: string;
   documentNumber: string;
   lotNumber: string | null;
 }
 
+export const PurchaseOrderProblemSourceValues = {
+  GOODS_RECEIPT: 'GOODS_RECEIPT',
+  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE',
+} as const;
+export type PurchaseOrderProblemSource =
+  (typeof PurchaseOrderProblemSourceValues)[keyof typeof PurchaseOrderProblemSourceValues];
+
 export interface PurchaseOrderReceivingProblem extends PurchaseOrderProblemBase {
-  source: 'GOODS_RECEIPT';
+  source: typeof PurchaseOrderProblemSourceValues.GOODS_RECEIPT;
   code: GoodsReceiptItemFlagCode;
+  holdId: null;
   documentStatus: GoodsReceiptStatus;
 }
 
 export interface PurchaseOrderInvoicingProblem extends PurchaseOrderProblemBase {
-  source: 'SUPPLIER_INVOICE';
-  code: SupplierInvoiceFlagCode;
+  source: typeof PurchaseOrderProblemSourceValues.SUPPLIER_INVOICE;
+  code: SupplierInvoiceHoldCode;
+  holdId: string;
   documentStatus: Exclude<SupplierInvoiceStatus, 'CANCELLED'>;
 }
 
@@ -131,7 +174,6 @@ export interface PurchaseOrderLineProblems {
 export interface PurchaseOrderProblemsResponse {
   summary: { total: number; receiving: number; invoicing: number };
   lines: PurchaseOrderLineProblems[];
-  orderProblems: PurchaseOrderProblem[];
 }
 
 export interface CreatePurchaseOrderPayload {
@@ -238,14 +280,14 @@ export function buildCreatePurchaseOrderSchema({ requiresSite }: { requiresSite:
 
 export type CreatePurchaseOrderFormData = z.infer<ReturnType<typeof buildCreatePurchaseOrderSchema>>;
 
-const poSchemeShape = {
+export const poSchemeShape = {
   schemeBuyQty: zodNumericField({ integer: true, positive: true }).optional(),
   schemeFreeQty: zodNumericField({ integer: true, positive: true }).optional(),
   hasScheme: z.boolean(),
 };
 
 // When a scheme is enabled, the buy/free ratio is required
-function enforceSchemeRatio(
+export function enforceSchemeRatio(
   data: { hasScheme: boolean; schemeBuyQty?: number | null; schemeFreeQty?: number | null },
   ctx: z.RefinementCtx,
 ) {

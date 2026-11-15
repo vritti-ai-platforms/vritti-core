@@ -1,9 +1,7 @@
 import { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-lot.dto';
-import { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
 import { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
-import { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
@@ -29,38 +27,19 @@ export function ApiCreateFromDelivery() {
     ApiOperation({
       summary: 'Create a goods receipt from an inbound delivery',
       description:
-        "Creates a draft receipt of an announced inbound delivery at the site — not received or cancelled and without a draft receipt — pre-filled with each delivery line's open quantity (delivery quantity less what is already received against it). The receipt carries only those lines.",
+        "Creates a draft receipt of an announced inbound delivery at the site — not received or cancelled and without a draft receipt — pre-filled with each delivery line's open quantity (delivery quantity less what posted receipts accepted against it) on confirmed purchase orders. Each item records its delivery line and the quantity in the line unit and in primary units. A goods receipt is created only from an announced delivery.",
     }),
     ApiBody({ type: CreateGoodsReceiptFromDeliveryDto }),
     ApiResponse({ status: 201, description: 'Goods receipt created.', type: GoodsReceiptResponseDto }),
     ApiResponse({
       status: 400,
       description:
-        'The delivery is received, cancelled or created by a goods receipt, nothing is left to receive on it, or the supplier is blocked at the site.',
+        'The delivery is not announced, is received or cancelled, has nothing open on a confirmed purchase order, or the supplier is blocked at the site.',
     }),
     ApiResponse({ status: 404, description: 'Inbound delivery not found.' }),
-    ApiResponse({ status: 409, description: 'A draft goods receipt of the delivery is already open.' }),
-  );
-}
-
-export function ApiCreateFromPurchaseOrders() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Create a goods receipt from purchase orders',
-      description:
-        "For goods that arrived without an announced delivery: in one transaction, creates an ARRIVED inbound delivery (source RECEIPT, expected on the received date) and a draft receipt of it, both carrying every open line of the supplier's selected confirmed or partially received purchase orders at their open quantity (ordered and free, less received, less what open deliveries still expect).",
-    }),
-    ApiBody({ type: CreateGoodsReceiptFromPurchaseOrdersDto }),
-    ApiResponse({ status: 201, description: 'Goods receipt created.', type: GoodsReceiptResponseDto }),
-    ApiResponse({
-      status: 400,
-      description:
-        'A purchase order is of another supplier or site, not open for receiving or has nothing left outside open deliveries, or the supplier is blocked at the site.',
-    }),
-    ApiResponse({ status: 404, description: 'A purchase order was not found.' }),
     ApiResponse({
       status: 409,
-      description: "The supplier's delivery note number is already on another non-cancelled delivery of the supplier.",
+      description: 'A draft goods receipt of the delivery is already open (Draft Receipt Exists).',
     }),
   );
 }
@@ -70,19 +49,17 @@ export function ApiUpdate() {
     ApiOperation({
       summary: 'Update a goods receipt',
       description:
-        "Changes a draft receipt's notes and, when the receipt created its inbound delivery (source RECEIPT), the supplier's delivery note (challan) number and date on that delivery, in one transaction. An announced delivery's note is edited on the delivery.",
+        "Changes a draft receipt's notes. The supplier's delivery note (challan) number and date are edited on the inbound delivery.",
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiBody({ type: UpdateGoodsReceiptDto }),
     ApiResponse({ status: 200, description: 'Goods receipt updated.', type: SuccessResponseDto }),
-    ApiResponse({
-      status: 400,
-      description: 'The receipt is published, or it receives an announced delivery and a delivery note field was sent.',
-    }),
+    ApiResponse({ status: 400, description: 'The receipt is posted.' }),
     ApiResponse({ status: 404, description: 'Goods receipt not found.' }),
     ApiResponse({
       status: 409,
-      description: "The supplier's delivery note number is already on another non-cancelled delivery of the supplier.",
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
     }),
   );
 }
@@ -102,7 +79,7 @@ export function ApiFindById() {
     ApiOperation({
       summary: 'Get a goods receipt',
       description:
-        'Returns the receipt with its supplier, inbound delivery, purchase order numbers and whether it is ready to publish.',
+        'Returns the receipt with its supplier, inbound delivery, purchase order numbers and whether it is ready to post.',
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiResponse({ status: 200, description: 'Goods receipt retrieved.', type: GoodsReceiptResponseDto }),
@@ -121,20 +98,26 @@ export function ApiTree() {
   );
 }
 
-export function ApiPublish() {
+export function ApiPost() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Publish a goods receipt',
+      summary: 'Post a goods receipt',
       description:
-        "Lands the accepted stock at the receipt's site valued provisionally from the purchase order lines, and moves the received quantities of its purchase order lines and the status of every order it counts. Over-receipt and short expiry are only flagged.",
+        "Lands the accepted stock at the receipt's site valued provisionally from the purchase order lines, moves the accepted and rejected primary quantities of its purchase order lines, the receipt and invoice status of every order it counts and the delivery's status. Over-receipt and short expiry are only flagged.",
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
-    ApiResponse({ status: 201, description: 'Goods receipt published.', type: GoodsReceiptResponseDto }),
+    ApiResponse({ status: 201, description: 'Goods receipt posted.', type: GoodsReceiptResponseDto }),
     ApiResponse({
       status: 400,
-      description: 'The receipt is already published or not every item is fully distributed.',
+      description:
+        "The receipt is already posted, not every item is fully distributed, or an item has no stock levels set at the receipt's site.",
     }),
     ApiResponse({ status: 404, description: 'Goods receipt not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'A lot number already exists for the item with another MRP (Lot MRP Differs); the lot keeps its MRP; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -142,13 +125,16 @@ export function ApiDelete() {
   return applyDecorators(
     ApiOperation({
       summary: 'Delete a goods receipt',
-      description:
-        'Deletes a draft receipt with everything counted on it and, when the receipt created its inbound delivery (source RECEIPT), that delivery too. An announced delivery is never deleted.',
+      description: 'Deletes a draft receipt with everything counted on it; its inbound delivery is never deleted.',
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiResponse({ status: 200, description: 'Goods receipt deleted.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The receipt is published.' }),
+    ApiResponse({ status: 400, description: 'The receipt is posted.' }),
     ApiResponse({ status: 404, description: 'Goods receipt not found.' }),
+    ApiResponse({
+      status: 409,
+      description: 'A Purchase created the receipt, or it is a Receive with Invoice draft (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -191,30 +177,11 @@ export function ApiItemQuants() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get the quants of a goods receipt item',
-      description: 'Returns the quants a published receipt item landed in, with their cost.',
+      description: 'Returns the quants a posted receipt item landed in, with their cost.',
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiParam({ name: 'itemId', description: 'Goods receipt item ID' }),
     ApiResponse({ status: 200, description: 'Quants retrieved.', type: GoodsReceiptItemQuantsResponseDto }),
-  );
-}
-
-export function ApiAddPurchaseOrder() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Add a purchase order to a goods receipt',
-      description:
-        "Adds every open line of another confirmed or partially received purchase order of the receipt's supplier at its site to a draft receipt and, in the same transaction, to the inbound delivery the receipt created. Not offered for receipts of an announced delivery.",
-    }),
-    ApiParam({ name: 'id', description: 'Goods receipt ID' }),
-    ApiBody({ type: AddGoodsReceiptPurchaseOrderDto }),
-    ApiResponse({ status: 201, description: 'Purchase order lines added.', type: SuccessResponseDto }),
-    ApiResponse({
-      status: 400,
-      description:
-        'The receipt is published or receives an announced delivery, or the order is of another supplier or site, not open, already on the receipt or has nothing left.',
-    }),
-    ApiResponse({ status: 404, description: 'Goods receipt or purchase order not found.' }),
   );
 }
 
@@ -235,14 +202,20 @@ export function ApiUpdateItem() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update a goods receipt item',
-      description: 'Changes the received or rejected quantity of an item on a draft receipt.',
+      description:
+        "Changes the received or rejected quantity of an item on a draft receipt, storing them also in the item's primary unit; its delivery line is left unchanged.",
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiParam({ name: 'itemId', description: 'Goods receipt item ID' }),
     ApiBody({ type: UpdateGoodsReceiptItemDto }),
     ApiResponse({ status: 200, description: 'Item updated.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The receipt is published or more is rejected than received.' }),
+    ApiResponse({ status: 400, description: 'The receipt is posted or more is rejected than received.' }),
     ApiResponse({ status: 404, description: 'Goods receipt item not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -250,13 +223,19 @@ export function ApiRemoveItem() {
   return applyDecorators(
     ApiOperation({
       summary: 'Remove a goods receipt item',
-      description: 'Removes an item, with its lots and lines, from a draft receipt.',
+      description:
+        'Removes an item, with its lots and lines, from a draft receipt; its delivery line is left unchanged.',
     }),
     ApiParam({ name: 'id', description: 'Goods receipt ID' }),
     ApiParam({ name: 'itemId', description: 'Goods receipt item ID' }),
     ApiResponse({ status: 200, description: 'Item removed.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The receipt is published.' }),
+    ApiResponse({ status: 400, description: 'The receipt is posted.' }),
     ApiResponse({ status: 404, description: 'Goods receipt item not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -285,9 +264,13 @@ export function ApiAddLot() {
     ApiResponse({
       status: 400,
       description:
-        "The receipt is published, the item is not lot-tracked or the MRP is not in the legal entity's currency.",
+        "The receipt is posted, the item is not lot-tracked or the MRP is not in the legal entity's currency.",
     }),
-    ApiResponse({ status: 409, description: 'The lot number is already on the item.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The lot number is already on the item; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -303,7 +286,11 @@ export function ApiUpdateLot() {
     ApiBody({ type: UpdateGoodsReceiptLotDto }),
     ApiResponse({ status: 200, description: 'Lot updated.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Goods receipt lot not found.' }),
-    ApiResponse({ status: 409, description: 'The lot number is already on the item.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The lot number is already on the item; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -318,6 +305,11 @@ export function ApiRemoveLot() {
     ApiParam({ name: 'lotId', description: 'Goods receipt lot ID' }),
     ApiResponse({ status: 200, description: 'Lot removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Goods receipt lot not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -375,7 +367,11 @@ export function ApiAddLine() {
       status: 400,
       description: "The line exceeds the item's accepted quantity or its lot does not suit the item.",
     }),
-    ApiResponse({ status: 409, description: 'The item already has a line at the location.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The item already has a line at the location; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -394,7 +390,11 @@ export function ApiUpdateLine() {
       status: 400,
       description: "The line exceeds the item's accepted quantity or its lot does not suit the item.",
     }),
-    ApiResponse({ status: 409, description: 'The item already has a line at the location.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The item already has a line at the location; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -409,6 +409,11 @@ export function ApiRemoveLine() {
     ApiParam({ name: 'lineId', description: 'Goods receipt line ID' }),
     ApiResponse({ status: 200, description: 'Line removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Goods receipt line not found.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -437,7 +442,11 @@ export function ApiAddLineItem() {
     ApiBody({ type: AddGoodsReceiptLineItemDto }),
     ApiResponse({ status: 201, description: 'Serial added.', type: GoodsReceiptLineItemResponseDto }),
     ApiResponse({ status: 400, description: 'The item is not serial-tracked.' }),
-    ApiResponse({ status: 409, description: 'The line is full, or the serial is already on it or in inventory.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The line is full, or the serial is already on it or in inventory; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -453,5 +462,10 @@ export function ApiRemoveLineItem() {
     ApiParam({ name: 'subItemId', description: 'Serial (line item) ID' }),
     ApiResponse({ status: 200, description: 'Serial removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Serial not found on the line.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
+    }),
   );
 }

@@ -32,7 +32,7 @@ export class StockTransfersDomainRepository extends PrimaryBaseRepository<typeof
         updatedAt: stockTransfers.updatedAt,
         inventoryItemName: inventoryItems.name,
       },
-      leftJoins: [{ table: inventoryItems, on: eq(stockTransfers.inventoryItemId, inventoryItems.id) }],
+      innerJoins: [{ table: inventoryItems, on: eq(stockTransfers.inventoryItemId, inventoryItems.id) }],
       where: params.where,
       orderBy: params.orderBy?.length ? params.orderBy : [desc(stockTransfers.createdAt)],
       limit: params.limit,

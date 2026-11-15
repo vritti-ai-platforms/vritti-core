@@ -20,7 +20,7 @@ export const GoodsReceiptFieldsFragment = graphql(`
     expectedDeliveryDate
     receivedDate
     notes
-    publishedAt
+    postedAt
     createdAt
   }
 `);

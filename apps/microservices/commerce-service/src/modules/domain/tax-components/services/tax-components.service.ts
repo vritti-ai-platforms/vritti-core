@@ -3,7 +3,7 @@ import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { taxComponents } from '@/db/schema';
 import { TaxComponentDto } from '../dto/entity/tax-component.dto';
 import type { CreateTaxComponentDto } from '../dto/request/create-tax-component.dto';
@@ -55,16 +55,12 @@ export class TaxComponentsDomainService {
   // Returns paginated tax-component options for select dropdowns, only one country's when `country` is given
   findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey || 'code',
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       where: options?.country ? { countryCode: options.country } : undefined,

@@ -8,7 +8,7 @@ import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsItemsService } from './services/goods-receipts-items.service';
 
@@ -57,13 +57,13 @@ export class GoodsReceiptsItemsController {
   @MessagePattern({ cmd: 'site.goodsReceipts.itemsCost' })
   itemsCost(
     @Payload() data: { goodsReceiptId: string },
-    @RpcSiteCurrencyCode() leCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<GoodsReceiptItemsCostDto> {
     this.logger.log(`site.goodsReceipts.itemsCost — receipt: ${data.goodsReceiptId}`);
     return this.itemsService.findItemsCost(data.goodsReceiptId, leCurrencyCode);
   }
 
-  // Returns the quants a published goods receipt item landed in, with their cost
+  // Returns the quants a posted goods receipt item landed in, with their cost
   @MessagePattern({ cmd: 'site.goodsReceipts.itemQuants' })
   itemQuants(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemQuantsDto> {
     this.logger.log(`site.goodsReceipts.itemQuants — item: ${data.itemId}`);

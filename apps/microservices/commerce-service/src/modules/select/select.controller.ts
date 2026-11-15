@@ -23,6 +23,8 @@ import { PaymentTermsDomainService } from '@domain/payment-terms/services/paymen
 import { PosTerminalsDomainService } from '@domain/pos-terminals/services/pos-terminals.service';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
+import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { StorageTypesDomainService } from '@domain/storage-types/services/storage-types.service';
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
@@ -33,9 +35,11 @@ import { UomDomainService } from '@domain/uom/services/uom.service';
 import { UomDimensionsDomainService } from '@domain/uom-dimensions/services/uom-dimensions.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import type { CurrencyCode } from '@vritti/api-sdk/money';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { PartyTypeValues } from '@/db/schema';
+import { CostCategoriesSelectQueryDto } from './dto/request/cost-categories-select-query.dto';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
 import { InventoryItemMrpsSelectQueryDto } from './dto/request/inventory-item-mrps-select-query.dto';
 import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
@@ -51,7 +55,6 @@ import { PartyTaxRegistrationSelectQueryDto } from './dto/request/party-tax-regi
 import { PaymentTermsSelectQueryDto } from './dto/request/payment-terms-select-query.dto';
 import { PurchaseOrderItemsSelectQueryDto } from './dto/request/purchase-order-items-select-query.dto';
 import { PurchaseOrdersSelectQueryDto } from './dto/request/purchase-orders-select-query.dto';
-import { ReceivablePurchaseOrdersSelectQueryDto } from './dto/request/receivable-purchase-orders-select-query.dto';
 import { SupplierItemsSelectQueryDto } from './dto/request/supplier-items-select-query.dto';
 import { SuppliersSelectQueryDto } from './dto/request/suppliers-select-query.dto';
 import { TaxComponentsSelectQueryDto } from './dto/request/tax-components-select-query.dto';
@@ -84,12 +87,14 @@ export class SelectController {
     private readonly inboundDeliveryLinesService: InboundDeliveryLinesDomainService,
     private readonly inboundDeliveriesService: InboundDeliveriesDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
+    private readonly purchasesService: PurchasesDomainService,
     private readonly costCategoriesService: CostCategoriesDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
     private readonly suppliersService: SuppliersDomainService,
     private readonly partyCommunicationsService: PartyCommunicationsDomainService,
     private readonly taxClassesService: TaxClassesDomainService,
     private readonly paymentTermsService: PaymentTermsDomainService,
+    private readonly storageTypesService: StorageTypesDomainService,
     private readonly taxComponentsService: TaxComponentsDomainService,
     private readonly taxGroupsService: TaxGroupsDomainService,
     private readonly taxJurisdictionsService: TaxJurisdictionsDomainService,
@@ -104,12 +109,29 @@ export class SelectController {
     return this.categoriesService.findForSelect(data);
   }
 
-  // Returns paginated inventory item options for the select component
+  // Returns paginated inventory item options for the select component; with a site named, only the items with stock
+  // levels there, each with its stock and levels, its value in the legal entity's currency
   @MessagePattern({ cmd: 'select.inventoryItems' })
-  async inventoryItems(@Payload() data: InventoryItemsSelectQueryDto): Promise<SelectQueryResult> {
-    const { excludeOnSupplierId, ...query } = data;
-    this.logger.log('select.inventoryItems');
-    return this.inventoryItemsService.findForSelect(query, { excludeOnSupplierId });
+  async inventoryItems(
+    @Payload() data: InventoryItemsSelectQueryDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SelectQueryResult> {
+    const { excludeOnSupplierId, stockLevelsAtSiteId, stockStatus, categoryIds, ...query } = data;
+    this.logger.log(`select.inventoryItems — stockLevelsAtSiteId: ${stockLevelsAtSiteId ?? '-'}`);
+    return this.inventoryItemsService.findForSelect(query, {
+      excludeOnSupplierId,
+      categoryIds,
+      stockLevelsAt: stockLevelsAtSiteId
+        ? { siteId: stockLevelsAtSiteId, stockStatus, leCurrencyCode: headers.leCurrencyCode as CurrencyCode }
+        : undefined,
+    });
+  }
+
+  // Returns inventory item options without stock levels at the current site, the ones that can have them set
+  @MessagePattern({ cmd: 'select.inventoryItems.withoutStockLevels' })
+  async inventoryItemsWithoutStockLevels(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.inventoryItems.withoutStockLevels');
+    return this.inventoryItemsService.findForSelect(query, { withoutStockLevels: true });
   }
 
   // Returns paginated offering options for the select component
@@ -220,7 +242,7 @@ export class SelectController {
     this.logger.log(
       `select.locations${data.locationRoles ? ` — locationRoles: ${data.locationRoles}` : ''}${
         data.inventoryItemId ? ` — inventoryItemId: ${data.inventoryItemId}` : ''
-      }${data.groupIdKey ? ` — groupIdKey: ${data.groupIdKey}` : ''}`,
+      }${data.groupIdKey ? ` — groupIdKey: ${data.groupIdKey}` : ''}${data.atSiteId ? ` — atSiteId: ${data.atSiteId}` : ''}`,
     );
     return this.locationsService.findForSelect(data);
   }
@@ -270,15 +292,7 @@ export class SelectController {
     return this.purchaseOrderItemsService.findForSelectByPurchaseOrder(purchaseOrderId, query);
   }
 
-  // Returns a supplier's purchase orders a goods receipt can receive, for the receipt's purchase order picker
-  @MessagePattern({ cmd: 'select.receivablePurchaseOrders' })
-  receivablePurchaseOrders(@Payload() data: ReceivablePurchaseOrdersSelectQueryDto): Promise<SelectQueryResult> {
-    const { supplierId, goodsReceiptId, ...query } = data;
-    this.logger.log(`select.receivablePurchaseOrders — supplierId: ${supplierId}, receipt: ${goodsReceiptId ?? 'new'}`);
-    return this.inboundDeliveryLinesService.findForSelectReceivablePurchaseOrders(supplierId, query, goodsReceiptId);
-  }
-
-  // Returns the announced inbound deliveries a goods receipt can be created from
+  // Returns the ANNOUNCED inbound deliveries a goods receipt can be created from
   @MessagePattern({ cmd: 'select.receivableInboundDeliveries' })
   receivableInboundDeliveries(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.receivableInboundDeliveries');
@@ -302,11 +316,19 @@ export class SelectController {
     return this.purchaseOrdersService.findForSelect(data);
   }
 
-  // Returns paginated cost category options for the select component
+  // Returns paginated purchase options of the workspace's sites for the select component
+  @MessagePattern({ cmd: 'select.purchases' })
+  purchases(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.purchases');
+    return this.purchasesService.findForSelect(query);
+  }
+
+  // Returns paginated cost category options for the select component, only the chargeable ones with chargeOnly
   @MessagePattern({ cmd: 'select.costCategories' })
-  async costCategories(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.costCategories');
-    return this.costCategoriesService.findForSelect(data);
+  async costCategories(@Payload() data: CostCategoriesSelectQueryDto): Promise<SelectQueryResult> {
+    const { chargeOnly, ...query } = data;
+    this.logger.log(`select.costCategories — chargeOnly: ${chargeOnly ?? false}`);
+    return this.costCategoriesService.findForSelect(query, { chargeOnly });
   }
 
   // Returns paginated supplier item options for the select component
@@ -325,12 +347,14 @@ export class SelectController {
     });
   }
 
-  // Returns paginated supplier options for the select component
+  // Returns paginated supplier options for the select component, only those enrolled at a site with enrolledAtSiteId
   @MessagePattern({ cmd: 'select.suppliers' })
   async suppliers(@Payload() data: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
-    const { activeOnly, inventoryItemId, ...query } = data;
-    this.logger.log(`select.suppliers${inventoryItemId ? ` — inventoryItemId: ${inventoryItemId}` : ''}`);
-    return this.suppliersService.findForSelect(query, { activeOnly, inventoryItemId });
+    const { activeOnly, inventoryItemId, enrolledAtSiteId, ...query } = data;
+    this.logger.log(
+      `select.suppliers — inventoryItemId: ${inventoryItemId ?? '-'}, enrolledAtSiteId: ${enrolledAtSiteId ?? '-'}`,
+    );
+    return this.suppliersService.findForSelect(query, { activeOnly, inventoryItemId, enrolledAtSiteId });
   }
 
   // Returns paginated tax class options for the select component
@@ -339,6 +363,13 @@ export class SelectController {
     const { allowUnpublished, ...query } = data;
     this.logger.log('select.paymentTerms');
     return this.paymentTermsService.findForSelect(query, { allowUnpublished });
+  }
+
+  // Returns paginated active storage type options for the select component
+  @MessagePattern({ cmd: 'select.storageTypes' })
+  async storageTypes(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('select.storageTypes');
+    return this.storageTypesService.findForSelect(query);
   }
 
   @MessagePattern({ cmd: 'select.taxClasses' })

@@ -41,6 +41,6 @@ export class SiteSupplierQuotationsGatewayService {
       'site.suppliers.quotations.findById',
       { supplierId, quotationId },
     );
-    return { ...quotation, sites: await this.ownerNames.withSiteNames(orgId, quotation.sites) };
+    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
   }
 }

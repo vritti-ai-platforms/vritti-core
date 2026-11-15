@@ -114,7 +114,6 @@ export const LotsTable: React.FC<LotsTableProps> = ({
         table={lotsTable}
         mode="compact"
         permission={binding.permissions.view}
-        onRowClick={(lot) => onSelectLot(lot.id)}
         toolbarActions={{ actions: addLotAction }}
         emptyStateConfig={{
           icon: Boxes,

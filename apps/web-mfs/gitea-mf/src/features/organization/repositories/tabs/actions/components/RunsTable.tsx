@@ -106,7 +106,6 @@ export const RunsTable: React.FC<RunsTableProps> = ({ repositoryName }) => {
       // Named views round-trip table state through the backend; the git service has none, so the views
       // chrome would only issue pointless table-views requests.
       enableViews={false}
-      onRowClick={onSelectRun}
       emptyStateConfig={{
         icon: Play,
         title: 'No runs yet',

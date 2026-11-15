@@ -41,9 +41,9 @@ export class InventoryItemsLocationsController {
 
   @MessagePattern({ cmd: 'site.inventoryItems.updateLocation' })
   async updateLocation(@Payload() dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
-    const { id, reorderLevel } = dto;
-    this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
-    return this.service.update(id, { reorderLevel });
+    const { id, isBlocked } = dto;
+    this.logger.log(`inventoryItems.updateLocation — id: ${id}, isBlocked: ${isBlocked}`);
+    return this.service.update(id, { isBlocked });
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.removeLocation' })

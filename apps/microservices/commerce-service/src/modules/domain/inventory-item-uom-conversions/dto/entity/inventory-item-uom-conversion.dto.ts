@@ -17,6 +17,11 @@ export class InventoryItemUomConversionDto {
   toPrimaryConversionFactor: number;
   // Derived: 1 primary unit = `toUomConversionFactor` UOM units.
   toUomConversionFactor: number;
+  weight: number | null;
+  volume: number | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +37,11 @@ export class InventoryItemUomConversionDto {
     dto.uomQty = row.uomQty;
     dto.toPrimaryConversionFactor = row.primaryUomQty / row.uomQty;
     dto.toUomConversionFactor = row.uomQty / row.primaryUomQty;
+    dto.weight = row.weight ?? null;
+    dto.volume = row.volume ?? null;
+    dto.length = row.length ?? null;
+    dto.width = row.width ?? null;
+    dto.height = row.height ?? null;
     dto.canDelete = !isUsedBySupplierItem;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();

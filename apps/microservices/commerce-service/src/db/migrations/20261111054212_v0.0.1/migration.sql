@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."purchases" DROP COLUMN "title";

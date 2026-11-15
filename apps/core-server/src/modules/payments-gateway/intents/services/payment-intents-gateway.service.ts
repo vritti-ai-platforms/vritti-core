@@ -789,7 +789,7 @@ export class PaymentIntentsGatewayService {
   private async resolveScope(caller: PaymentCallerContext): Promise<ResolvedScope> {
     if (caller.siteId) {
       const site = await this.siteContextResolver.resolve(caller.siteId);
-      return { legalEntityId: site.legalEntityId, siteId: caller.siteId, currencyCode: site.siteCurrencyCode };
+      return { legalEntityId: site.legalEntityId, siteId: caller.siteId, currencyCode: site.leCurrencyCode };
     }
     if (caller.legalEntityId) return { legalEntityId: caller.legalEntityId };
     throw new BadRequestException({

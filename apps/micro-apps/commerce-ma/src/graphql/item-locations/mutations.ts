@@ -9,7 +9,7 @@ export const CREATE_ITEM_LOCATION = graphql(`
   }
 `);
 
-// Returns success only — the client patches the cached entity's reorderLevel by id (no refetch).
+// Returns success only — the client patches the cached entity's isBlocked by id (no refetch).
 export const UPDATE_ITEM_LOCATION = graphql(`
   mutation UpdateInventoryItemLocation($id: ID!, $input: UpdateInventoryItemLocationInput!) {
     updateInventoryItemLocation(id: $id, input: $input) {

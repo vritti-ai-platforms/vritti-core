@@ -6,7 +6,7 @@ import { Text } from '@vritti/quantum-ui-native/Text';
 import { useUnstableNativeVariable } from 'nativewind';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import type { GoodsReceipt, GoodsReceiptStatus } from '../../../../types/goods-receipts';
+import { type GoodsReceipt, type GoodsReceiptStatus, GoodsReceiptStatusValues } from '../../../../types/goods-receipts';
 
 const PACKAGE_ICON = { sfSymbol: 'shippingbox.fill', materialSymbol: 'inventory_2' } as const;
 const CALENDAR_ICON = { sfSymbol: 'calendar', materialSymbol: 'event' } as const;
@@ -15,11 +15,11 @@ const CALENDAR_ICON = { sfSymbol: 'calendar', materialSymbol: 'event' } as const
 // (name) => string variant — the MF-shared, app-theme-accurate source.
 const useThemeVar = useUnstableNativeVariable as unknown as (name: string) => string | undefined;
 
-// Draft = muted (gray), Published = success (green). The Badge variants' faded fills don't render on these
+// Draft = muted (gray), Posted = success (green). The Badge variants' faded fills don't render on these
 // hsl(var()) tokens, so tint from the resolved theme var: a faded fill + a solid dot/text.
 const STATUS_META: Record<GoodsReceiptStatus, { label: string; token: string }> = {
-  DRAFT: { label: 'Draft', token: '--muted-foreground' },
-  PUBLISHED: { label: 'Published', token: '--success' },
+  [GoodsReceiptStatusValues.DRAFT]: { label: 'Draft', token: '--muted-foreground' },
+  [GoodsReceiptStatusValues.POSTED]: { label: 'Posted', token: '--success' },
 };
 
 // One label / value row of the footer (value right-aligned).
@@ -37,11 +37,11 @@ interface GoodsReceiptCardProps {
   onPress?: (gr: GoodsReceipt) => void;
 }
 
-// GR card: a package tile + mono GR number + received date, a Draft/Published status pill, then supplier
+// GR card: a package tile + mono GR number + received date, a Draft/Posted status pill, then supplier
 // and purchase-orders rows (the receipt's PO numbers, "—" before any line is counted). Tap navigates to the detail.
 export function GoodsReceiptCard({ gr, onPress }: GoodsReceiptCardProps) {
   const fmt = useFormatters();
-  const meta = STATUS_META[gr.status] ?? STATUS_META.DRAFT;
+  const meta = STATUS_META[gr.status] ?? STATUS_META[GoodsReceiptStatusValues.DRAFT];
 
   const statusVar = useThemeVar(meta.token);
   const statusHsl = statusVar ? statusVar.split(' ').join(', ') : undefined;

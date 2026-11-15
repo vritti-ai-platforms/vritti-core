@@ -19,11 +19,11 @@ export class SitePriceHistoryResponseDto {
   @ApiProperty({ description: "Site the windows belong to — its own prices, else the legal entity's" })
   siteId: string;
 
-  @ApiPropertyOptional({ description: 'Site name (gateway-enriched)', nullable: true })
-  siteName: string | null;
+  @ApiProperty({ description: 'Site name (gateway-enriched)' })
+  siteName: string;
 
-  @ApiPropertyOptional({ description: 'Site code (gateway-enriched)', nullable: true })
-  siteCode: string | null;
+  @ApiProperty({ description: 'Site code (gateway-enriched)' })
+  siteCode: string;
 
   @ApiPropertyOptional({ type: PriceWindowResponseDto, description: 'Price in force today', nullable: true })
   current: PriceWindowResponseDto | null;

@@ -1,10 +1,5 @@
-import { SITE_GOODS_RECEIPTS } from '@vritti/commerce-permissions/goods-receipts';
 import { SITE_PURCHASE_ORDERS } from '@vritti/commerce-permissions/purchase-orders';
 import type { PurchaseOrdersBinding } from '@/components/purchase-orders/bindings';
-import {
-  useCreateGoodsReceiptFromDelivery,
-  useCreateGoodsReceiptFromPurchaseOrders,
-} from '@/hooks/site/goods-receipts';
 import {
   PURCHASE_ORDER_GOODS_RECEIPTS_TABLE_KEY,
   PURCHASE_ORDER_INBOUND_DELIVERIES_TABLE_KEY,
@@ -13,7 +8,7 @@ import {
   useAddPurchaseOrderItem,
   useChangePurchaseOrderExchangeRate,
   useChangePurchaseOrderSupplier,
-  useClosePurchaseOrder,
+  useCompletePurchaseOrderDelivery,
   useCreatePurchaseOrder,
   useDeletePurchaseOrder,
   useDownloadPurchaseOrderPdf,
@@ -32,8 +27,7 @@ import {
   useUpdatePurchaseOrderStatus,
   useUpdatePurchaseOrderTaxDate,
 } from '@/hooks/site/purchase-orders';
-import { SiteSupplierFilter } from '@/selectors/site-supplier';
-import { EnrolledSupplierSelector } from './EnrolledSupplierSelector';
+import { EnrolledSiteSupplierSelector, SiteSupplierFilter } from '@/selectors/site-supplier';
 import { invoicesBinding } from './invoicesBinding';
 import { InvoicesTab } from './tabs/InvoicesTab';
 
@@ -41,12 +35,7 @@ import { InvoicesTab } from './tabs/InvoicesTab';
 export const binding: PurchaseOrdersBinding = {
   permissions: SITE_PURCHASE_ORDERS,
   spansSites: false,
-  suppliers: { Selector: EnrolledSupplierSelector, Filter: SiteSupplierFilter },
-  goodsReceipts: {
-    addPermission: SITE_GOODS_RECEIPTS.add,
-    useCreateFromDelivery: useCreateGoodsReceiptFromDelivery,
-    useCreateFromPurchaseOrders: useCreateGoodsReceiptFromPurchaseOrders,
-  },
+  suppliers: { Selector: EnrolledSiteSupplierSelector, Filter: SiteSupplierFilter },
   invoices: {
     permission: SITE_PURCHASE_ORDERS.invoices.view,
     Tab: InvoicesTab,
@@ -81,7 +70,7 @@ export const binding: PurchaseOrdersBinding = {
   useUpdateStatus: useUpdatePurchaseOrderStatus,
   useUpdateTaxDate: useUpdatePurchaseOrderTaxDate,
   useSendEmail: useSendPurchaseOrderEmail,
-  useClose: useClosePurchaseOrder,
+  useCompleteDelivery: useCompletePurchaseOrderDelivery,
   useDelete: useDeletePurchaseOrder,
   useDownloadPdf: useDownloadPurchaseOrderPdf,
 };

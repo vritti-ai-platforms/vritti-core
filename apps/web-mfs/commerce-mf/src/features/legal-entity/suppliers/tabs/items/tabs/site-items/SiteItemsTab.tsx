@@ -33,7 +33,7 @@ export const SiteItemsTab: React.FC<SiteItemsTabProps> = ({ supplierId, itemId }
   const handleRemove = useCallback(
     async (row: SupplierSiteItemRow) => {
       const confirmed = await confirm({
-        title: `Remove "${row.siteName ?? 'site'}"?`,
+        title: `Remove "${row.siteName}"?`,
         description:
           'The site will no longer be able to order this item from this supplier. Its price history is kept.',
         confirmLabel: 'Remove',

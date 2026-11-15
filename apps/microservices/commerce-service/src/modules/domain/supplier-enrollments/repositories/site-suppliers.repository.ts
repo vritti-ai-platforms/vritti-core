@@ -3,7 +3,7 @@ import { PrimaryBaseRepository, PrimaryDatabaseService, type RepositoryJoin } fr
 import { and, eq, inArray, isNotNull, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
-import type { SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   type PartyIdentifierType,
   parties,
@@ -105,6 +105,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
       }
     }
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'displayName',
       description: 'code',
@@ -120,12 +121,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
         enrollmentStatus: sql`case when ${supplierEnrollments.id} is null then ${SupplierEnrollmentStatusValues.NOT_ENROLLED} else ${SupplierEnrollmentStatusValues.ENROLLED} end`,
         isActive: sql`${suppliers.isActive} and coalesce(${supplierEnrollments.isActive}, true)`,
       },
-      search: query.search,
       searchKeys: ['displayName', 'code'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: 'displayName',
       orderDirection: 'asc',
       joins: [

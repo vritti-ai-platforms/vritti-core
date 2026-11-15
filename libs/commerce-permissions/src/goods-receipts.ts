@@ -5,7 +5,7 @@ export const LE_GOODS_RECEIPTS = {
   edit: 'le.goods-receipts.edit',
   delete: 'le.goods-receipts.delete',
   // Posts the receipt: its stock lands at the site and its purchase order's received quantities move
-  publish: 'le.goods-receipts.publish',
+  post: 'le.goods-receipts.post',
 } as const;
 
 export const SITE_GOODS_RECEIPTS = {
@@ -15,5 +15,5 @@ export const SITE_GOODS_RECEIPTS = {
   edit: 'site.goods-receipts.edit',
   delete: 'site.goods-receipts.delete',
   // Posts the receipt: its stock lands at the site and its purchase order's received quantities move
-  publish: 'site.goods-receipts.publish',
+  post: 'site.goods-receipts.post',
 } as const;

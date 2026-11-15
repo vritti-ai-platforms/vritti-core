@@ -8,7 +8,7 @@ export const taxGroups = commerceSchema.table(
   'tax_groups',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     countryCode: varchar('country_code', { length: 2 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),

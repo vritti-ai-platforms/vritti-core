@@ -14,6 +14,7 @@ import type {
   UseDeleteEnrollment,
   UseDeletePrice,
   UseEnrollment,
+  UseEnrollmentPurchasing,
   UseEnrollmentRef,
   UseEnrollmentScope,
   UseEnrollmentsTable,
@@ -26,6 +27,7 @@ import type {
   UseSiteItemsTable,
   UseSupplierParty,
   UseUpdateEnrollment,
+  UseUpdateEnrollmentPurchasing,
   UseUpdatePrice,
   UseUpdateSiteItem,
 } from './types';
@@ -103,6 +105,13 @@ export interface SupplierEnrollmentBinding {
   // Present only where the workspace has its own supplier site item page
   siteItemPage?: SupplierSiteItemPageBinding;
   invoices?: SupplierEnrollmentInvoicesBinding;
+  // How the supplier's purchases at the site run — set by the legal entity alone
+  purchasing?: SupplierEnrollmentPurchasingBinding;
+}
+
+export interface SupplierEnrollmentPurchasingBinding {
+  usePurchasing: UseEnrollmentPurchasing;
+  useUpdatePurchasing: UseUpdateEnrollmentPurchasing;
 }
 
 export interface SupplierEnrollmentInvoicesBinding {

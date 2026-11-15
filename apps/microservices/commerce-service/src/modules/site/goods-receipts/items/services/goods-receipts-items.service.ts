@@ -1,52 +1,39 @@
 import type { UpdateGoodsReceiptItemDto } from '@domain/goods-receipts/dto/request/update-goods-receipt-item.dto';
-import { GoodsReceiptItemsDomainRepository } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
-import { GoodsReceiptsDomainRepository } from '@domain/goods-receipts/repositories/goods-receipts.repository';
+import type { GoodsReceiptRow } from '@domain/goods-receipts/repositories/goods-receipts.repository';
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
+import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
+import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
 import { Injectable } from '@nestjs/common';
-import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InboundDeliverySourceValues } from '@/db/schema';
 
 @Injectable()
 export class GoodsReceiptsItemsService {
   constructor(
-    private readonly database: PrimaryDatabaseService,
     private readonly itemsService: GoodsReceiptItemsDomainService,
-    private readonly goodsReceiptsRepository: GoodsReceiptsDomainRepository,
-    private readonly goodsReceiptItemsRepository: GoodsReceiptItemsDomainRepository,
-    private readonly deliveryLinesService: InboundDeliveryLinesDomainService,
+    private readonly goodsReceiptsService: GoodsReceiptsDomainService,
+    private readonly purchasesService: PurchasesDomainService,
   ) {}
 
-  // Changes an item's quantities on a draft receipt and, when the receipt created its delivery, that delivery line's quantity with it, in one transaction
+  // Changes an item's quantities on a draft receipt
   async updateItem(dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
-    const receipt = await this.goodsReceiptsRepository.findDraftOrThrow(dto.goodsReceiptId, 'Cannot Edit Item');
-    const item = await this.goodsReceiptItemsRepository.findOnReceiptOrThrow(receipt.id, dto.itemId);
-
-    return this.database.runInTransaction(async () => {
-      const result = await this.itemsService.updateItem(receipt, item, dto);
-      if (receipt.deliverySource === InboundDeliverySourceValues.RECEIPT) {
-        await this.deliveryLinesService.mirrorReceiptQuantity(
-          receipt.inboundDeliveryId,
-          item.purchaseOrderItemId,
-          dto.receivedQty ?? item.receivedQty,
-        );
-      }
-      return result;
-    });
+    const receipt = await this.goodsReceiptsService.findDraftOrThrow(dto.goodsReceiptId, 'Cannot Edit Item');
+    this.assertNotReceiveWithInvoice(receipt);
+    const item = await this.itemsService.findOnReceiptOrThrow(receipt.id, dto.itemId);
+    return this.itemsService.updateItem(receipt, item, dto);
   }
 
-  // Removes an item from a draft receipt and, when the receipt created its delivery, that delivery's line of it, in one transaction
+  // Removes an item from a draft receipt
   async removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
-    const receipt = await this.goodsReceiptsRepository.findDraftOrThrow(goodsReceiptId, 'Cannot Remove Item');
-    const item = await this.goodsReceiptItemsRepository.findOnReceiptOrThrow(receipt.id, itemId);
+    const receipt = await this.goodsReceiptsService.findDraftOrThrow(goodsReceiptId, 'Cannot Remove Item');
+    this.assertNotReceiveWithInvoice(receipt);
+    const item = await this.itemsService.findOnReceiptOrThrow(receipt.id, itemId);
+    return this.itemsService.removeItem(receipt, item);
+  }
 
-    return this.database.runInTransaction(async () => {
-      const result = await this.itemsService.removeItem(receipt, item);
-      if (receipt.deliverySource === InboundDeliverySourceValues.RECEIPT) {
-        await this.deliveryLinesService.mirrorReceiptRemoval(receipt.inboundDeliveryId, item.purchaseOrderItemId);
-      }
-      return result;
-    });
+  // Rejects a change to a Receive with Invoice receipt, which is edited with its supplier invoice (409)
+  private assertNotReceiveWithInvoice(receipt: GoodsReceiptRow): void {
+    if (receipt.deliverySource !== InboundDeliverySourceValues.SUPPLIER_INVOICE) return;
+    this.purchasesService.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
   }
 }

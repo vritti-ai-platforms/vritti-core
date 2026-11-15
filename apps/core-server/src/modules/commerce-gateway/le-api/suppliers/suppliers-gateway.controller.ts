@@ -1,5 +1,6 @@
 import { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
+import { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
@@ -255,6 +256,18 @@ export class SuppliersGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
     return this.suppliersGatewayService.updateEnrollment(supplierId, siteId, dto);
+  }
+
+  // Updates the supplier's purchasing settings at one of the LE's sites
+  @Patch(':id/enrollments/:siteId/purchasing')
+  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
+  updateEnrollmentPurchasing(
+    @Param('id') supplierId: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: UpdateEnrollmentPurchasingDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/purchasing`);
+    return this.suppliersGatewayService.updateEnrollmentPurchasing(supplierId, siteId, dto);
   }
 
   // Activates or deactivates the supplier's own enrollment at one of the LE's sites

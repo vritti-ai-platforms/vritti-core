@@ -91,7 +91,7 @@ export const EnrollDialog: React.FC<EnrollDialogProps> = ({ binding, pair, onSuc
           <Select
             name="partyTaxRegistrationId"
             label="Tax Registration"
-            placeholder={partyId ? 'Select the registration the site is billed under' : 'Select a supplier first'}
+            placeholder={partyId ? 'Select the registration the site is invoiced under' : 'Select a supplier first'}
             description="Leave empty if the supplier is unregistered"
             searchable
             clearable

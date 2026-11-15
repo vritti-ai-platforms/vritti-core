@@ -139,6 +139,16 @@ export class SupplierItemPricesDomainService {
     return row ? SupplierItemPriceDto.from(row) : null;
   }
 
+  // Resolves the price row a purchase order line defaults its scheme from: the site's own in force on the date, else the
+  // legal entity's, or undefined when unpriced
+  resolvePriceForOrderLine(
+    supplierItemId: string,
+    siteId: string,
+    onDate: string,
+  ): Promise<SupplierItemPrice | undefined> {
+    return this.repository.resolvePrice(supplierItemId, siteId, onDate);
+  }
+
   // Returns a single price row as a DTO, or null when it does not exist
   async findPriceById(id: string): Promise<SupplierItemPriceDto | null> {
     const row = await this.repository.findPriceById(id);

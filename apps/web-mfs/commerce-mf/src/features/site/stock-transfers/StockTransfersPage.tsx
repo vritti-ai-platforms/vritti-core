@@ -48,12 +48,12 @@ export const StockTransfersPage = () => {
       {
         accessorKey: 'fromBuName',
         header: 'From',
-        cell: ({ row }) => row.original.fromSiteName ?? row.original.fromSiteId,
+        cell: ({ row }) => row.original.fromSiteName,
       },
       {
         accessorKey: 'toBuName',
         header: 'To',
-        cell: ({ row }) => row.original.toSiteName ?? row.original.toSiteId,
+        cell: ({ row }) => row.original.toSiteName,
       },
       {
         accessorKey: 'quantity',

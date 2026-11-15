@@ -16,7 +16,7 @@ export class SupplierEnrollmentResponseDto {
   @ApiProperty({ description: 'Name of the payment term' })
   paymentTermName: string;
 
-  @ApiPropertyOptional({ description: "Supplier's tax registration this site is billed under", nullable: true })
+  @ApiPropertyOptional({ description: "Supplier's tax registration this site is invoiced under", nullable: true })
   partyTaxRegistrationId: string | null;
 
   @ApiPropertyOptional({ description: 'Party bank account pick for this site', nullable: true })

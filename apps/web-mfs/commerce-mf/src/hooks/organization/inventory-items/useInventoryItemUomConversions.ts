@@ -10,8 +10,10 @@ import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
+  CreateInventoryItemUomConversionFormData,
   InventoryItemUomConversionData,
   InventoryItemUomConversionsTableResponse,
+  UpdateInventoryItemUomConversionPayload,
 } from '@/schemas/inventory-item-uom-conversions';
 import {
   createOrgInventoryItemUomConversion,
@@ -37,15 +39,20 @@ export function useInventoryItemUomConversionsTable(
   });
 }
 
-type CreatePayload = { uomId: string; primaryUomQty: number; uomQty: number };
-type UpdatePayload = { conversionId: string; primaryUomQty: number; uomQty: number };
-
 export function useCreateInventoryItemUomConversion(
   inventoryItemId: string,
-  options?: UseMutationOptions<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>,
+  options?: UseMutationOptions<
+    CreateResponse<InventoryItemUomConversionData>,
+    AxiosError,
+    CreateInventoryItemUomConversionFormData
+  >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<InventoryItemUomConversionData>, AxiosError, CreatePayload>({
+  return useMutation<
+    CreateResponse<InventoryItemUomConversionData>,
+    AxiosError,
+    CreateInventoryItemUomConversionFormData
+  >({
     mutationFn: (data) => createOrgInventoryItemUomConversion(inventoryItemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
@@ -56,12 +63,11 @@ export function useCreateInventoryItemUomConversion(
 
 export function useUpdateInventoryItemUomConversion(
   inventoryItemId: string,
-  options?: UseMutationOptions<SuccessResponse, AxiosError, UpdatePayload>,
+  options?: UseMutationOptions<SuccessResponse, AxiosError, UpdateInventoryItemUomConversionPayload>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<SuccessResponse, AxiosError, UpdatePayload>({
-    mutationFn: ({ conversionId, primaryUomQty, uomQty }) =>
-      updateOrgInventoryItemUomConversion(inventoryItemId, conversionId, { primaryUomQty, uomQty }),
+  return useMutation<SuccessResponse, AxiosError, UpdateInventoryItemUomConversionPayload>({
+    mutationFn: ({ conversionId, ...data }) => updateOrgInventoryItemUomConversion(inventoryItemId, conversionId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);

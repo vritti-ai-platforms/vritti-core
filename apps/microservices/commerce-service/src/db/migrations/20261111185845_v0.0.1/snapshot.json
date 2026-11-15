@@ -1,11 +1,10 @@
 {
-  "version": "8",
-  "dialect": "postgres",
   "id": "18769575-36ef-4cb4-93ab-0ae5ee2098f3",
   "prevIds": [
-    "2442c148-b69d-4d09-bbd0-eaa4b5ee4701",
-    "fa7a8974-43d1-4979-9def-05455b83c976"
+    "973fc29e-c2db-4fa6-9cea-f8a6b11743ee"
   ],
+  "version": "8",
+  "dialect": "postgres",
   "ddl": [
     {
       "name": "commerce",
@@ -111,7 +110,7 @@
     {
       "values": [
         "DRAFT",
-        "PUBLISHED"
+        "POSTED"
       ],
       "name": "goods_receipt_status",
       "entityType": "enums",
@@ -134,7 +133,8 @@
     {
       "values": [
         "ANNOUNCED",
-        "RECEIPT"
+        "GOODS_RECEIPT",
+        "SUPPLIER_INVOICE"
       ],
       "name": "inbound_delivery_source",
       "entityType": "enums",
@@ -348,18 +348,106 @@
     },
     {
       "values": [
+        "MANUAL"
+      ],
+      "name": "purchase_item_source",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "OPEN",
+        "CLOSED",
+        "CANCELLED"
+      ],
+      "name": "purchase_leg_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "SOURCING",
+        "APPROVAL",
+        "PURCHASE_ORDER",
+        "INBOUND_DELIVERY",
+        "GOODS_RECEIPT",
+        "RECEIVE_WITH_INVOICE",
+        "SUPPLIER_INVOICE",
+        "APPROVE_INVOICE",
+        "CLOSED"
+      ],
+      "name": "purchase_leg_step",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "NOTHING_TO_INVOICE",
+        "TO_INVOICE",
+        "PARTIAL",
+        "INVOICED"
+      ],
+      "name": "purchase_order_invoice_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "NOT_RECEIVED",
+        "PARTIAL",
+        "RECEIVED"
+      ],
+      "name": "purchase_order_receipt_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
         "PENDING_APPROVAL",
         "APPROVED",
         "REJECTED",
         "DRAFT",
         "SENT",
         "CONFIRMED",
-        "PARTIALLY_RECEIVED",
-        "RECEIVED",
-        "CLOSED",
+        "DELIVERY_COMPLETED",
         "CANCELLED"
       ],
       "name": "purchase_order_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "OPEN",
+        "COMPLETED",
+        "CANCELLED"
+      ],
+      "name": "purchase_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "REQUESTING",
+        "QUOTING",
+        "SOURCING",
+        "PROCURING"
+      ],
+      "name": "purchase_step",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "DIRECT_PURCHASE",
+        "DIRECT_RECEIPT",
+        "ORDER_INVOICE_WITH_GOODS",
+        "STANDARD",
+        "ANNOUNCED",
+        "PREPAID",
+        "SELF_INVOICING"
+      ],
+      "name": "purchase_type",
       "entityType": "enums",
       "schema": "commerce"
     },
@@ -417,6 +505,58 @@
         "CANCELLED"
       ],
       "name": "stock_transfer_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "PRICE_DIFFERS",
+        "QTY_NOT_RECEIVED",
+        "INVOICED_MORE_THAN_ORDERED",
+        "FREE_SHORT",
+        "RATE_DIFFERS",
+        "QTY_NOT_RELEASED",
+        "SHORT_EXPIRY"
+      ],
+      "name": "supplier_invoice_hold_code",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "OPEN",
+        "RELEASED",
+        "RESOLVED"
+      ],
+      "name": "supplier_invoice_hold_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "ITEM",
+        "CHARGE"
+      ],
+      "name": "supplier_invoice_line_type",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "UNPAID",
+        "PARTIAL",
+        "PAID"
+      ],
+      "name": "supplier_invoice_payment_status",
+      "entityType": "enums",
+      "schema": "commerce"
+    },
+    {
+      "values": [
+        "ENTERED",
+        "SELF_INVOICED"
+      ],
+      "name": "supplier_invoice_source",
       "entityType": "enums",
       "schema": "commerce"
     },
@@ -919,6 +1059,24 @@
     },
     {
       "isRlsEnabled": true,
+      "name": "purchase_events",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "purchase_item_allocations",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "purchase_items",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
       "name": "purchase_order_items",
       "entityType": "tables",
       "schema": "commerce"
@@ -926,6 +1084,18 @@
     {
       "isRlsEnabled": true,
       "name": "purchase_orders",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "purchase_suppliers",
+      "entityType": "tables",
+      "schema": "commerce"
+    },
+    {
+      "isRlsEnabled": true,
+      "name": "purchases",
       "entityType": "tables",
       "schema": "commerce"
     },
@@ -967,7 +1137,7 @@
     },
     {
       "isRlsEnabled": true,
-      "name": "supplier_invoice_line_receipts",
+      "name": "supplier_invoice_holds",
       "entityType": "tables",
       "schema": "commerce"
     },
@@ -1530,32 +1700,6 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "catalog_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_channels"
-    },
-    {
-      "type": "catalog_channel_type",
-      "typeSchema": "commerce",
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "type",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_channels"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
@@ -1575,6 +1719,32 @@
       "generated": null,
       "identity": null,
       "name": "site_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_channels"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "catalog_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_channels"
+    },
+    {
+      "type": "catalog_channel_type",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
       "entityType": "columns",
       "schema": "commerce",
       "table": "catalog_channels"
@@ -1855,6 +2025,32 @@
     {
       "type": "uuid",
       "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "legal_entity_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_listing_prices"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "site_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_listing_prices"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
@@ -1887,32 +2083,6 @@
       "generated": null,
       "identity": null,
       "name": "amount",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_listing_prices"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
-      "generated": null,
-      "identity": null,
-      "name": "legal_entity_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_listing_prices"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
-      "generated": null,
-      "identity": null,
-      "name": "site_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "catalog_listing_prices"
@@ -1972,32 +2142,6 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "catalog_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_listings"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "offering_variant_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "catalog_listings"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
@@ -2017,6 +2161,32 @@
       "generated": null,
       "identity": null,
       "name": "site_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_listings"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "catalog_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "catalog_listings"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "offering_variant_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "catalog_listings"
@@ -2900,7 +3070,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3303,7 +3473,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3364,6 +3534,19 @@
       "table": "goods_receipt_items"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inbound_delivery_line_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "goods_receipt_items"
+    },
+    {
       "type": "numeric(12,3)",
       "typeSchema": null,
       "notNull": true,
@@ -3385,6 +3568,32 @@
       "generated": null,
       "identity": null,
       "name": "rejected_quantity",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "goods_receipt_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "received_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "goods_receipt_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "rejected_primary_qty",
       "entityType": "columns",
       "schema": "commerce",
       "table": "goods_receipt_items"
@@ -3459,7 +3668,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3563,7 +3772,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3732,7 +3941,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3901,7 +4110,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -3918,6 +4127,19 @@
       "generated": null,
       "identity": null,
       "name": "supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "goods_receipts"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "goods_receipts"
@@ -4008,7 +4230,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "published_at",
+      "name": "posted_at",
       "entityType": "columns",
       "schema": "commerce",
       "table": "goods_receipts"
@@ -4070,7 +4292,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -4087,6 +4309,19 @@
       "generated": null,
       "identity": null,
       "name": "supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "inbound_deliveries"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "inbound_deliveries"
@@ -4295,6 +4530,19 @@
       "generated": null,
       "identity": null,
       "name": "quantity",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "inbound_delivery_lines"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "primary_uom_qty",
       "entityType": "columns",
       "schema": "commerce",
       "table": "inbound_delivery_lines"
@@ -4525,7 +4773,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -4655,7 +4903,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -4811,7 +5059,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -5175,7 +5423,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -5396,7 +5644,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -5513,7 +5761,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -5942,7 +6190,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -7388,7 +7636,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -9442,7 +9690,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -9540,6 +9788,539 @@
       "entityType": "columns",
       "schema": "commerce",
       "table": "pos_terminals"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "action",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "varchar(30)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "step_before",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "varchar(30)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "step_after",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_type",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "document_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reason",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "actor_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "supplier_quotation_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "uom_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "uom_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "primary_uom_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "varchar(3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "currency_code",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "unit_price",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scheme_buy_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "scheme_free_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "has_scheme",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "free_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_order_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "inventory_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "purchase_item_source",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'MANUAL'",
+      "generated": null,
+      "identity": null,
+      "name": "source",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "needed_by",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "notes",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_items"
     },
     {
       "type": "uuid",
@@ -9661,19 +10442,6 @@
     {
       "type": "numeric(12,3)",
       "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'0'",
-      "generated": null,
-      "identity": null,
-      "name": "received_quantity",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "purchase_order_items"
-    },
-    {
-      "type": "numeric(12,3)",
-      "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": null,
@@ -9715,10 +10483,10 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "'0'",
+      "default": null,
       "generated": null,
       "identity": null,
-      "name": "free_qty",
+      "name": "primary_uom_qty",
       "entityType": "columns",
       "schema": "commerce",
       "table": "purchase_order_items"
@@ -9728,10 +10496,75 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "'0'",
       "generated": null,
       "identity": null,
-      "name": "primary_uom_qty",
+      "name": "free_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_order_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "received_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_order_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "rejected_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_order_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "invoiced_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_order_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "returned_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_order_items"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "cancelled_primary_qty",
       "entityType": "columns",
       "schema": "commerce",
       "table": "purchase_order_items"
@@ -9858,7 +10691,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -9875,6 +10708,19 @@
       "generated": null,
       "identity": null,
       "name": "supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "purchase_orders"
@@ -9901,6 +10747,45 @@
       "generated": null,
       "identity": null,
       "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "type": "purchase_order_receipt_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'NOT_RECEIVED'",
+      "generated": null,
+      "identity": null,
+      "name": "receipt_status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "type": "purchase_order_invoice_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'NOTHING_TO_INVOICE'",
+      "generated": null,
+      "identity": null,
+      "name": "invoice_status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payment_term_id",
       "entityType": "columns",
       "schema": "commerce",
       "table": "purchase_orders"
@@ -10046,6 +10931,422 @@
       "name": "id",
       "entityType": "columns",
       "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "supplier_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "supplier_enrollment_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "purchase_type",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approval_enabled",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approval_threshold",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quality_check_enabled",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "purchase_leg_step",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'SOURCING'",
+      "generated": null,
+      "identity": null,
+      "name": "step",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "purchase_leg_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'OPEN'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approved_by",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approved_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "closed_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(current_setting('app.org_id') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "organization_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "legal_entity_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
+      "generated": null,
+      "identity": null,
+      "name": "site_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_number",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "quotations_required",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "min_quotations",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "purchase_step",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'REQUESTING'",
+      "generated": null,
+      "identity": null,
+      "name": "step",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "purchase_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'OPEN'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "notes",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "submitted_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "completed_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cancelled_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "uuidv7()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "commerce",
       "table": "stock_adjustment_line_items"
     },
     {
@@ -10066,7 +11367,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -10157,7 +11458,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -10365,7 +11666,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -10508,7 +11809,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.site_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -10807,7 +12108,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.le_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "legal_entity_id",
@@ -10833,7 +12134,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -10946,6 +12247,136 @@
       "table": "supplier_enrollments"
     },
     {
+      "type": "purchase_type",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'STANDARD'",
+      "generated": null,
+      "identity": null,
+      "name": "purchase_type",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "approval_enabled",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 1,
+      "default": "'{}'",
+      "generated": null,
+      "identity": null,
+      "name": "approver_user_ids",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "approval_threshold",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "quality_check_enabled",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "quarantine_location_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "default_receipt_location_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "numeric(5,2)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "price_tolerance_pct",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "numeric(5,2)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'0'",
+      "generated": null,
+      "identity": null,
+      "name": "qty_tolerance_pct",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "amount_tolerance",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
       "type": "timestamp with time zone",
       "typeSchema": null,
       "notNull": true,
@@ -10982,7 +12413,7 @@
       "name": "id",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "type": "uuid",
@@ -10995,7 +12426,7 @@
       "name": "organization_id",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "type": "uuid",
@@ -11005,23 +12436,10 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "supplier_invoice_line_id",
+      "name": "supplier_invoice_id",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "goods_receipt_item_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "type": "uuid",
@@ -11031,23 +12449,101 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "goods_receipt_lot_id",
+      "name": "supplier_invoice_line_id",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
-      "type": "numeric(12,3)",
+      "type": "supplier_invoice_hold_code",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "code",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "text",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "quantity",
+      "name": "detail",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "blocks_payment",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "supplier_invoice_hold_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'OPEN'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "released_by",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "released_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "release_reason",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
     },
     {
       "type": "timestamp with time zone",
@@ -11060,7 +12556,20 @@
       "name": "created_at",
       "entityType": "columns",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
     },
     {
       "type": "uuid",
@@ -11102,9 +12611,22 @@
       "table": "supplier_invoice_lines"
     },
     {
+      "type": "supplier_invoice_line_type",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ITEM'",
+      "generated": null,
+      "identity": null,
+      "name": "line_type",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -11117,7 +12639,33 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "goods_receipt_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "goods_receipt_lot_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -11130,7 +12678,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -11141,40 +12689,14 @@
       "table": "supplier_invoice_lines"
     },
     {
-      "type": "varchar(100)",
+      "type": "numeric(12,3)",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "lot_number",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoice_lines"
-    },
-    {
-      "type": "date",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "expiry_date",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoice_lines"
-    },
-    {
-      "type": "bigint",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "mrp",
+      "name": "invoiced_qty",
       "entityType": "columns",
       "schema": "commerce",
       "table": "supplier_invoice_lines"
@@ -11182,25 +12704,64 @@
     {
       "type": "numeric(12,3)",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
       "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "billed_qty",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoice_lines"
-    },
-    {
-      "type": "numeric(12,3)",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'0'",
       "generated": null,
       "identity": null,
       "name": "free_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "invoiced_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "numeric(12,3)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "free_primary_qty",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cost_category_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
       "entityType": "columns",
       "schema": "commerce",
       "table": "supplier_invoice_lines"
@@ -11253,19 +12814,6 @@
       "generated": null,
       "identity": null,
       "name": "line_total",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoice_lines"
-    },
-    {
-      "type": "jsonb",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'[]'",
-      "generated": null,
-      "identity": null,
-      "name": "flags",
       "entityType": "columns",
       "schema": "commerce",
       "table": "supplier_invoice_lines"
@@ -11375,19 +12923,6 @@
       "table": "supplier_invoices"
     },
     {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "purchase_order_id",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoices"
-    },
-    {
       "type": "varchar(100)",
       "typeSchema": null,
       "notNull": true,
@@ -11427,6 +12962,19 @@
       "table": "supplier_invoices"
     },
     {
+      "type": "supplier_invoice_source",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ENTERED'",
+      "generated": null,
+      "identity": null,
+      "name": "source",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoices"
+    },
+    {
       "type": "varchar(3)",
       "typeSchema": null,
       "notNull": true,
@@ -11453,6 +13001,32 @@
       "table": "supplier_invoices"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payment_term_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoices"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "due_date",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoices"
+    },
+    {
       "type": "supplier_invoice_status",
       "typeSchema": "commerce",
       "notNull": true,
@@ -11461,6 +13035,19 @@
       "generated": null,
       "identity": null,
       "name": "status",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_invoices"
+    },
+    {
+      "type": "supplier_invoice_payment_status",
+      "typeSchema": "commerce",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'UNPAID'",
+      "generated": null,
+      "identity": null,
+      "name": "payment_status",
       "entityType": "columns",
       "schema": "commerce",
       "table": "supplier_invoices"
@@ -11525,20 +13112,7 @@
       "default": "0",
       "generated": null,
       "identity": null,
-      "name": "flag_count",
-      "entityType": "columns",
-      "schema": "commerce",
-      "table": "supplier_invoices"
-    },
-    {
-      "type": "jsonb",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "'[]'",
-      "generated": null,
-      "identity": null,
-      "name": "flags",
+      "name": "open_hold_count",
       "entityType": "columns",
       "schema": "commerce",
       "table": "supplier_invoices"
@@ -11652,7 +13226,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "legal_entity_id",
@@ -11934,6 +13508,19 @@
       "table": "supplier_quotation_items"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_item_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_quotation_items"
+    },
+    {
       "type": "varchar(100)",
       "typeSchema": null,
       "notNull": false,
@@ -12194,6 +13781,19 @@
       "table": "supplier_quotations"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "purchase_id",
+      "entityType": "columns",
+      "schema": "commerce",
+      "table": "supplier_quotations"
+    },
+    {
       "type": "varchar(100)",
       "typeSchema": null,
       "notNull": true,
@@ -12341,7 +13941,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "legal_entity_id",
@@ -12354,7 +13954,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "cast(nullif(current_setting('app.site_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "site_id",
@@ -12614,7 +14214,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.le_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "legal_entity_id",
@@ -13719,7 +15319,7 @@
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": "cast(current_setting('app.le_id') as uuid)",
+      "default": "cast(nullif(current_setting('app.le_id', true), '') as uuid)",
       "generated": null,
       "identity": null,
       "name": "legal_entity_id",
@@ -15093,6 +16693,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "inbound_delivery_line_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_goods_receipt_items_delivery_line",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "goods_receipt_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "goods_receipt_id",
           "isExpression": false,
           "asc": true,
@@ -15345,6 +16966,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "purchase_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_goods_receipts_purchase",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "goods_receipts"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "organization_id",
           "isExpression": false,
           "asc": true,
@@ -15442,6 +17084,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_inbound_deliveries_supplier_note",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "inbound_deliveries"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "purchase_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_inbound_deliveries_purchase",
       "entityType": "indexes",
       "schema": "commerce",
       "table": "inbound_deliveries"
@@ -17417,6 +19080,125 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "purchase_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_events_purchase",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "purchase_supplier_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_item_allocations_supplier",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "supplier_quotation_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_item_allocations_quotation_item",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "source",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "source_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"source_id\" IS NOT NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "uq_purchase_items_source",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "inventory_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_items_inventory_item",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "purchase_order_id",
           "isExpression": false,
           "asc": true,
@@ -17482,6 +19264,125 @@
       "entityType": "indexes",
       "schema": "commerce",
       "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "purchase_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_orders_purchase",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "supplier_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_suppliers_supplier",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "supplier_enrollment_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchase_suppliers_enrollment",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "site_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchases_site",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "organization_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_purchases_status",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "purchases"
     },
     {
       "nameExplicit": true,
@@ -17872,7 +19773,14 @@
       "nameExplicit": true,
       "columns": [
         {
-          "value": "goods_receipt_item_id",
+          "value": "supplier_invoice_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "status",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -17884,10 +19792,10 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "idx_supplier_invoice_line_receipts_gr_item",
+      "name": "idx_supplier_invoice_holds_invoice",
       "entityType": "indexes",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "nameExplicit": true,
@@ -17935,6 +19843,48 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "goods_receipt_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_supplier_invoice_lines_gr_item",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "goods_receipt_lot_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_supplier_invoice_lines_gr_lot",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "site_id",
           "isExpression": false,
           "asc": true,
@@ -17948,27 +19898,6 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_supplier_invoices_site",
-      "entityType": "indexes",
-      "schema": "commerce",
-      "table": "supplier_invoices"
-    },
-    {
-      "nameExplicit": true,
-      "columns": [
-        {
-          "value": "purchase_order_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "idx_supplier_invoices_po",
       "entityType": "indexes",
       "schema": "commerce",
       "table": "supplier_invoices"
@@ -18229,6 +20158,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "purchase_item_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_supplier_quotation_items_purchase_item",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "supplier_quotation_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "quotation_id",
           "isExpression": false,
           "asc": true,
@@ -18326,6 +20276,27 @@
       "method": "btree",
       "concurrently": false,
       "name": "idx_supplier_quotations_supplier",
+      "entityType": "indexes",
+      "schema": "commerce",
+      "table": "supplier_quotations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "purchase_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "idx_supplier_quotations_purchase",
       "entityType": "indexes",
       "schema": "commerce",
       "table": "supplier_quotations"
@@ -19421,6 +21392,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "inbound_delivery_line_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "inbound_delivery_lines",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "goods_receipt_items_Mds23MnmYPBb_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "goods_receipt_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "goods_receipt_line_id"
       ],
       "schemaTo": "commerce",
@@ -19557,6 +21545,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "goods_receipts_purchase_id_purchases_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "goods_receipts"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "inbound_delivery_id"
       ],
       "schemaTo": "commerce",
@@ -19584,6 +21589,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "inbound_deliveries_supplier_id_suppliers_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "inbound_deliveries"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "inbound_deliveries_purchase_id_purchases_id_fkey",
       "entityType": "fks",
       "schema": "commerce",
       "table": "inbound_deliveries"
@@ -20736,6 +22758,159 @@
     {
       "nameExplicit": false,
       "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "purchase_events_purchase_id_purchases_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_supplier_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchase_suppliers",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "purchase_events_purchase_supplier_id_purchase_suppliers_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchase_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "purchase_item_allocations_6KJXZCmf1sB0_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_supplier_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchase_suppliers",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "purchase_item_allocations_4C8OA4Ebv9qA_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "supplier_quotation_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "supplier_quotation_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_item_allocations_U2i4pr1bcH8W_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "uom_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "uom",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_item_allocations_uom_id_uom_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_order_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchase_order_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_item_allocations_axewgZ5DYv8Q_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "purchase_items_purchase_id_purchases_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "inventory_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "inventory_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_items_inventory_item_id_inventory_items_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "purchase_order_id"
       ],
       "schemaTo": "commerce",
@@ -20800,6 +22975,91 @@
       "entityType": "fks",
       "schema": "commerce",
       "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_orders_purchase_id_purchases_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "payment_term_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "payment_terms",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_orders_payment_term_id_payment_terms_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "purchase_suppliers_purchase_id_purchases_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "supplier_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "suppliers",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_suppliers_supplier_id_suppliers_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "supplier_enrollment_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "supplier_enrollments",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "purchase_suppliers_1qbponxEpxAm_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
     },
     {
       "nameExplicit": false,
@@ -21023,6 +23283,40 @@
       "table": "supplier_enrollments"
     },
     {
+      "nameExplicit": false,
+      "columns": [
+        "quarantine_location_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "locations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "supplier_enrollments_quarantine_location_id_locations_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "default_receipt_location_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "locations",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "supplier_enrollments_HA62T4kyr6do_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
       "nameExplicit": true,
       "columns": [
         "party_tax_registration_id"
@@ -21110,6 +23404,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "supplier_invoice_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "supplier_invoices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "supplier_invoice_holds_yZuLY0XEbjQY_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "supplier_invoice_line_id"
       ],
       "schemaTo": "commerce",
@@ -21119,44 +23430,10 @@
       ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
-      "name": "supplier_invoice_line_receipts_q9FydeC4CwOW_fkey",
+      "name": "supplier_invoice_holds_985i4QEN3x9Q_fkey",
       "entityType": "fks",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "goods_receipt_item_id"
-      ],
-      "schemaTo": "commerce",
-      "tableTo": "goods_receipt_items",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "supplier_invoice_line_receipts_2XaydPd3nYX8_fkey",
-      "entityType": "fks",
-      "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        "goods_receipt_lot_id"
-      ],
-      "schemaTo": "commerce",
-      "tableTo": "goods_receipt_lots",
-      "columnsTo": [
-        "id"
-      ],
-      "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "supplier_invoice_line_receipts_UPdYLJOzwyQy_fkey",
-      "entityType": "fks",
-      "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "nameExplicit": false,
@@ -21188,6 +23465,40 @@
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "name": "supplier_invoice_lines_Clt6tjlN6jlz_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "goods_receipt_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "goods_receipt_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "supplier_invoice_lines_2lIohWZa1BgL_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "goods_receipt_lot_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "goods_receipt_lots",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "supplier_invoice_lines_36AR67joXROX_fkey",
       "entityType": "fks",
       "schema": "commerce",
       "table": "supplier_invoice_lines"
@@ -21229,6 +23540,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "cost_category_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "cost_categories",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "supplier_invoice_lines_cost_category_id_cost_categories_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "supplier_id"
       ],
       "schemaTo": "commerce",
@@ -21246,16 +23574,16 @@
     {
       "nameExplicit": false,
       "columns": [
-        "purchase_order_id"
+        "payment_term_id"
       ],
       "schemaTo": "commerce",
-      "tableTo": "purchase_orders",
+      "tableTo": "payment_terms",
       "columnsTo": [
         "id"
       ],
       "onUpdate": "NO ACTION",
-      "onDelete": "NO ACTION",
-      "name": "supplier_invoices_purchase_order_id_purchase_orders_id_fkey",
+      "onDelete": "RESTRICT",
+      "name": "supplier_invoices_payment_term_id_payment_terms_id_fkey",
       "entityType": "fks",
       "schema": "commerce",
       "table": "supplier_invoices"
@@ -21365,6 +23693,23 @@
     {
       "nameExplicit": false,
       "columns": [
+        "purchase_item_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchase_items",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "supplier_quotation_items_LrBa6X1qP5uZ_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_quotation_items"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
         "mrp_id"
       ],
       "schemaTo": "commerce",
@@ -21409,6 +23754,23 @@
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "supplier_quotations_supplier_id_suppliers_id_fkey",
+      "entityType": "fks",
+      "schema": "commerce",
+      "table": "supplier_quotations"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "purchase_id"
+      ],
+      "schemaTo": "commerce",
+      "tableTo": "purchases",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "supplier_quotations_purchase_id_purchases_id_fkey",
       "entityType": "fks",
       "schema": "commerce",
       "table": "supplier_quotations"
@@ -22337,6 +24699,36 @@
         "id"
       ],
       "nameExplicit": false,
+      "name": "purchase_events_pkey",
+      "schema": "commerce",
+      "table": "purchase_events",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "purchase_item_allocations_pkey",
+      "schema": "commerce",
+      "table": "purchase_item_allocations",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "purchase_items_pkey",
+      "schema": "commerce",
+      "table": "purchase_items",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
       "name": "purchase_order_items_pkey",
       "schema": "commerce",
       "table": "purchase_order_items",
@@ -22350,6 +24742,26 @@
       "name": "purchase_orders_pkey",
       "schema": "commerce",
       "table": "purchase_orders",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "purchase_suppliers_pkey",
+      "schema": "commerce",
+      "table": "purchase_suppliers",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "purchases_pkey",
+      "schema": "commerce",
+      "table": "purchases",
       "entityType": "pks"
     },
     {
@@ -22417,9 +24829,9 @@
         "id"
       ],
       "nameExplicit": false,
-      "name": "supplier_invoice_line_receipts_pkey",
+      "name": "supplier_invoice_holds_pkey",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts",
+      "table": "supplier_invoice_holds",
       "entityType": "pks"
     },
     {
@@ -23440,6 +25852,41 @@
     {
       "nameExplicit": true,
       "columns": [
+        "purchase_item_id",
+        "purchase_supplier_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_purchase_item_allocations_item_supplier",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "purchase_order_item_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_purchase_item_allocations_po_item",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "purchase_id",
+        "inventory_item_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_purchase_items_purchase_item",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
         "purchase_order_id",
         "inventory_item_id",
         "uom_id"
@@ -23461,6 +25908,30 @@
       "entityType": "uniques",
       "schema": "commerce",
       "table": "purchase_orders"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "purchase_id",
+        "supplier_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_purchase_suppliers_purchase_supplier",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "organization_id",
+        "purchase_number"
+      ],
+      "nullsNotDistinct": false,
+      "name": "uq_purchases_org_purchase_number",
+      "entityType": "uniques",
+      "schema": "commerce",
+      "table": "purchases"
     },
     {
       "nameExplicit": true,
@@ -23513,15 +25984,15 @@
     {
       "nameExplicit": true,
       "columns": [
+        "supplier_invoice_id",
         "supplier_invoice_line_id",
-        "goods_receipt_item_id",
-        "goods_receipt_lot_id"
+        "code"
       ],
       "nullsNotDistinct": true,
-      "name": "uq_supplier_invoice_line_receipts",
+      "name": "uq_supplier_invoice_holds_invoice_line_code",
       "entityType": "uniques",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "nameExplicit": true,
@@ -23761,6 +26232,13 @@
       "table": "goods_receipt_lots"
     },
     {
+      "value": "\"source\" = 'ANNOUNCED' OR \"purchase_id\" IS NOT NULL",
+      "name": "inbound_deliveries_source_purchase_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "inbound_deliveries"
+    },
+    {
       "value": "\"quantity\" > 0",
       "name": "inbound_delivery_lines_quantity_chk",
       "entityType": "checks",
@@ -23894,6 +26372,34 @@
       "table": "payment_term_rules"
     },
     {
+      "value": "\"uom_qty\" > 0 AND \"primary_uom_qty\" > 0",
+      "name": "purchase_item_allocations_qty_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "value": "(\"scheme_buy_qty\" IS NULL) = (\"scheme_free_qty\" IS NULL)",
+      "name": "purchase_item_allocations_scheme_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "value": "\"primary_qty\" > 0",
+      "name": "purchase_items_primary_qty_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "value": "\"min_quotations\" > 0",
+      "name": "purchases_min_quotations_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
       "value": "(\"location_id\" IS NOT NULL AND \"quant_id\" IS NULL)\n       OR (\"location_id\" IS NULL AND \"quant_id\" IS NOT NULL)",
       "name": "chk_line_intent",
       "entityType": "checks",
@@ -23906,6 +26412,55 @@
       "entityType": "checks",
       "schema": "commerce",
       "table": "stock_adjustment_lots"
+    },
+    {
+      "value": "NOT \"approval_enabled\" OR cardinality(\"approver_user_ids\") > 0",
+      "name": "supplier_enrollments_approvers_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "value": "NOT \"quality_check_enabled\" OR \"quarantine_location_id\" IS NOT NULL",
+      "name": "supplier_enrollments_quarantine_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "value": "\"price_tolerance_pct\" >= 0 AND \"qty_tolerance_pct\" >= 0 AND \"amount_tolerance\" >= 0",
+      "name": "supplier_enrollments_tolerances_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_enrollments"
+    },
+    {
+      "value": "\"status\" <> 'RELEASED' OR (\"release_reason\" IS NOT NULL AND \"released_by\" IS NOT NULL AND \"released_at\" IS NOT NULL)",
+      "name": "supplier_invoice_holds_release_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_invoice_holds"
+    },
+    {
+      "value": "\"line_type\" <> 'ITEM' OR (\"purchase_order_item_id\" IS NOT NULL AND \"inventory_item_id\" IS NOT NULL AND \"uom_id\" IS NOT NULL AND \"invoiced_qty\" IS NOT NULL AND \"free_qty\" IS NOT NULL AND \"invoiced_primary_qty\" IS NOT NULL AND \"free_primary_qty\" IS NOT NULL AND \"cost_category_id\" IS NULL)",
+      "name": "supplier_invoice_lines_item_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "value": "\"line_type\" <> 'CHARGE' OR (\"cost_category_id\" IS NOT NULL AND \"purchase_order_item_id\" IS NULL AND \"goods_receipt_item_id\" IS NULL AND \"goods_receipt_lot_id\" IS NULL AND \"inventory_item_id\" IS NULL)",
+      "name": "supplier_invoice_lines_charge_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
+    },
+    {
+      "value": "\"goods_receipt_lot_id\" IS NULL OR \"goods_receipt_item_id\" IS NOT NULL",
+      "name": "supplier_invoice_lines_receipt_chk",
+      "entityType": "checks",
+      "schema": "commerce",
+      "table": "supplier_invoice_lines"
     },
     {
       "value": "(\"scheme_buy_qty\" IS NULL) = (\"scheme_free_qty\" IS NULL)",
@@ -24056,6 +26611,17 @@
       "cacheSize": 1,
       "cycle": false,
       "name": "order_number_seq",
+      "entityType": "sequences",
+      "schema": "commerce"
+    },
+    {
+      "incrementBy": "1",
+      "minValue": "1",
+      "maxValue": "9223372036854775807",
+      "startWith": "1",
+      "cacheSize": 1,
+      "cycle": false,
+      "name": "purchase_number_seq",
       "entityType": "sequences",
       "schema": "commerce"
     },
@@ -26796,6 +29362,201 @@
       "name": "org_isolation",
       "entityType": "policies",
       "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id)",
+      "withCheck": null,
+      "name": "reach_read",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "name": "owner_insert",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_update",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_delete",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_events"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchase_items p where p.id = purchase_item_id)",
+      "withCheck": null,
+      "name": "reach_read",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "exists (select 1 from commerce.purchase_items p join commerce.purchases o on o.id = p.purchase_id where p.id = purchase_item_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "name": "owner_insert",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchase_items p join commerce.purchases o on o.id = p.purchase_id where p.id = purchase_item_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_update",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchase_items p join commerce.purchases o on o.id = p.purchase_id where p.id = purchase_item_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_delete",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_item_allocations"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id)",
+      "withCheck": null,
+      "name": "reach_read",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "name": "owner_insert",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_update",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_delete",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_items"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
       "table": "purchase_order_items"
     },
     {
@@ -26914,6 +29675,136 @@
       "entityType": "policies",
       "schema": "commerce",
       "table": "purchase_orders"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id)",
+      "withCheck": null,
+      "name": "reach_read",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "name": "owner_insert",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_update",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "exists (select 1 from commerce.purchases o where o.id = purchase_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": null,
+      "name": "owner_delete",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchase_suppliers"
+    },
+    {
+      "as": "PERMISSIVE",
+      "for": "ALL",
+      "roles": [
+        "public"
+      ],
+      "using": "organization_id = (select current_setting('app.org_id', true)::uuid)",
+      "withCheck": null,
+      "name": "org_isolation",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "SELECT",
+      "roles": [
+        "public"
+      ],
+      "using": "coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then site_id = any(string_to_array(nullif(current_setting('app.site_ids', true), ''), ',')::uuid[])\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.org_id', true), '') as uuid) is not null then true\n    else false\n  end, false)",
+      "withCheck": null,
+      "name": "reach_read",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "using": null,
+      "withCheck": "coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false)",
+      "name": "owner_insert",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false)",
+      "withCheck": "coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false)",
+      "name": "owner_update",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchases"
+    },
+    {
+      "as": "RESTRICTIVE",
+      "for": "DELETE",
+      "roles": [
+        "public"
+      ],
+      "using": "coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false)",
+      "withCheck": null,
+      "name": "owner_delete",
+      "entityType": "policies",
+      "schema": "commerce",
+      "table": "purchases"
     },
     {
       "as": "PERMISSIVE",
@@ -27264,7 +30155,7 @@
       "name": "org_isolation",
       "entityType": "policies",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "as": "RESTRICTIVE",
@@ -27272,12 +30163,12 @@
       "roles": [
         "public"
       ],
-      "using": "exists (select 1 from commerce.supplier_invoice_lines p where p.id = supplier_invoice_line_id)",
+      "using": "exists (select 1 from commerce.supplier_invoices o where o.id = supplier_invoice_id)",
       "withCheck": null,
       "name": "reach_read",
       "entityType": "policies",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "as": "RESTRICTIVE",
@@ -27286,11 +30177,11 @@
         "public"
       ],
       "using": null,
-      "withCheck": "exists (select 1 from commerce.supplier_invoice_lines p join commerce.supplier_invoices o on o.id = p.supplier_invoice_id where p.id = supplier_invoice_line_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "withCheck": "exists (select 1 from commerce.supplier_invoices o where o.id = supplier_invoice_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
       "name": "owner_insert",
       "entityType": "policies",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "as": "RESTRICTIVE",
@@ -27298,12 +30189,12 @@
       "roles": [
         "public"
       ],
-      "using": "exists (select 1 from commerce.supplier_invoice_lines p join commerce.supplier_invoices o on o.id = p.supplier_invoice_id where p.id = supplier_invoice_line_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "using": "exists (select 1 from commerce.supplier_invoices o where o.id = supplier_invoice_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
       "withCheck": null,
       "name": "owner_update",
       "entityType": "policies",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "as": "RESTRICTIVE",
@@ -27311,12 +30202,12 @@
       "roles": [
         "public"
       ],
-      "using": "exists (select 1 from commerce.supplier_invoice_lines p join commerce.supplier_invoices o on o.id = p.supplier_invoice_id where p.id = supplier_invoice_line_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
+      "using": "exists (select 1 from commerce.supplier_invoices o where o.id = supplier_invoice_id and coalesce(\n  case\n    when cast(nullif(current_setting('app.site_id', true), '') as uuid) is not null then o.site_id = cast(nullif(current_setting('app.site_id', true), '') as uuid) and o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid)\n    when cast(nullif(current_setting('app.site_group_id', true), '') as uuid) is not null then false\n    when cast(nullif(current_setting('app.le_id', true), '') as uuid) is not null then o.legal_entity_id = cast(nullif(current_setting('app.le_id', true), '') as uuid) and o.site_id is not null\n      and (string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[] is null or o.site_id = any(string_to_array(nullif(current_setting('app.le_site_ids', true), ''), ',')::uuid[]))\n    else false\n  end, false))",
       "withCheck": null,
       "name": "owner_delete",
       "entityType": "policies",
       "schema": "commerce",
-      "table": "supplier_invoice_line_receipts"
+      "table": "supplier_invoice_holds"
     },
     {
       "as": "PERMISSIVE",

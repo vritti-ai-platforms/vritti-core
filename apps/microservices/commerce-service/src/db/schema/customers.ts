@@ -1,14 +1,14 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { boolean, index, pgPolicy, text, timestamp, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, orgIsolationPolicy, siteIdColumn } from './workspace-scope';
 
 export const customers = commerceSchema.table(
   'customers',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     phone: varchar('phone', { length: 32 }),
     email: varchar('email', { length: 255 }),

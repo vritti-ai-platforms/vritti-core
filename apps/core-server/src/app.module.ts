@@ -20,6 +20,8 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import * as schema from '@/db/schema';
 import { relations } from '@/db/schema';
 import { DB_SCHEMA } from '@/db/schema/core-schema';
+import { LegalEntityContextModule } from '@/legal-entity-context/legal-entity-context.module';
+import { LegalEntityContextResolverService } from '@/legal-entity-context/legal-entity-context-resolver.service';
 import { MediaApiModule } from '@/modules/core-api/media/media-api.module';
 import { OwnerNamesModule } from '@/owner-names/owner-names.module';
 import { RbacModule } from '@/rbac/rbac.module';
@@ -264,6 +266,7 @@ const graphqlBaseOptions = {
     SecurityModule,
     // Per-site context cache (timezone, currency, group chain)
     SiteContextModule,
+    LegalEntityContextModule,
     OwnerNamesModule,
 
     // --- Domain modules (services + repositories only) ---
@@ -293,14 +296,21 @@ const graphqlBaseOptions = {
         runInOrgContext: <T>(orgId: string, run: () => Promise<T>) => db.runWithRlsContext({ orgId }, run),
       }),
     }),
-    // NATS client (gateway mode) — resolves the workspace context from request.auth (site context derives its LE)
+    // NATS client (gateway mode) — resolves the workspace context from request.auth (site context derives its LE, an
+    // LE context its currency)
     NatsClientModule.forRoot({
-      imports: [SiteContextModule, SiteGroupContextModule],
-      inject: [ConfigService, SiteContextResolverService, SiteGroupContextResolverService],
+      imports: [SiteContextModule, SiteGroupContextModule, LegalEntityContextModule],
+      inject: [
+        ConfigService,
+        SiteContextResolverService,
+        SiteGroupContextResolverService,
+        LegalEntityContextResolverService,
+      ],
       useFactory: (
         config: ConfigService,
         siteContextResolver: SiteContextResolverService,
         siteGroupContextResolver: SiteGroupContextResolverService,
+        legalEntityContextResolver: LegalEntityContextResolverService,
       ) => ({
         natsUrl: config.get<string>('NATS_URL'),
         services: [{ name: 'commerce' }, { name: 'communications' }, { name: 'payments' }],
@@ -318,7 +328,7 @@ const graphqlBaseOptions = {
               siteGroupId: '',
               siteIds: '',
               siteTimezone: '',
-              siteCurrencyCode: '',
+              leCurrencyCode: '',
             };
           }
           // For every other caller an organization is mandatory — without one the receiving service would run with
@@ -340,13 +350,17 @@ const graphqlBaseOptions = {
               siteGroupId: '',
               siteIds: '',
               siteTimezone: siteContext.siteTimezone,
-              siteCurrencyCode: siteContext.siteCurrencyCode,
+              leCurrencyCode: siteContext.leCurrencyCode,
             };
           }
 
           const siteIds = auth.siteGroupId ? await siteGroupContextResolver.resolveSiteIds(auth.siteGroupId) : [];
+          const legalEntityContext = auth.legalEntityId
+            ? await legalEntityContextResolver.resolve(auth.legalEntityId)
+            : undefined;
 
-          // Group / LE / org workspaces pass their own context through; empty values are omitted from the headers
+          // Group / LE / org workspaces pass their own context through, an LE its currency too; empty values are
+          // omitted from the headers
           return {
             orgId,
             userId,
@@ -355,7 +369,7 @@ const graphqlBaseOptions = {
             siteGroupId: auth.siteGroupId ?? '',
             siteIds: siteIds.join(','),
             siteTimezone: '',
-            siteCurrencyCode: '',
+            leCurrencyCode: legalEntityContext?.leCurrencyCode ?? '',
           };
         },
       }),

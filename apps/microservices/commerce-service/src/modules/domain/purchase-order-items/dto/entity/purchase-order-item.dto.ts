@@ -10,6 +10,7 @@ export class PurchaseOrderItemDto {
   expectedDeliveryDate: string;
   inboundDeliveryNumbers: string[];
   inboundDeliveryIds: string[];
+  inboundDeliveryDates: string[];
   taxDate: string;
   isTaxDateOverridden: boolean;
   isTaxDateLocked: boolean;
@@ -21,6 +22,13 @@ export class PurchaseOrderItemDto {
   primaryUomQty: number;
   expectedFreePrimaryQty: number;
   receivedPrimaryQty: number;
+  rejectedPrimaryQty: number;
+  invoicedPrimaryQty: number;
+  returnedPrimaryQty: number;
+  cancelledPrimaryQty: number;
+  duePrimaryQty: number;
+  openToReceivePrimaryQty: number;
+  openToInvoicePrimaryQty: number;
   primaryUomSymbol: string | null;
   currencyCode: string;
   unitPrice: CurrencyAmountDto;
@@ -31,11 +39,16 @@ export class PurchaseOrderItemDto {
   schemeFreeQty: number | null;
   hasScheme: boolean;
 
+  // Shapes a line with its counters; due = ordered + free − cancelled, open to receive = due − received, open to
+  // invoice = received − returned − invoiced, all in primary units
   static from(row: PurchaseOrderItemRow): PurchaseOrderItemDto {
     const dto = new PurchaseOrderItemDto();
-    // A quantity in the line unit, in the item's primary unit by the line's own ordered-to-primary ratio
-    const inPrimary = (qty: number) =>
-      row.uomQty === 0 ? 0 : new Decimal(qty).times(row.primaryUomQty).div(row.uomQty).toDecimalPlaces(3).toNumber();
+    // A primary quantity in the line unit, by the line's own ordered-to-primary ratio
+    const inLineUnit = (primaryQty: number) =>
+      row.primaryUomQty === 0
+        ? 0
+        : new Decimal(primaryQty).times(row.uomQty).div(row.primaryUomQty).toDecimalPlaces(3).toNumber();
+    const due = new Decimal(row.primaryUomQty).plus(row.freePrimaryQty).minus(row.cancelledPrimaryQty);
     dto.id = row.id;
     dto.purchaseOrderId = row.purchaseOrderId;
     dto.inventoryItemId = row.inventoryItemId;
@@ -43,17 +56,28 @@ export class PurchaseOrderItemDto {
     dto.expectedDeliveryDate = row.expectedDeliveryDate;
     dto.inboundDeliveryNumbers = row.inboundDeliveryNumbers;
     dto.inboundDeliveryIds = row.inboundDeliveryIds;
+    dto.inboundDeliveryDates = row.inboundDeliveryDates;
     dto.taxDate = row.taxDate;
     dto.isTaxDateOverridden = row.isTaxDateOverridden;
     dto.isTaxDateLocked = row.isTaxDateLocked;
     dto.uomId = row.uomId;
     dto.orderUomSymbol = row.orderUomSymbol;
     dto.uomQty = row.uomQty;
-    dto.expectedFreeQty = row.freeQty;
-    dto.receivedQty = row.receivedQuantity;
+    dto.expectedFreeQty = inLineUnit(row.freePrimaryQty);
+    dto.receivedQty = inLineUnit(row.receivedPrimaryQty);
     dto.primaryUomQty = row.primaryUomQty;
-    dto.expectedFreePrimaryQty = inPrimary(row.freeQty);
-    dto.receivedPrimaryQty = inPrimary(row.receivedQuantity);
+    dto.expectedFreePrimaryQty = row.freePrimaryQty;
+    dto.receivedPrimaryQty = row.receivedPrimaryQty;
+    dto.rejectedPrimaryQty = row.rejectedPrimaryQty;
+    dto.invoicedPrimaryQty = row.invoicedPrimaryQty;
+    dto.returnedPrimaryQty = row.returnedPrimaryQty;
+    dto.cancelledPrimaryQty = row.cancelledPrimaryQty;
+    dto.duePrimaryQty = due.toNumber();
+    dto.openToReceivePrimaryQty = Decimal.max(0, due.minus(row.receivedPrimaryQty)).toNumber();
+    dto.openToInvoicePrimaryQty = Decimal.max(
+      0,
+      new Decimal(row.receivedPrimaryQty).minus(row.returnedPrimaryQty).minus(row.invoicedPrimaryQty),
+    ).toNumber();
     dto.primaryUomSymbol = row.primaryUomSymbol;
     dto.currencyCode = row.currencyCode;
     dto.unitPrice = CurrencyAmountDto.from(row.unitPrice, row.currencyCode);

@@ -6,7 +6,7 @@ import { organizationIdColumn } from './workspace-scope';
 export const documentCounters = commerceSchema.table(
   'document_counters',
   {
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     counterKey: varchar('counter_key', { length: 120 }).notNull(),
     lastNumber: bigint('last_number', { mode: 'bigint' }).notNull().default(0n),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

@@ -1,12 +1,16 @@
+import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import { type SiteStockLocation, type StockStatus } from '@/db/schema';
 import type { InventoryItemDto } from './inventory-item.dto';
 
-export type SiteInventoryItemDto = InventoryItemDto & {
-  isEnabled: boolean;
-  isStocked: boolean | null;
-  reorderPoint: number | null;
-  stockedQuantity: string;
-};
+export type SiteStockLocationDto = SiteStockLocation;
 
-export type GroupInventoryItemDto = InventoryItemDto & {
-  enabledSiteCount: number;
+export type SiteStockTableItemDto = InventoryItemDto & {
+  hasStockLevels: boolean;
+  reorderPoint: number | null;
+  safetyStock: number | null;
+  maxStockLevel: number | null;
+  onHand: number;
+  stockValue: CurrencyAmountDto;
+  stockStatus: StockStatus | null;
+  locations: SiteStockLocationDto[];
 };

@@ -1,10 +1,10 @@
-// Per-inventory-item location config (mirrors the InventoryItemLocation GraphQL type). reorderLevel = the
-// "Min. Stock Level" threshold for this item at this location.
+// Per-inventory-item location config (mirrors the InventoryItemLocation GraphQL type). isBlocked = no new putaway
+// of this item into this location.
 export interface ItemLocation {
   id: string;
   inventoryItemId: string;
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
-  reorderLevel: number;
+  isBlocked: boolean;
 }

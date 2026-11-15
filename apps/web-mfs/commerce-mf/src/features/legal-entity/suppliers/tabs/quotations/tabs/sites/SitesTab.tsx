@@ -31,7 +31,7 @@ export const SitesTab: React.FC<QuotationSlotProps> = ({ supplierId, quotation }
   const handleRemove = useCallback(
     async (site: SupplierQuotationSiteData) => {
       const ok = await confirm({
-        title: site.siteId ? `Remove from ${site.siteName ?? site.siteCode ?? 'this site'}?` : 'Remove from all sites?',
+        title: site.siteId ? `Remove from ${site.siteName}?` : 'Remove from all sites?',
         description: site.siteId
           ? "The quotation's prices are deleted from the site, even those already in effect, and the prices they replaced apply again."
           : "The quotation's prices for all sites are deleted, even those already in effect, and the prices they replaced apply again.",
@@ -50,7 +50,7 @@ export const SitesTab: React.FC<QuotationSlotProps> = ({ supplierId, quotation }
         header: 'Site',
         cell: ({ row }) =>
           row.original.siteId ? (
-            <StringCell value={row.original.siteName ?? row.original.siteCode} />
+            <StringCell value={row.original.siteName} />
           ) : (
             <Badge variant="outline">All sites</Badge>
           ),

@@ -1,5 +1,6 @@
 import { commerceSchema } from './commerce-schema';
 
+export const purchaseNumberSeq = commerceSchema.sequence('purchase_number_seq');
 export const purchaseOrderNumberSeq = commerceSchema.sequence('purchase_order_number_seq');
 export const goodsReceiptNumberSeq = commerceSchema.sequence('goods_receipt_number_seq');
 export const inboundDeliveryNumberSeq = commerceSchema.sequence('inbound_delivery_number_seq');

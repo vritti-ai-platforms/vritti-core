@@ -1,41 +1,72 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
-import { IsDateString, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsPositive, IsString, IsUUID, MaxLength, Min, ValidateIf } from 'class-validator';
+import { SUPPLIER_INVOICE_LINE_TYPES, type SupplierInvoiceLineType } from '../response/supplier-invoice-response.dto';
 
 export class SupplierInvoiceLineDto {
-  @ApiProperty({ description: 'Order line billed; the item and unit come from it and every quantity is in its unit' })
+  @ApiProperty({
+    description: 'ITEM invoices a received lot (or receipt item without lots); CHARGE is a landed cost',
+    enum: SUPPLIER_INVOICE_LINE_TYPES,
+  })
+  @IsIn(SUPPLIER_INVOICE_LINE_TYPES)
+  lineType: SupplierInvoiceLineType;
+
+  @ApiPropertyOptional({ description: 'Order line invoiced; required for an ITEM line' })
+  @ValidateIf((line: SupplierInvoiceLineDto) => line.lineType === 'ITEM')
   @IsUUID('7')
-  purchaseOrderItemId: string;
+  purchaseOrderItemId?: string;
 
-  @Trim()
-  @ApiPropertyOptional({ description: 'Batch number on the invoice', nullable: true, example: 'B2611A' })
+  @ApiPropertyOptional({ description: 'Posted receipt item of that order line invoiced; required for an ITEM line' })
+  @ValidateIf((line: SupplierInvoiceLineDto) => line.lineType === 'ITEM')
+  @IsUUID('7')
+  goodsReceiptItemId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Receipt lot invoiced; required when the receipt item has lots',
+    type: String,
+    nullable: true,
+  })
   @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  lotNumber?: string | null;
+  @IsUUID('7')
+  goodsReceiptLotId?: string | null;
 
-  @ApiPropertyOptional({ description: 'Batch expiry date on the invoice', nullable: true, example: '2028-06-30' })
-  @IsOptional()
-  @IsDateString()
-  expiryDate?: string | null;
-
-  @ApiPropertyOptional({ type: CurrencyAmountDto, description: 'MRP printed on the pack', nullable: true })
-  @IsOptional()
-  @IsCurrency()
-  mrp?: CurrencyAmountDto | null;
-
-  @ApiProperty({ description: 'Quantity billed', example: 20 })
+  @ApiPropertyOptional({
+    description: "Quantity invoiced, in the order line's unit; required for an ITEM line",
+    example: 20,
+  })
+  @ValidateIf((line: SupplierInvoiceLineDto) => line.lineType === 'ITEM')
   @IsNumber({ maxDecimalPlaces: 3 })
   @IsPositive()
-  billedQty: number;
+  invoicedQty?: number;
 
-  @ApiProperty({ description: 'Quantity supplied free', example: 2 })
+  @ApiPropertyOptional({
+    description: "Quantity supplied free, in the order line's unit; required for an ITEM line",
+    example: 2,
+  })
+  @ValidateIf((line: SupplierInvoiceLineDto) => line.lineType === 'ITEM')
   @IsNumber({ maxDecimalPlaces: 3 })
   @Min(0)
-  freeQty: number;
+  freeQty?: number;
 
-  @ApiProperty({ type: CurrencyAmountDto, description: 'Billed price per unit, in the invoice currency' })
+  @ApiPropertyOptional({
+    description: 'Active cost category charged, not the item category; required for a CHARGE line',
+  })
+  @ValidateIf((line: SupplierInvoiceLineDto) => line.lineType === 'CHARGE')
+  @IsUUID('7')
+  costCategoryId?: string;
+
+  @Trim()
+  @ApiPropertyOptional({ description: 'Line description', nullable: true, example: 'Freight' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  description?: string | null;
+
+  @ApiProperty({
+    type: CurrencyAmountDto,
+    description: 'Invoiced price per unit on an ITEM line, the charge amount on a CHARGE line; in the invoice currency',
+  })
   @IsCurrency()
   unitPrice: CurrencyAmountDto;
 

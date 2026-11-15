@@ -170,6 +170,7 @@ export const TemplatesTab = ({ provider }: TemplatesTabProps) => {
 
       <DataTable
         table={smsProviderTemplatesTable}
+        mode="tab"
         permission={ORG_SMS_PROVIDERS.templates.view}
         enableViews={false}
         toolbarActions={{ actions: addButton }}

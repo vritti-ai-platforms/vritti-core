@@ -2,7 +2,7 @@ import { Button } from '@vritti/quantum-ui/Button';
 import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
-import { useFormatters, useWorkspaceCurrency } from '@vritti/quantum-ui/hooks';
+import { useWorkspaceCurrency } from '@vritti/quantum-ui/hooks';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -30,7 +30,6 @@ export const EditSupplierInvoiceDialog: React.FC<EditSupplierInvoiceDialogProps>
   onSuccess,
   onCancel,
 }) => {
-  const fmt = useFormatters();
   const workspaceCurrency = useWorkspaceCurrency();
   const foreignCurrency = invoice.currencyCode !== workspaceCurrency;
   const isDraft = invoice.status === 'DRAFT';
@@ -87,7 +86,7 @@ export const EditSupplierInvoiceDialog: React.FC<EditSupplierInvoiceDialogProps>
           type="number"
           positive
           nonZero
-          description={`The order's rate is ${fmt.number(invoice.poExchangeRate).primary}; a different rate is flagged`}
+          description="A rate other than an order's puts a hold on the lines on it"
         />
       )}
       <TextArea name="notes" label="Notes (optional)" placeholder="e.g. Received with the second delivery" />

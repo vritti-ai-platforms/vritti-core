@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
-import { StockTransferResponseDto } from './stock-transfer-response.dto';
+import { StockTransferRowResponseDto } from './stock-transfer-response.dto';
 
-export class StockTransferTableResponseDto extends TableResponseDto<StockTransferResponseDto> {
-  @ApiProperty({ type: [StockTransferResponseDto] })
-  declare result: StockTransferResponseDto[];
+export class StockTransferTableResponseDto extends TableResponseDto<StockTransferRowResponseDto> {
+  @ApiProperty({ type: [StockTransferRowResponseDto] })
+  declare result: StockTransferRowResponseDto[];
 
   @ApiProperty()
   declare count: number;

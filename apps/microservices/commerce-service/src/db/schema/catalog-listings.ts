@@ -10,15 +10,14 @@ export const catalogListings = commerceSchema.table(
   'catalog_listings',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     catalogId: uuid('catalog_id')
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),
     offeringVariantId: uuid('offering_variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
-    legalEntityId: workspaceScopeColumns.legalEntityId,
-    siteId: workspaceScopeColumns.siteId,
     inventoryItemMrpId: uuid('inventory_item_mrp_id').references(() => inventoryItemMrps.id, { onDelete: 'restrict' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

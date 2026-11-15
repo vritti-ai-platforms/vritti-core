@@ -1,6 +1,7 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z, zodCodeField, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z, zodCodeField } from '@vritti/quantum-ui/zod';
+import type { MeasureFigures } from './measures';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
@@ -30,24 +31,10 @@ export const updateOrgInventoryItemSchema = z.object({
   taxClassId: z.uuid('Tax class is required').optional(),
 });
 
-// SITE — enable a master item at the current site with optional stock thresholds
-export const enableInventoryItemSchema = z.object({
-  inventoryItemId: z.uuid('Inventory item is required'),
-  reorderPoint: zodNumericField({ min: 0, nullable: true }).optional(),
-  maxStockLevel: zodNumericField({ min: 0, nullable: true }).optional(),
-  safetyStock: zodNumericField({ min: 0, nullable: true }).optional(),
-});
-
-export const updateReorderSchema = z.object({
-  reorderPoint: zodNumericField({ required: 'Reorder point is required', min: 0 }),
-});
-
 export type CreateOrgInventoryItemFormData = z.infer<typeof createOrgInventoryItemSchema>;
 export type UpdateOrgInventoryItemFormData = z.infer<typeof updateOrgInventoryItemSchema>;
-export type EnableInventoryItemFormData = z.infer<typeof enableInventoryItemSchema>;
-export type UpdateReorderFormData = z.infer<typeof updateReorderSchema>;
-export type SiteInventoryItemsTableResponse = TableResponse<SiteInventoryItemData>;
-export type SiteGroupInventoryItemsTableResponse = TableResponse<SiteGroupInventoryItemData>;
+export type UpdateOrgInventoryItemPayload = UpdateOrgInventoryItemFormData & Partial<MeasureFigures>;
+export type SiteStockTableResponse = TableResponse<SiteStockTableItemData>;
 export type InventoryItemTableResponse = TableResponse<InventoryItemData>;
 
 export type InventoryItemType = (typeof INVENTORY_ITEM_TYPES)[number];
@@ -106,7 +93,7 @@ export const InventoryPickStrategyValues = {
 
 export type InventoryPickStrategy = (typeof InventoryPickStrategyValues)[keyof typeof InventoryPickStrategyValues];
 
-export interface InventoryItemData {
+export interface InventoryItemData extends MeasureFigures {
   id: string;
   name: string;
   sku: string;
@@ -122,22 +109,140 @@ export interface InventoryItemData {
   taxClassName: string | null;
   hsnCode: string | null;
   defaultMrp: CurrencyValue | null;
-  reorderPoint: number | null;
-  maxStockLevel: number | null;
-  safetyStock: number | null;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface SiteInventoryItemData extends InventoryItemData {
-  isEnabled: boolean;
-  isStocked: boolean | null;
-  stockedQuantity: string;
+// Where a site's on-hand quantity of an item sits against its stock levels
+export const StockStatusValues = {
+  OUT_OF_STOCK: 'OUT_OF_STOCK',
+  BELOW_SAFETY_STOCK: 'BELOW_SAFETY_STOCK',
+  REORDER: 'REORDER',
+  HEALTHY: 'HEALTHY',
+  OVER_MAX: 'OVER_MAX',
+} as const;
+export type StockStatus = (typeof StockStatusValues)[keyof typeof StockStatusValues];
+
+// The site stock table's status filter options: whether an item has stock levels set at all, each stock status, and
+// the band between the safety stock and the reorder point on its own
+export const StockStatusFilterValues = {
+  HAS_STOCK_LEVELS: 'HAS_STOCK_LEVELS',
+  NO_STOCK_LEVELS: 'NO_STOCK_LEVELS',
+  BETWEEN_SAFETY_STOCK_AND_REORDER: 'BETWEEN_SAFETY_STOCK_AND_REORDER',
+  ...StockStatusValues,
+} as const;
+
+export const stockStatusConfig: Record<
+  StockStatus,
+  { label: string; tip: string; variant: 'destructive' | 'warning' | 'success' | 'excess'; fill: string }
+> = {
+  [StockStatusValues.OUT_OF_STOCK]: {
+    label: 'Out of Stock',
+    tip: 'None on hand',
+    variant: 'destructive',
+    fill: 'bg-destructive',
+  },
+  [StockStatusValues.BELOW_SAFETY_STOCK]: {
+    label: 'Below Safety Stock',
+    tip: 'At or below the safety stock',
+    variant: 'destructive',
+    fill: 'bg-destructive',
+  },
+  [StockStatusValues.REORDER]: {
+    label: 'Below Reorder',
+    tip: 'At or below the reorder point',
+    variant: 'warning',
+    fill: 'bg-warning',
+  },
+  [StockStatusValues.HEALTHY]: {
+    label: 'Healthy',
+    tip: 'Above the reorder point and within the max level',
+    variant: 'success',
+    fill: 'bg-success',
+  },
+  [StockStatusValues.OVER_MAX]: {
+    label: 'Over Max',
+    tip: 'Above the max level',
+    variant: 'excess',
+    fill: 'bg-group-violet',
+  },
+};
+
+// An item's stock at one site, as the stock level cell draws it
+export interface SiteStockData {
+  stockStatus: StockStatus | null;
+  onHand: number;
+  stockValue: CurrencyValue;
+  reorderPoint: number | null;
+  safetyStock: number | null;
+  maxStockLevel: number | null;
+  locations: SiteStockLocationData[];
 }
 
-export interface SiteGroupInventoryItemData extends InventoryItemData {
-  enabledSiteCount: number;
+// An item's stock at a site and its levels there, as the inventory item picker returns them in each option's additionals
+// once it is asked for the items with stock levels at a site
+export const siteStockLevelsAdditionalsSchema = z.object({
+  onHand: z.number(),
+  safetyStock: z.number(),
+  reorderPoint: z.number(),
+  maxStockLevel: z.number(),
+  stockStatus: z.enum(StockStatusValues),
+  stockValue: z.object({ currency: z.string(), value: z.string() }),
+  locations: z.array(
+    z.object({
+      locationId: z.string(),
+      locationName: z.string(),
+      locationPath: z.string(),
+      quantity: z.number(),
+      lotCount: z.number(),
+      earliestExpiry: z.string().nullable(),
+    }),
+  ),
+  uomSymbol: z.string().nullable(),
+  // Whether the item's primary unit can be counted in fractions; false without a unit
+  allowDecimal: z.boolean().nullable(),
+});
+export type SiteStockLevelsAdditionals = z.infer<typeof siteStockLevelsAdditionalsSchema>;
+
+// The status context filter both stock tables share: the server widens a shortfall to every worse one, so Below Reorder
+// also lists Below Safety Stock and Out of Stock, while Between Safety Stock and Reorder is that band alone
+export const stockStatusFilterOptions = [
+  { label: 'Has Stock Levels', value: StockStatusFilterValues.HAS_STOCK_LEVELS },
+  { label: 'No Stock Levels', value: StockStatusFilterValues.NO_STOCK_LEVELS },
+  { label: stockStatusConfig.OUT_OF_STOCK.label, value: StockStatusFilterValues.OUT_OF_STOCK },
+  { label: stockStatusConfig.BELOW_SAFETY_STOCK.label, value: StockStatusFilterValues.BELOW_SAFETY_STOCK },
+  { label: 'Between Safety Stock and Reorder', value: StockStatusFilterValues.BETWEEN_SAFETY_STOCK_AND_REORDER },
+  { label: stockStatusConfig.REORDER.label, value: StockStatusFilterValues.REORDER },
+  { label: stockStatusConfig.HEALTHY.label, value: StockStatusFilterValues.HEALTHY },
+  { label: stockStatusConfig.OVER_MAX.label, value: StockStatusFilterValues.OVER_MAX },
+];
+
+// The status filter for items that all have stock levels set: every option but whether they are set at all
+export const stockLevelStatusFilterOptions = stockStatusFilterOptions.filter(
+  (option) =>
+    option.value !== StockStatusFilterValues.HAS_STOCK_LEVELS &&
+    option.value !== StockStatusFilterValues.NO_STOCK_LEVELS,
+);
+
+export interface SiteStockLocationData {
+  locationId: string;
+  locationName: string;
+  locationPath: string;
+  quantity: number;
+  lotCount: number;
+  earliestExpiry: string | null;
+}
+
+export interface SiteStockTableItemData extends InventoryItemData {
+  hasStockLevels: boolean;
+  reorderPoint: number | null;
+  safetyStock: number | null;
+  maxStockLevel: number | null;
+  onHand: number;
+  stockValue: CurrencyValue;
+  stockStatus: StockStatus | null;
+  locations: SiteStockLocationData[];
 }
 
 export interface InventoryItemStockData {
@@ -147,7 +252,6 @@ export interface InventoryItemStockData {
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
-  reorderLevel: number | null;
 }
 
 export type InventoryItemLedgerType =

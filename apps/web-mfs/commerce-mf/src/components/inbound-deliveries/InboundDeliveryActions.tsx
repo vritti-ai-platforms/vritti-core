@@ -1,21 +1,19 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { DropdownMenu, type MenuItem } from '@vritti/quantum-ui/DropdownMenu';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { buildSlug } from '@vritti/quantum-ui/slug';
+import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { Ban, MapPin, MoreVertical, PackageCheck, Pencil, Truck } from 'lucide-react';
 import type React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import type { GoodsReceiptData } from '@/schemas/goods-receipts';
+import { receiveDeliverySearch } from '@/components/goods-receipts/receiveDeliverySearch';
 import {
   type InboundDeliveryData,
+  InboundDeliverySourceValues,
   inboundDeliveryStatusConfig,
   type ManualInboundDeliveryStatus,
   manualInboundDeliveryStatusTransitions,
 } from '@/schemas/inbound-deliveries';
 import { workspaceBase } from '@/utils/workspace';
-import type { InboundDeliveryMutationsBinding } from './bindings';
-import { ReceiveInboundDeliveryDialog } from './forms/ReceiveInboundDeliveryDialog';
+import type { InboundDeliveriesBinding, InboundDeliveryMutationsBinding } from './bindings';
 import { UpdateInboundDeliveryDialog } from './forms/UpdateInboundDeliveryDialog';
 
 const FORWARD_STEPS: {
@@ -28,29 +26,62 @@ const FORWARD_STEPS: {
 ];
 
 interface InboundDeliveryActionsProps {
+  binding: InboundDeliveriesBinding;
+  delivery: InboundDeliveryData;
+}
+
+// The delivery's header actions: where the binding enters deliveries, its manual status steps and the Actions menu; and
+// receiving it — the goods receipts list opens with the delivery preselected, or its draft receipt opens
+export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ binding, delivery }) => {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const receiptsPath = `${workspaceBase(pathname)}/goods-receipts`;
+  const receiveAction =
+    delivery.source !== InboundDeliverySourceValues.ANNOUNCED ? null : delivery.draftGoodsReceiptId ? (
+      <Button
+        size="sm"
+        permission={binding.receivePermission}
+        startAdornment={<PackageCheck className="size-4" />}
+        onClick={() => navigate(`${receiptsPath}/${delivery.draftGoodsReceiptId}`)}
+      >
+        Open Draft Receipt
+      </Button>
+    ) : (
+      delivery.canReceive && (
+        <Button
+          size="sm"
+          permission={binding.receivePermission}
+          startAdornment={<PackageCheck className="size-4" />}
+          onClick={() => navigate(`${receiptsPath}${receiveDeliverySearch(delivery.id)}`)}
+        >
+          Receive
+        </Button>
+      )
+    );
+
+  return (
+    <div className="flex items-center gap-2">
+      {binding.mutations && <DeliveryWorkflowActions mutations={binding.mutations} delivery={delivery} />}
+      {receiveAction}
+    </div>
+  );
+};
+
+interface DeliveryWorkflowActionsProps {
   mutations: InboundDeliveryMutationsBinding;
   delivery: InboundDeliveryData;
 }
 
-// The delivery's header actions: its manual status steps, the Actions menu and receiving it into a goods receipt; a delivery a goods receipt created only links back to that receipt
-export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ mutations, delivery }) => {
+// The manual status steps and the Actions menu of a delivery the site enters
+const DeliveryWorkflowActions: React.FC<DeliveryWorkflowActionsProps> = ({ mutations, delivery }) => {
   const { permissions } = mutations;
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
   const confirm = useConfirm();
-  const receiveDialog = useDialog();
   const updateStatusMutation = mutations.useUpdateStatus();
 
   const { deliveryNumber, status } = delivery;
   const allowed = manualInboundDeliveryStatusTransitions[status];
   const forwardSteps = FORWARD_STEPS.filter((step) => allowed.includes(step.status));
   const canCancel = delivery.canCancel && allowed.includes('CANCELLED');
-  const receiptsPath = `${workspaceBase(pathname)}/goods-receipts`;
-  const sourceReceipt =
-    delivery.source === 'RECEIPT' && delivery.sourceGoodsReceiptId && delivery.sourceGrNumber
-      ? { id: delivery.sourceGoodsReceiptId, grNumber: delivery.sourceGrNumber }
-      : null;
-
   // Confirms and applies a manual status step
   const handleStatusChange = async (nextStatus: ManualInboundDeliveryStatus, label: string) => {
     const confirmed = await confirm({
@@ -66,15 +97,11 @@ export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ 
     const confirmed = await confirm({
       title: `Cancel "${deliveryNumber}"?`,
       description: `"${deliveryNumber}" will be marked as cancelled and can no longer be received. Its purchase order lines stay open. This cannot be undone.`,
-      confirmLabel: 'Cancel Delivery',
+      confirmLabel: 'Cancel Inbound Delivery',
       variant: 'destructive',
     });
     if (confirmed) updateStatusMutation.mutate({ id: delivery.id, status: 'CANCELLED' });
   };
-
-  // Opens a goods receipt of the delivery in the goods receipts feature
-  const openReceipt = (receipt: GoodsReceiptData) =>
-    navigate(`${receiptsPath}/${buildSlug(receipt.grNumber, receipt.id)}`);
 
   const menuItems: MenuItem[] = [
     {
@@ -85,7 +112,7 @@ export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ 
       permission: permissions.edit,
       hidden: !delivery.isEditable,
       dialog: {
-        title: 'Edit Delivery',
+        title: 'Edit Inbound Delivery',
         description: "Change when the delivery is expected, how it travels and the supplier's delivery note.",
         content: (close) => (
           <UpdateInboundDeliveryDialog mutations={mutations} delivery={delivery} onSuccess={close} onCancel={close} />
@@ -95,7 +122,7 @@ export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ 
     {
       type: 'item',
       id: 'cancel',
-      label: 'Cancel Delivery',
+      label: 'Cancel Inbound Delivery',
       icon: Ban,
       variant: 'destructive',
       permission: permissions.edit,
@@ -107,7 +134,7 @@ export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ 
   const hasMenuItems = delivery.isEditable || canCancel;
 
   return (
-    <div className="flex items-center gap-2">
+    <>
       {hasMenuItems && (
         <DropdownMenu
           trigger={{
@@ -134,54 +161,6 @@ export const InboundDeliveryActions: React.FC<InboundDeliveryActionsProps> = ({ 
           {step.label}
         </Button>
       ))}
-      {sourceReceipt ? (
-        <Button
-          size="sm"
-          variant="outline"
-          startAdornment={<PackageCheck className="size-4" />}
-          onClick={() => navigate(`${receiptsPath}/${buildSlug(sourceReceipt.grNumber, sourceReceipt.id)}`)}
-        >
-          Open {sourceReceipt.grNumber}
-        </Button>
-      ) : delivery.draftGoodsReceiptId ? (
-        <Button
-          size="sm"
-          permission={mutations.receivePermission}
-          startAdornment={<PackageCheck className="size-4" />}
-          onClick={() => navigate(`${receiptsPath}/${delivery.draftGoodsReceiptId}`)}
-        >
-          Open Draft Receipt
-        </Button>
-      ) : (
-        delivery.canReceive && (
-          <Button
-            size="sm"
-            permission={mutations.receivePermission}
-            startAdornment={<PackageCheck className="size-4" />}
-            onClick={receiveDialog.open}
-          >
-            Receive
-          </Button>
-        )
-      )}
-
-      <Dialog
-        handle={receiveDialog}
-        icon={PackageCheck}
-        title="Receive Delivery"
-        description={`Start a draft goods receipt of what is still open on ${deliveryNumber}'s lines.`}
-        content={(close) => (
-          <ReceiveInboundDeliveryDialog
-            mutations={mutations}
-            deliveryId={delivery.id}
-            onSuccess={(receipt) => {
-              close();
-              openReceipt(receipt);
-            }}
-            onCancel={close}
-          />
-        )}
-      />
-    </div>
+    </>
   );
 };

@@ -2,6 +2,8 @@ import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
+import { PartOfPurchaseChips } from '@/components/purchases/PartOfPurchaseChips';
+import { documentPurchases } from '@/components/purchases/purchaseDocuments';
 import type { InboundDeliveriesBinding } from './bindings';
 import { DeleteInboundDeliveryZone } from './DeleteInboundDeliveryZone';
 import { InboundDeliveryActions } from './InboundDeliveryActions';
@@ -14,7 +16,7 @@ interface InboundDeliveryDetailProps {
 }
 
 // `…/inbound-deliveries/<number~id>` — a supplier's delivery and the purchase order lines it carries; where the binding
-// enters deliveries it is moved along, edited, received into a goods receipt or deleted
+// enters deliveries it is moved along, edited or deleted, and an announced one is received into a goods receipt
 export const InboundDeliveryDetail: React.FC<InboundDeliveryDetailProps> = ({ binding }) => {
   const { mutations, viewPermission } = binding;
   const { id } = useSlugParams('deliverySlug');
@@ -24,15 +26,14 @@ export const InboundDeliveryDetail: React.FC<InboundDeliveryDetailProps> = ({ bi
     <div className="flex flex-col gap-6">
       <PageHeader
         title={delivery.deliveryNumber}
-        titleSlot={<InboundDeliveryStatusBadge status={delivery.status} />}
-        description={[
-          delivery.supplierName,
-          delivery.siteName,
-          delivery.source === 'RECEIPT' ? `From receipt ${delivery.sourceGrNumber}` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-        actions={mutations && <InboundDeliveryActions mutations={mutations} delivery={delivery} />}
+        titleSlot={
+          <div className="flex items-center gap-2">
+            <InboundDeliveryStatusBadge status={delivery.status} />
+            <PartOfPurchaseChips purchases={documentPurchases(delivery)} />
+          </div>
+        }
+        description={[delivery.supplierName, delivery.siteName].filter(Boolean).join(' · ')}
+        actions={<InboundDeliveryActions binding={binding} delivery={delivery} />}
       />
 
       <Tabs

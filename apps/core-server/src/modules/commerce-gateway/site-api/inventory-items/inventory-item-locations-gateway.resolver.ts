@@ -41,7 +41,7 @@ export class InventoryItemLocationsResolver {
     return result.data;
   }
 
-  // Update changes only reorderLevel; returns success — the client patches the cached entity by id.
+  // Update changes only isBlocked; returns success — the client patches the cached entity by id.
   @Require(AuthType.Session, SessionTypeValues.MOBILE)
   @Mutation(() => MutationResult, { name: 'updateInventoryItemLocation' })
   async updateInventoryItemLocation(

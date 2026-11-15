@@ -10,7 +10,8 @@ interface OverviewTabProps {
   children?: React.ReactNode;
 }
 
-// The delivery's header: who sends it, whether it was announced or created by a goods receipt, when and how it travels, the supplier's delivery note, and the purchase orders it carries goods of
+// The delivery's header: who sends it, whether it was announced or belongs to a purchase, when and how it travels, the
+// supplier's delivery note, and the purchase orders it carries goods of
 export const OverviewTab: React.FC<OverviewTabProps> = ({ delivery, showSite, children }) => (
   <div className="flex flex-col gap-6">
     <Card>
@@ -21,12 +22,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({ delivery, showSite, ch
         <div className="grid grid-cols-2 gap-6">
           <DetailField label="Delivery Number" type="string" mono value={delivery.deliveryNumber} />
           <DetailField label="Supplier" type="string" value={delivery.supplierName} />
-          {showSite && <DetailField label="Site" type="string" value={delivery.siteName ?? delivery.siteCode} />}
+          {showSite && <DetailField label="Site" type="string" value={delivery.siteName} />}
           <DetailField label="Status" type="string" value={<InboundDeliveryStatusBadge status={delivery.status} />} />
           <DetailField label="Source" type="string" value={inboundDeliverySourceConfig[delivery.source].label} />
-          {delivery.source === 'RECEIPT' && (
-            <DetailField label="Created by Receipt" type="string" mono value={delivery.sourceGrNumber} />
-          )}
           <DetailField label="Expected Delivery Date" type="date" value={delivery.expectedDeliveryDate} />
           <DetailField label="Carrier" type="string" value={delivery.carrier} />
           <DetailField label="Tracking Number" type="string" mono value={delivery.trackingNumber} />

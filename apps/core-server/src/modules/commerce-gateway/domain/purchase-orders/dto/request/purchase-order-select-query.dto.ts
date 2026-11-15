@@ -5,7 +5,7 @@ import { IsOptional, IsString } from 'class-validator';
 export class PurchaseOrderSelectQueryDto extends SelectOptionsQueryDto {
   @ApiPropertyOptional({
     description: 'Optional status filter. Accepts a single value or comma-separated list.',
-    example: 'CONFIRMED,PARTIALLY_RECEIVED',
+    example: 'SENT,CONFIRMED',
   })
   @IsOptional()
   @IsString()

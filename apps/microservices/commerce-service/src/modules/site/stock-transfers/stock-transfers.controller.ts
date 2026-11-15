@@ -1,4 +1,4 @@
-import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
+import type { StockTransferDto, StockTransferRowDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
 import { CreateStockTransferDto } from '@domain/stock-transfers/dto/request/create-stock-transfer.dto';
 import { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
@@ -17,7 +17,7 @@ export class StockTransfersController {
   ) {}
 
   @MessagePattern({ cmd: 'site.stockTransfers.table' })
-  async table(@Payload() state: TableState): Promise<{ result: StockTransferDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
     this.logger.log('stockTransfers.table');
     return this.service.findForTable(state);
   }

@@ -1,5 +1,5 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { bigint, check, index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { bigint, check, index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { inventoryItems } from './inventory-items';
@@ -9,8 +9,7 @@ export const inventoryItemLots = commerceSchema.table(
   'inventory_item_lots',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -37,22 +36,6 @@ export const inventoryItemLots = commerceSchema.table(
     check('ck_inventory_item_lots_mrp_currency', sql`(${table.mrp} IS NULL) = (${table.mrpCurrencyCode} IS NULL)`),
     index('idx_inventory_item_lots_mrp').on(table.mrpId),
     orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
   ],
 );
 

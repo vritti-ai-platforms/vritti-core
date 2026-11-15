@@ -27,7 +27,7 @@ export class StockAdjustmentsDomainService {
   // Returns paginated stock adjustments for the data table
   async findForTable(
     state: TableState,
-    siteCurrencyCode?: string,
+    leCurrencyCode?: string,
   ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentsDomainService.FILTER_FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentsDomainService.SEARCH_FIELD_MAP);
@@ -44,13 +44,13 @@ export class StockAdjustmentsDomainService {
       offset,
     });
 
-    return { result: rows.map((r) => StockAdjustmentDto.from(r, siteCurrencyCode)), count };
+    return { result: rows.map((r) => StockAdjustmentDto.from(r, leCurrencyCode)), count };
   }
 
-  async findById(id: string, siteCurrencyCode?: string): Promise<StockAdjustmentDto> {
+  async findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithRefs(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(adjustment, siteCurrencyCode);
+    return StockAdjustmentDto.from(adjustment, leCurrencyCode);
   }
 
   // Creates a new DRAFT stock adjustment with an auto-generated code.
@@ -91,7 +91,7 @@ export class StockAdjustmentsDomainService {
   async updateAdjustment(
     id: string,
     data: { reason?: string; unitCost?: bigint | null },
-    siteCurrencyCode?: string,
+    leCurrencyCode?: string,
   ): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
@@ -102,6 +102,6 @@ export class StockAdjustmentsDomainService {
     await this.repository.update(id, data);
     const updated = await this.repository.findByIdWithRefs(id);
     if (!updated) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(updated, siteCurrencyCode);
+    return StockAdjustmentDto.from(updated, leCurrencyCode);
   }
 }

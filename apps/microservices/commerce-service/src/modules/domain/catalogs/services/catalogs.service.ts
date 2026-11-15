@@ -5,7 +5,7 @@ import { and, asc, eq } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { catalogs } from '@/db/schema';
 import { CatalogDto } from '../dto/entity/catalog.dto';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
@@ -55,15 +55,11 @@ export class CatalogsDomainService {
   // Catalog options for select dropdowns
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       conditions: [eq(catalogs.isActive, true)],

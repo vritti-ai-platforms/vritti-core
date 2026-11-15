@@ -11,7 +11,7 @@ import { and, asc, desc, eq, isNotNull, isNull, type SQL, sql } from '@vritti/ap
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { inventoryItemUomConversions, purchaseOrderItems, supplierItems, uom, uomDimensions } from '@/db/schema';
 import { UomDto } from '../dto/entity/uom.dto';
 import type { CreateUomDto } from '../dto/request/create-uom.dto';
@@ -181,6 +181,7 @@ export class UomDomainService {
         : undefined;
 
     return this.uomRepository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
@@ -188,11 +189,6 @@ export class UomDomainService {
       additionalExpressions,
       groupIdKey: query.groupIdKey,
       ...(query.groupIdKey === 'dimensionId' ? { groupTable: uomDimensions } : {}),
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       ...(joins && { joins }),

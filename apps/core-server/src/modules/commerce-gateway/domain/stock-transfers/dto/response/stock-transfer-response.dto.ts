@@ -7,9 +7,6 @@ export class StockTransferResponseDto {
   @ApiProperty({ description: 'Inventory item ID' })
   inventoryItemId: string;
 
-  @ApiPropertyOptional({ description: 'Inventory item name', nullable: true })
-  inventoryItemName: string | null;
-
   @ApiProperty({ description: 'Source site ID' })
   fromSiteId: string;
 
@@ -36,4 +33,15 @@ export class StockTransferResponseDto {
 
   @ApiProperty({ description: 'ISO timestamp of last update' })
   updatedAt: string;
+}
+
+export class StockTransferRowResponseDto extends StockTransferResponseDto {
+  @ApiProperty({ description: 'Inventory item name' })
+  inventoryItemName: string;
+
+  @ApiProperty({ description: 'Source site name (gateway-enriched)' })
+  fromSiteName: string;
+
+  @ApiProperty({ description: 'Destination site name (gateway-enriched)' })
+  toSiteName: string;
 }

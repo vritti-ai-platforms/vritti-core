@@ -1,21 +1,27 @@
+import type { InvoiceableGoodsReceiptDto } from '@domain/supplier-invoices/dto/entity/invoiceable-goods-receipt.dto';
 import type {
   SupplierInvoiceDetailDto,
   SupplierInvoiceDto,
 } from '@domain/supplier-invoices/dto/entity/supplier-invoice.dto';
 import { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
+import { InvoiceableGoodsReceiptsQueryDto } from '@domain/supplier-invoices/dto/request/invoiceable-goods-receipts-query.dto';
 import { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcNatsHeaders, RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders, RpcSiteId } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SupplierInvoicesService } from './services/supplier-invoices.service';
 
 @Controller()
 export class SiteSupplierInvoicesController {
   private readonly logger = new Logger(SiteSupplierInvoicesController.name);
 
-  constructor(private readonly service: SupplierInvoicesDomainService) {}
+  constructor(
+    private readonly invoicesService: SupplierInvoicesDomainService,
+    private readonly service: SupplierInvoicesService,
+  ) {}
 
   // Returns the supplier's invoices at the caller's site for the data table
   @MessagePattern({ cmd: 'site.suppliers.invoices.table' })
@@ -24,49 +30,62 @@ export class SiteSupplierInvoicesController {
   ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
-    return this.service.findForTable(state, { supplierId });
+    return this.invoicesService.findForTable(state, { supplierId });
   }
 
-  // Returns one of the supplier's invoices with its lines, flags and linked receipts
+  // Returns one of the supplier's invoices with its lines and holds
   @MessagePattern({ cmd: 'site.suppliers.invoices.findById' })
   findById(
     @Payload() data: { supplierId: string; id: string },
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SupplierInvoiceDetailDto> {
     this.logger.log(`site.suppliers.invoices.findById — supplierId: ${data.supplierId}, id: ${data.id}`);
-    return this.service.findById(data.id, siteCurrencyCode, { supplierId: data.supplierId });
+    return this.invoicesService.findById(data.id, leCurrencyCode, { supplierId: data.supplierId });
   }
 
-  // Records a draft invoice billing one of the site's purchase orders
+  // Returns the supplier's posted receipt lots at the site still to invoice, for an invoice's line picker
+  @MessagePattern({ cmd: 'site.suppliers.invoices.invoiceableGoodsReceipts' })
+  invoiceableGoodsReceipts(
+    @Payload() query: InvoiceableGoodsReceiptsQueryDto,
+    @RpcSiteId() siteId: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptDto[]> {
+    this.logger.log(`site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}`);
+    return this.invoicesService.findInvoiceableGoodsReceipts({ ...query, siteId }, leCurrencyCode);
+  }
+
+  // Records a draft invoice of the supplier at the site
   @MessagePattern({ cmd: 'site.suppliers.invoices.create' })
   create(
     @Payload() dto: CreateSupplierInvoiceDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<SupplierInvoiceDto>> {
-    this.logger.log(
-      `site.suppliers.invoices.create — purchaseOrderId: ${dto.purchaseOrderId}, number: ${dto.invoiceNumber}`,
-    );
-    return this.service.create(dto, headers.userId || null);
+    this.logger.log(`site.suppliers.invoices.create — supplierId: ${dto.supplierId}, number: ${dto.invoiceNumber}`);
+    return this.service.create(dto, {
+      siteId: headers.siteId,
+      leCurrencyCode: headers.leCurrencyCode,
+      createdBy: headers.userId || null,
+    });
   }
 
   // Updates an invoice's header
   @MessagePattern({ cmd: 'site.suppliers.invoices.update' })
   update(
     @Payload() dto: UpdateSupplierInvoiceDto,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.update — id: ${dto.id}`);
-    return this.service.update(dto, siteCurrencyCode);
+    return this.service.update(dto, leCurrencyCode);
   }
 
-  // Posts a draft invoice, setting the final cost of the stock it bills
+  // Posts a draft invoice, setting the final cost of the stock it invoices
   @MessagePattern({ cmd: 'site.suppliers.invoices.post' })
   post(
     @Payload() data: { id: string },
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.post — id: ${data.id}`);
-    return this.service.post(data.id, siteCurrencyCode, headers.userId || null);
+    return this.service.post(data.id, leCurrencyCode, headers.userId || null);
   }
 }

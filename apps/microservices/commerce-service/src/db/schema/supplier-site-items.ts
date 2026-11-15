@@ -3,15 +3,14 @@ import { boolean, check, index, integer, timestamp, unique, uniqueIndex, uuid } 
 import { commerceSchema } from './commerce-schema';
 import { inventoryItems } from './inventory-items';
 import { supplierItems } from './suppliers';
-import { organizationIdColumn, siteDocumentPolicies } from './workspace-scope';
+import { organizationIdColumn, siteDocumentColumns, siteDocumentPolicies } from './workspace-scope';
 
 export const supplierSiteItems = commerceSchema.table(
   'supplier_site_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull(),
-    siteId: uuid('site_id').notNull(),
+    organizationId: organizationIdColumn(),
+    ...siteDocumentColumns(),
     supplierItemId: uuid('supplier_item_id')
       .notNull()
       .references(() => supplierItems.id, { onDelete: 'cascade' }),

@@ -144,8 +144,8 @@ export function setPurchaseOrderConversionRate({
 }
 
 // Closes a purchase order short — no further receipts expected
-export function closePurchaseOrder(id: string): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/le/purchase-orders/${id}/close`).then((r) => r.data);
+export function completePurchaseOrderDelivery(id: string): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`commerce-api/le/purchase-orders/${id}/complete-delivery`).then((r) => r.data);
 }
 
 // Moves a purchase order along its manual workflow

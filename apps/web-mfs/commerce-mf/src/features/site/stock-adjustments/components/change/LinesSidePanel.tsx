@@ -57,8 +57,7 @@ export const LinesSidePanel = ({ adjustment, isDraft, selectedLineId, onSelect }
       >
         <div className="p-2 space-y-2">
           {lines.map((line) => {
-            const label =
-              [line.quantLotNumber, line.quantLocationName ?? line.quantLocationId].filter(Boolean).join(' @ ') || '—';
+            const label = [line.quantLotNumber, line.quantLocationName].filter(Boolean).join(' @ ') || '—';
 
             return (
               <SidePanelListItem key={line.id} active={selectedLineId === line.id} onClick={() => onSelect(line.id)}>

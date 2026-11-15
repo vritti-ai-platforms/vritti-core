@@ -10,6 +10,5 @@ export const StockLevelFieldsFragment = graphql(`
     stockedQuantity
     reservedQuantity
     availableQuantity
-    reorderLevel
   }
 `);

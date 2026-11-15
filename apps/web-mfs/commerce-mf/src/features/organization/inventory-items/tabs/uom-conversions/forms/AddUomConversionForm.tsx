@@ -1,6 +1,6 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
-import { Form } from '@vritti/quantum-ui/Form';
+import { Form, FormSection } from '@vritti/quantum-ui/Form';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
@@ -12,6 +12,7 @@ import {
   type CreateInventoryItemUomConversionFormData,
   createInventoryItemUomConversionSchema,
 } from '@/schemas/inventory-item-uom-conversions';
+import { BASE_MEASURE_SYMBOLS, EMPTY_MEASURE_FIGURES, MeasureValues } from '@/schemas/measures';
 import { UomSelector } from '@/selectors/uom';
 
 interface AddUomConversionFormProps {
@@ -33,7 +34,7 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
 
   const form = useForm<CreateInventoryItemUomConversionFormData>({
     resolver: zodResolver(createInventoryItemUomConversionSchema),
-    defaultValues: { primaryUomQty: 1, uomQty: 1 },
+    defaultValues: { primaryUomQty: 1, uomQty: 1, ...EMPTY_MEASURE_FIGURES },
   });
 
   const primaryUomQty = useWatch({ control: form.control, name: 'primaryUomQty' });
@@ -83,6 +84,61 @@ export const AddUomConversionForm: React.FC<AddUomConversionFormProps> = ({
           </p>
         )}
       </div>
+      <FormSection
+        title={`Per ${selectedUomSymbol ?? 'pack'} (optional)`}
+        description={`Blank weight and volume are worked out from the ${itemUomSymbol} figures; blank dimensions skip the fit check.`}
+        contentClassName="block"
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <TextField
+            name="weight"
+            label="Weight"
+            type="number"
+            positive
+            placeholder="Derived"
+            disabled={!uomId}
+            endAdornment={BASE_MEASURE_SYMBOLS[MeasureValues.WEIGHT]}
+          />
+          <TextField
+            name="volume"
+            label="Volume"
+            type="number"
+            positive
+            placeholder="Derived"
+            disabled={!uomId}
+            endAdornment={BASE_MEASURE_SYMBOLS[MeasureValues.VOLUME]}
+          />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-3">
+          <TextField
+            name="length"
+            label="Length"
+            type="number"
+            positive
+            placeholder="None"
+            disabled={!uomId}
+            endAdornment={BASE_MEASURE_SYMBOLS[MeasureValues.LENGTH]}
+          />
+          <TextField
+            name="width"
+            label="Width"
+            type="number"
+            positive
+            placeholder="None"
+            disabled={!uomId}
+            endAdornment={BASE_MEASURE_SYMBOLS[MeasureValues.LENGTH]}
+          />
+          <TextField
+            name="height"
+            label="Height"
+            type="number"
+            positive
+            placeholder="None"
+            disabled={!uomId}
+            endAdornment={BASE_MEASURE_SYMBOLS[MeasureValues.LENGTH]}
+          />
+        </div>
+      </FormSection>
       <DialogActions>
         <Button type="button" variant="outline" data-cancel>
           Cancel

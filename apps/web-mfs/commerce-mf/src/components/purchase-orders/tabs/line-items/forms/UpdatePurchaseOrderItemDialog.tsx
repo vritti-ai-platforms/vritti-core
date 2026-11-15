@@ -61,7 +61,6 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
   });
   const fmt = useFormatters();
   const deliveryNumbers = item.inboundDeliveryNumbers;
-  const isOnDeliveries = deliveryNumbers.length > 0;
   const followPoTaxDate = form.watch('followPoTaxDate');
   const mutation = binding.useUpdateItem({ onSuccess });
   const hasScheme = form.watch('hasScheme');
@@ -89,7 +88,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
         schemeBuyQty: data.schemeBuyQty,
         schemeFreeQty: data.schemeFreeQty,
         hasScheme: data.hasScheme,
-        expectedDeliveryDate: isOnDeliveries ? undefined : data.expectedDeliveryDate,
+        expectedDeliveryDate: data.expectedDeliveryDate,
         ...(item.isTaxDateLocked
           ? {}
           : data.followPoTaxDate
@@ -122,16 +121,15 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
       <FormSection
         title="Delivery"
         description={
-          isOnDeliveries
-            ? `Set by ${pluralize('inbound delivery', deliveryNumbers.length)} ${deliveryNumbers.join(', ')}; change it on the delivery.`
-            : "Leave it empty for the order date plus the item's lead time at the site."
+          deliveryNumbers.length > 0
+            ? `The line's own date; ${pluralize('inbound delivery', deliveryNumbers.length)} ${deliveryNumbers.join(', ')} keep their own dates.`
+            : 'When the supplier is expected to deliver the line.'
         }
       >
         <DatePicker
           name="expectedDeliveryDate"
           label="Expected Delivery"
           minDate={parse(purchaseOrder.orderDate, 'yyyy-MM-dd', new Date())}
-          disabled={isOnDeliveries}
         />
       </FormSection>
 
@@ -148,7 +146,7 @@ export const UpdatePurchaseOrderItemDialog: React.FC<UpdatePurchaseOrderItemDial
           label="Follow PO tax date"
           description="Off: this line sets its own"
           disabled={item.isTaxDateLocked}
-          disabledTip="A published goods receipt or a posted invoice counts this line, so its tax date is locked."
+          disabledTip="A posted goods receipt or a posted invoice counts this line, so its tax date is locked."
         />
         <DatePicker name="taxDate" label="Tax Date" disabled={followPoTaxDate || item.isTaxDateLocked} />
       </FormSection>

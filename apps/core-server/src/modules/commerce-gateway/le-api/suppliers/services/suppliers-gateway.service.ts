@@ -1,5 +1,7 @@
 import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
+import type { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { EnrollmentPurchasingResponseDto } from '@commerce/supplier-enrollments/dto/response/enrollment-purchasing-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import {
@@ -27,7 +29,8 @@ import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/s
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/supplier-response.dto';
 import type { SupplierTableResponseDto } from '@commerce/suppliers/dto/response/supplier-table-response.dto';
-import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
+import { SiteDomainService } from '@domain/site/services/site.service';
+import { UserDomainService } from '@domain/user/services/user.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { FilterOperators } from '@vritti/api-sdk/conditions';
 import { type TableState, TableStateService } from '@vritti/api-sdk/data-table';
@@ -36,6 +39,12 @@ import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
 
+type UnnamedEnrollmentPurchasing = Omit<EnrollmentPurchasingResponseDto, 'approverNames'>;
+
+type UnnamedEnrollmentDetail = Omit<SupplierEnrollmentDetailResponseDto, 'siteName' | 'siteCode' | 'purchasing'> & {
+  purchasing: UnnamedEnrollmentPurchasing | null;
+};
+
 @Injectable()
 export class SuppliersGatewayService {
   private readonly logger = new Logger(SuppliersGatewayService.name);
@@ -43,8 +52,9 @@ export class SuppliersGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteRepository: SiteDomainRepository,
+    private readonly siteService: SiteDomainService,
     private readonly ownerNames: OwnerNameService,
+    private readonly userService: UserDomainService,
   ) {}
 
   // Returns paginated, filtered, and sorted suppliers for the data table
@@ -223,7 +233,7 @@ export class SuppliersGatewayService {
       `commerce-le-supplier-${supplierId}-enrollments`,
     );
     const [sites, enrollments, supplier] = await Promise.all([
-      this.siteRepository.siblingsOrdered(orgId, leId),
+      this.siteService.findByLegalEntityOrdered(orgId, leId),
       this.nats.send<SupplierEnrollmentResponseDto[]>('commerce', 'le.suppliers.enrollments.findAll', { supplierId }),
       this.nats.send<SupplierResponseDto>('commerce', 'le.suppliers.findById', { id: supplierId }),
     ]);
@@ -308,20 +318,29 @@ export class SuppliersGatewayService {
     );
   }
 
-  // Returns the supplier's enrollment at one of the LE's sites, enrolled or not, with the site's name
+  // Returns the supplier's enrollment at one of the LE's sites, enrolled or not, with the site and approvers named
   async findEnrollment(
     supplierId: string,
     siteId: string,
     orgId: string,
   ): Promise<SupplierEnrollmentDetailResponseDto> {
     this.logger.log(`le.suppliers.enrollments.findBySite — supplierId: ${supplierId}, siteId: ${siteId}`);
-    const row = await this.nats.send<SupplierEnrollmentDetailResponseDto>(
-      'commerce',
-      'le.suppliers.enrollments.findBySite',
-      { supplierId, siteId },
-    );
-    const [enriched] = await this.ownerNames.withSiteNames(orgId, [row]);
-    return enriched;
+    const row = await this.nats.send<UnnamedEnrollmentDetail>('commerce', 'le.suppliers.enrollments.findBySite', {
+      supplierId,
+      siteId,
+    });
+    const [named] = await this.ownerNames.withSiteNames(orgId, [row]);
+    return { ...named, purchasing: await this.namePurchasingApprovers(orgId, named.purchasing) };
+  }
+
+  // Names the approvers of an enrollment's purchasing settings, which a site the supplier isn't enrolled at has none of
+  private async namePurchasingApprovers(
+    orgId: string,
+    purchasing: UnnamedEnrollmentPurchasing | null,
+  ): Promise<EnrollmentPurchasingResponseDto | null> {
+    if (!purchasing) return null;
+    const names = await this.userService.findNamesByIds(orgId, purchasing.approverUserIds);
+    return { ...purchasing, approverNames: purchasing.approverUserIds.flatMap((id) => names.get(id) ?? []) };
   }
 
   // Returns a supplier's site items at one of the LE's sites
@@ -372,6 +391,18 @@ export class SuppliersGatewayService {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`le.suppliers.enrollments.update — supplierId: ${supplierId}, siteId: ${siteId}`);
     return this.nats.send('commerce', 'le.suppliers.enrollments.update', { ...dto, supplierId, siteId });
+  }
+
+  // Updates the supplier's purchasing settings at one of the LE's sites
+  updateEnrollmentPurchasing(
+    supplierId: string,
+    siteId: string,
+    dto: UpdateEnrollmentPurchasingDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.suppliers.enrollments.updatePurchasing — supplierId: ${supplierId}, siteId: ${siteId}, type: ${dto.purchaseType}`,
+    );
+    return this.nats.send('commerce', 'le.suppliers.enrollments.updatePurchasing', { ...dto, supplierId, siteId });
   }
 
   // Activates or deactivates the supplier's own enrollment at one of the LE's sites
@@ -446,7 +477,7 @@ export class SuppliersGatewayService {
     siteId: string,
   ): Promise<void> {
     const leId = SuppliersGatewayService.requireLegalEntity(legalEntityId);
-    const [site] = await this.siteRepository.findByIds(orgId, [siteId]);
+    const [site] = await this.siteService.findByIds(orgId, [siteId]);
     if (!site || site.legalEntityId !== leId) {
       throw new BadRequestException({
         label: 'Invalid Site',

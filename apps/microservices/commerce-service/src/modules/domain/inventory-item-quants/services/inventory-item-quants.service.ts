@@ -5,7 +5,7 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { and, asc, desc, eq, ilike, or, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   CostDistributionMethodValues,
   type CostSourceType,
@@ -22,6 +22,7 @@ import {
   inventoryItems,
   inventoryStockLevels,
   locations,
+  type NewInventoryItemCost,
   uom,
 } from '@/db/schema';
 import { GoodsReceiptItemQuantsDto } from '../dto/entity/goods-receipt-item-quants.dto';
@@ -44,6 +45,11 @@ export type CreateQuantParams = {
   sourceType?: CostSourceType;
   sourceId?: string;
   skipCostBaseline?: boolean;
+};
+
+export type QuantCostAllocation = {
+  quantId: string;
+  allocatedAmount: bigint;
 };
 
 export type AdjustQuantParams =
@@ -76,12 +82,33 @@ export class InventoryItemQuantsDomainService {
     return BigInt(new Decimal(unitCost.toString()).times(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
   }
 
-  // Adds a freshly-allocated cost slice to a quant's cost + value (GR publish allocation pass).
+  // Adds a freshly-allocated cost slice to a quant's cost + value (GR post allocation pass).
   async addQuantCostValue(quantId: string, addCost: bigint, addValue: bigint): Promise<InventoryItemQuant> {
     return this.repository.addQuantCostValue(quantId, addCost, addValue);
   }
 
-  // Quants produced by a GR-item (post-publish) with their landed cost, for the Items Cost dialog.
+  // Moves a quant's cost laid in and its on-hand value by a revaluation, re-deriving its unit cost, in the caller's transaction
+  async revalueQuant(quantId: string, costDelta: bigint, onHandDelta: bigint): Promise<void> {
+    await this.repository.revalueQuant(quantId, costDelta, onHandDelta);
+  }
+
+  // Resolves the org's single ITEM-kind cost category, which item costs are booked under
+  findItemCategoryId(): Promise<string | null> {
+    return this.costsRepository.findItemCategoryId();
+  }
+
+  // Books a cost header with one allocation per quant, in the caller's transaction
+  async bookCost(cost: NewInventoryItemCost, allocations: QuantCostAllocation[]): Promise<void> {
+    const costId = await this.costsRepository.insertCost(cost);
+    await this.costsRepository.insertQuantCosts(allocations.map((allocation) => ({ ...allocation, costId })));
+  }
+
+  // Removes the costs the given sources booked with their allocations, in the caller's transaction
+  async removeCostsBySources(sourceType: CostSourceType, sourceIds: string[]): Promise<void> {
+    await this.costsRepository.deleteBySources(sourceType, sourceIds);
+  }
+
+  // Quants produced by a GR-item (after posting) with their landed cost, for the Items Cost dialog.
   async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
     const rows = await this.repository.findCostsByGrItemId(grItemId);
     return GoodsReceiptItemQuantsDto.from(rows);
@@ -212,7 +239,7 @@ export class InventoryItemQuantsDomainService {
         params.unitCost,
       );
 
-      // GR publish passes skipCostBaseline: the allocation pass sets quant_cost/value exactly.
+      // GR post passes skipCostBaseline: the allocation pass sets quant_cost/value exactly.
       const baseline = params.skipCostBaseline ? 0n : this.roundMinor(params.unitCost, params.quantity);
 
       let quant: InventoryItemQuant;
@@ -411,7 +438,6 @@ export class InventoryItemQuantsDomainService {
     return {
       id: quant.lotId as string,
       organizationId: '',
-      siteId: '',
       inventoryItemId: quant.inventoryItemId,
       lotNumber: quant.lotNumber,
       manufacturingDate: quant.manufacturingDate ?? null,
@@ -485,7 +511,6 @@ export class InventoryItemQuantsDomainService {
       dto.stockedQuantity = Number(row.stockedQuantity);
       dto.reservedQuantity = Number(row.reservedQuantity);
       dto.availableQuantity = Number(row.availableQuantity);
-      dto.reorderLevel = row.reorderLevel;
       return dto;
     });
   }
@@ -518,7 +543,6 @@ export class InventoryItemQuantsDomainService {
         stockedQuantity: Number(row.stockedQuantity),
         reservedQuantity: Number(row.reservedQuantity),
         availableQuantity: Number(row.availableQuantity),
-        reorderLevel: row.reorderLevel,
       };
       return {
         cursor: CursorCodec.encode(orderByEntries.map((e) => (row as Record<string, unknown>)[e.key])),
@@ -542,14 +566,12 @@ export class InventoryItemQuantsDomainService {
       { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' as const },
     ];
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      search: undefined,
       value: query.valueKey || 'id',
       label: query.labelKey || (hasItemFilter ? 'lotNumber' : 'name'),
       description: query.descriptionKey || (hasItemFilter ? 'pathBreadcrumb' : 'lotNumber'),
       additionalKeys: query.additionalKeys || (hasItemFilter ? 'quantity,symbol' : 'quantity,pathBreadcrumb'),
-      values: query.values,
-      excludeIds: query.excludeIds,
-      limit: query.limit,
-      offset: query.offset,
       orderByKey: query.orderByKey || 'createdAt',
       orderDirection: query.orderDirection || 'desc',
       where: hasItemFilter ? { inventoryItemId: query.inventoryItemId } : undefined,

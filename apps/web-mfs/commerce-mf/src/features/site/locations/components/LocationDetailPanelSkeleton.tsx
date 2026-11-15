@@ -2,7 +2,7 @@ import { CompactTableSkeleton } from '@vritti/quantum-ui/DataTable';
 import { DetailSectionSkeleton } from '@vritti/quantum-ui/DetailField';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 
-// Loading content for the location detail panel: title + actions, the detail fields, and the child-locations table.
+// Loading content for the location detail panel: title + actions, the detail fields, the fill, and the child-locations table.
 export function LocationDetailPanelSkeleton() {
   return (
     <div className="space-y-6">
@@ -14,7 +14,12 @@ export function LocationDetailPanelSkeleton() {
         </div>
       </div>
       <div className="flex flex-nowrap items-start gap-2 overflow-x-auto">
-        <DetailSectionSkeleton count={5} wrap />
+        <DetailSectionSkeleton count={6} wrap />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-2 w-full rounded-full" />
+        <Skeleton className="h-3 w-64" />
       </div>
       <CompactTableSkeleton
         rows={4}

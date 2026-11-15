@@ -15,7 +15,8 @@ function transformLabel(label: string, option: SelectOption): string {
   return uomSymbol ? `${label} (${uomSymbol})` : label;
 }
 
-// The open lines of the delivery's supplier's purchase orders at its site that still have something left to deliver
+// The lines of the delivery's supplier's confirmed, not fully received purchase orders at its site with something left
+// to deliver
 export const DeliverablePurchaseOrderItemSelector = forwardRef<
   HTMLButtonElement,
   DeliverablePurchaseOrderItemSelectorProps

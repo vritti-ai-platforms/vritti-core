@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SearchState } from '@vritti/api-sdk/conditions';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, exists, getColumns, ilike, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { and, asc, eq, exists, getColumns, ilike, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceipt,
   GoodsReceiptStatusValues,
@@ -16,11 +15,15 @@ import {
   parties,
   purchaseOrderItems,
   purchaseOrders,
+  purchases,
+  supplierInvoiceLines,
   suppliers,
 } from '@/db/schema';
 
 export type GoodsReceiptRow = GoodsReceipt & {
   supplierName: string | null;
+  purchaseNumber: string | null;
+  receiveWithInvoiceInvoiceId: string | null;
   deliveryNumber: string;
   deliverySource: InboundDeliverySource;
   carrier: string | null;
@@ -31,7 +34,7 @@ export type GoodsReceiptRow = GoodsReceipt & {
   expectedDeliveryDate: string | null;
   siteTimezone: string | null;
   itemCount: number;
-  isPublishable: boolean;
+  isPostable: boolean;
 };
 
 @Injectable()
@@ -48,24 +51,22 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
     return `GR-${yearMonth}-${String(nextNumber).padStart(4, '0')}`;
   }
 
-  // Loads a receipt with its supplier, inbound delivery, purchase orders and publish readiness, throwing when it is out of reach
-  async findDetailOrThrow(id: string): Promise<GoodsReceiptRow> {
-    const row = await this.findById<GoodsReceiptRow>(id, { select: this.selection(), leftJoins: this.joins() });
-    if (!row) throw new NotFoundException('Goods receipt not found.');
-    return row;
+  // Loads a receipt with its supplier, inbound delivery, purchase orders and post readiness
+  findDetail(id: string): Promise<GoodsReceiptRow | undefined> {
+    return this.findById<GoodsReceiptRow>(id, { select: this.selection(), leftJoins: this.joins() });
   }
 
-  // Loads a receipt that is still a draft — the only state whose items, lots and lines may change
-  async findDraftOrThrow(id: string, label: string): Promise<GoodsReceiptRow> {
-    const receipt = await this.findDetailOrThrow(id);
-    if (receipt.status === GoodsReceiptStatusValues.DRAFT) return receipt;
-    throw new BadRequestException({
-      label,
-      detail: `"${receipt.grNumber}" is published, so it can no longer change.`,
+  // Returns the receipts a purchase created, oldest first
+  findForPurchase(purchaseId: string): Promise<GoodsReceiptRow[]> {
+    return this.findAllWithSelect<GoodsReceiptRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: eq(goodsReceipts.purchaseId, purchaseId),
+      orderBy: [asc(goodsReceipts.createdAt)],
     });
   }
 
-  // Returns one page of receipts with their supplier, delivery, purchase orders and publish readiness
+  // Returns one page of receipts with their supplier, delivery, purchase orders and post readiness
   async findForTable(options: {
     where?: SQL;
     orderBy: SQL[];
@@ -95,39 +96,7 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
     return exists(this.receiptLinesWhere(ilike(purchaseOrders.poNumber, `%${search.value}%`)));
   }
 
-  // Rejects adding a purchase order to a receipt of an announced delivery, which carries only that delivery's lines
-  assertTakesPurchaseOrders(receipt: Pick<GoodsReceiptRow, 'deliverySource' | 'deliveryNumber'>): void {
-    if (receipt.deliverySource === InboundDeliverySourceValues.RECEIPT) return;
-    throw new BadRequestException({
-      label: 'Cannot Add Purchase Order',
-      detail: `This receipt receives inbound delivery "${receipt.deliveryNumber}", so it carries only that delivery's lines.`,
-      errors: [{ field: 'purchaseOrderId', message: 'Receipt of an announced delivery' }],
-    });
-  }
-
-  // Rejects changing the supplier's delivery note on a receipt of an announced delivery, whose note is edited on that delivery
-  assertOwnsDeliveryNote(receipt: Pick<GoodsReceiptRow, 'deliverySource' | 'deliveryNumber'>): void {
-    if (receipt.deliverySource === InboundDeliverySourceValues.RECEIPT) return;
-    throw new BadRequestException({
-      label: 'Cannot Edit Delivery Note',
-      detail: `This receipt receives inbound delivery "${receipt.deliveryNumber}". Change the supplier's delivery note on that delivery.`,
-      errors: [{ field: 'supplierDeliveryNoteNumber', message: 'Edit it on the delivery' }],
-    });
-  }
-
-  // Rejects publishing a receipt until every item's accepted quantity is fully distributed to balanced lines
-  assertPublishable(receipt: GoodsReceiptRow): void {
-    if (receipt.isPublishable) return;
-    throw new BadRequestException({
-      label: 'Not Ready to Publish',
-      detail:
-        receipt.itemCount === 0
-          ? `Add at least one item to "${receipt.grNumber}" before publishing it.`
-          : 'Distribute the accepted quantity of every item to lines, and finish their serials, before publishing.',
-    });
-  }
-
-  // Selects a receipt with its supplier and inbound delivery (number, source, carrier, tracking, supplier's delivery note), its orders' numbers, latest line delivery date and timezone, item count and publish readiness
+  // Selects a receipt with its supplier, purchase and inbound delivery (number, source, carrier, tracking, supplier's delivery note), the supplier invoice it is received with, its orders' numbers, latest line delivery date and timezone, item count and post readiness
   private selection() {
     const ownItems = eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id);
     const itemLines = eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id);
@@ -163,6 +132,12 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       .from(goodsReceiptItems)
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .where(ownItems);
+    const receiveWithInvoiceInvoice = this.db
+      .select({ id: supplierInvoiceLines.supplierInvoiceId })
+      .from(supplierInvoiceLines)
+      .innerJoin(goodsReceiptItems, eq(goodsReceiptItems.id, supplierInvoiceLines.goodsReceiptItemId))
+      .where(and(ownItems, eq(inboundDeliveries.source, InboundDeliverySourceValues.SUPPLIER_INVOICE)))
+      .limit(1);
     const siteTimezone = this.db
       .select({ timezone: purchaseOrders.timezone })
       .from(goodsReceiptItems)
@@ -174,6 +149,8 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
     return {
       ...getColumns(goodsReceipts),
       supplierName: parties.displayName,
+      purchaseNumber: purchases.purchaseNumber,
+      receiveWithInvoiceInvoiceId: sql<string | null>`(${receiveWithInvoiceInvoice})`,
       deliveryNumber: inboundDeliveries.deliveryNumber,
       deliverySource: inboundDeliveries.source,
       carrier: inboundDeliveries.carrier,
@@ -186,7 +163,7 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       ),
       siteTimezone: sql<string | null>`(${siteTimezone})`,
       itemCount: this.db.$count(goodsReceiptItems, ownItems),
-      isPublishable: sql<boolean>`${and(
+      isPostable: sql<boolean>`${and(
         eq(goodsReceipts.status, GoodsReceiptStatusValues.DRAFT),
         exists(anyItem),
         notExists(undistributedItem),
@@ -204,12 +181,13 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       .where(and(eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id), condition));
   }
 
-  // Joins the supplier with its party, and the inbound delivery the receipt is posted against
+  // Joins the supplier with its party, the inbound delivery the receipt is posted against and the purchase that created it
   private joins() {
     return [
       { table: suppliers, on: eq(suppliers.id, goodsReceipts.supplierId) },
       { table: parties, on: eq(parties.id, suppliers.partyId) },
       { table: inboundDeliveries, on: eq(inboundDeliveries.id, goodsReceipts.inboundDeliveryId) },
+      { table: purchases, on: eq(purchases.id, goodsReceipts.purchaseId) },
     ];
   }
 }

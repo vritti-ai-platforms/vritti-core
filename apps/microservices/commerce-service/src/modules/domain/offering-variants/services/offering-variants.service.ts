@@ -10,7 +10,7 @@ import {
 } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   BOM_RULES,
   type CatalogChannelType,
@@ -233,6 +233,7 @@ export class OfferingVariantsDomainService {
     if (query.offeringId) await this.requireReachableOffering(query.offeringId);
     return this.repository.findVariantsForSelect(
       {
+        ...selectPageOptions(query),
         value: query.valueKey || 'id',
         label: query.labelKey || 'name',
         description: query.descriptionKey,
@@ -245,11 +246,6 @@ export class OfferingVariantsDomainService {
                  jsonb_array_elements(facet->'values') entry
           )`,
         },
-        search: query.search,
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
         orderByKey: query.orderByKey || 'code',
         orderDirection: query.orderDirection || 'asc',
       },

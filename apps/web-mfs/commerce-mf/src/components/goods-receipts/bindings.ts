@@ -3,9 +3,7 @@ import type {
   UseAddGoodsReceiptLine,
   UseAddGoodsReceiptLineItem,
   UseAddGoodsReceiptLot,
-  UseAddGoodsReceiptPurchaseOrder,
   UseCreateGoodsReceiptFromDelivery,
-  UseCreateGoodsReceiptFromPurchaseOrders,
   UseDeleteGoodsReceipt,
   UseGoodsReceipt,
   UseGoodsReceiptItem,
@@ -18,7 +16,7 @@ import type {
   UseGoodsReceiptLots,
   UseGoodsReceiptsTable,
   UseGoodsReceiptTree,
-  UsePublishGoodsReceipt,
+  UsePostGoodsReceipt,
   UseRemoveGoodsReceiptItem,
   UseRemoveGoodsReceiptLine,
   UseRemoveGoodsReceiptLineItem,
@@ -47,10 +45,8 @@ export interface GoodsReceiptsBinding {
   useGoodsReceipt: UseGoodsReceipt;
   useTree: UseGoodsReceiptTree;
   useCreateFromDelivery: UseCreateGoodsReceiptFromDelivery;
-  useCreateFromPurchaseOrders: UseCreateGoodsReceiptFromPurchaseOrders;
-  useAddPurchaseOrder: UseAddGoodsReceiptPurchaseOrder;
   useUpdate: UseUpdateGoodsReceipt;
-  usePublish: UsePublishGoodsReceipt;
+  usePost: UsePostGoodsReceipt;
   useDelete: UseDeleteGoodsReceipt;
 
   useItemsCost: UseGoodsReceiptItemsCost;

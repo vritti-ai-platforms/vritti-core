@@ -1,15 +1,16 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { index, pgPolicy, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import { index, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { stockAdjustmentLines } from './stock-adjustment-lines';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { stockAdjustments } from './stock-adjustments';
+import { organizationIdColumn, scopeFromOwnerPolicies, siteIdColumn } from './workspace-scope';
 
 export const stockAdjustmentLineItems = commerceSchema.table(
   'stock_adjustment_line_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     stockAdjustmentLineId: uuid('stock_adjustment_line_id')
       .notNull()
       .references(() => stockAdjustmentLines.id, { onDelete: 'cascade' }),
@@ -23,22 +24,11 @@ export const stockAdjustmentLineItems = commerceSchema.table(
   (table) => [
     unique('uq_stock_adjustment_line_items_line_serial').on(table.stockAdjustmentLineId, table.serialNumber),
     index('idx_sa_line_items_line').on(table.stockAdjustmentLineId),
-    orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
+    ...scopeFromOwnerPolicies({
+      owner: stockAdjustments,
+      fk: table.stockAdjustmentLineId,
+      through: [{ table: stockAdjustmentLines, fk: (line) => line.stockAdjustmentId }],
+      ownerIs: 'siteDocument',
     }),
   ],
 );

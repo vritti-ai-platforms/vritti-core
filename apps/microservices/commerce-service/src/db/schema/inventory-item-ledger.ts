@@ -3,14 +3,14 @@ import { decimal, index, text, timestamp, uuid } from '@vritti/api-sdk/drizzle-p
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemLedgerReferenceTypeEnum, inventoryItemLedgerTypeEnum } from './enums';
 import { inventoryItems } from './inventory-items';
-import { organizationIdColumn } from './workspace-scope';
+import { organizationIdColumn, siteDocumentColumns, siteDocumentPolicies } from './workspace-scope';
 
 export const inventoryItemLedger = commerceSchema.table(
   'inventory_item_ledger',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    ...siteDocumentColumns(),
     inventoryItemId: uuid('inventory_item_id')
       .notNull()
       .references(() => inventoryItems.id, { onDelete: 'cascade' }),
@@ -26,6 +26,7 @@ export const inventoryItemLedger = commerceSchema.table(
     index('idx_inventory_item_ledger_site').on(table.siteId),
     index('idx_inventory_item_ledger_ref').on(table.referenceType, table.referenceId),
     index('idx_inventory_item_ledger_created').on(table.inventoryItemId, table.createdAt),
+    ...siteDocumentPolicies(),
   ],
 );
 

@@ -1,6 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
+export const PURCHASE_ORDER_STATUSES = ['DRAFT', 'SENT', 'CONFIRMED', 'DELIVERY_COMPLETED', 'CANCELLED'] as const;
+export type PurchaseOrderStatus = (typeof PURCHASE_ORDER_STATUSES)[number];
+
+export const PURCHASE_ORDER_RECEIPT_STATUSES = ['NOT_RECEIVED', 'PARTIAL', 'RECEIVED'] as const;
+export type PurchaseOrderReceiptStatus = (typeof PURCHASE_ORDER_RECEIPT_STATUSES)[number];
+
+export const PURCHASE_ORDER_INVOICE_STATUSES = ['NOTHING_TO_INVOICE', 'TO_INVOICE', 'PARTIAL', 'INVOICED'] as const;
+export type PurchaseOrderInvoiceStatus = (typeof PURCHASE_ORDER_INVOICE_STATUSES)[number];
+
 export class PurchaseOrderResponseDto {
   @ApiProperty({ description: 'Purchase order ID' })
   id: string;
@@ -20,11 +29,29 @@ export class PurchaseOrderResponseDto {
   @ApiProperty({ description: 'PO number', example: 'PO-202611-0001' })
   poNumber: string;
 
+  @ApiProperty({ description: 'PO status in its manual workflow', enum: PURCHASE_ORDER_STATUSES })
+  status: PurchaseOrderStatus;
+
   @ApiProperty({
-    description: 'PO status',
-    enum: ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED', 'RECEIVED', 'CLOSED', 'CANCELLED'],
+    description: 'How much of the order posted goods receipts accepted',
+    enum: PURCHASE_ORDER_RECEIPT_STATUSES,
   })
-  status: string;
+  receiptStatus: PurchaseOrderReceiptStatus;
+
+  @ApiProperty({
+    description: 'How much of what was received posted supplier invoices cover',
+    enum: PURCHASE_ORDER_INVOICE_STATUSES,
+  })
+  invoiceStatus: PurchaseOrderInvoiceStatus;
+
+  @ApiProperty({ description: "Payment term, from the supplier's enrollment at the order's site" })
+  paymentTermId: string;
+
+  @ApiPropertyOptional({ description: 'Purchase that created the order', type: String, nullable: true })
+  purchaseId: string | null;
+
+  @ApiPropertyOptional({ description: 'Number of that purchase', type: String, nullable: true })
+  purchaseNumber: string | null;
 
   @ApiProperty({ description: "PO currency code (ISO 4217) — one of the supplier's currencies", example: 'USD' })
   currencyCode: string;
@@ -65,9 +92,9 @@ export class PurchaseOrderResponseDto {
   totalAmount: CurrencyAmountDto;
 
   @ApiProperty({
-    description: 'True once a goods receipt of the PO is published; its supplier, prices and rates are then locked',
+    description: 'True once a goods receipt of the PO is posted; its supplier, prices and rates are then locked',
   })
-  hasPublishedGoodsReceipt: boolean;
+  hasPostedGoodsReceipt: boolean;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;

@@ -1,7 +1,7 @@
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
+import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
 import type { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -21,7 +21,7 @@ export class StockTransfersService {
     private readonly batchesService: InventoryItemQuantsDomainService,
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
     private readonly lotsService: InventoryItemLotsDomainService,
-    private readonly inventoryItemSitesService: InventoryItemSitesDomainService,
+    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
   ) {}
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.
@@ -50,7 +50,11 @@ export class StockTransfersService {
       if (!data.fromBatchId) {
         throw new BadRequestException('A source quant is required to receive a stock transfer.');
       }
-      await this.inventoryItemSitesService.ensureEnabled(transfer.toSiteId, [transfer.inventoryItemId]);
+      await this.siteStockLevelsService.ensureStockLevels(
+        transfer.toSiteId,
+        [transfer.inventoryItemId],
+        'toLocationId',
+      );
 
       // Preserve the source quant's cost on the destination quant — a transfer does not change cost.
       const sourceQuant = await this.quantsRepository.findById(data.fromBatchId);

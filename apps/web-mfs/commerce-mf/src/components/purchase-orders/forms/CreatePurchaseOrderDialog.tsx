@@ -92,7 +92,7 @@ export const CreatePurchaseOrderDialog: React.FC<CreatePurchaseOrderDialogProps>
       <FormSection
         title="Currency"
         description={`Lines priced in the supplier's other currencies are converted into it.${
-          needsExchangeRate ? ' The rate is editable until the first goods receipt of the order is published.' : ''
+          needsExchangeRate ? ' The rate is editable until the first goods receipt of the order is posted.' : ''
         }`}
       >
         <CurrencySelector

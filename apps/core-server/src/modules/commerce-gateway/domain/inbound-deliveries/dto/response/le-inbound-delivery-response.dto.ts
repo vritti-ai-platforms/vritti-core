@@ -1,10 +1,10 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { InboundDeliveryResponseDto } from './inbound-delivery-response.dto';
 
 export class LeInboundDeliveryResponseDto extends InboundDeliveryResponseDto {
-  @ApiPropertyOptional({ description: 'Site name (gateway-enriched, not sortable)', nullable: true })
-  siteName: string | null;
+  @ApiProperty({ description: 'Site name (gateway-enriched, not sortable)' })
+  siteName: string;
 
-  @ApiPropertyOptional({ description: 'Site code (gateway-enriched, not sortable)', nullable: true })
-  siteCode: string | null;
+  @ApiProperty({ description: 'Site code (gateway-enriched, not sortable)' })
+  siteCode: string;
 }

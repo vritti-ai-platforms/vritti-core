@@ -15,10 +15,25 @@ export class SiteSelectApiService {
   ) {}
 
   // The legal entity's active sites as select options, kept to the asked ids and, for a supplier or an inventory item,
-  // to the sites enrolled at (or not yet) — commerce-service resolves the enrollments to site ids
+  // to the sites enrolled at (or not yet), or to the sites an item has no stock levels at yet — commerce-service resolves
+  // the enrollments and stock levels to site ids
   async findForSelect(legalEntityId: string | undefined, query: SiteSelectQueryDto): Promise<SelectQueryResult> {
-    const { ids, supplierId, inventoryItemId, isEnrolled, isActive, ...select } = query;
+    const { ids, supplierId, inventoryItemId, isEnrolled, isActive, withoutStockLevelsOf, ...select } = query;
     SiteSelectApiService.assertEnrollmentParams(query);
+    if (withoutStockLevelsOf) {
+      this.logger.log(`le.inventoryItems.siteStockLevels.siteIds — inventoryItemId: ${withoutStockLevelsOf}`);
+      const siteIdsWithLevels = await this.nats.send<string[]>(
+        'commerce',
+        'le.inventoryItems.siteStockLevels.siteIds',
+        {
+          inventoryItemId: withoutStockLevelsOf,
+        },
+      );
+      return this.siteService.findForLegalEntitySelect(legalEntityId, select, {
+        siteIds: ids,
+        excludeSiteIds: siteIdsWithLevels,
+      });
+    }
     if (!supplierId && !inventoryItemId)
       return this.siteService.findForLegalEntitySelect(legalEntityId, select, { siteIds: ids });
 

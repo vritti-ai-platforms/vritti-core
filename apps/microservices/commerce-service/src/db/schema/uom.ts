@@ -8,7 +8,7 @@ export const uom = commerceSchema.table(
   'uom',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     dimensionId: uuid('dimension_id')
       .notNull()
       .references(() => uomDimensions.id, { onDelete: 'restrict' }),

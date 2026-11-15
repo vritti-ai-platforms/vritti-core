@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
-import { type FindForSelectJoin, type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import {
+  type FindForSelectJoin,
+  type SelectOptionsQueryDto,
+  type SelectQueryResult,
+  selectPageOptions,
+} from '@vritti/api-sdk/select';
 import {
   type NewPartyRelationship,
   PartyCommunicationChannelValues,
@@ -108,16 +113,12 @@ export class PartyRelationshipsDomainRepository extends PrimaryBaseRepository<ty
       conditions.push(eq(partyFunctions.function, functionCode));
     }
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: sql`coalesce(${parties.displayName}, 'Contact')`,
       description: 'jobTitle',
       additionalExpressions: { isPrimary: functionCode ? sql`${partyFunctions.isPrimary}` : sql`false` },
-      search: query.search,
       searchKeys: ['displayName'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderBy: functionCode ? { isPrimary: 'desc', displayName: 'asc' } : { displayName: 'asc' },
       where: { parentPartyId: partyId, isActive: true },
       joins,

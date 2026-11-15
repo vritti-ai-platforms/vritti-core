@@ -1,0 +1,2 @@
+ALTER TABLE "commerce"."inventory_item_sites" RENAME TO "inventory_item_site_stock_levels";--> statement-breakpoint
+ALTER TABLE "commerce"."inventory_item_site_stock_levels" RENAME CONSTRAINT "uq_inventory_item_sites" TO "uq_inventory_item_site_stock_levels";

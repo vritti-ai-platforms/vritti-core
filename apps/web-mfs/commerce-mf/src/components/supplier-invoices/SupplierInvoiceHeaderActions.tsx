@@ -24,13 +24,13 @@ export const SupplierInvoiceHeaderActions: React.FC<SupplierInvoiceHeaderActions
     const confirmed = await confirm({
       title: `Post invoice "${invoice.invoiceNumber}"?`,
       description:
-        'Its lines set the final cost of the stock they bill: stock on hand is revalued, and the difference on stock ' +
-        'already used is recorded as a variance.',
+        'Its lines set the final cost of the stock they cover and spread its charges over it: stock on hand is ' +
+        'revalued, the difference on stock already used is recorded as a variance, and the orders it covers move.',
       confirmLabel: 'Post Invoice',
-      ...(invoice.flagCount > 0 && {
+      ...(invoice.openHoldCount > 0 && {
         alert: {
           type: 'warning' as const,
-          text: `${pluralize('match flag', invoice.flagCount, true)} still open — flags are for review and do not stop posting.`,
+          text: `${pluralize('open hold', invoice.openHoldCount, true)} — the invoice posts, but cannot be paid until they are released or resolved.`,
         },
       }),
     });
@@ -59,7 +59,7 @@ export const SupplierInvoiceHeaderActions: React.FC<SupplierInvoiceHeaderActions
           onClick={handlePost}
           isLoading={postMutation.isPending}
           disabled={!invoice.canPost}
-          disabledTip="Add the billed lines before posting"
+          disabledTip="Add the receipts and charges it covers before posting"
         >
           Post Invoice
         </Button>
@@ -70,8 +70,8 @@ export const SupplierInvoiceHeaderActions: React.FC<SupplierInvoiceHeaderActions
         title="Edit Invoice"
         description={
           invoice.status === 'POSTED'
-            ? 'Update the invoice header. The stock it billed is re-costed at the new rate.'
-            : 'Update the invoice header.'
+            ? 'Update the invoice header. The stock it invoiced is re-costed at the new rate, and its holds are rechecked.'
+            : 'Update the invoice header; its holds are rechecked.'
         }
         content={(close) => (
           <EditSupplierInvoiceDialog binding={binding} invoice={invoice} onSuccess={close} onCancel={close} />
@@ -96,7 +96,7 @@ const CancelInvoiceAction: React.FC<CancelInvoiceActionProps> = ({ removal, invo
       title: `Cancel invoice "${invoice.invoiceNumber}"?`,
       description:
         invoice.status === 'POSTED'
-          ? 'Its costing is reversed: the stock it billed goes back to its provisional cost from the order. The invoice is kept as cancelled.'
+          ? 'Its costing is reversed: the stock it invoiced goes back to its provisional cost from the order, and the orders it invoiced are open to invoice again. The invoice is kept as cancelled.'
           : 'The draft is kept as cancelled and no longer counts against the order.',
       confirmLabel: 'Cancel Invoice',
       cancelLabel: 'Keep Invoice',

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsInt, IsNumber, IsOptional, IsPositive, Min } from 'class-validator';
 
 export class UpdateInventoryItemUomConversionDto {
   @ApiProperty({
@@ -14,4 +14,59 @@ export class UpdateInventoryItemUomConversionDto {
   @IsInt()
   @Min(1)
   uomQty: number;
+
+  @ApiPropertyOptional({
+    description:
+      "Weight of one pack of this unit, in grams (g), greater than 0 with up to 3 decimals; null = the conversion factor × the primary unit's value",
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  weight?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      "Volume of one pack of this unit, in millilitres (ml), greater than 0 with up to 3 decimals; null = the conversion factor × the primary unit's value",
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  volume?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Length of one pack of this unit, in millimetres (mm), greater than 0 with up to 3 decimals; null = the pack is not fit-checked',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  length?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Width of one pack of this unit, in millimetres (mm), greater than 0 with up to 3 decimals; null = the pack is not fit-checked',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  width?: number | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Height of one pack of this unit, in millimetres (mm), greater than 0 with up to 3 decimals; null = the pack is not fit-checked',
+    type: Number,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 3 })
+  @IsPositive()
+  height?: number | null;
 }

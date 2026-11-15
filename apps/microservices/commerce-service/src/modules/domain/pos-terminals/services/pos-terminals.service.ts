@@ -4,7 +4,7 @@ import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { LocationRoleValues, locations, posTerminals } from '@/db/schema';
 import { PosTerminalDto } from '../dto/entity/pos-terminal.dto';
 import type { CreatePosTerminalDto } from '../dto/request/create-pos-terminal.dto';
@@ -66,16 +66,12 @@ export class PosTerminalsDomainService {
 
   findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
     });

@@ -15,9 +15,7 @@ import type { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
-import { CreatePurchaseOrderInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-purchase-order-invoice.dto';
 import type { PurchaseOrderInvoiceSummaryResponseDto } from '@commerce/supplier-invoices/dto/response/purchase-order-invoice-summary-response.dto';
-import type { SupplierInvoiceResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import {
   Body,
@@ -45,9 +43,8 @@ import {
   ApiAddItem,
   ApiChangeExchangeRate,
   ApiChangeSupplier,
-  ApiClosePurchaseOrder,
+  ApiCompleteDelivery,
   ApiCreate,
-  ApiCreatePurchaseOrderInvoice,
   ApiDelete,
   ApiDownloadPdf,
   ApiFindById,
@@ -162,7 +159,7 @@ export class LePurchaseOrdersGatewayController {
     return this.service.findInboundDeliveryTable(id, userId);
   }
 
-  // Returns the flags raised on a purchase order's receipts and invoices, grouped by order line
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
   @Get(':id/problems')
   @RequirePermission(LE_PURCHASE_ORDERS.view)
   @ApiFindProblems()
@@ -228,13 +225,9 @@ export class LePurchaseOrdersGatewayController {
   @Patch(':id/supplier')
   @RequirePermission(LE_PURCHASE_ORDERS.edit)
   @ApiChangeSupplier()
-  changeSupplier(
-    @Param('id') id: string,
-    @Body() dto: ChangePurchaseOrderSupplierDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  changeSupplier(@Param('id') id: string, @Body() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/supplier`);
-    return this.service.changeSupplier(id, dto, legalEntityId);
+    return this.service.changeSupplier(id, dto);
   }
 
   // Changes the exchange rate of a purchase order in another currency than the legal entity's
@@ -244,10 +237,9 @@ export class LePurchaseOrdersGatewayController {
   changeExchangeRate(
     @Param('id') id: string,
     @Body() dto: ChangePurchaseOrderExchangeRateDto,
-    @LegalEntityId() legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/exchange-rate`);
-    return this.service.changeExchangeRate(id, dto, legalEntityId);
+    return this.service.changeExchangeRate(id, dto);
   }
 
   // Sets the rate from another of the supplier's currencies into the PO currency and converts its lines in it again
@@ -262,13 +254,13 @@ export class LePurchaseOrdersGatewayController {
     return this.service.setConversionRate(id, dto);
   }
 
-  // Closes a purchase order short — no further receipts expected
-  @Patch(':id/close')
+  // Marks a purchase order delivery completed — no further receipts expected
+  @Patch(':id/complete-delivery')
   @RequirePermission(LE_PURCHASE_ORDERS.edit)
-  @ApiClosePurchaseOrder()
-  closePurchaseOrder(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/close`);
-    return this.service.closePurchaseOrder(id);
+  @ApiCompleteDelivery()
+  completeDelivery(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/complete-delivery`);
+    return this.service.completeDelivery(id);
   }
 
   // Moves a purchase order along its manual workflow
@@ -300,7 +292,7 @@ export class LePurchaseOrdersGatewayController {
     return this.service.delete(id);
   }
 
-  // Returns the invoices billing the purchase order for the data table
+  // Returns the invoices with a line invoicing the purchase order for the data table
   @Get(':id/invoices/table')
   @RequirePermission(LE_PURCHASE_ORDERS.invoices.view)
   @ApiFindForTablePurchaseOrderInvoices()
@@ -313,25 +305,12 @@ export class LePurchaseOrdersGatewayController {
     return this.service.findInvoicesTable(id, userId, orgId);
   }
 
-  // Rolls the purchase order's invoices up into counts and the share of the ordered quantity billed
+  // Rolls the purchase order's invoices up into counts and the share of the due quantity invoiced
   @Get(':id/invoices/summary')
   @RequirePermission(LE_PURCHASE_ORDERS.invoices.view)
   @ApiFindPurchaseOrderInvoicesSummary()
   getInvoicesSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/invoices/summary`);
     return this.service.findInvoicesSummary(id);
-  }
-
-  // Records a draft invoice billing the purchase order
-  @Post(':id/invoices')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_PURCHASE_ORDERS.invoices.add)
-  @ApiCreatePurchaseOrderInvoice()
-  createInvoice(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreatePurchaseOrderInvoiceDto,
-  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/purchase-orders/${id}/invoices`);
-    return this.service.createInvoice(id, dto);
   }
 }

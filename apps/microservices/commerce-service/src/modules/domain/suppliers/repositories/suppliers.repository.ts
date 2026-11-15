@@ -13,8 +13,6 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
-import { pluralize } from '@vritti/api-sdk/pluralize';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   type PartyIdentifierType,
@@ -64,9 +62,8 @@ export type SupplierDetailRow = SupplierWithParty & {
 };
 
 // Purchase orders that are done with and no longer hold a supplier to their currency
-const CLOSED_PURCHASE_ORDER_STATUSES = [
-  PurchaseOrderStatusValues.RECEIVED,
-  PurchaseOrderStatusValues.CLOSED,
+const FINISHED_PURCHASE_ORDER_STATUSES = [
+  PurchaseOrderStatusValues.DELIVERY_COMPLETED,
   PurchaseOrderStatusValues.CANCELLED,
   PurchaseOrderStatusValues.REJECTED,
 ];
@@ -77,13 +74,31 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     super(database, suppliers);
   }
 
-  // Paginated supplier options; activeOnly drops inactive suppliers and inventoryItemId keeps those supplying the item
+  // Paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the item and
+  // enrolledAtSiteId those actively enrolled at the site
   override findForSelect(
     config: FindForSelectConfig,
-    options?: { activeOnly?: boolean; inventoryItemId?: string },
+    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.activeOnly) conditions.push(eq(suppliers.isActive, true));
+    if (options?.enrolledAtSiteId) {
+      conditions.push(
+        exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(supplierEnrollments)
+            .where(
+              and(
+                eq(supplierEnrollments.supplierId, suppliers.id),
+                eq(supplierEnrollments.siteId, options.enrolledAtSiteId),
+                eq(supplierEnrollments.isActive, true),
+                eq(supplierEnrollments.isSupplierActive, true),
+              ),
+            ),
+        ),
+      );
+    }
     if (options?.inventoryItemId) {
       conditions.push(
         exists(
@@ -130,22 +145,8 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     return result[0];
   }
 
-  // Loads a supplier by id, throwing when it does not exist
-  async findByIdOrThrow(id: string): Promise<Supplier> {
-    const entity = await this.findById(id);
-    if (!entity) throw new NotFoundException('Supplier not found.');
-    return entity;
-  }
-
-  // Loads a supplier joined with its party display name, throwing when it does not exist
-  async findWithPartyOrThrow(id: string): Promise<SupplierWithParty> {
-    const entity = await this.findByIdWithParty(id);
-    if (!entity) throw new NotFoundException('Supplier not found.');
-    return entity;
-  }
-
   // Loads a supplier with party name, the party's registrations (with their jurisdiction) and licenses, and its enrollment and item counts
-  async findDetailOrThrow(id: string): Promise<SupplierDetailRow> {
+  async findDetail(id: string): Promise<SupplierDetailRow | undefined> {
     const [row] = await this.db
       .select({
         ...getColumns(suppliers),
@@ -168,7 +169,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
       .innerJoin(paymentTerms, eq(paymentTerms.id, suppliers.defaultPaymentTermId))
       .where(eq(suppliers.id, id))
       .limit(1);
-    if (!row) throw new NotFoundException('Supplier not found.');
+    if (!row) return undefined;
 
     const supplier = row as Omit<SupplierDetailRow, 'registrations' | 'licenses'>;
     const [registrations, licenses] = await Promise.all([
@@ -192,69 +193,19 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     };
   }
 
-  // Rejects a default payment term that is not a published term of the caller's organization
-  async assertDefaultPaymentTermUsable(id: string): Promise<void> {
+  // Whether the payment term is a published term of the caller's organization
+  async isPaymentTermPublished(id: string): Promise<boolean> {
     const [term] = await this.db
       .select({ isPublished: paymentTerms.isPublished })
       .from(paymentTerms)
       .where(eq(paymentTerms.id, id))
       .limit(1);
-    if (term?.isPublished === true) return;
-    throw new BadRequestException({
-      label: 'Invalid Default Payment Term',
-      detail: 'The selected default payment term does not exist or is still a draft.',
-      errors: [{ field: 'defaultPaymentTermId', message: 'Pick a published payment term' }],
-    });
+    return term?.isPublished === true;
   }
 
-  // Rejects a party that is already a supplier of the caller's legal entity
-  async assertPartyFree(partyId: string): Promise<void> {
-    if (!(await this.exists(eq(suppliers.partyId, partyId)))) return;
-    throw new ConflictException({
-      label: 'Already A Supplier',
-      detail: 'This party is already a supplier for this legal entity.',
-      errors: [{ field: 'partyId', message: 'Already a supplier' }],
-    });
-  }
-
-  // Rejects deleting a supplier that purchase orders, quotations or item prices still reference
-  async assertNotReferenced(supplier: SupplierWithParty): Promise<void> {
-    const refs = await this.countReferences(supplier.id);
-    const parts = (
-      [
-        [refs.purchaseOrders, 'purchase order'],
-        [refs.quotations, 'quotation'],
-        [refs.prices, 'item price'],
-      ] as const
-    )
-      .filter(([n]) => n > 0)
-      .map(([n, label]) => `${n} ${pluralize(label, n)}`);
-    if (parts.length === 0) return;
-    throw new ConflictException({
-      label: 'Supplier In Use',
-      detail: `Cannot delete "${supplier.partyName}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
-    });
-  }
-
-  // Rejects dropping currencies still used by the supplier's prices, quotations or open purchase orders
-  async assertCurrenciesUnused(id: string, dropped: string[]): Promise<void> {
-    if (dropped.length === 0) return;
-    const usage = await this.countCurrencyUsage(id, dropped);
-    const uses = (
-      [
-        ['price', usage.prices],
-        ['quotation', usage.quotations],
-        ['open purchase order', usage.purchaseOrders],
-      ] as const
-    )
-      .filter(([, count]) => count > 0)
-      .map(([noun, count]) => pluralize(noun, count, true));
-    if (uses.length === 0) return;
-    throw new ConflictException({
-      label: 'Currency In Use',
-      detail: `${dropped.join(', ')} cannot be removed while ${uses.join(', ')} of this supplier use it.`,
-      errors: [{ field: 'currencyCodes', message: `${dropped.join(', ')} is still in use` }],
-    });
+  // Whether the party is already a supplier of the caller's legal entity
+  isPartySupplier(partyId: string): Promise<boolean> {
+    return this.exists(eq(suppliers.partyId, partyId));
   }
 
   // Counts the purchase orders, quotations and item prices that keep a supplier from being deleted
@@ -299,7 +250,7 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
           and(
             eq(purchaseOrders.supplierId, id),
             inArray(purchaseOrders.currencyCode, currencyCodes),
-            notInArray(purchaseOrders.status, CLOSED_PURCHASE_ORDER_STATUSES),
+            notInArray(purchaseOrders.status, FINISHED_PURCHASE_ORDER_STATUSES),
           ),
         ),
     ]);

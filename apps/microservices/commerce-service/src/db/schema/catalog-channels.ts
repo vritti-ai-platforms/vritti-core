@@ -11,13 +11,12 @@ export const catalogChannels = commerceSchema.table(
   'catalog_channels',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     catalogId: uuid('catalog_id')
       .notNull()
       .references(() => catalogs.id, { onDelete: 'cascade' }),
     type: catalogChannelTypeEnum('type').notNull(),
-    legalEntityId: workspaceScopeColumns.legalEntityId,
-    siteId: workspaceScopeColumns.siteId,
     appId: uuid('app_id'),
     terminalId: uuid('terminal_id').references(() => posTerminals.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

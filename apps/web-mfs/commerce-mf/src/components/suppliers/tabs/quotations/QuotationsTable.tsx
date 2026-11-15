@@ -128,7 +128,6 @@ export const QuotationsTable: React.FC<QuotationsTableProps> = ({
       table={quotationsTable}
       mode="tab"
       permission={permission}
-      onRowClick={(quotation) => navigate(quotationPath(quotation), { relative: 'path' })}
       searchConfig={{ columns: [{ id: 'quotationNumber', label: 'Quotation' }], searchAll: true }}
       toolbarActions={toolbarAction ? { actions: toolbarAction } : undefined}
       emptyStateConfig={{ icon: FileText, ...emptyState, action: toolbarAction }}

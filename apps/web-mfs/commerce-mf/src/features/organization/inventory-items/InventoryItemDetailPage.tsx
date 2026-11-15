@@ -13,6 +13,7 @@ import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { MrpTab } from './tabs/mrp/MrpTab';
 import { OverviewTab } from './tabs/OverviewTab';
 import { SuppliersTab } from './tabs/SuppliersTab';
+import { StorageTab } from './tabs/storage/StorageTab';
 import { UomConversionsTab } from './tabs/uom-conversions/UomConversionsTab';
 
 export const InventoryItemDetailPage = () => {
@@ -77,6 +78,12 @@ export const InventoryItemDetailPage = () => {
             label: 'MRP',
             permission: ORG_INVENTORY_ITEMS.mrp.view,
             content: <MrpTab inventoryItemId={item.id} />,
+          },
+          {
+            value: 'storage',
+            label: 'Storage',
+            permission: ORG_INVENTORY_ITEMS.view,
+            content: <StorageTab item={item} />,
           },
           {
             value: 'suppliers',

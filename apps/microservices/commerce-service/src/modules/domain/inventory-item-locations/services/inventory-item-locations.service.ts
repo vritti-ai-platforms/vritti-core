@@ -14,7 +14,7 @@ export class InventoryItemLocationsDomainService {
 
   private static readonly FIELD_MAP: FieldMap = {
     locationName: { column: locations.name, type: 'string' },
-    reorderLevel: { column: inventoryItemLocations.minLevel, type: 'string' },
+    isBlocked: { column: inventoryItemLocations.isBlocked, type: 'boolean' },
   };
 
   constructor(private readonly repository: InventoryItemLocationsDomainRepository) {}
@@ -71,7 +71,7 @@ export class InventoryItemLocationsDomainService {
   // Creates a new config for an item at a location
   async create(
     inventoryItemId: string,
-    data: { locationId: string; reorderLevel: number },
+    data: { locationId: string; isBlocked?: boolean },
   ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
     const existing = await this.repository.findByCompositeKey(inventoryItemId, data.locationId);
     if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
@@ -79,7 +79,7 @@ export class InventoryItemLocationsDomainService {
     const entity = await this.repository.create({
       inventoryItemId: inventoryItemId,
       locationId: data.locationId,
-      minLevel: data.reorderLevel,
+      isBlocked: data.isBlocked ?? false,
     });
 
     const row = await this.repository.findByIdWithLocation(entity.id);
@@ -91,15 +91,21 @@ export class InventoryItemLocationsDomainService {
     };
   }
 
-  // Updates the reorder level of an existing config
-  async update(id: string, data: { reorderLevel: number }): Promise<SuccessResponseDto> {
+  // Blocks or unblocks new putaway of the item into this fixed location
+  async update(id: string, data: { isBlocked: boolean }): Promise<SuccessResponseDto> {
     const existing = await this.repository.findByIdWithLocation(id);
     if (!existing) throw new NotFoundException('Item location configuration not found.');
 
-    await this.repository.update(id, { minLevel: data.reorderLevel });
-    this.logger.log(`Updated item-location config ${id} — reorderLevel: ${data.reorderLevel}`);
+    await this.repository.update(id, { isBlocked: data.isBlocked });
+    this.logger.log(`Updated item-location config ${id} — isBlocked: ${data.isBlocked}`);
 
-    return { success: true, message: 'Reorder level updated successfully.' };
+    const locationLabel = existing.locationName ?? existing.locationId;
+    return {
+      success: true,
+      message: data.isBlocked
+        ? `"${locationLabel}" is now blocked for this item.`
+        : `"${locationLabel}" is now unblocked for this item.`,
+    };
   }
 
   // Deletes an item-location config

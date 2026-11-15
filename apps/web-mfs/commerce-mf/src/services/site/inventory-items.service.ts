@@ -3,13 +3,12 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type { InventoryItemLotsTableResponse } from '@/schemas/inventory-item-lots';
 import type { InventoryItemQuantsTableResponse } from '@/schemas/inventory-item-quants';
 import type {
-  EnableInventoryItemFormData,
   InventoryItemData,
   InventoryItemLedgerTableResponse,
   InventoryItemStockData,
-  SiteInventoryItemsTableResponse,
-  UpdateReorderFormData,
+  SiteStockTableResponse,
 } from '@/schemas/inventory-items';
+import type { ItemStockLevelsData, StockLevelsPayload } from '@/schemas/site-stock-levels';
 import type {
   InventoryItemPriceHistory,
   InventoryItemSuppliersTableResponse,
@@ -18,18 +17,33 @@ import type {
 
 const BASE = 'commerce-api/site/inventory-items';
 
-export function getInventoryItemsTable(): Promise<SiteInventoryItemsTableResponse> {
-  return axios.get<SiteInventoryItemsTableResponse>(`${BASE}/table`).then((r) => r.data);
+export function getInventoryItemsStockTable(): Promise<SiteStockTableResponse> {
+  return axios.get<SiteStockTableResponse>(`${BASE}/stock-table`).then((r) => r.data);
 }
 
-export function enableInventoryItem(data: EnableInventoryItemFormData): Promise<CreateResponse<{ id: string }>> {
-  return axios.post<CreateResponse<{ id: string }>>(`${BASE}/enable`, data).then((r) => r.data);
+// Sets an item's stock levels at the current site
+export function setStockLevels(
+  inventoryItemId: string,
+  data: StockLevelsPayload,
+): Promise<CreateResponse<{ id: string }>> {
+  return axios
+    .post<CreateResponse<{ id: string }>>(`${BASE}/${inventoryItemId}/stock-levels`, data)
+    .then((r) => r.data);
 }
 
-export function updateInventoryItemReorder(
-  data: UpdateReorderFormData & { inventoryItemId: string },
-): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/reorder`, data).then((r) => r.data);
+// Updates an item's stock levels at the current site
+// An item's stock levels at the current site, or null while none are set
+export function getStockLevels(inventoryItemId: string): Promise<ItemStockLevelsData | null> {
+  return axios.get<ItemStockLevelsData | null>(`${BASE}/${inventoryItemId}/stock-levels`).then((r) => r.data);
+}
+
+// Removes an item's stock levels at the current site
+export function removeStockLevels(inventoryItemId: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${inventoryItemId}/stock-levels`).then((r) => r.data);
+}
+
+export function updateStockLevels(inventoryItemId: string, data: StockLevelsPayload): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${inventoryItemId}/stock-levels`, data).then((r) => r.data);
 }
 
 export function getInventoryItem(id: string): Promise<InventoryItemData> {

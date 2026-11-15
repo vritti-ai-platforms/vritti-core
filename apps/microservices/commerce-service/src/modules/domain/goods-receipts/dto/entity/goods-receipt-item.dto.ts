@@ -24,6 +24,7 @@ export class GoodsReceiptItemDto {
   id: string;
   goodsReceiptId: string;
   purchaseOrderItemId: string;
+  inboundDeliveryLineId: string;
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemTracking: InventoryTracking;
@@ -33,6 +34,8 @@ export class GoodsReceiptItemDto {
   primaryUomSymbol: string | null;
   receivedQty: number;
   rejectedQuantity: number;
+  receivedPrimaryQty: number;
+  rejectedPrimaryQty: number;
   acceptedQty: number;
   distributedQty: number;
   orderedQty: number;
@@ -47,16 +50,21 @@ export class GoodsReceiptItemDto {
 
   // Shapes an item and flags over-receipt, short shelf life and rejected goods — flags never block the receipt
   static from(row: GoodsReceiptItemRow): GoodsReceiptItemDto {
+    // A primary quantity in the receipt unit, by the PO line's ordered-to-primary ratio
+    const inLineUnit = (primaryQty: Decimal.Value) =>
+      new Decimal(primaryQty).times(row.orderedQty).div(row.poPrimaryUomQty).toDecimalPlaces(3).toNumber();
     const acceptedQty = new Decimal(row.receivedQty).minus(row.rejectedQuantity);
-    const receivedInAll = acceptedQty.plus(row.alreadyReceivedQty);
-    const expectedInAll = new Decimal(row.orderedQty).plus(row.expectedFreeQty);
+    const expectedFreeQty = inLineUnit(row.poFreePrimaryQty);
+    const alreadyReceivedQty = inLineUnit(row.alreadyAcceptedPrimaryQty);
+    const receivedInAll = acceptedQty.plus(alreadyReceivedQty);
+    const expectedInAll = new Decimal(row.orderedQty).plus(expectedFreeQty);
     const uomSymbol = row.uomSymbol ?? '';
 
     const flags: GoodsReceiptItemFlagDto[] = [];
     if (receivedInAll.gt(expectedInAll)) {
       flags.push({
         code: GoodsReceiptItemFlagCodeValues.OVER_RECEIVED,
-        detail: `${receivedInAll.toString()} ${uomSymbol} received in all against ${expectedInAll.toString()} expected (${row.orderedQty} ordered + ${row.expectedFreeQty} free).`,
+        detail: `${receivedInAll.toString()} ${uomSymbol} received in all against ${expectedInAll.toString()} expected (${row.orderedQty} ordered + ${expectedFreeQty} free).`,
       });
     }
     if (row.earliestExpiryDate !== null) {
@@ -79,6 +87,7 @@ export class GoodsReceiptItemDto {
     dto.id = row.id;
     dto.goodsReceiptId = row.goodsReceiptId;
     dto.purchaseOrderItemId = row.purchaseOrderItemId;
+    dto.inboundDeliveryLineId = row.inboundDeliveryLineId;
     dto.inventoryItemId = row.inventoryItemId;
     dto.inventoryItemName = row.inventoryItemName ?? '';
     dto.inventoryItemTracking = row.inventoryItemTracking;
@@ -88,11 +97,13 @@ export class GoodsReceiptItemDto {
     dto.primaryUomSymbol = row.primaryUomSymbol;
     dto.receivedQty = row.receivedQty;
     dto.rejectedQuantity = row.rejectedQuantity;
+    dto.receivedPrimaryQty = row.receivedPrimaryQty;
+    dto.rejectedPrimaryQty = row.rejectedPrimaryQty;
     dto.acceptedQty = acceptedQty.toNumber();
     dto.distributedQty = row.distributedQty;
     dto.orderedQty = row.orderedQty;
-    dto.expectedFreeQty = row.expectedFreeQty;
-    dto.alreadyReceivedQty = row.alreadyReceivedQty;
+    dto.expectedFreeQty = expectedFreeQty;
+    dto.alreadyReceivedQty = alreadyReceivedQty;
     dto.poUnitPrice = CurrencyAmountDto.from(row.poUnitPrice, row.poCurrencyCode);
     dto.lotsCount = row.lotsCount;
     dto.linesCount = row.linesCount;

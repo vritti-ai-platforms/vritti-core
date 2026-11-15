@@ -27,6 +27,7 @@ import { EnrolledSiteSwitcher } from './switchers/EnrolledSiteSwitcher';
 import { InventoryItemSwitcher } from './switchers/InventoryItemSwitcher';
 import { OfferingSwitcher } from './switchers/OfferingSwitcher';
 import { PaymentTermSwitcher } from './switchers/PaymentTermSwitcher';
+import { PurchaseSwitcher } from './switchers/PurchaseSwitcher';
 import { RepositorySwitcher } from './switchers/RepositorySwitcher';
 import { SmsProviderSwitcher } from './switchers/SmsProviderSwitcher';
 import { SupplierItemSwitcher } from './switchers/SupplierItemSwitcher';
@@ -61,6 +62,7 @@ const DETAIL_SWITCHERS: Record<string, ComponentType<{ segment: string; basePath
   offerings: OfferingSwitcher,
   suppliers: SupplierSwitcher,
   'payment-terms': PaymentTermSwitcher,
+  purchases: PurchaseSwitcher,
   'inventory-items': InventoryItemSwitcher,
   'tax-classes': TaxClassSwitcher,
   'tax-groups': TaxGroupSwitcher,
@@ -189,6 +191,7 @@ export const TopBar = () => {
                           siteId={parseSlug(segment.raw)?.id ?? segment.raw}
                           basePath={parts.slice(0, 5).join('/')}
                           fallbackLabel={entityLabels[segment.path] ?? segment.label}
+                          path={segment.path}
                         />
                       );
                     }

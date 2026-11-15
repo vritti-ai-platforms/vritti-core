@@ -17,7 +17,7 @@ export const taxJurisdictions = commerceSchema.table(
   'tax_jurisdictions',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),
     level: taxJurisdictionLevelEnum('level').notNull(),

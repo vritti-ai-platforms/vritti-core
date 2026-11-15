@@ -292,8 +292,8 @@ importers:
         specifier: ^12.1.1
         version: 12.1.1(@fastify/static@10.1.10)(@nestjs/common@12.4.0(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.0)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(typescript@6.0.3)
       '@vritti/api-sdk':
-        specifier: 0.6.10
-        version: 0.6.10(4f503d490e175f8a040bfaf97f04973d)
+        specifier: 0.6.11
+        version: 0.6.11(4f503d490e175f8a040bfaf97f04973d)
       '@vritti/commerce-permissions':
         specifier: workspace:*
         version: link:../../libs/commerce-permissions
@@ -431,8 +431,8 @@ importers:
         specifier: 5.104.0
         version: 5.104.0(react@19.2.3)
       '@vritti/quantum-ui':
-        specifier: 0.6.4
-        version: 0.6.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
+        specifier: 0.6.5
+        version: 0.6.5(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -643,8 +643,8 @@ importers:
         specifier: ^12.1.1
         version: 12.1.1(@fastify/static@10.1.10)(@nestjs/common@12.4.0(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.0)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(typescript@6.0.3)
       '@vritti/api-sdk':
-        specifier: 0.6.10
-        version: 0.6.10(68134fd8193605c13f24ed14ff33666b)
+        specifier: 0.6.11
+        version: 0.6.11(68134fd8193605c13f24ed14ff33666b)
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -685,6 +685,12 @@ importers:
       '@swc/core':
         specifier: ^1.16.22
         version: 1.16.22(@swc/helpers@0.5.24)
+      '@swc/jest':
+        specifier: ^0.2.39
+        version: 0.2.39(@swc/core@1.16.22(@swc/helpers@0.5.24))
+      '@types/jest':
+        specifier: ^30.0.0
+        version: 30.0.0
       '@types/node':
         specifier: ^22.20.5
         version: 22.20.5
@@ -703,6 +709,9 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-rc.3
         version: 1.0.0-rc.3(@sinclair/typebox@0.34.52)(@types/mssql@9.1.9)(@types/pg@8.23.1)(mssql@11.0.1)(pg@8.23.1)(zod@4.5.4)
+      jest:
+        specifier: ^30.5.2
+        version: 30.5.2(@types/node@22.20.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.16.22(@swc/helpers@0.5.24))(@types/node@22.20.5)(typescript@6.0.3))
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -737,8 +746,8 @@ importers:
         specifier: ^12.1.1
         version: 12.1.1(@fastify/static@10.1.10)(@nestjs/common@12.4.0(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.0)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(typescript@6.0.3)
       '@vritti/api-sdk':
-        specifier: 0.6.10
-        version: 0.6.10(68134fd8193605c13f24ed14ff33666b)
+        specifier: 0.6.11
+        version: 0.6.11(68134fd8193605c13f24ed14ff33666b)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -828,8 +837,8 @@ importers:
         specifier: ^12.1.1
         version: 12.1.1(@fastify/static@10.1.10)(@nestjs/common@12.4.0(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.4.0)(class-transformer@0.5.1)(class-validator@0.14.4)(reflect-metadata@0.2.2)(typescript@6.0.3)
       '@vritti/api-sdk':
-        specifier: 0.6.10
-        version: 0.6.10(68134fd8193605c13f24ed14ff33666b)
+        specifier: 0.6.11
+        version: 0.6.11(68134fd8193605c13f24ed14ff33666b)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -925,8 +934,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/commerce-permissions
       '@vritti/quantum-ui':
-        specifier: 0.6.4
-        version: 0.6.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
+        specifier: 0.6.5
+        version: 0.6.5(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -1001,8 +1010,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/communications-permissions
       '@vritti/quantum-ui':
-        specifier: 0.6.4
-        version: 0.6.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
+        specifier: 0.6.5
+        version: 0.6.5(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -1074,8 +1083,8 @@ importers:
         specifier: workspace:*
         version: link:../../../libs/gitea-permissions
       '@vritti/quantum-ui':
-        specifier: 0.6.4
-        version: 0.6.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
+        specifier: 0.6.5
+        version: 0.6.5(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
       axios:
         specifier: ^1.21.0
         version: 1.21.0
@@ -1201,8 +1210,8 @@ importers:
         specifier: 5.104.0
         version: 5.104.0(react@19.2.0)
       '@vritti/quantum-ui':
-        specifier: 0.6.4
-        version: 0.6.4(@tanstack/react-query@5.104.0(react@19.2.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.0(react@19.2.0))(react-hook-form@7.87.0(react@19.2.0))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.0))(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
+        specifier: 0.6.5
+        version: 0.6.5(@tanstack/react-query@5.104.0(react@19.2.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.0(react@19.2.0))(react-hook-form@7.87.0(react@19.2.0))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.0))(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)
       decimal.js:
         specifier: ^10.6.0
         version: 10.6.0
@@ -7023,8 +7032,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vritti/api-sdk@0.6.10':
-    resolution: {integrity: sha512-aWQDgY5rODKlhG8VgS2XXQURcb5LQik/eHusrfeEdbMg5xd8PJgL5zP52fnLTdBUFnzQPn2Y63LfAEaeyxtL5Q==}
+  '@vritti/api-sdk@0.6.11':
+    resolution: {integrity: sha512-IafiUTUHG/0RjaaOIhaFr8GqnNphX4gDYzNhUX4h+AJQBHtlQxStYL2N2Da3txNBOKStPaAw5FtmAUV3NPeECg==}
     peerDependencies:
       '@aws-sdk/client-s3': ^3.997.0
       '@aws-sdk/s3-request-presigner': ^3.997.0
@@ -7097,8 +7106,8 @@ packages:
       react-native-mmkv:
         optional: true
 
-  '@vritti/quantum-ui@0.6.4':
-    resolution: {integrity: sha512-9oaDOGelriIm9cO5wrRXuhZ/lS/P1e81hHz3VhyT6MQfWFaUVqQlUDDwVZsNTrVEZlEw2wSXYDtBETKN7Q+A8A==}
+  '@vritti/quantum-ui@0.6.5':
+    resolution: {integrity: sha512-69Mu7kJK6j+JBVIHikYxwY9VaX6TeTFzJgBElJiHfP4lh0+Yq7W1keC1DGzhNUAm+sVVZBO59dnFw4t3vtxj8A==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       react: ^18.0.0 || ^19.0.0
@@ -10902,6 +10911,7 @@ packages:
 
   node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
+    deprecated: This package is no longer needed on supported Node.js versions. Node.js 16+ includes AbortController and AbortSignal as built-in globals. All Node.js versions requiring this polyfill are end-of-life. Use the built-in globals instead.
 
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
@@ -17386,7 +17396,7 @@ snapshots:
     dependencies:
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       jest-mock: 29.7.0
 
   '@jest/environment@30.5.2':
@@ -17411,7 +17421,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@sinonjs/fake-timers': 10.3.0
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       jest-message-util: 29.7.0
       jest-mock: 29.7.0
       jest-util: 29.7.0
@@ -17552,7 +17562,7 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       '@types/yargs': 15.0.20
       chalk: 4.1.2
 
@@ -17561,7 +17571,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       '@types/yargs': 17.0.35
       chalk: 4.1.2
 
@@ -21961,7 +21971,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
 
   '@types/hammerjs@2.0.46': {}
 
@@ -21973,7 +21983,7 @@ snapshots:
 
   '@types/http-proxy@1.17.17':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -22107,7 +22117,7 @@ snapshots:
 
   '@types/ws@8.18.2':
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -22194,7 +22204,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.13.0':
     optional: true
 
-  '@vritti/api-sdk@0.6.10(4f503d490e175f8a040bfaf97f04973d)':
+  '@vritti/api-sdk@0.6.11(4f503d490e175f8a040bfaf97f04973d)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
@@ -22268,7 +22278,7 @@ snapshots:
       - typebox
       - valibot
 
-  '@vritti/api-sdk@0.6.10(68134fd8193605c13f24ed14ff33666b)':
+  '@vritti/api-sdk@0.6.11(68134fd8193605c13f24ed14ff33666b)':
     dependencies:
       '@getbrevo/brevo': 4.0.1
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.5.4)
@@ -22470,7 +22480,7 @@ snapshots:
       - react-native-web
       - use-sync-external-store
 
-  '@vritti/quantum-ui@0.6.4(@tanstack/react-query@5.104.0(react@19.2.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.0(react@19.2.0))(react-hook-form@7.87.0(react@19.2.0))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.0))(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)':
+  '@vritti/quantum-ui@0.6.5(@tanstack/react-query@5.104.0(react@19.2.0))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.0(react@19.2.0))(react-hook-form@7.87.0(react@19.2.0))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.0))(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)':
     dependencies:
       '@dagrejs/dagre': 3.1.3
       '@date-fns/tz': 1.5.0
@@ -22565,7 +22575,7 @@ snapshots:
       - vite
       - yjs
 
-  '@vritti/quantum-ui@0.6.4(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)':
+  '@vritti/quantum-ui@0.6.5(@tanstack/react-query@5.104.0(react@19.2.3))(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.2.9)(react-dom@19.2.3(react@19.2.3))(react-hook-form@7.87.0(react@19.2.3))(react-is@19.3.1)(react-router-dom@7.18.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(redux@5.0.1)(use-sync-external-store@1.7.0(react@19.2.3))(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(yjs@13.6.33)':
     dependencies:
       '@dagrejs/dagre': 3.1.3
       '@date-fns/tz': 1.5.0
@@ -23683,7 +23693,7 @@ snapshots:
 
   chrome-launcher@0.15.2:
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -23694,7 +23704,7 @@ snapshots:
 
   chromium-edge-launcher@0.2.0:
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       escape-string-regexp: 4.0.0
       is-wsl: 2.2.0
       lighthouse-logger: 1.4.2
@@ -25963,7 +25973,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -25983,7 +25993,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       anymatch: 3.1.3
       fb-watchman: 2.0.4
       graceful-fs: 4.2.11
@@ -26049,7 +26059,7 @@ snapshots:
   jest-mock@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       jest-util: 29.7.0
 
   jest-mock@30.5.2:
@@ -26164,7 +26174,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -26210,13 +26220,13 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 26.6.6
+      '@types/node': 22.20.5
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1

@@ -281,9 +281,9 @@ const CategoryItemsSection: React.FC<CategoryItemsSectionProps> = ({ categoryId 
         header: 'Item',
       },
       {
-        accessorKey: 'code',
-        header: 'Code',
-        cell: ({ row }) => <StringCell value={row.original.code} mono />,
+        accessorKey: 'sku',
+        header: 'SKU',
+        cell: ({ row }) => <StringCell value={row.original.sku} mono />,
       },
       {
         accessorKey: 'type',

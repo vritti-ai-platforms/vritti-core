@@ -1,11 +1,11 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  CreateLocationData,
   CreateLocationResponse,
   LocationChildrenTableResponse,
   LocationCountData,
   LocationData,
-  LocationFormData,
   LocationItemQuantRow,
   LocationItemsTableResponse,
   LocationTreeNode,
@@ -49,7 +49,7 @@ export function reorderLocations(data: ReorderLocationsData): Promise<SuccessRes
   return axios.post<SuccessResponse>('commerce-api/locations/reorder', data).then((r) => r.data);
 }
 
-export function createLocation(data: LocationFormData): Promise<CreateLocationResponse> {
+export function createLocation(data: CreateLocationData): Promise<CreateLocationResponse> {
   return axios.post<CreateLocationResponse>('commerce-api/locations', data).then((r) => r.data);
 }
 

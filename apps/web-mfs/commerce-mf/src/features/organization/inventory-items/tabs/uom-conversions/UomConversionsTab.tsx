@@ -7,12 +7,14 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { ArrowLeftRight, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
+import { DimensionsText, MeasureText } from '@/components/storage/MeasureText';
 import {
   ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY,
   useDeleteInventoryItemUomConversion,
   useInventoryItemUomConversionsTable,
 } from '@/hooks/organization/inventory-items';
 import type { InventoryItemUomConversionData } from '@/schemas/inventory-item-uom-conversions';
+import { MeasureValues } from '@/schemas/measures';
 import { AddUomConversionForm } from './forms/AddUomConversionForm';
 import { EditUomConversionForm } from './forms/EditUomConversionForm';
 
@@ -61,6 +63,28 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
         ),
       },
       {
+        id: 'packWeight',
+        header: 'Weight',
+        cell: ({ row }) => <MeasureText value={row.original.weight} measure={MeasureValues.WEIGHT} inBaseUnits />,
+      },
+      {
+        id: 'packVolume',
+        header: 'Volume',
+        cell: ({ row }) => <MeasureText value={row.original.volume} measure={MeasureValues.VOLUME} inBaseUnits />,
+      },
+      {
+        id: 'packDimensions',
+        header: 'L × W × H',
+        cell: ({ row }) => (
+          <DimensionsText
+            length={row.original.length}
+            width={row.original.width}
+            height={row.original.height}
+            inBaseUnits
+          />
+        ),
+      },
+      {
         id: 'actions',
         header: '',
         cell: ({ row }) => (
@@ -73,15 +97,12 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 permission: ORG_INVENTORY_ITEMS.conversions.edit,
                 dialog: {
                   title: 'Edit UOM Conversion',
-                  description: `Update the conversion ratio for ${row.original.uomName} (${row.original.uomSymbol}).`,
+                  description: `Update the conversion ratio and pack figures for ${row.original.uomName} (${row.original.uomSymbol}).`,
                   content: (close) => (
                     <EditUomConversionForm
                       inventoryItemId={inventoryItemId}
-                      conversionId={row.original.id}
-                      uomSymbol={row.original.uomSymbol}
+                      conversion={row.original}
                       itemUomSymbol={itemUomSymbol}
-                      currentPrimaryUomQty={row.original.primaryUomQty}
-                      currentUomQty={row.original.uomQty}
                       onSuccess={close}
                       onCancel={close}
                     />

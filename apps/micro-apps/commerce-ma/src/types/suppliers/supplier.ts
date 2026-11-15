@@ -16,5 +16,4 @@ export interface Supplier {
   minOrderQuantity: number | null;
   leadTimeDays: number;
   isPreferred: boolean;
-  isActive: boolean;
 }

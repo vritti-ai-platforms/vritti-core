@@ -2,15 +2,15 @@ import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { index, timestamp, unique, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
 import { parties } from './parties';
-import { LE_GUC, organizationIdColumn, workspaceScopeColumns, workspaceScopePolicies } from './workspace-scope';
+import { legalEntityIdColumn, organizationIdColumn, siteIdColumn, workspaceScopePolicies } from './workspace-scope';
 
 export const carts = commerceSchema.table(
   'carts',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    ...workspaceScopeColumns,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw(LE_GUC)),
+    organizationId: organizationIdColumn(),
+    legalEntityId: legalEntityIdColumn().notNull(),
+    siteId: siteIdColumn(),
     partyId: uuid('party_id')
       .notNull()
       .references(() => parties.id, { onDelete: 'cascade' }),

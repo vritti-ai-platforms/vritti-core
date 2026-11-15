@@ -22,7 +22,7 @@ export class CreateSupplierEnrollmentDto {
   paymentTermId: string;
 
   @ApiPropertyOptional({
-    description: "Supplier's GSTIN or VAT registration this site is billed under; omit for an unregistered supplier",
+    description: "Supplier's GSTIN or VAT registration this site is invoiced under; omit for an unregistered supplier",
     nullable: true,
   })
   @IsOptional()

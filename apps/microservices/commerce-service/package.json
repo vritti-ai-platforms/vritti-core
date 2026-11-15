@@ -11,6 +11,7 @@
     "check": "biome check --write .",
     "format": "biome format --write .",
     "lint": "biome lint .",
+    "test": "jest",
     "start": "infisical run --path=/commerce-service -- nest start",
     "dev": "infisical run --path=/commerce-service -- nest start --watch",
     "dev:dev": "infisical run --env=dev-local --path=/commerce-service -- nest start --watch",
@@ -38,7 +39,7 @@
     "@nestjs/jwt": "^12.0.4",
     "@nestjs/microservices": "^12.4.0",
     "@nestjs/swagger": "^12.1.1",
-    "@vritti/api-sdk": "0.6.10",
+    "@vritti/api-sdk": "0.6.11",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "date-fns": "^4.4.0",
@@ -54,15 +55,40 @@
     "@nestjs/schematics": "^12.0.13",
     "@swc/cli": "^0.8.2",
     "@swc/core": "^1.16.22",
+    "@swc/jest": "^0.2.39",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.20.5",
     "@types/pg": "^8.23.1",
     "cross-env": "^10.1.0",
     "dotenv-cli": "^11.1.0",
     "drizzle-kit": "1.0.0-rc.3",
     "drizzle-orm": "1.0.0-rc.3",
+    "jest": "^30.5.2",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "@swc/jest"
+      ]
+    },
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1",
+      "^@domain/(.*)$": "<rootDir>/modules/domain/$1"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!\\.pnpm)(?!@nestjs)(?!@nats-io)(?!dinero\\.js)"
+    ]
   }
 }

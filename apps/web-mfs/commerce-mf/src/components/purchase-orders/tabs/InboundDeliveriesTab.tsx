@@ -24,7 +24,7 @@ interface InboundDeliveriesTabProps {
   purchaseOrder: PurchaseOrderDetail;
 }
 
-// The inbound deliveries carrying any of the order's lines, announced or created by a receipt; a row opens the delivery
+// The inbound deliveries carrying any of the order's lines, created ahead of the goods or by a receipt; a row opens the delivery
 // in the inbound deliveries feature
 export const InboundDeliveriesTab: React.FC<InboundDeliveriesTabProps> = ({ binding, purchaseOrder }) => {
   const purchaseOrderId = purchaseOrder.id;
@@ -54,12 +54,7 @@ export const InboundDeliveriesTab: React.FC<InboundDeliveriesTabProps> = ({ bind
       {
         accessorKey: 'source',
         header: 'Source',
-        cell: ({ row }) =>
-          row.original.source === 'RECEIPT' ? (
-            <StringCell value={row.original.sourceGrNumber} mono />
-          ) : (
-            inboundDeliverySourceConfig[row.original.source].label
-          ),
+        cell: ({ row }) => inboundDeliverySourceConfig[row.original.source].label,
         enableSorting: false,
       },
       {
@@ -125,12 +120,11 @@ export const InboundDeliveriesTab: React.FC<InboundDeliveriesTabProps> = ({ bind
       table={inboundDeliveriesTable}
       mode="tab"
       permission={binding.permissions.view}
-      onRowClick={openDelivery}
       emptyStateConfig={{
         icon: Truck,
         title: 'No inbound deliveries',
         description:
-          "Deliveries the supplier announces for this order's lines, or that its goods receipts create, will appear here.",
+          "Inbound deliveries created for this order's lines, ahead of the goods or by its goods receipts, will appear here.",
       }}
     />
   );

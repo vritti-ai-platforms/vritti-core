@@ -9,7 +9,7 @@ export const inventoryItemCosts = commerceSchema.table(
   'inventory_item_costs',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     categoryId: uuid('category_id')
       .notNull()
       .references(() => costCategories.id, { onDelete: 'restrict' }),

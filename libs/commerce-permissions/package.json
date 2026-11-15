@@ -37,6 +37,10 @@
       "types": "./dist/people.d.ts",
       "default": "./dist/people.js"
     },
+    "./purchases": {
+      "types": "./dist/purchases.d.ts",
+      "default": "./dist/purchases.js"
+    },
     "./inventory-items": {
       "types": "./dist/inventory-items.d.ts",
       "default": "./dist/inventory-items.js"
@@ -64,6 +68,14 @@
     "./locations": {
       "types": "./dist/locations.d.ts",
       "default": "./dist/locations.js"
+    },
+    "./storage-types": {
+      "types": "./dist/storage-types.d.ts",
+      "default": "./dist/storage-types.js"
+    },
+    "./cost-categories": {
+      "types": "./dist/cost-categories.d.ts",
+      "default": "./dist/cost-categories.js"
     },
     "./attribute-templates": {
       "types": "./dist/attribute-templates.d.ts",

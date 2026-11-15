@@ -16,7 +16,7 @@ import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
-import { Boxes, ClipboardList, ClipboardMinus, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Boxes, ClipboardList, ClipboardMinus, Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_BY_LOT_TABLE_KEY,
@@ -174,7 +174,7 @@ const LotDetailContent = ({
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => <StringCell value={row.original.locationName ?? row.original.locationId} />,
+        cell: ({ row }) => <StringCell value={row.original.locationName} />,
         enableSorting: true,
       },
       {
@@ -210,7 +210,7 @@ const LotDetailContent = ({
             } satisfies ColumnDef<StockAdjustmentLineData>,
           ]
         : []),
-      ...(isDraft
+      ...(isDraft || onSelectLine
         ? [
             {
               id: 'actions',
@@ -219,9 +219,17 @@ const LotDetailContent = ({
                 <RowActions
                   actions={[
                     {
+                      id: 'view',
+                      icon: Eye,
+                      label: 'View',
+                      hidden: !onSelectLine,
+                      onClick: () => onSelectLine?.(row.original.id),
+                    },
+                    {
                       id: 'edit',
                       icon: Pencil,
                       label: 'Edit',
+                      hidden: !isDraft,
                       dialog: {
                         title: 'Edit Line',
                         description: 'Update the storage location or quantity for this line.',
@@ -242,6 +250,7 @@ const LotDetailContent = ({
                       icon: Trash2,
                       label: 'Remove',
                       variant: 'destructive',
+                      hidden: !isDraft,
                       onClick: () => handleRemoveLine(row.original),
                     },
                   ]}
@@ -253,7 +262,7 @@ const LotDetailContent = ({
           ]
         : []),
     ],
-    [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine],
+    [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine, onSelectLine],
   );
 
   const stockAdjustmentLinesByLotTable = useDataTable({
@@ -320,7 +329,6 @@ const LotDetailContent = ({
       <DataTable
         table={stockAdjustmentLinesByLotTable}
         mode="compact"
-        onRowClick={onSelectLine ? (row) => onSelectLine(row.id) : undefined}
         selectedRowId={selectedLineId ?? null}
         searchConfig={{
           columns: [

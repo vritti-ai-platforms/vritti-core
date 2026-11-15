@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { desc, type SQL } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import { type User, users } from '@/db/schema';
+
+export type UserName = Pick<User, 'id' | 'fullName'>;
 
 @Injectable()
 export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
@@ -49,6 +51,15 @@ export class UserDomainRepository extends PrimaryBaseRepository<typeof users> {
     return this.model.findFirst({
       where: { email, organizationId },
     });
+  }
+
+  // Finds the full names of an organization's users among the given ids
+  async findNamesByIds(organizationId: string, ids: string[]): Promise<UserName[]> {
+    if (ids.length === 0) return [];
+    return this.db
+      .select({ id: users.id, fullName: users.fullName })
+      .from(users)
+      .where(and(eq(users.organizationId, organizationId), inArray(users.id, ids)));
   }
 
   // Updates the last login timestamp for a user

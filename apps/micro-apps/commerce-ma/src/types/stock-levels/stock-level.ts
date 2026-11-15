@@ -7,5 +7,4 @@ export interface StockLevel {
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
-  reorderLevel: number | null;
 }

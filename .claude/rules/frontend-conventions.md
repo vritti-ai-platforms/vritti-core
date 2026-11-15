@@ -353,6 +353,67 @@ const siteId = pricesTable.contextValue('site'); // the picked value, read by fi
   `setTableContext` merges into the saved state server-side (`PATCH /table-states`), keeping the user's filters,
   sort, columns and view.
 - A field lives in the filter panel or the context bar, never both.
+- Pick `mode` by what sits above the table: a page's own table → `page` (the default); a `Tabs` item's content,
+  directly or through its components → `mode="tab"`; under a step indicator (a purchase's stage views) →
+  `mode="stepper"`, and `mode="stepperTab"` when a tab strip sits between the steps and the table; beside a detail
+  panel, under a form in the same tab, or in a dialog → `mode="compact"`. A shared table rendered both ways takes a
+  `mode` prop from its caller.
+
+## DataTable rows — no `onRowClick`; actions, not instructions
+
+Never pass `onRowClick` to `<DataTable>` (navigation, opening a panel, selecting a line — none of it). A row opens
+through a **View** item in its `RowActions`; a detail panel's selection is a View action that calls the select handler.
+`selectedRowId` may still highlight the open row.
+
+```tsx
+// WRONG
+<DataTable table={purchasesTable} onRowClick={openPurchase} />
+
+// CORRECT
+{ id: 'actions', header: '', cell: ({ row }) => (
+  <RowActions actions={[{ id: 'view', icon: Eye, label: 'View', permission: permissions.view, onClick: () => openPurchase(row.original) }]} />
+), enableSorting: false, enableHiding: false }
+```
+
+When a row can't show its value until something is set up, put the action that sets it up in the row's
+`RowActions` as a **dialog item**, pre-filled with that row and `hidden` once it is set up. `RowActions` owns
+the dialog (no page-level `useDialog` / selected-id state), and the cell shows nothing (`<StringCell value={null} />`
+renders `—`) — never a sentence telling the user what to do ("Can't buy or stock X until its stock levels are set"),
+and never a hand-placed `<Button>` in the cell.
+
+```tsx
+// WRONG — instruction text, or a cell button driving page-level dialog state
+if (!item.stockStatus) return <Typography variant="caption" intent="muted">Can't buy or stock this until …</Typography>;
+if (!item.stockStatus) return <Button onClick={() => openSetStockLevels(item.id)}>Set Stock Levels</Button>;
+
+// CORRECT — the cell is empty; the row's RowActions carries the pre-filled dialog
+if (!item.stockStatus) return <StringCell value={null} />;
+…
+{ id: 'set', icon: PackageCheck, label: 'Set Stock Levels', permission: SITE_INVENTORY_ITEMS.stockLevels.add,
+  hidden: row.original.hasStockLevels,
+  dialog: { title: `Set Stock Levels for "${row.original.name}"`, description: '…',
+    content: (close) => <SetStockLevelsForm inventoryItemId={row.original.id} onSuccess={close} onCancel={close} /> } }
+```
+
+Creating a record that isn't tied to a row is a **table action** (`toolbarActions`); the row's dialog item above is the
+same form, pre-filled with the row.
+
+## Names — never fall back to another field
+
+A name the record always has is typed `string` and rendered as is. Never chain it to another field or a placeholder
+(`siteName ?? siteCode`, `locationName ?? locationId`, `inventoryItemName ?? purchaseOrderItemId`,
+`siteName ?? 'this site'`, `supplierName ?? '—'`). A fallback hides a broken join or a wrong type, and shows the user
+an id or a vague word instead of the thing.
+
+- **Fix the source, not the screen.** Same database: an `innerJoins` entry when the foreign key is `NOT NULL`, and
+  the row type's name as `string`. Cross-database (site / LE / org names live in core): the gateway names the rows
+  with `OwnerNameService.withSiteNames` (throws on a missing site) and the response DTO declares `siteName: string`.
+  Two sites on one row (a transfer's from / to): `requireSiteNames`.
+- **Null only when the record genuinely has none** — a legal-entity-level row with no site, a cost line with no
+  item. Model it as a discriminated type (`{ siteId: string; siteName: string } | { siteId: null; siteName: null }`)
+  so a check on the id narrows the name, and the gateway uses `withOptionalSiteNames`.
+- A nullable display value in a cell goes to `StringCell` / `DetailField`, which render `—` themselves — never
+  `value={x ?? '—'}`.
 
 ## Context bars outside tables — `useContextState` + `<ContextBar>`
 

@@ -15,6 +15,7 @@ import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { InventoryItemSupplierData } from '@/schemas/suppliers';
+import { SiteFilter } from '@/selectors/site';
 import type { UseInventoryItemSuppliersTable } from '../types';
 
 interface SuppliersTabProps {
@@ -24,6 +25,8 @@ interface SuppliersTabProps {
   tableSlug: string;
   permission?: string;
   showSiteTerms?: boolean;
+  // A clearable site in the context bar; picking one narrows the table to the suppliers of that site, with their terms there
+  siteContext?: boolean;
   // Where a supplier's View action goes (absolute) and who may follow it; without it the rows have no View action
   supplierView?: { path: (row: InventoryItemSupplierData) => string; permission: string };
 }
@@ -60,11 +63,17 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
   tableSlug,
   permission,
   showSiteTerms = false,
+  siteContext = false,
   supplierView,
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const suppliersTableQuery = useSuppliersTable(inventoryItemId);
+  // The columns follow the site the rows came back for, so they always match the data shown
+  const rowsSite = siteContext
+    ? suppliersTableQuery.data?.state.filters.context?.find((condition) => condition.field === 'site')?.value
+    : undefined;
+  const showsSiteTerms = showSiteTerms || typeof rowsSite === 'string';
 
   const columns = useMemo<ColumnDef<InventoryItemSupplierData>[]>(
     () => [
@@ -89,7 +98,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
         header: 'UOM',
         cell: ({ row }) => row.original.uomSymbol,
       },
-      ...(showSiteTerms
+      ...(showsSiteTerms
         ? SITE_TERM_COLUMNS
         : [
             {
@@ -124,7 +133,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
           ]
         : []),
     ],
-    [showSiteTerms, supplierView, navigate],
+    [showsSiteTerms, supplierView, navigate],
   );
 
   const suppliersTable = useDataTable({
@@ -150,8 +159,13 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
         ],
         searchAll: true,
       }}
+      contextBar={
+        siteContext ? (
+          <SiteFilter name="site" label="Site" placeholder="All sites" mode="context" clearable />
+        ) : undefined
+      }
       filters={
-        showSiteTerms
+        showsSiteTerms
           ? [
               <SelectFilter
                 key="isPreferred"
@@ -168,7 +182,10 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
       emptyStateConfig={{
         icon: Truck,
         title: 'No suppliers',
-        description: 'No suppliers carry this item yet. Link this item from a supplier detail page to get started.',
+        description:
+          typeof rowsSite === 'string'
+            ? 'No supplier supplies this item to this site yet.'
+            : 'No suppliers carry this item yet. Link this item from a supplier detail page to get started.',
       }}
     />
   );

@@ -24,7 +24,6 @@ export class InventoryItemLotsDomainRepository extends PrimaryBaseRepository<typ
       select: {
         id: inventoryItemLots.id,
         organizationId: inventoryItemLots.organizationId,
-        siteId: inventoryItemLots.siteId,
         inventoryItemId: inventoryItemLots.inventoryItemId,
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,

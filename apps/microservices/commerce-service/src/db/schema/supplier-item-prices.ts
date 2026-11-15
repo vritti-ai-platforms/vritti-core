@@ -15,14 +15,14 @@ import { supplierPriceSourceEnum } from './enums';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { supplierQuotationSites } from './supplier-quotations';
 import { supplierItems } from './suppliers';
-import { organizationIdColumn, siteDocumentPolicies, siteStratum } from './workspace-scope';
+import { legalEntityIdColumn, organizationIdColumn, siteDocumentPolicies, siteStratum } from './workspace-scope';
 
 export const supplierItemPrices = commerceSchema.table(
   'supplier_item_prices',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull(),
+    organizationId: organizationIdColumn(),
+    legalEntityId: legalEntityIdColumn().notNull(),
     // Empty for the legal entity's price, which every site without a price of its own in force uses
     siteId: uuid('site_id'),
     supplierItemId: uuid('supplier_item_id')

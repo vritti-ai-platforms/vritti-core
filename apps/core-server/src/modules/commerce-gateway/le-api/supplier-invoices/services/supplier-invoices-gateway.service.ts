@@ -1,18 +1,21 @@
-import type { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
+import type { LeCreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/le-create-supplier-invoice.dto';
+import type { LeInvoiceableGoodsReceiptsQueryDto } from '@commerce/supplier-invoices/dto/request/le-invoiceable-goods-receipts-query.dto';
+import type { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import type { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import type { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
+import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
 } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
-import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
+import { SiteContextResolverService } from '@/site-context/site-context-resolver.service';
 
 type CommerceSupplierInvoice = Omit<SupplierInvoiceResponseDto, 'siteName' | 'siteCode'>;
 type CommerceSupplierInvoiceDetail = Omit<SupplierInvoiceDetailResponseDto, 'siteName' | 'siteCode'>;
@@ -25,7 +28,7 @@ export class SupplierInvoicesGatewayService {
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
-    private readonly siteRepository: SiteDomainRepository,
+    private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
   // Returns the invoices of the legal entity's sites with server-stored state and site names
@@ -40,59 +43,53 @@ export class SupplierInvoicesGatewayService {
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
-  // Returns an invoice with its lines, flags and linked receipts, its site named
-  async findById(
-    id: string,
-    orgId: string,
-    legalEntityId: string | undefined,
-  ): Promise<SupplierInvoiceDetailResponseDto> {
+  // Returns an invoice with its lines and holds, its site named
+  async findById(id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
     this.logger.log(`le.supplierInvoices.findById — id: ${id}`);
     const invoice = await this.nats.send<CommerceSupplierInvoiceDetail>('commerce', 'le.supplierInvoices.findById', {
       id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
     });
     const [named] = await this.ownerNames.withSiteNames(orgId, [invoice]);
     return named;
   }
 
-  // Records a draft invoice billing a purchase order of one of the legal entity's sites
-  create(dto: CreateSupplierInvoiceDto): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
-    this.logger.log(
-      `le.supplierInvoices.create — purchaseOrderId: ${dto.purchaseOrderId}, number: ${dto.invoiceNumber}`,
-    );
+  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, oldest receipt first
+  async findInvoiceableGoodsReceipts(
+    siteId: string,
+    query: LeInvoiceableGoodsReceiptsQueryDto,
+    legalEntityId: string | undefined,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
+    this.logger.log(`le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${siteId}`);
+    await this.validateSiteOfLegalEntity(siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.supplierInvoices.invoiceableGoodsReceipts', { ...query, siteId });
+  }
+
+  // Records a draft invoice of a supplier at one of the legal entity's sites
+  async create(
+    dto: LeCreateSupplierInvoiceDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+    this.logger.log(`le.supplierInvoices.create — supplierId: ${dto.supplierId}, site: ${dto.siteId}`);
+    await this.validateSiteOfLegalEntity(dto.siteId, legalEntityId);
     return this.nats.send('commerce', 'le.supplierInvoices.create', dto);
   }
 
   // Updates an invoice's header; a posted invoice is re-costed in the legal entity's currency
-  async update(
-    id: string,
-    dto: UpdateSupplierInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  update(id: string, dto: UpdateSupplierInvoiceDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.update', {
-      ...dto,
-      id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.update', { ...dto, id });
   }
 
-  // Posts a draft invoice, setting the final cost of the stock it bills
-  async post(id: string, legalEntityId: string | undefined): Promise<SuccessResponseDto> {
+  // Posts a draft invoice, setting the final cost of the stock it invoices
+  post(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.post — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.post', {
-      id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.post', { id });
   }
 
-  // Cancels an invoice, reversing its costing when it was posted
-  async cancel(id: string, legalEntityId: string | undefined): Promise<SuccessResponseDto> {
+  // Cancels an invoice, reversing its costing and the order's invoiced quantities when it was posted
+  cancel(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.cancel — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.cancel', {
-      id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.cancel', { id });
   }
 
   // Deletes a draft invoice
@@ -101,55 +98,39 @@ export class SupplierInvoicesGatewayService {
     return this.nats.send('commerce', 'le.supplierInvoices.delete', { id });
   }
 
-  // Adds a billed line to an invoice
-  async createLine(
-    supplierInvoiceId: string,
-    dto: SupplierInvoiceLineDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  // Releases an open hold of an invoice with a reason
+  releaseHold(supplierInvoiceId: string, id: string, dto: ReleaseSupplierInvoiceHoldDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.holds.release — invoiceId: ${supplierInvoiceId}, hold: ${id}`);
+    return this.nats.send('commerce', 'le.supplierInvoices.holds.release', { ...dto, supplierInvoiceId, id });
+  }
+
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
+  createLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.lines.create — invoiceId: ${supplierInvoiceId}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.lines.create', {
-      ...dto,
-      supplierInvoiceId,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.lines.create', { ...dto, supplierInvoiceId });
   }
 
   // Updates a line of an invoice
-  async updateLine(
-    supplierInvoiceId: string,
-    id: string,
-    dto: SupplierInvoiceLineDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  updateLine(supplierInvoiceId: string, id: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.lines.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.lines.update', {
-      ...dto,
-      id,
-      supplierInvoiceId,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.lines.update', { ...dto, id, supplierInvoiceId });
   }
 
   // Removes a line from an invoice
-  async deleteLine(
-    supplierInvoiceId: string,
-    id: string,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
+  deleteLine(supplierInvoiceId: string, id: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.lines.delete — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.lines.delete', {
-      supplierInvoiceId,
-      id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.supplierInvoices.lines.delete', { supplierInvoiceId, id });
   }
 
-  // Resolves the legal entity's currency, which invoice costing and variances are kept in; commerce gets no site
-  // context in an LE request to read it from
-  private async leCurrencyCode(legalEntityId: string | undefined): Promise<string> {
-    const legalEntity = legalEntityId ? await this.siteRepository.findLegalEntityById(legalEntityId) : undefined;
-    if (!legalEntity) throw new NotFoundException('Legal entity not found.');
-    return legalEntity.currencyCode;
+  // Rejects a site outside the legal entity the user is working in
+  private async validateSiteOfLegalEntity(siteId: string, legalEntityId: string | undefined): Promise<void> {
+    const site = await this.siteContextResolver.resolve(siteId);
+    if (site.legalEntityId !== legalEntityId) {
+      throw new BadRequestException({
+        label: 'Site Not In Company',
+        detail: 'Supplier invoices can only be entered for the sites of the company you are working in.',
+        errors: [{ field: 'siteId', message: 'Not one of your sites' }],
+      });
+    }
   }
 }

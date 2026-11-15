@@ -11,25 +11,42 @@ with `commerceSchema.table(...)`. The shared scope/RLS helpers live in `workspac
 file is the single source of truth for tenancy and workspace rules. Nothing in it should be
 re-implemented inline.
 
-## 1. Every table carries `organizationIdColumn`
+## 1. Scope columns come from the column functions
 
 ```typescript
-import { organizationIdColumn } from './workspace-scope';
+import { organizationIdColumn, siteDocumentColumns } from './workspace-scope';
 
-organizationId: organizationIdColumn,   // notNull + defaults from app.org_id
+organizationId: organizationIdColumn(),   // every table: notNull + defaults from app.org_id
+...siteDocumentColumns(),                 // a site document: legal_entity_id + site_id, both notNull
 ```
 
-Never redeclare `uuid('organization_id').notNull().default(...)` by hand — the default expression is
-part of the tenancy contract.
+| Function | Gives |
+|---|---|
+| `organizationIdColumn()` | `organization_id`, notNull, default `app.org_id` |
+| `legalEntityIdColumn()` / `siteIdColumn()` | one owner column, defaulted from `LE_GUC` / `SITE_GUC`; chain `.notNull()` when it is always set |
+| `workspaceScopeColumns()` | both owner columns, nullable (org / LE / site rows) |
+| `siteDocumentColumns()` | both owner columns, notNull |
+
+`organizationId: organizationIdColumn()` is always its own line, on every table, never folded into a grouped
+function — one explicit line per table is what a reviewer checks for.
+
+They are functions so every table gets its own column builder. Never redeclare
+`uuid('organization_id' | 'legal_entity_id' | 'site_id')` with a GUC default by hand — the default expression is part
+of the tenancy contract.
+
+**A request default only where the request's workspace owns the row.** Keep a plain `uuid('site_id')` /
+`uuid('legal_entity_id')` with no default when an empty value means something (e.g. `supplier_item_prices.site_id`
+empty = the LE's price) or the owner is not the requester (checkout lines, payment allocations) — a default would
+silently stamp the request's workspace on a row the caller left empty on purpose.
 
 ## 2. Pick the policy helper from where the table's scope lives
 
 | The table… | Columns | Policies |
 |---|---|---|
-| owns its workspace scope, and parent workspaces should see child rows | `...workspaceScopeColumns` | `...workspaceHierarchyPolicies()` |
-| owns its workspace scope, reach is upward only | `...workspaceScopeColumns` | `...workspaceScopePolicies('<name>')` |
-| is owned by a legal entity and never by a site (`legal_entity_id` NOT NULL, no `site_id`) | `legalEntityId` | `...legalEntityOwnedPolicies()` |
-| is a site document (`legal_entity_id` and `site_id` both always set) | `legalEntityId`, `siteId` | `...siteDocumentPolicies()` |
+| owns its workspace scope, and parent workspaces should see child rows | `...workspaceScopeColumns()` | `...workspaceHierarchyPolicies()` |
+| owns its workspace scope, reach is upward only | `...workspaceScopeColumns()` | `...workspaceScopePolicies('<name>')` |
+| is owned by a legal entity and never by a site (`legal_entity_id` NOT NULL, no `site_id`) | `legalEntityId: legalEntityIdColumn().notNull()` | `...legalEntityOwnedPolicies()` |
+| is a site document (`legal_entity_id` and `site_id` both always set) | `...siteDocumentColumns()` | `...siteDocumentPolicies()` |
 | has no scope columns — scope derived from an ancestor that does | — | `...scopeFromOwnerPolicies({ … })` |
 | is org-wide with no workspace dimension at all | — | `orgIsolationPolicy()` |
 
@@ -107,8 +124,8 @@ Postgres computes `allowed = (OR of permissive) AND (AND of restrictive)`. Zero 
 means zero rows pass, for everyone. `orgIsolationPolicy()` is the permissive base every other policy
 narrows — if it is missing, the table is either fully open (RLS never enabled) or fully closed.
 
-Known debt, do NOT drive-by fix: `document-counters`, `inventory-item-ledger`, `invoice-items`,
-`payments`, `tax-rates` have no policy helper, and 29 legacy tables carry permissive-only `site_*`
+Known debt, do NOT drive-by fix: `document-counters`, `invoice-items`,
+`payments`, `tax-rates` have no policy helper, and 20 legacy tables carry permissive-only `site_*`
 policies that OR with `org_isolation` and therefore restrict nothing. Both are deferred to the
 LE/SITE_GROUP re-scoping.
 

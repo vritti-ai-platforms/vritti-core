@@ -22,8 +22,8 @@ export const dimensionTemplates = commerceSchema.table(
   'dimension_templates',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    ...workspaceScopeColumns,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 100 }).notNull(),
     description: varchar('description', { length: 500 }),
@@ -55,7 +55,7 @@ export const dimensionTemplateValues = commerceSchema.table(
   'dimension_template_values',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     templateId: uuid('template_id')
       .notNull()
       .references(() => dimensionTemplates.id, { onDelete: 'cascade' }),

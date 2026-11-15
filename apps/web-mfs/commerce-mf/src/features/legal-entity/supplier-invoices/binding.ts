@@ -6,11 +6,14 @@ import {
   useCancelSupplierInvoice,
   useCreateSupplierInvoice,
   useDeleteSupplierInvoice,
+  useInvoiceableGoodsReceipts,
   usePostSupplierInvoice,
+  useReleaseSupplierInvoiceHold,
   useRemoveSupplierInvoiceLine,
   useUpdateSupplierInvoice,
   useUpdateSupplierInvoiceLine,
 } from '@/hooks/legal-entity/supplier-invoices';
+import { SupplierSelector } from '@/selectors/supplier';
 
 // The invoices of every site of the legal entity, which also cancels invoices and deletes drafts
 export const binding: SupplierInvoicesBinding = {
@@ -22,12 +25,15 @@ export const binding: SupplierInvoicesBinding = {
   spansSites: true,
   invoicePath: (invoice) => buildSlug(invoice.invoiceNumber, invoice.id),
   listPath: '..',
+  SupplierSelector,
   useCreateInvoice: useCreateSupplierInvoice,
   useUpdateInvoice: useUpdateSupplierInvoice,
   usePostInvoice: usePostSupplierInvoice,
+  useInvoiceableGoodsReceipts,
   useAddLine: useAddSupplierInvoiceLine,
   useUpdateLine: useUpdateSupplierInvoiceLine,
   useRemoveLine: useRemoveSupplierInvoiceLine,
+  useReleaseHold: useReleaseSupplierInvoiceHold,
   removal: {
     permissions: { cancel: LE_SUPPLIER_INVOICES.edit, delete: LE_SUPPLIER_INVOICES.delete },
     useCancelInvoice: useCancelSupplierInvoice,

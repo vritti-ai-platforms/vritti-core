@@ -18,7 +18,7 @@ export const taxComponents = commerceSchema.table(
   'tax_components',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     countryCode: varchar('country_code', { length: 2 }).notNull(),
     code: varchar('code', { length: 50 }).notNull(),
     name: varchar('name', { length: 255 }).notNull(),

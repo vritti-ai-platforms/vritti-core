@@ -1,10 +1,5 @@
-import { LE_GOODS_RECEIPTS } from '@vritti/commerce-permissions/goods-receipts';
 import { LE_PURCHASE_ORDERS } from '@vritti/commerce-permissions/purchase-orders';
 import type { PurchaseOrdersBinding } from '@/components/purchase-orders/bindings';
-import {
-  useCreateGoodsReceiptFromDelivery,
-  useCreateGoodsReceiptFromPurchaseOrders,
-} from '@/hooks/legal-entity/goods-receipts';
 import {
   PURCHASE_ORDER_GOODS_RECEIPTS_TABLE_KEY,
   PURCHASE_ORDER_INBOUND_DELIVERIES_TABLE_KEY,
@@ -13,7 +8,7 @@ import {
   useAddPurchaseOrderItem,
   useChangePurchaseOrderExchangeRate,
   useChangePurchaseOrderSupplier,
-  useClosePurchaseOrder,
+  useCompletePurchaseOrderDelivery,
   useCreatePurchaseOrder,
   useDeletePurchaseOrder,
   useDownloadPurchaseOrderPdf,
@@ -41,11 +36,6 @@ export const binding: PurchaseOrdersBinding = {
   permissions: LE_PURCHASE_ORDERS,
   spansSites: true,
   suppliers: { Selector: SupplierSelector, Filter: SupplierFilter },
-  goodsReceipts: {
-    addPermission: LE_GOODS_RECEIPTS.add,
-    useCreateFromDelivery: useCreateGoodsReceiptFromDelivery,
-    useCreateFromPurchaseOrders: useCreateGoodsReceiptFromPurchaseOrders,
-  },
   invoices: {
     permission: LE_PURCHASE_ORDERS.invoices.view,
     Tab: InvoicesTab,
@@ -80,7 +70,7 @@ export const binding: PurchaseOrdersBinding = {
   useUpdateStatus: useUpdatePurchaseOrderStatus,
   useUpdateTaxDate: useUpdatePurchaseOrderTaxDate,
   useSendEmail: useSendPurchaseOrderEmail,
-  useClose: useClosePurchaseOrder,
+  useCompleteDelivery: useCompletePurchaseOrderDelivery,
   useDelete: useDeletePurchaseOrder,
   useDownloadPdf: useDownloadPurchaseOrderPdf,
 };

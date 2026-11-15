@@ -14,9 +14,7 @@ import { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto
 import { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
 import { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
-import { CreatePurchaseOrderInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-purchase-order-invoice.dto';
 import { PurchaseOrderInvoiceSummaryResponseDto } from '@commerce/supplier-invoices/dto/response/purchase-order-invoice-summary-response.dto';
-import { SupplierInvoiceResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiProduces, ApiResponse } from '@nestjs/swagger';
@@ -45,6 +43,7 @@ export function ApiCreate() {
       status: 400,
       description: 'The supplier is not purchasable at the site, or does not trade in the currency.',
     }),
+    ApiResponse({ status: 404, description: 'Supplier is not enrolled for this site.' }),
     ApiResponse({ status: 422, description: 'The exchange rate is missing for a foreign-currency order.' }),
   );
 }
@@ -66,7 +65,7 @@ export function ApiFindById() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get a purchase order',
-      description: 'Returns the purchase order header with whether a goods receipt of it is published.',
+      description: 'Returns the purchase order header with whether a goods receipt of it is posted.',
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Purchase order retrieved.', type: PurchaseOrderResponseDto }),
@@ -90,7 +89,7 @@ export function ApiFindItemsTable() {
     ApiOperation({
       summary: 'List the lines of a purchase order',
       description:
-        "Returns a page of the order's lines with their expected free and received quantities, using the user's saved table state.",
+        "Returns a page of the order's lines with their received, rejected, invoiced, returned and cancelled counters and what is open to receive and to invoice, using the user's saved table state.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({
@@ -130,7 +129,7 @@ export function ApiFindProblems() {
     ApiOperation({
       summary: 'List the problems on a purchase order',
       description:
-        "Returns the flags raised on the order's goods receipts (over-received, short expiry, rejected) and on its live supplier invoices, grouped by order line; invoice header flags such as a differing exchange rate are returned for the whole order. Flags are information only and never block anything.",
+        "Returns the flags raised on the order's goods receipts (over-received, short expiry, rejected) and the open holds on the live supplier invoice lines on it, grouped by order line. Receipt flags are information only; a hold that blocks payment can be released from its invoice.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Problems retrieved.', type: PurchaseOrderProblemsResponseDto }),
@@ -151,9 +150,13 @@ export function ApiAddItem() {
     ApiResponse({
       status: 400,
       description:
-        'The lines are locked, the item is not set up at the site, or the delivery is before the order date.',
+        "The lines are locked, the item has no stock levels set at the order's site, or the delivery is before the order date.",
     }),
-    ApiResponse({ status: 409, description: 'The item is already ordered in the same unit.' }),
+    ApiResponse({
+      status: 409,
+      description:
+        'The item is already ordered in the same unit; or the order belongs to a Purchase, which manages its lines (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -162,7 +165,7 @@ export function ApiUpdateItem() {
     ApiOperation({
       summary: 'Update a purchase order line',
       description:
-        "Changes the item, quantity, price, scheme, expected delivery or tax date of a line until a goods receipt of the order is published. The expected delivery is set by the line's inbound deliveries while it is on any, and the tax date is locked once a published receipt or a posted invoice counts the line.",
+        "Changes the item, quantity, price, scheme, expected delivery or tax date of a line until a goods receipt of the order is posted. The expected delivery is the line's own and stays editable; the tax date is locked once a posted receipt or a posted invoice counts the line.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiParam({ name: 'itemId', description: 'Purchase order line ID' }),
@@ -171,9 +174,13 @@ export function ApiUpdateItem() {
     ApiResponse({
       status: 400,
       description:
-        'The lines are locked, the delivery is before the order date or set by an inbound delivery, or the tax date is locked or both set and followed.',
+        "The lines are locked, the item has no stock levels set at the order's site, the delivery is before the order date, or the tax date is locked or both set and followed.",
     }),
     ApiResponse({ status: 404, description: 'Purchase order line not found.' }),
+    ApiResponse({
+      status: 409,
+      description: 'The order belongs to a Purchase, which manages its lines (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -188,6 +195,10 @@ export function ApiRemoveItem() {
     ApiResponse({ status: 200, description: 'Line removed.', type: SuccessResponseDto }),
     ApiResponse({ status: 400, description: 'The lines are locked or a goods receipt counts goods against the line.' }),
     ApiResponse({ status: 404, description: 'Purchase order line not found.' }),
+    ApiResponse({
+      status: 409,
+      description: 'The order belongs to a Purchase, which manages its lines (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -209,7 +220,7 @@ export function ApiUpdateTaxDate() {
     ApiOperation({
       summary: 'Change the tax date of a purchase order',
       description:
-        'Sets the date tax is determined on while the order is a draft, sent or confirmed and none of its receipts is published, and moves every line that follows it in the same transaction. Lines with their own tax date keep it.',
+        'Sets the date tax is determined on while the order is a draft, sent or confirmed and none of its receipts is posted, and moves every line that follows it in the same transaction. Lines with their own tax date keep it.',
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: UpdatePurchaseOrderTaxDateDto }),
@@ -217,7 +228,7 @@ export function ApiUpdateTaxDate() {
     ApiResponse({
       status: 400,
       description:
-        'The order is past confirmation or has a published receipt, or a following line is counted by a published receipt or a posted invoice.',
+        'The order is past confirmation or has a posted receipt, or a following line is counted by a posted receipt or a posted invoice.',
     }),
     ApiResponse({ status: 404, description: 'Purchase order not found.' }),
   );
@@ -228,13 +239,17 @@ export function ApiChangeSupplier() {
     ApiOperation({
       summary: 'Change the supplier of a purchase order',
       description:
-        'Moves a draft order without lines to another supplier; a currency the new supplier does not trade in becomes its default, with the exchange rate resolved again.',
+        "Moves a draft order without lines to another supplier and to the payment term of its enrollment at the order's site; a currency the new supplier does not trade in becomes its default, with the exchange rate resolved again.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: ChangePurchaseOrderSupplierDto }),
     ApiResponse({ status: 200, description: 'Supplier changed.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The order is not a draft, has lines or has a published goods receipt.' }),
+    ApiResponse({ status: 400, description: 'The order is not a draft, has lines or has a posted goods receipt.' }),
     ApiResponse({ status: 422, description: 'The exchange rate is missing for the new currency.' }),
+    ApiResponse({
+      status: 409,
+      description: 'The order belongs to a Purchase, which sets its supplier and currency (Belongs to a Purchase).',
+    }),
   );
 }
 
@@ -243,14 +258,18 @@ export function ApiChangeExchangeRate() {
     ApiOperation({
       summary: 'Change the exchange rate of a purchase order',
       description:
-        "Changes how much 1 unit of a foreign-currency order's currency is in the legal entity's, until a goods receipt of it is published.",
+        "Changes how much 1 unit of a foreign-currency order's currency is in the legal entity's, until a goods receipt of it is posted.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: ChangePurchaseOrderExchangeRateDto }),
     ApiResponse({ status: 200, description: 'Exchange rate changed.', type: SuccessResponseDto }),
     ApiResponse({
       status: 400,
-      description: "The order is in the legal entity's own currency or a goods receipt of it is published.",
+      description: "The order is in the legal entity's own currency or a goods receipt of it is posted.",
+    }),
+    ApiResponse({
+      status: 409,
+      description: 'The order belongs to a Purchase, which sets its rates (Belongs to a Purchase).',
     }),
   );
 }
@@ -266,18 +285,23 @@ export function ApiSetConversionRate() {
     ApiBody({ type: SetPurchaseOrderConversionRateDto }),
     ApiResponse({ status: 200, description: 'Conversion rate set.', type: SuccessResponseDto }),
     ApiResponse({ status: 400, description: "The currency is the order's own or not one of the supplier's." }),
+    ApiResponse({
+      status: 409,
+      description: 'The order belongs to a Purchase, which sets its rates (Belongs to a Purchase).',
+    }),
   );
 }
 
-export function ApiClosePurchaseOrder() {
+export function ApiCompleteDelivery() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Close a purchase order short',
-      description: 'Closes a confirmed or partially received order; no further receipts are expected.',
+      summary: 'Mark a purchase order delivery completed',
+      description:
+        'Marks a confirmed order delivery completed: every line cancels what is still open to receive and the receipt and invoice statuses are recomputed; no further receipts are expected.',
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
-    ApiResponse({ status: 200, description: 'Purchase order closed.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The order is not confirmed or partially received.' }),
+    ApiResponse({ status: 200, description: 'Purchase order delivery completed.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'The order is not confirmed.' }),
   );
 }
 
@@ -285,12 +309,16 @@ export function ApiUpdateStatus() {
   return applyDecorators(
     ApiOperation({
       summary: 'Update the status of a purchase order',
-      description: 'Moves the order along its manual workflow: sent, confirmed, closed or cancelled.',
+      description:
+        'Moves the order along its manual workflow: a draft is sent or cancelled, a sent order confirmed or cancelled, a confirmed order cancelled while nothing is received. Delivery completion goes through complete-delivery.',
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: UpdatePurchaseOrderStatusDto }),
     ApiResponse({ status: 200, description: 'Status updated.', type: SuccessResponseDto }),
-    ApiResponse({ status: 400, description: 'The order cannot move to that status.' }),
+    ApiResponse({
+      status: 400,
+      description: 'The order cannot move to that status, or it cannot be cancelled once anything is received.',
+    }),
   );
 }
 
@@ -317,14 +345,16 @@ export function ApiDelete() {
     ApiResponse({ status: 200, description: 'Purchase order deleted.', type: SuccessResponseDto }),
     ApiResponse({ status: 400, description: 'The order is not a draft.' }),
     ApiResponse({ status: 404, description: 'Purchase order not found.' }),
+    ApiResponse({ status: 409, description: 'The order belongs to a Purchase (Belongs to a Purchase).' }),
   );
 }
 
 export function ApiFindForTablePurchaseOrderInvoices() {
   return applyDecorators(
     ApiOperation({
-      summary: 'List the invoices billing a purchase order',
-      description: "Returns a page of the order's invoices with their flag counts, using the user's saved table state.",
+      summary: 'List the invoices for a purchase order',
+      description:
+        "Returns a page of the invoices with a line invoicing the order, with their open hold counts, using the user's saved table state.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Supplier invoices retrieved.', type: SupplierInvoiceTableResponseDto }),
@@ -335,24 +365,10 @@ export function ApiFindPurchaseOrderInvoicesSummary() {
   return applyDecorators(
     ApiOperation({
       summary: "Summarize a purchase order's invoices",
-      description: 'Counts the live invoices and the flagged ones, and the share of the ordered quantity they bill.',
+      description:
+        "Counts the live invoices with a line on the order and the held ones, and the invoiced quantity posted against the order's lines as a share of what is due.",
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Summary retrieved.', type: PurchaseOrderInvoiceSummaryResponseDto }),
-  );
-}
-
-export function ApiCreatePurchaseOrderInvoice() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Create an invoice for a purchase order',
-      description:
-        'Records a draft invoice billing the confirmed purchase order; supplier, currency and exchange rate come from the order.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase order ID' }),
-    ApiBody({ type: CreatePurchaseOrderInvoiceDto }),
-    ApiResponse({ status: 201, description: 'Supplier invoice created.', type: SupplierInvoiceResponseDto }),
-    ApiResponse({ status: 400, description: 'The purchase order is not confirmed.' }),
-    ApiResponse({ status: 409, description: 'The supplier already has an invoice with this number.' }),
   );
 }

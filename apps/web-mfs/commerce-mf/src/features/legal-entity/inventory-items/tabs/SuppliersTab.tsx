@@ -34,6 +34,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({ inventoryItemId }) =
       tableKey={LE_INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(inventoryItemId)}
       tableSlug={`commerce-le-inventory-item-${inventoryItemId}-suppliers`}
       permission={LE_INVENTORY_ITEMS.view}
+      siteContext
       supplierView={supplierView}
     />
   );

@@ -1,8 +1,10 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  CreateInventoryItemUomConversionFormData,
   InventoryItemUomConversionData,
   InventoryItemUomConversionsTableResponse,
+  UpdateInventoryItemUomConversionFormData,
 } from '@/schemas/inventory-item-uom-conversions';
 
 const BASE = 'commerce-api/org/inventory-items';
@@ -17,7 +19,7 @@ export function getOrgInventoryItemUomConversionsTable(
 
 export function createOrgInventoryItemUomConversion(
   inventoryItemId: string,
-  data: { uomId: string; primaryUomQty: number; uomQty: number },
+  data: CreateInventoryItemUomConversionFormData,
 ): Promise<CreateResponse<InventoryItemUomConversionData>> {
   return axios
     .post<CreateResponse<InventoryItemUomConversionData>>(`${BASE}/${inventoryItemId}/uom-conversions`, data)
@@ -27,7 +29,7 @@ export function createOrgInventoryItemUomConversion(
 export function updateOrgInventoryItemUomConversion(
   inventoryItemId: string,
   conversionId: string,
-  data: { primaryUomQty: number; uomQty: number },
+  data: UpdateInventoryItemUomConversionFormData,
 ): Promise<SuccessResponse> {
   return axios
     .patch<SuccessResponse>(`${BASE}/${inventoryItemId}/uom-conversions/${conversionId}`, data)

@@ -1,4 +1,4 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   boolean,
   codeCheck,
@@ -33,7 +33,7 @@ export const offeringVariants = commerceSchema.table(
   'offering_variants',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     offeringId: uuid('offering_id')
       .notNull()
       .references(() => offerings.id, { onDelete: 'cascade' }),
@@ -76,7 +76,7 @@ export const offeringVariantValues = commerceSchema.table(
   'offering_variant_values',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     variantId: uuid('variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
@@ -106,7 +106,7 @@ export const offeringVariantAttributeValues = commerceSchema.table(
   'offering_variant_attribute_values',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     variantId: uuid('variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
@@ -136,7 +136,7 @@ export const offeringBom = commerceSchema.table(
   'offering_bom',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     variantId: uuid('variant_id')
       .notNull()
       .references(() => offeringVariants.id, { onDelete: 'cascade' }),
@@ -168,3 +168,59 @@ export const offeringBom = commerceSchema.table(
 
 export type OfferingBomLine = typeof offeringBom.$inferSelect;
 export type NewOfferingBomLine = typeof offeringBom.$inferInsert;
+
+// Renders the dimension junction as the cached column holds it, correlated for an UPDATE over the variants
+export function dimensionsFacetSql(): SQL {
+  return sql`(
+    select coalesce(
+      jsonb_agg(jsonb_build_object('code', f.code, 'label', f.label, 'values', f.values) order by f.sort_order),
+      '[]'::jsonb
+    )
+    from (
+      select ${offeringDimensions.code} as code,
+             ${offeringDimensions.name} as label,
+             ${offeringDimensions.sortOrder} as sort_order,
+             jsonb_agg(
+               jsonb_build_object('code', ${offeringDimensionValues.code}, 'value', ${offeringDimensionValues.value})
+               order by ${offeringDimensionValues.sortOrder}
+             ) as values
+      from ${offeringVariantValues}
+      join ${offeringDimensions} on ${offeringDimensions.id} = ${offeringVariantValues.dimensionId}
+      join ${offeringDimensionValues} on ${offeringDimensionValues.id} = ${offeringVariantValues.valueId}
+      where ${offeringVariantValues.variantId} = ${offeringVariants.id}
+      group by ${offeringDimensions.id}, ${offeringDimensions.code}, ${offeringDimensions.name}, ${offeringDimensions.sortOrder}
+    ) f
+  )`;
+}
+
+// Renders the attribute junction as the cached column holds it, correlated for an UPDATE over the variants
+export function attributesFacetSql(): SQL {
+  return sql`(
+    select coalesce(
+      jsonb_agg(jsonb_build_object('code', f.code, 'label', f.label, 'values', f.values) order by f.sort_order),
+      '[]'::jsonb
+    )
+    from (
+      select ${offeringAttributes.code} as code,
+             ${offeringAttributes.name} as label,
+             ${offeringAttributes.sortOrder} as sort_order,
+             jsonb_agg(
+               jsonb_build_object('code', ${offeringAttributeValues.code}, 'value', ${offeringAttributeValues.value})
+               order by ${offeringAttributeValues.sortOrder}
+             ) as values
+      from ${offeringVariantAttributeValues}
+      join ${offeringAttributes} on ${offeringAttributes.id} = ${offeringVariantAttributeValues.attributeId}
+      join ${offeringAttributeValues} on ${offeringAttributeValues.id} = ${offeringVariantAttributeValues.valueId}
+      where ${offeringVariantAttributeValues.variantId} = ${offeringVariants.id}
+      group by ${offeringAttributes.id}, ${offeringAttributes.code}, ${offeringAttributes.name}, ${offeringAttributes.sortOrder}
+    ) f
+  )`;
+}
+
+const VARIANT_LABEL_SEPARATOR = ' · ';
+
+// Flattens an offering's name and a variant's facets into the one string an order line snapshots
+export function variantLabel(offeringName: string, dimensions: VariantFacet[] = [], max = 500): string {
+  const values = dimensions.flatMap((facet) => facet.values.map((entry) => entry.value));
+  return [offeringName, ...values].join(VARIANT_LABEL_SEPARATOR).slice(0, max);
+}

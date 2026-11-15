@@ -10,7 +10,7 @@ import type {
   CreateOrgInventoryItemFormData,
   InventoryItemData,
   InventoryItemTableResponse,
-  UpdateOrgInventoryItemFormData,
+  UpdateOrgInventoryItemPayload,
 } from '@/schemas/inventory-items';
 import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
 
@@ -35,7 +35,7 @@ export function updateOrgInventoryItem({
   data,
 }: {
   id: string;
-  data: UpdateOrgInventoryItemFormData;
+  data: UpdateOrgInventoryItemPayload;
 }): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/${id}`, data).then((r) => r.data);
 }

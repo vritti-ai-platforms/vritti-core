@@ -53,7 +53,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
       {
         accessorKey: 'locationName',
         header: 'Location',
-        cell: ({ row }) => <StringCell value={row.original.locationName ?? row.original.locationId} />,
+        cell: ({ row }) => <StringCell value={row.original.locationName} />,
         enableSorting: true,
       },
       {

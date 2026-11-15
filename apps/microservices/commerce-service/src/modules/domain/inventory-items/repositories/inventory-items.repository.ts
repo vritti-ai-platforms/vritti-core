@@ -1,17 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, exists, getColumns, gt, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { type AnyPgColumn, alias, QueryBuilder, union } from '@vritti/api-sdk/drizzle-pg-core';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
   type InventoryItem,
-  type InventoryItemSite,
   inventoryItemQuants,
-  inventoryItemSites,
+  inventoryItemSiteStockLevels,
   inventoryItems,
   inventoryItemUomConversions,
+  itemStockAtSite,
+  locations,
   purchaseOrderItems,
+  type SiteStockLocation,
+  type StockStatus,
+  siteStockByItem,
+  siteStockLocations,
+  siteStockOnHand,
+  siteStockStatus,
+  siteStockStatusMatchesSql,
+  siteStockValue,
   stockAdjustments,
+  stockStatusSql,
   stockTransfers,
   supplierItems,
   taxClasses,
@@ -20,14 +31,50 @@ import {
 
 type TableRow = InventoryItem & { uomSymbol: string | null; categoryName: string | null; taxClassName: string | null };
 
-export type SiteInventoryItemRow = TableRow & {
-  isEnabled: boolean;
-  isStocked: boolean | null;
+export type SiteStockTableRow = TableRow & {
+  hasStockLevels: boolean;
   reorderPoint: number | null;
-  stockedQuantity: string;
+  safetyStock: number | null;
+  maxStockLevel: number | null;
+  onHand: number;
+  stockValue: bigint;
+  stockStatus: StockStatus | null;
+  locations: SiteStockLocation[];
 };
 
-export type GroupInventoryItemRow = TableRow & { enabledSiteCount: number };
+// A UOM's family: the base unit it converts to, or itself when it is a base unit
+const uomFamily = (unit: { id: AnyPgColumn; baseUnitId: AnyPgColumn }) => sql`coalesce(${unit.baseUnitId}, ${unit.id})`;
+
+// The UOMs the inventory item read alongside can transact in: every UOM in its primary UOM's family, and every per-item
+// conversion
+function allowedUomsOfItem() {
+  const primaryUom = alias(uom, 'primary_uom');
+  const familyUom = alias(uom, 'family_uom');
+  return union(
+    new QueryBuilder()
+      .select({ uomId: familyUom.id })
+      .from(familyUom)
+      .innerJoin(primaryUom, eq(uomFamily(familyUom), uomFamily(primaryUom)))
+      .where(eq(primaryUom.id, inventoryItems.uomId)),
+    new QueryBuilder()
+      .select({ uomId: inventoryItemUomConversions.uomId })
+      .from(inventoryItemUomConversions)
+      .where(eq(inventoryItemUomConversions.inventoryItemId, inventoryItems.id)),
+  ).as('allowed_uoms');
+}
+
+// Whether the site holds stock of the item in any of the given locations or anywhere below them
+export function stockHeldUnderLocationsSql(locationIds: string[]): SQL {
+  const picked = alias(locations, 'picked');
+  return exists(
+    new QueryBuilder()
+      .select({ id: inventoryItemQuants.id })
+      .from(inventoryItemQuants)
+      .innerJoin(locations, eq(locations.id, inventoryItemQuants.locationId))
+      .innerJoin(picked, and(inArray(picked.id, locationIds), sql`${locations.path} <@ ${picked.path}`))
+      .where(and(eq(inventoryItemQuants.inventoryItemId, inventoryItems.id), gt(inventoryItemQuants.quantity, 0))),
+  );
+}
 
 @Injectable()
 export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof inventoryItems> {
@@ -38,64 +85,97 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   // Returns paginated inventory item options for select dropdowns.
   override async findForSelect(
     config: FindForSelectConfig,
-    options?: { excludeOnSupplierId?: string },
+    options?: {
+      excludeOnSupplierId?: string;
+      withoutStockLevels?: boolean;
+      // Only the items filed under one of these categories
+      categoryIds?: string[];
+      stockLevelsAtSiteId?: string;
+      // With a site, only the items whose stock there has one of these statuses
+      stockStatus?: string[];
+    },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
 
+    // RLS narrows the stock levels to the request's site
+    if (options?.withoutStockLevels) {
+      const stockLevels = this.db
+        .select({ id: inventoryItemSiteStockLevels.id })
+        .from(inventoryItemSiteStockLevels)
+        .where(eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id));
+      conditions.push(notExists(stockLevels));
+    }
+
+    // Only the items with stock levels set at the site, through the inner join on their stock levels below; each row's
+    // stock is read per item, so a page adds up only its own items' stock, not everything the site holds
+    const stock = itemStockAtSite(inventoryItems.id, inventoryItemSiteStockLevels.siteId);
+    const stockStatus = stockStatusSql(stock.onHand);
+    if (options?.stockLevelsAtSiteId) {
+      conditions.push(eq(inventoryItemSiteStockLevels.siteId, options.stockLevelsAtSiteId));
+      if (options.stockStatus?.length) conditions.push(siteStockStatusMatchesSql(options.stockStatus, stockStatus));
+    }
+
+    if (options?.categoryIds?.length) conditions.push(inArray(inventoryItems.categoryId, options.categoryIds));
+
     if (options?.excludeOnSupplierId) {
-      conditions.push(sql`EXISTS (
-        WITH allowed AS (
-          SELECT DISTINCT id AS uom_id FROM (
-            SELECT uic.uom_id AS id
-            FROM ${inventoryItemUomConversions} uic
-            WHERE uic.inventory_item_id = ${inventoryItems.id}
-            UNION
-            SELECT u.id
-            FROM ${uom} u
-            WHERE COALESCE(u.base_unit_id, u.id) = (
-              SELECT COALESCE(base_unit_id, id) FROM ${uom} WHERE id = ${inventoryItems.uomId}
-            )
-          ) sub
-        )
-        SELECT 1 FROM allowed a
-        WHERE NOT EXISTS (
-          SELECT 1 FROM ${supplierItems} si
-          WHERE si.supplier_id = ${options.excludeOnSupplierId}
-            AND si.inventory_item_id = ${inventoryItems.id}
-            AND si.uom_id = a.uom_id
-        )
-      )`);
+      const allowedUoms = allowedUomsOfItem();
+      const onSupplier = new QueryBuilder()
+        .select({ id: supplierItems.id })
+        .from(supplierItems)
+        .where(
+          and(
+            eq(supplierItems.supplierId, options.excludeOnSupplierId),
+            eq(supplierItems.inventoryItemId, inventoryItems.id),
+            eq(supplierItems.uomId, allowedUoms.uomId),
+          ),
+        );
+      conditions.push(
+        exists(new QueryBuilder().select({ uomId: allowedUoms.uomId }).from(allowedUoms).where(notExists(onSupplier))),
+      );
     }
 
     return super.findForSelect({
       ...config,
-      joins: [{ table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' }],
+      joins: [
+        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
+        ...(options?.stockLevelsAtSiteId
+          ? [
+              {
+                table: inventoryItemSiteStockLevels,
+                on: eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id),
+                type: 'inner' as const,
+              },
+            ]
+          : []),
+      ],
+      // Each item's stock at the site against its levels there, for the picker to show beside the item
+      additionalExpressions: options?.stockLevelsAtSiteId
+        ? {
+            onHand: sql<number>`${stock.onHand}`.mapWith(Number),
+            safetyStock: sql<number>`${inventoryItemSiteStockLevels.safetyStock}`.mapWith(Number),
+            reorderPoint: sql<number>`${inventoryItemSiteStockLevels.reorderPoint}`.mapWith(Number),
+            maxStockLevel: sql<number>`${inventoryItemSiteStockLevels.maxStockLevel}`.mapWith(Number),
+            stockStatus,
+            stockValue: stock.value,
+            locations: stock.locations,
+            uomSymbol: sql<string | null>`${uom.symbol}`,
+            allowDecimal: sql<boolean | null>`${uom.allowDecimal}`,
+          }
+        : undefined,
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
     });
   }
 
-  // Returns the set of UOM IDs allowed to transact for a given inventory item: - the item's primary UOM - every
-  // per-item conversion override - every UOM in the same global "family" (sharing COALESCE(base_unit_id, id) with the
-  // primary)
+  // The UOMs an item can transact in: its primary UOM's family and every per-item conversion
   async findAllowedUomIds(inventoryItemId: string): Promise<string[]> {
-    const result = await this.db.execute<{ id: string }>(sql`
-      WITH p AS (
-        SELECT COALESCE(base_unit_id, id) AS family_root
-        FROM ${uom}
-        WHERE id = (SELECT uom_id FROM ${inventoryItems} WHERE id = ${inventoryItemId})
-      )
-      SELECT DISTINCT id FROM (
-        SELECT uom_id AS id
-        FROM ${inventoryItemUomConversions}
-        WHERE inventory_item_id = ${inventoryItemId}
-        UNION
-        SELECT u.id
-        FROM ${uom} u, p
-        WHERE COALESCE(u.base_unit_id, u.id) = p.family_root
-      ) sub;
-    `);
-    return ((result as unknown as { rows: { id: string }[] }).rows ?? []).map((r) => r.id);
+    const allowedUoms = allowedUomsOfItem();
+    const rows = await this.db
+      .select({ uomId: allowedUoms.uomId })
+      .from(inventoryItems)
+      .crossJoinLateral(allowedUoms)
+      .where(eq(inventoryItems.id, inventoryItemId));
+    return rows.map((row) => row.uomId);
   }
 
   // Returns paginated inventory items with UOM symbol via LEFT JOIN
@@ -172,21 +252,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   > {
     const [row] = await this.db
       .select({
-        id: inventoryItems.id,
-        organizationId: inventoryItems.organizationId,
-        name: inventoryItems.name,
-        sku: inventoryItems.sku,
-        type: inventoryItems.type,
-        tracking: inventoryItems.tracking,
-        pickStrategy: inventoryItems.pickStrategy,
-        categoryId: inventoryItems.categoryId,
-        description: inventoryItems.description,
-        uomId: inventoryItems.uomId,
-        hsnCode: inventoryItems.hsnCode,
-        taxClassId: inventoryItems.taxClassId,
-        metadata: inventoryItems.metadata,
-        createdAt: inventoryItems.createdAt,
-        updatedAt: inventoryItems.updatedAt,
+        ...getColumns(inventoryItems),
         uomSymbol: uom.symbol,
         categoryName: categories.name,
         taxClassName: taxClasses.name,
@@ -219,78 +285,38 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     };
   }
 
-  // Every master item with this site's enablement row, when it has one, and the stock this site holds of it
-  async findForSiteTable(
-    siteId: string,
-    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: SiteInventoryItemRow[]; count: number }> {
-    return this.findAllAndCount<SiteInventoryItemRow>({
+  // Every master item with the site's stock levels for it, when set, the stock the site holds of it by location and its
+  // stock status; RLS narrows the stock levels and quants to the request's site
+  async findForSiteStockTable(options: {
+    where?: SQL;
+    orderBy: SQL[];
+    limit: number;
+    offset: number;
+  }): Promise<{ result: SiteStockTableRow[]; count: number }> {
+    return this.findAllAndCount<SiteStockTableRow>({
       select: {
         ...this.tableColumns(),
-        isEnabled: sql<boolean>`${inventoryItemSites.id} IS NOT NULL`,
-        isStocked: inventoryItemSites.isStocked,
-        reorderPoint: inventoryItemSites.reorderPoint,
-        stockedQuantity: sql<string>`CAST(COALESCE((
-          SELECT SUM(${inventoryItemQuants.quantity})
-          FROM ${inventoryItemQuants}
-          WHERE ${inventoryItemQuants.inventoryItemId} = ${inventoryItems.id}
-            AND ${inventoryItemQuants.siteId} = ${siteId}
-        ), 0) AS TEXT)`,
+        hasStockLevels: sql<boolean>`${inventoryItemSiteStockLevels.id} IS NOT NULL`,
+        reorderPoint: inventoryItemSiteStockLevels.reorderPoint,
+        safetyStock: inventoryItemSiteStockLevels.safetyStock,
+        maxStockLevel: inventoryItemSiteStockLevels.maxStockLevel,
+        onHand: sql<number>`${siteStockOnHand}`.mapWith(Number),
+        stockValue: sql<bigint>`${siteStockValue}`.mapWith(BigInt),
+        stockStatus: siteStockStatus,
+        locations: siteStockLocations,
       },
-      leftJoin: {
-        table: inventoryItemSites,
-        on: and(eq(inventoryItemSites.inventoryItemId, inventoryItems.id), eq(inventoryItemSites.siteId, siteId)),
-      },
+      leftJoins: [
+        {
+          table: inventoryItemSiteStockLevels,
+          on: eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id),
+        },
+        { table: siteStockByItem, on: eq(siteStockByItem.inventoryItemId, inventoryItems.id) },
+      ],
       where: options.where,
       orderBy: options.orderBy,
       limit: options.limit,
       offset: options.offset,
     });
-  }
-
-  // Every master item with how many of the group's sites have it enabled
-  async findForGroupTable(
-    siteIds: string[],
-    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: GroupInventoryItemRow[]; count: number }> {
-    const enabledSiteCount =
-      siteIds.length > 0
-        ? this.db.$count(
-            inventoryItemSites,
-            and(eq(inventoryItemSites.inventoryItemId, inventoryItems.id), inArray(inventoryItemSites.siteId, siteIds)),
-          )
-        : sql<number>`0`;
-
-    return this.findAllAndCount<GroupInventoryItemRow>({
-      select: { ...this.tableColumns(), enabledSiteCount },
-      where: options.where,
-      orderBy: options.orderBy,
-      limit: options.limit,
-      offset: options.offset,
-    });
-  }
-
-  // Item × site availability across the given sites — one projection row per (item, site) that is enabled.
-  async findGroupMatrix(siteIds: string[]): Promise<(InventoryItemSite & { itemName: string; itemSku: string })[]> {
-    if (siteIds.length === 0) return [];
-    return this.db
-      .select({
-        id: inventoryItemSites.id,
-        organizationId: inventoryItemSites.organizationId,
-        siteId: inventoryItemSites.siteId,
-        inventoryItemId: inventoryItemSites.inventoryItemId,
-        isStocked: inventoryItemSites.isStocked,
-        reorderPoint: inventoryItemSites.reorderPoint,
-        maxStockLevel: inventoryItemSites.maxStockLevel,
-        safetyStock: inventoryItemSites.safetyStock,
-        createdAt: inventoryItemSites.createdAt,
-        updatedAt: inventoryItemSites.updatedAt,
-        itemName: inventoryItems.name,
-        itemSku: inventoryItems.sku,
-      })
-      .from(inventoryItemSites)
-      .innerJoin(inventoryItems, eq(inventoryItemSites.inventoryItemId, inventoryItems.id))
-      .where(inArray(inventoryItemSites.siteId, siteIds));
   }
 
   // Returns the UOM symbol for a given UOM ID

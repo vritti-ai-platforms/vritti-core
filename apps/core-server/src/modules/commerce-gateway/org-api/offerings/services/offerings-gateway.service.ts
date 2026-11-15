@@ -36,7 +36,7 @@ import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
 import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
-import { AppDomainRepository } from '@domain/app/repositories/app.repository';
+import { AppDomainService } from '@domain/app/services/app.service';
 import { AppStorefrontDomainService, type StorefrontCreateResult } from '@domain/app/services/app-storefront.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
@@ -60,7 +60,7 @@ export class OrgOfferingsGatewayService {
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
-    private readonly appRepository: AppDomainRepository,
+    private readonly appService: AppDomainService,
     private readonly appStorefront: AppStorefrontDomainService,
   ) {}
 
@@ -418,7 +418,7 @@ export class OrgOfferingsGatewayService {
     orgId: string,
     offeringId: string,
   ): Promise<{ type: string; row: OfferingChannelTargetResponseDto; isOwn: boolean }[]> {
-    const apps = await this.appRepository.findAllByOrg(orgId);
+    const apps = await this.appService.listForOrg(orgId);
     const live = apps.filter((app) => !app.revokedAt);
 
     this.logger.log(`org.offerings.channels — offeringId: ${offeringId}, apps: ${live.length}`);
@@ -486,7 +486,7 @@ export class OrgOfferingsGatewayService {
     });
 
     // A target id that names no app of this organization is a till, which has no storefront to ask
-    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    const app = await this.appService.findInOrg(targetId, orgId);
     const appId = app?.baseUrl ? app.id : null;
 
     const statuses = appId
@@ -518,7 +518,7 @@ export class OrgOfferingsGatewayService {
     this.requireChannelType(channelType);
 
     // A till names no app, so the lookup simply finds nothing and the refusal below is the right answer
-    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    const app = await this.appService.findInOrg(targetId, orgId);
     if (!app?.baseUrl) {
       throw new ConflictException({
         label: 'No Storefront',
@@ -576,7 +576,7 @@ export class OrgOfferingsGatewayService {
     this.requireChannelType(channelType);
 
     // An app is core's to name; a till is named by commerce, which fills the blank in
-    const app = await this.appRepository.findByIdInOrg(targetId, orgId);
+    const app = await this.appService.findInOrg(targetId, orgId);
 
     this.logger.log(`org.offerings.variants.setTargetAvailability — target: ${targetId}, variant: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.setTargetAvailability', {

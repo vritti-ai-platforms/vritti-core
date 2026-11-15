@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export const PURCHASE_ORDER_PROBLEM_SOURCES = ['GOODS_RECEIPT', 'SUPPLIER_INVOICE'] as const;
 export type PurchaseOrderProblemSource = (typeof PURCHASE_ORDER_PROBLEM_SOURCES)[number];
 
-export const PURCHASE_ORDER_PROBLEM_DOCUMENT_STATUSES = ['DRAFT', 'PUBLISHED', 'POSTED'] as const;
+export const PURCHASE_ORDER_PROBLEM_DOCUMENT_STATUSES = ['DRAFT', 'POSTED'] as const;
 export type PurchaseOrderProblemDocumentStatus = (typeof PURCHASE_ORDER_PROBLEM_DOCUMENT_STATUSES)[number];
 
 export class PurchaseOrderProblemResponseDto {
@@ -12,13 +12,23 @@ export class PurchaseOrderProblemResponseDto {
 
   @ApiProperty({
     description:
-      'Flag code — OVER_RECEIVED, SHORT_EXPIRY or REJECTED on a goods receipt; a supplier invoice line or header match check on an invoice',
+      'OVER_RECEIVED, SHORT_EXPIRY or REJECTED on a goods receipt; the hold code of an open hold on a supplier invoice',
     example: 'OVER_RECEIVED',
   })
   code: string;
 
-  @ApiProperty({ description: 'What the flag found, in words', example: '2 strips rejected on receipt.' })
+  @ApiProperty({ description: 'What was found, in words', example: '2 strips rejected on receipt.' })
   detail: string;
+
+  @ApiProperty({ description: 'Whether it stops payment; always false for a goods receipt flag' })
+  blocksPayment: boolean;
+
+  @ApiPropertyOptional({
+    description: 'The invoice hold, releasable from its invoice; null for a goods receipt flag',
+    type: String,
+    nullable: true,
+  })
+  holdId: string | null;
 
   @ApiProperty({ description: 'ID of the goods receipt or supplier invoice that raised it', format: 'uuid' })
   documentId: string;
@@ -27,12 +37,12 @@ export class PurchaseOrderProblemResponseDto {
   documentNumber: string;
 
   @ApiProperty({
-    description: 'Status of that document — DRAFT or PUBLISHED for a receipt, DRAFT or POSTED for an invoice',
+    description: 'Status of that document — DRAFT or POSTED for a receipt or an invoice',
     enum: PURCHASE_ORDER_PROBLEM_DOCUMENT_STATUSES,
   })
   documentStatus: PurchaseOrderProblemDocumentStatus;
 
-  @ApiProperty({ description: 'Batch the invoice line bills, when it names one', type: String, nullable: true })
+  @ApiPropertyOptional({ description: 'Receipt lot the held invoice line covers', type: String, nullable: true })
   lotNumber: string | null;
 }
 
@@ -54,7 +64,7 @@ export class PurchaseOrderProblemsSummaryResponseDto {
   @ApiProperty({ description: 'Problems raised on goods receipts' })
   receiving: number;
 
-  @ApiProperty({ description: 'Problems raised on supplier invoices, lines and headers' })
+  @ApiProperty({ description: 'Open holds on supplier invoice lines for the order' })
   invoicing: number;
 }
 
@@ -67,10 +77,4 @@ export class PurchaseOrderProblemsResponseDto {
     description: 'Order lines with at least one problem',
   })
   lines: PurchaseOrderLineProblemsResponseDto[];
-
-  @ApiProperty({
-    type: [PurchaseOrderProblemResponseDto],
-    description: 'Problems not tied to a line, such as an invoice rate that differs from the order',
-  })
-  orderProblems: PurchaseOrderProblemResponseDto[];
 }

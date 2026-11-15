@@ -1,17 +1,14 @@
 import type { SelectFilterProps, SelectProps } from '@vritti/quantum-ui/Select';
 import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import type { ComponentType } from 'react';
-import type {
-  UseCreateGoodsReceiptFromDelivery,
-  UseCreateGoodsReceiptFromPurchaseOrders,
-} from '@/components/goods-receipts/types';
 import type { SupplierInvoicePath } from '@/components/supplier-invoices/types';
+import type { PurchaseOrderDetail } from '@/schemas/purchase-orders';
 import type {
   PurchaseOrderPermissions,
   UseAddPurchaseOrderItem,
   UseChangePurchaseOrderExchangeRate,
   UseChangePurchaseOrderSupplier,
-  UseClosePurchaseOrder,
+  UseCompletePurchaseOrderDelivery,
   UseCreatePurchaseOrder,
   UseDeletePurchaseOrder,
   UseDownloadPurchaseOrderPdf,
@@ -36,15 +33,9 @@ export interface PurchaseOrderSuppliersBinding {
   Filter: ComponentType<DistributiveOmit<SelectFilterProps, 'optionsEndpoint' | 'name'> & { name?: string }>;
 }
 
-export interface PurchaseOrderGoodsReceiptsBinding {
-  addPermission: string;
-  useCreateFromDelivery: UseCreateGoodsReceiptFromDelivery;
-  useCreateFromPurchaseOrders: UseCreateGoodsReceiptFromPurchaseOrders;
-}
-
 export interface PurchaseOrderInvoicesBinding {
   permission: string;
-  Tab: ComponentType<{ purchaseOrderId: string }>;
+  Tab: ComponentType<{ purchaseOrder: PurchaseOrderDetail }>;
   invoicePath: SupplierInvoicePath;
 }
 
@@ -52,7 +43,6 @@ export interface PurchaseOrdersBinding {
   permissions: PurchaseOrderPermissions;
   spansSites: boolean;
   suppliers: PurchaseOrderSuppliersBinding;
-  goodsReceipts: PurchaseOrderGoodsReceiptsBinding;
   invoices?: PurchaseOrderInvoicesBinding;
 
   tableKey: readonly unknown[];
@@ -83,7 +73,7 @@ export interface PurchaseOrdersBinding {
   useUpdateStatus: UseUpdatePurchaseOrderStatus;
   useUpdateTaxDate: UseUpdatePurchaseOrderTaxDate;
   useSendEmail: UseSendPurchaseOrderEmail;
-  useClose: UseClosePurchaseOrder;
+  useCompleteDelivery: UseCompletePurchaseOrderDelivery;
   useDelete: UseDeletePurchaseOrder;
   useDownloadPdf: UseDownloadPurchaseOrderPdf;
 }

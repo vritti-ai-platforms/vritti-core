@@ -1,8 +1,8 @@
 import type { GoodsReceiptItemFlagDto } from '@domain/goods-receipts/dto/entity/goods-receipt-item.dto';
 import type { PurchaseOrderReceiptItemFlagsDto } from '@domain/goods-receipts/dto/entity/purchase-order-receipt-item-flags.dto';
-import type { PurchaseOrderInvoiceFlagsDto } from '@domain/supplier-invoices/dto/entity/purchase-order-invoice-flags.dto';
+import type { PurchaseOrderInvoiceHoldDto } from '@domain/supplier-invoices/dto/entity/purchase-order-invoice-hold.dto';
 import _ from '@vritti/api-sdk/lodash';
-import type { GoodsReceiptStatus, SupplierInvoiceLineFlag, SupplierInvoiceStatus } from '@/db/schema';
+import type { GoodsReceiptStatus, SupplierInvoiceStatus } from '@/db/schema';
 
 export const PurchaseOrderProblemSourceValues = {
   GOODS_RECEIPT: 'GOODS_RECEIPT',
@@ -16,6 +16,8 @@ export class PurchaseOrderProblemDto {
   source: PurchaseOrderProblemSource;
   code: string;
   detail: string;
+  blocksPayment: boolean;
+  holdId: string | null;
   documentId: string;
   documentNumber: string;
   documentStatus: GoodsReceiptStatus | SupplierInvoiceStatus;
@@ -30,6 +32,8 @@ export class PurchaseOrderProblemDto {
     dto.source = PurchaseOrderProblemSourceValues.GOODS_RECEIPT;
     dto.code = flag.code;
     dto.detail = flag.detail;
+    dto.blocksPayment = false;
+    dto.holdId = null;
     dto.documentId = item.goodsReceiptId;
     dto.documentNumber = item.grNumber;
     dto.documentStatus = item.receiptStatus;
@@ -37,20 +41,18 @@ export class PurchaseOrderProblemDto {
     return dto;
   }
 
-  // Shapes a flag stored on a supplier invoice header or on one of its lines
-  static fromInvoiceFlag(
-    invoice: PurchaseOrderInvoiceFlagsDto,
-    flag: SupplierInvoiceLineFlag,
-    lotNumber: string | null,
-  ): PurchaseOrderProblemDto {
+  // Shapes an open hold on a supplier invoice line
+  static fromInvoiceHold(hold: PurchaseOrderInvoiceHoldDto): PurchaseOrderProblemDto {
     const dto = new PurchaseOrderProblemDto();
     dto.source = PurchaseOrderProblemSourceValues.SUPPLIER_INVOICE;
-    dto.code = flag.code;
-    dto.detail = flag.detail;
-    dto.documentId = invoice.id;
-    dto.documentNumber = invoice.invoiceNumber;
-    dto.documentStatus = invoice.status;
-    dto.lotNumber = lotNumber;
+    dto.code = hold.code;
+    dto.detail = hold.detail;
+    dto.blocksPayment = hold.blocksPayment;
+    dto.holdId = hold.id;
+    dto.documentId = hold.supplierInvoiceId;
+    dto.documentNumber = hold.invoiceNumber;
+    dto.documentStatus = hold.invoiceStatus;
+    dto.lotNumber = hold.lotNumber;
     return dto;
   }
 }
@@ -69,12 +71,11 @@ export class PurchaseOrderProblemsSummaryDto {
 export class PurchaseOrderProblemsDto {
   summary: PurchaseOrderProblemsSummaryDto;
   lines: PurchaseOrderLineProblemsDto[];
-  orderProblems: PurchaseOrderProblemDto[];
 
-  // Groups receipt item and invoice line flags by order line, receipts first, and keeps invoice header flags for the order
+  // Groups receipt item flags and open invoice holds by order line, receipts first
   static from(
     receiptItems: PurchaseOrderReceiptItemFlagsDto[],
-    invoices: PurchaseOrderInvoiceFlagsDto[],
+    holds: PurchaseOrderInvoiceHoldDto[],
   ): PurchaseOrderProblemsDto {
     const receiptProblems = receiptItems.flatMap((item) =>
       item.flags.map((flag) => ({
@@ -82,30 +83,23 @@ export class PurchaseOrderProblemsDto {
         problem: PurchaseOrderProblemDto.fromReceiptFlag(item, flag),
       })),
     );
-    const invoiceLineProblems = invoices.flatMap((invoice) =>
-      invoice.lines.flatMap((line) =>
-        line.flags.map((flag) => ({
-          purchaseOrderItemId: line.purchaseOrderItemId,
-          problem: PurchaseOrderProblemDto.fromInvoiceFlag(invoice, flag, line.lotNumber),
-        })),
-      ),
+    const invoiceProblems = holds.flatMap((hold) =>
+      hold.purchaseOrderItemId
+        ? [{ purchaseOrderItemId: hold.purchaseOrderItemId, problem: PurchaseOrderProblemDto.fromInvoiceHold(hold) }]
+        : [],
     );
-    const orderProblems = invoices.flatMap((invoice) =>
-      invoice.flags.map((flag) => PurchaseOrderProblemDto.fromInvoiceFlag(invoice, flag, null)),
-    );
-    const problemsByLine = _.groupBy([...receiptProblems, ...invoiceLineProblems], 'purchaseOrderItemId');
+    const problemsByLine = _.groupBy([...receiptProblems, ...invoiceProblems], 'purchaseOrderItemId');
 
     const dto = new PurchaseOrderProblemsDto();
     dto.summary = {
-      total: receiptProblems.length + invoiceLineProblems.length + orderProblems.length,
+      total: receiptProblems.length + invoiceProblems.length,
       receiving: receiptProblems.length,
-      invoicing: invoiceLineProblems.length + orderProblems.length,
+      invoicing: invoiceProblems.length,
     };
     dto.lines = Object.entries(problemsByLine).map(([purchaseOrderItemId, lineProblems]) => ({
       purchaseOrderItemId,
       problems: lineProblems.map((lineProblem) => lineProblem.problem),
     }));
-    dto.orderProblems = orderProblems;
     return dto;
   }
 }

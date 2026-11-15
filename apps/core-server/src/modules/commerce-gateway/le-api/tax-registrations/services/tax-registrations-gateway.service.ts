@@ -3,13 +3,13 @@ import type { UpdateTaxRegistrationDto } from '@commerce/tax-registrations/dto/r
 import type { TaxRegistrationResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-response.dto';
 import type { TaxRegistrationTableResponseDto } from '@commerce/tax-registrations/dto/response/tax-registration-table-response.dto';
 import type { TaxRegistrationsPageResponseDto } from '@commerce/tax-registrations/dto/response/tax-registrations-page-response.dto';
+import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { type TablePageRequest, TableStateService } from '@vritti/api-sdk/data-table';
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { SiteDomainRepository } from '@/modules/domain/site/repositories/site.repository';
 
 @Injectable()
 export class TaxRegistrationsGatewayService {
@@ -18,7 +18,7 @@ export class TaxRegistrationsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly siteRepository: SiteDomainRepository,
+    private readonly siteService: SiteDomainService,
   ) {}
 
   async findForTable(userId: string): Promise<TaxRegistrationTableResponseDto> {
@@ -69,7 +69,7 @@ export class TaxRegistrationsGatewayService {
   // Sites hold a loose reference to the registration they trade under, so the check that the dropped foreign key used
   // to make lives here — core owns sites, commerce cannot see them
   async delete(id: string): Promise<SuccessResponseDto> {
-    const siteCount = await this.siteRepository.countByRegistration(id);
+    const siteCount = await this.siteService.countByRegistration(id);
     if (siteCount > 0) {
       throw new ConflictException({
         label: 'Registration In Use',

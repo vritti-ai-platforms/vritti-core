@@ -22,7 +22,7 @@ interface CreateInboundDeliveryDialogProps {
   onCancel: () => void;
 }
 
-// Announces a delivery from one of the suppliers enrolled at the site; its lines are added on the delivery
+// Creates an inbound delivery from one of the suppliers enrolled at the site; its lines are added on the delivery
 export const CreateInboundDeliveryDialog: React.FC<CreateInboundDeliveryDialogProps> = ({
   mutations,
   onSuccess,
@@ -77,7 +77,7 @@ export const CreateInboundDeliveryDialog: React.FC<CreateInboundDeliveryDialogPr
           Cancel
         </Button>
         <Button type="submit" loadingText="Creating...">
-          Create Delivery
+          Create Inbound Delivery
         </Button>
       </DialogActions>
     </Form>

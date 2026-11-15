@@ -21,7 +21,7 @@ import type {
   ChannelPriceResponseDto,
   ChannelPriceTableResponseDto,
 } from '@commerce/catalog-channels/dto/response/channel-item-response.dto';
-import { AppDomainRepository } from '@domain/app/repositories/app.repository';
+import { AppDomainService } from '@domain/app/services/app.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -46,7 +46,7 @@ export class SiteCatalogChannelsGatewayService {
   constructor(
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
-    private readonly appRepository: AppDomainRepository,
+    private readonly appService: AppDomainService,
     private readonly ownerNames: OwnerNameService,
   ) {}
 
@@ -55,7 +55,7 @@ export class SiteCatalogChannelsGatewayService {
     this.logger.log('site.catalogChannels.list');
     const [resolved, apps, terminals] = await Promise.all([
       this.nats.send<ResolvedChannels>('commerce', 'site.catalogChannels.list', {}),
-      this.appRepository.findAllByOrg(orgId),
+      this.appService.listForOrg(orgId),
       this.nats.send<{ id: string; name: string }[]>('commerce', 'site.posTerminals.list', {}),
     ]);
 

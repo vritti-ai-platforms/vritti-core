@@ -41,6 +41,23 @@ export class PaymentTermRulesDomainService {
     return { success: true, message: 'Rule deleted.' };
   }
 
+  // Returns the date a number of days after the term's baseline for a document dated `date` (YYYY-MM-DD): the date
+  // itself, or the end of its month
+  dueDateAfter(term: PaymentTermContext, date: string, days: number): string {
+    const [year, month, day] = date.split('-').map(Number);
+    const baselineTime =
+      term.baseline === PaymentTermBaselineValues.END_OF_MONTH
+        ? Date.UTC(year, month, 0)
+        : Date.UTC(year, month - 1, day);
+    return new Date(baselineTime + days * 86_400_000).toISOString().slice(0, 10);
+  }
+
+  // Returns when a document dated `date` falls fully due under the term: its last instalment, or the baseline with no rules
+  async findFinalDueDate(term: PaymentTermContext, date: string): Promise<string> {
+    const rules = await this.repository.findByTerm(term.id);
+    return this.dueDateAfter(term, date, Math.max(0, ...rules.map((rule) => rule.dueDays)));
+  }
+
   // Applies the term's rules to a sample invoice. Shares are allocated in basis points so rounding remainders land on
   // the instalments and they always sum to the invoice; due dates and discount deadlines count from the baseline date
   async previewSchedule(term: PaymentTermContext, data: PreviewPaymentScheduleDto): Promise<PaymentScheduleDto> {
@@ -68,12 +85,7 @@ export class PaymentTermRulesDomainService {
       10_000n - allocatedBasisPoints,
     ]).map((share) => toSnapshot(share).amount);
 
-    const [year, month, day] = data.date.split('-').map(Number);
-    const baselineTime =
-      term.baseline === PaymentTermBaselineValues.END_OF_MONTH
-        ? Date.UTC(year, month, 0)
-        : Date.UTC(year, month - 1, day);
-    const dateAfter = (days: number) => new Date(baselineTime + days * 86_400_000).toISOString().slice(0, 10);
+    const dateAfter = (days: number) => this.dueDateAfter(term, data.date, days);
     const money = (minor: bigint) => CurrencyAmountDto.from(minor, data.currency);
 
     let allocatedMinor = 0n;

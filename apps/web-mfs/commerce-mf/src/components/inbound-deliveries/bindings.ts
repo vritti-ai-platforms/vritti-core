@@ -9,7 +9,6 @@ import type {
   UseInboundDeliveriesTable,
   UseInboundDelivery,
   UseInboundDeliveryLinesTable,
-  UseReceiveInboundDelivery,
   UseRemoveInboundDeliveryLine,
   UseUpdateInboundDelivery,
   UseUpdateInboundDeliveryLine,
@@ -18,7 +17,6 @@ import type {
 
 export interface InboundDeliveryMutationsBinding {
   permissions: InboundDeliveryWritePermissions;
-  receivePermission: string;
   SupplierSelector: ComponentType<Omit<SelectProps, 'optionsEndpoint'>>;
 
   useCreate: UseCreateInboundDelivery;
@@ -28,11 +26,11 @@ export interface InboundDeliveryMutationsBinding {
   useAddLines: UseAddInboundDeliveryLines;
   useUpdateLine: UseUpdateInboundDeliveryLine;
   useRemoveLine: UseRemoveInboundDeliveryLine;
-  useReceive: UseReceiveInboundDelivery;
 }
 
 export interface InboundDeliveriesBinding {
   viewPermission: string;
+  receivePermission: string;
   spansSites: boolean;
   SupplierFilter: ComponentType<DistributiveOmit<SelectFilterProps, 'optionsEndpoint' | 'name'> & { name?: string }>;
 

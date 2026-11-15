@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, inArray, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
   CostCategoryKindValues,
+  type CostSourceType,
   costCategories,
   inventoryItemCosts,
   inventoryItemQuantCosts,
@@ -36,5 +37,25 @@ export class InventoryItemCostsDomainRepository extends PrimaryBaseRepository<ty
   async insertQuantCosts(rows: NewInventoryItemQuantCost[]): Promise<void> {
     if (rows.length === 0) return;
     await this.db.insert(inventoryItemQuantCosts).values(rows);
+  }
+
+  // Removes the costs the given sources booked, their per-quant allocations first
+  async deleteBySources(sourceType: CostSourceType, sourceIds: string[]): Promise<void> {
+    if (sourceIds.length === 0) return;
+    const bookedBySources = this.bookedBy(sourceType, sourceIds);
+    await this.db
+      .delete(inventoryItemQuantCosts)
+      .where(
+        inArray(
+          inventoryItemQuantCosts.costId,
+          this.db.select({ id: inventoryItemCosts.id }).from(inventoryItemCosts).where(bookedBySources),
+        ),
+      );
+    await this.deleteMany(bookedBySources);
+  }
+
+  // Matches the costs of the given source type booked by the given sources
+  private bookedBy(sourceType: CostSourceType, sourceIds: string[]): SQL {
+    return and(eq(inventoryItemCosts.sourceType, sourceType), inArray(inventoryItemCosts.sourceId, sourceIds)) as SQL;
   }
 }

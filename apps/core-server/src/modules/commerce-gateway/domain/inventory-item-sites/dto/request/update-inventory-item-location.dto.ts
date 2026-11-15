@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, Min } from 'class-validator';
+import { IsBoolean } from 'class-validator';
 
 export class UpdateInventoryItemLocationDto {
-  @ApiProperty({ description: 'Minimum stock level threshold for reorder at this location' })
-  @IsNumber()
-  @Min(0)
-  reorderLevel: number;
+  @ApiProperty({ description: 'Whether new putaway of the item into this location is blocked' })
+  @IsBoolean()
+  isBlocked: boolean;
 }

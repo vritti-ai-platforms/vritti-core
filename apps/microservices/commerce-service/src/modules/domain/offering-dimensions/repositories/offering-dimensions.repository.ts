@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { asc, eq, getColumns, inArray, notExists, sql } from '@vritti/api-sdk/drizzle-orm';
-import { dimensionsFacetSql } from '@/common/variant-facets';
 import {
+  dimensionsFacetSql,
   dimensionTemplates,
   dimensionTemplateValues,
   type NewOfferingDimensionValue,

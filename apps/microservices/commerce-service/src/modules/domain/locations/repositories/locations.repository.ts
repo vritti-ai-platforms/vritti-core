@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, inArray, isNull, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, getColumns, gt, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { alias } from '@vritti/api-sdk/drizzle-pg-core';
 import {
   goodsReceiptLines,
   inventoryItemLocations,
   inventoryItemQuants,
+  inventoryItems,
+  inventoryItemUomConversions,
   type LocationRole,
+  LocationRoleValues,
   locations,
+  storageTypes,
 } from '@/db/schema';
+import type { LocationRow } from '../dto/entity/location.dto';
+import type { FillMemberRow, FillQuantRow } from '../dto/entity/location-fill-inputs.dto';
 
 export type HierarchyRow = {
   id: string;
@@ -17,6 +24,25 @@ export type HierarchyRow = {
   sortOrder: number;
   depth: number;
   path: string[];
+  storageTypeId: string | null;
+  storageTypeName: string | null;
+  isStorageTypeOverridden: boolean;
+};
+
+export type SubtreeRow = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  locationRole: LocationRole;
+  storageTypeId: string | null;
+  isStorageTypeOverridden: boolean;
+};
+
+export type StoredItemRow = {
+  locationId: string;
+  locationName: string;
+  inventoryItemId: string;
+  inventoryItemName: string;
 };
 
 @Injectable()
@@ -88,10 +114,14 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
           JOIN tree ON child.parent_id::text = tree.id
           WHERE NOT (child.id::text = ANY(tree.path))
         )
-        SELECT id, parent_id AS "parentId", name, location_role AS "locationRole",
-               sort_order AS "sortOrder", depth, path
+        SELECT tree.id, tree.parent_id AS "parentId", tree.name, tree.location_role AS "locationRole",
+               tree.sort_order AS "sortOrder", tree.depth, tree.path,
+               l.storage_type_id::text AS "storageTypeId", st.name AS "storageTypeName",
+               l.is_storage_type_overridden AS "isStorageTypeOverridden"
         FROM tree
-        ORDER BY ord
+        JOIN ${locations} AS l ON l.id::text = tree.id
+        LEFT JOIN ${storageTypes} AS st ON st.id = l.storage_type_id
+        ORDER BY tree.ord
       `);
 
       return result.rows ?? [];
@@ -162,10 +192,14 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
         JOIN relevant ON relevant.id = child.id::text
         WHERE NOT (child.id::text = ANY(tree.path))
       )
-      SELECT id, parent_id AS "parentId", name, location_role AS "locationRole",
-             sort_order AS "sortOrder", depth, path
+      SELECT tree.id, tree.parent_id AS "parentId", tree.name, tree.location_role AS "locationRole",
+             tree.sort_order AS "sortOrder", tree.depth, tree.path,
+             l.storage_type_id::text AS "storageTypeId", st.name AS "storageTypeName",
+             l.is_storage_type_overridden AS "isStorageTypeOverridden"
       FROM tree
-      ORDER BY ord
+      JOIN ${locations} AS l ON l.id::text = tree.id
+      LEFT JOIN ${storageTypes} AS st ON st.id = l.storage_type_id
+      ORDER BY tree.ord
     `);
 
     return result.rows ?? [];
@@ -249,5 +283,134 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
       END
       WHERE path <@ cast(${oldPath} as commerce.ltree)
     `);
+  }
+
+  // Returns one location with its storage type name and the location its type is inherited from
+  findDetail(id: string): Promise<LocationRow | undefined> {
+    return this.findById<LocationRow>(id, { select: this.selection() });
+  }
+
+  // Returns a page of locations with their storage type names and inheritance sources
+  findForTable(options: {
+    where?: SQL;
+    orderBy: SQL[];
+    limit: number;
+    offset: number;
+  }): Promise<{ result: LocationRow[]; count: number }> {
+    return this.findAllAndCount<LocationRow>({ select: this.selection(), ...options });
+  }
+
+  // Returns a location and its descendants of the same site, shallowest first
+  findSubtree(siteId: string, path: string): Promise<SubtreeRow[]> {
+    return this.db
+      .select({
+        id: locations.id,
+        parentId: locations.parentId,
+        name: locations.name,
+        locationRole: locations.locationRole,
+        storageTypeId: locations.storageTypeId,
+        isStorageTypeOverridden: locations.isStorageTypeOverridden,
+      })
+      .from(locations)
+      .where(and(eq(locations.siteId, siteId), sql`${locations.path} <@ cast(${path} as commerce.ltree)`))
+      .orderBy(sql`commerce.nlevel(${locations.path})`, asc(locations.id));
+  }
+
+  // Points the given locations at a storage type, leaving their override flags alone
+  async setStorageType(ids: string[], storageTypeId: string | null): Promise<void> {
+    if (ids.length === 0) return;
+    await this.updateMany(inArray(locations.id, ids), { storageTypeId });
+  }
+
+  // Pairs each given location with itself (non-zones) or its descendant storage locations (zones), with their types
+  async findFillMembers(locationIds: string[]): Promise<FillMemberRow[]> {
+    if (locationIds.length === 0) return [];
+    const root = alias(locations, 'fill_root');
+    return this.db
+      .select({ rootId: root.id, locationId: locations.id, storageTypeId: locations.storageTypeId })
+      .from(root)
+      .innerJoin(
+        locations,
+        and(
+          eq(locations.siteId, root.siteId),
+          sql`${locations.path} <@ ${root.path}`,
+          ne(locations.locationRole, LocationRoleValues.ZONE),
+        ),
+      )
+      .where(inArray(root.id, locationIds));
+  }
+
+  // Returns the non-empty quants of the given locations with the item's primary unit figures and the pack's own
+  // weight and volume
+  async findFillQuants(locationIds: string[]): Promise<FillQuantRow[]> {
+    if (locationIds.length === 0) return [];
+    return this.db
+      .select({
+        locationId: inventoryItemQuants.locationId,
+        inventoryItemId: inventoryItemQuants.inventoryItemId,
+        packUomId: inventoryItemQuants.packUomId,
+        quantity: inventoryItemQuants.quantity,
+        primaryUomId: inventoryItems.uomId,
+        primaryWeight: inventoryItems.weight,
+        primaryVolume: inventoryItems.volume,
+        packWeight: inventoryItemUomConversions.weight,
+        packVolume: inventoryItemUomConversions.volume,
+      })
+      .from(inventoryItemQuants)
+      .innerJoin(inventoryItems, eq(inventoryItemQuants.inventoryItemId, inventoryItems.id))
+      .leftJoin(
+        inventoryItemUomConversions,
+        and(
+          eq(inventoryItemUomConversions.inventoryItemId, inventoryItemQuants.inventoryItemId),
+          eq(inventoryItemUomConversions.uomId, inventoryItemQuants.packUomId),
+        ),
+      )
+      .where(and(inArray(inventoryItemQuants.locationId, locationIds), gt(inventoryItemQuants.quantity, 0)));
+  }
+
+  // Returns the distinct items with stock in each of the given locations
+  async findStoredItems(locationIds: string[]): Promise<StoredItemRow[]> {
+    if (locationIds.length === 0) return [];
+    return this.db
+      .selectDistinct({
+        locationId: locations.id,
+        locationName: sql<string>`coalesce(${locations.pathBreadcrumb}, ${locations.name})`,
+        inventoryItemId: inventoryItems.id,
+        inventoryItemName: inventoryItems.name,
+      })
+      .from(inventoryItemQuants)
+      .innerJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
+      .innerJoin(inventoryItems, eq(inventoryItemQuants.inventoryItemId, inventoryItems.id))
+      .where(and(inArray(inventoryItemQuants.locationId, locationIds), gt(inventoryItemQuants.quantity, 0)));
+  }
+
+  // Selects a location with its storage type name and, when its type is inherited, the nearest ancestor that set it
+  private selection() {
+    const ancestor = alias(locations, 'type_source');
+    const storageTypeName = this.db
+      .select({ name: storageTypes.name })
+      .from(storageTypes)
+      .where(eq(storageTypes.id, locations.storageTypeId));
+    const typeSourceName = this.db
+      .select({ name: ancestor.name })
+      .from(ancestor)
+      .where(
+        and(
+          eq(ancestor.siteId, locations.siteId),
+          eq(ancestor.isStorageTypeOverridden, true),
+          ne(ancestor.id, locations.id),
+          sql`${ancestor.path} @> ${locations.path}`,
+        ),
+      )
+      .orderBy(sql`commerce.nlevel(${ancestor.path}) desc`)
+      .limit(1);
+    return {
+      ...getColumns(locations),
+      storageTypeName: sql<string | null>`(${storageTypeName})`,
+      inheritedFromLocationName: sql<string | null>`case
+        when ${locations.isStorageTypeOverridden} or ${locations.storageTypeId} is null then null
+        else (${typeSourceName})
+      end`,
+    };
   }
 }

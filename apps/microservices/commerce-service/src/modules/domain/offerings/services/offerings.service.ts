@@ -5,7 +5,7 @@ import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   BOM_RULES,
   type CatalogChannelType,
@@ -90,15 +90,11 @@ export class OfferingsDomainService {
   // Offering options for select dropdowns, restricted to active offerings
   findForSelect(query: SelectOptionsQueryDto & { catalogId?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey,
       additionalKeys: query.additionalKeys,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       conditions: [eq(offerings.isActive, true), ...this.listableInCatalog(query.catalogId)],

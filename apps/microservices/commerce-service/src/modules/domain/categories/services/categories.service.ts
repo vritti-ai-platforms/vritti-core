@@ -7,7 +7,7 @@ import { BadRequestException, ConflictException, NotFoundException } from '@vrit
 import _ from '@vritti/api-sdk/lodash';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type Category, type CategoryRole, CategoryRoleValues, categories } from '@/db/schema';
 import { CategoryDto } from '../dto/entity/category.dto';
 import type { CategoryCountDto } from '../dto/entity/category-count.dto';
@@ -47,16 +47,12 @@ export class CategoriesDomainService {
   // Returns paginated category options for the select component (role- and status-filtered; RLS scopes results)
   findForSelect(query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
     return this.categoriesRepository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey || 'path',
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       conditions: [

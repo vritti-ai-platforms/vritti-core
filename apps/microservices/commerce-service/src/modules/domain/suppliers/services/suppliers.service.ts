@@ -2,15 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, arrayOverlaps, asc, not, sql } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { parties, supplierItems, suppliers } from '@/db/schema';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
+import { parties, type Supplier, supplierItems, suppliers } from '@/db/schema';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
-import { SuppliersDomainRepository } from '../repositories/suppliers.repository';
+import { SuppliersDomainRepository, type SupplierWithParty } from '../repositories/suppliers.repository';
 
 @Injectable()
 export class SuppliersDomainService {
@@ -68,24 +69,21 @@ export class SuppliersDomainService {
     return { result: rows.map((row) => SupplierDto.from(row)), count };
   }
 
-  // Returns paginated supplier options; activeOnly drops inactive suppliers and inventoryItemId keeps those supplying the item
+  // Returns paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the
+  // item and enrolledAtSiteId those actively enrolled at the site
   findForSelect(
     query: SelectOptionsQueryDto,
-    options?: { activeOnly?: boolean; inventoryItemId?: string },
+    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
   ): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {
+        ...selectPageOptions(query),
         value: query.valueKey || 'id',
         label: query.labelKey || 'displayName',
         description: query.descriptionKey,
         additionalKeys: query.additionalKeys,
         groupIdKey: query.groupIdKey,
-        search: query.search,
         searchKeys: ['displayName', 'code'],
-        limit: query.limit,
-        offset: query.offset,
-        values: query.values,
-        excludeIds: query.excludeIds,
         orderByKey: query.orderByKey || 'displayName',
         orderDirection: query.orderDirection || 'asc',
       },
@@ -95,8 +93,8 @@ export class SuppliersDomainService {
 
   // Creates a new supplier referencing an existing party for its identity
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
-    await this.repository.assertDefaultPaymentTermUsable(data.defaultPaymentTermId);
-    await this.repository.assertPartyFree(data.partyId);
+    await this.assertDefaultPaymentTermUsable(data.defaultPaymentTermId);
+    await this.assertPartyFree(data.partyId);
     const entity = await this.repository.create({
       partyId: data.partyId,
       code: data.code,
@@ -109,7 +107,7 @@ export class SuppliersDomainService {
       isActive: data.isActive,
     });
 
-    const withParty = await this.repository.findWithPartyOrThrow(entity.id);
+    const withParty = await this.findWithPartyOrThrow(entity.id);
     this.logger.log(`Created supplier: ${entity.code}`);
     return {
       success: true,
@@ -120,12 +118,14 @@ export class SuppliersDomainService {
 
   // Returns supplier detail with party name, registrations, licenses, and its enrollment and item counts
   async findById(id: string): Promise<SupplierDetailDto> {
-    return SupplierDetailDto.fromDetail(await this.repository.findDetailOrThrow(id));
+    const supplier = await this.repository.findDetail(id);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return SupplierDetailDto.fromDetail(supplier);
   }
 
   // Updates a supplier's commercial terms and block flags
   async update(id: string, data: Omit<UpdateSupplierDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findByIdOrThrow(id);
+    const existing = await this.findByIdOrThrow(id);
 
     if (Object.keys(data).length > 0) {
       await this.repository.update(id, data);
@@ -137,10 +137,10 @@ export class SuppliersDomainService {
 
   // Sets a supplier's currencies and default; prices are never converted, so a currency in use cannot be dropped
   async changeCurrency(id: string, data: Omit<ChangeSupplierCurrencyDto, 'id'>): Promise<SuccessResponseDto> {
-    const supplier = await this.repository.findByIdOrThrow(id);
+    const supplier = await this.findByIdOrThrow(id);
     const { currencyCodes } = data;
     const dropped = supplier.currencyCodes.filter((code) => !currencyCodes.includes(code));
-    await this.repository.assertCurrenciesUnused(id, dropped);
+    await this.assertCurrenciesUnused(id, dropped);
 
     await this.repository.update(id, { currencyCode: data.currencyCode, currencyCodes });
     this.logger.log(`Set supplier ${id} currencies to ${currencyCodes.join(', ')} (default ${data.currencyCode})`);
@@ -149,22 +149,22 @@ export class SuppliersDomainService {
 
   // Sets the payment term new site enrollments of a supplier start from
   async setDefaultPaymentTerm(id: string, defaultPaymentTermId: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findWithPartyOrThrow(id);
-    await this.repository.assertDefaultPaymentTermUsable(defaultPaymentTermId);
+    const existing = await this.findWithPartyOrThrow(id);
+    await this.assertDefaultPaymentTermUsable(defaultPaymentTermId);
     await this.repository.update(id, { defaultPaymentTermId });
     return { success: true, message: `Default payment term of "${existing.partyName}" updated.` };
   }
 
   // Sets the default payment term of several suppliers at once
   async bulkSetDefaultPaymentTerm(ids: string[], defaultPaymentTermId: string): Promise<SuccessResponseDto> {
-    await this.repository.assertDefaultPaymentTermUsable(defaultPaymentTermId);
+    await this.assertDefaultPaymentTermUsable(defaultPaymentTermId);
     const updated = await this.repository.bulkSetDefaultPaymentTerm([...new Set(ids)], defaultPaymentTermId);
     return { success: true, message: `Default payment term updated for ${pluralize('supplier', updated, true)}.` };
   }
 
   // Blocks or unblocks new purchase orders and goods receipts from a supplier at every site
   async setPurchasingBlocked(id: string, purchasingBlocked: boolean): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findWithPartyOrThrow(id);
+    const existing = await this.findWithPartyOrThrow(id);
     await this.repository.update(id, { purchasingBlocked });
     return {
       success: true,
@@ -174,7 +174,7 @@ export class SuppliersDomainService {
 
   // Blocks or unblocks payments to a supplier
   async setPaymentBlocked(id: string, paymentBlocked: boolean): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findWithPartyOrThrow(id);
+    const existing = await this.findWithPartyOrThrow(id);
     await this.repository.update(id, { paymentBlocked });
     return {
       success: true,
@@ -184,7 +184,7 @@ export class SuppliersDomainService {
 
   // Activates or deactivates a supplier
   async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findWithPartyOrThrow(id);
+    const existing = await this.findWithPartyOrThrow(id);
     await this.repository.update(id, { isActive });
     return {
       success: true,
@@ -203,10 +203,82 @@ export class SuppliersDomainService {
 
   // Deletes a supplier that nothing references
   async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findWithPartyOrThrow(id);
-    await this.repository.assertNotReferenced(existing);
+    const existing = await this.findWithPartyOrThrow(id);
+    await this.assertNotReferenced(existing);
     await this.repository.delete(id);
     this.logger.log(`Deleted supplier: ${existing.code} (${id})`);
     return { success: true, message: `Supplier "${existing.partyName}" deleted successfully.` };
+  }
+
+  // Loads a supplier by id, throwing when it does not exist
+  async findByIdOrThrow(id: string): Promise<Supplier> {
+    const supplier = await this.repository.findById(id);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return supplier;
+  }
+
+  // Loads a supplier joined with its party display name, throwing when it does not exist
+  async findWithPartyOrThrow(id: string): Promise<SupplierWithParty> {
+    const supplier = await this.repository.findByIdWithParty(id);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return supplier;
+  }
+
+  // Rejects a default payment term that is not a published term of the caller's organization
+  private async assertDefaultPaymentTermUsable(paymentTermId: string): Promise<void> {
+    const isPublished = await this.repository.isPaymentTermPublished(paymentTermId);
+    if (isPublished) return;
+    throw new BadRequestException({
+      label: 'Invalid Default Payment Term',
+      detail: 'The selected default payment term does not exist or is still a draft.',
+      errors: [{ field: 'defaultPaymentTermId', message: 'Pick a published payment term' }],
+    });
+  }
+
+  // Rejects a party that is already a supplier of the caller's legal entity
+  private async assertPartyFree(partyId: string): Promise<void> {
+    const isSupplier = await this.repository.isPartySupplier(partyId);
+    if (!isSupplier) return;
+    throw new ConflictException({
+      label: 'Already A Supplier',
+      detail: 'This party is already a supplier for this legal entity.',
+      errors: [{ field: 'partyId', message: 'Already a supplier' }],
+    });
+  }
+
+  // Rejects deleting a supplier that purchase orders, quotations or item prices still reference
+  private async assertNotReferenced(supplier: SupplierWithParty): Promise<void> {
+    const references = await this.repository.countReferences(supplier.id);
+    const parts: string[] = [];
+    if (references.purchaseOrders > 0) {
+      parts.push(`${references.purchaseOrders} ${pluralize('purchase order', references.purchaseOrders)}`);
+    }
+    if (references.quotations > 0) {
+      parts.push(`${references.quotations} ${pluralize('quotation', references.quotations)}`);
+    }
+    if (references.prices > 0) {
+      parts.push(`${references.prices} ${pluralize('item price', references.prices)}`);
+    }
+    if (parts.length === 0) return;
+    throw new ConflictException({
+      label: 'Supplier In Use',
+      detail: `Cannot delete "${supplier.partyName}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
+    });
+  }
+
+  // Rejects dropping currencies still used by the supplier's prices, quotations or open purchase orders
+  private async assertCurrenciesUnused(id: string, dropped: string[]): Promise<void> {
+    if (dropped.length === 0) return;
+    const usage = await this.repository.countCurrencyUsage(id, dropped);
+    const uses: string[] = [];
+    if (usage.prices > 0) uses.push(pluralize('price', usage.prices, true));
+    if (usage.quotations > 0) uses.push(pluralize('quotation', usage.quotations, true));
+    if (usage.purchaseOrders > 0) uses.push(pluralize('open purchase order', usage.purchaseOrders, true));
+    if (uses.length === 0) return;
+    throw new ConflictException({
+      label: 'Currency In Use',
+      detail: `${dropped.join(', ')} cannot be removed while ${uses.join(', ')} of this supplier use it.`,
+      errors: [{ field: 'currencyCodes', message: `${dropped.join(', ')} is still in use` }],
+    });
   }
 }

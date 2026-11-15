@@ -1,3 +1,4 @@
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { StringCell } from '@vritti/quantum-ui/DataTable';
 import { ArrowUpRight } from 'lucide-react';
@@ -6,22 +7,24 @@ import { GoodsReceiptStatusBadge } from '@/components/goods-receipts/GoodsReceip
 import { SupplierInvoiceStatusBadge } from '@/components/supplier-invoices/SupplierInvoiceStatusBadge';
 import { goodsReceiptItemFlagLabels } from '@/schemas/goods-receipts';
 import type { PurchaseOrderProblem } from '@/schemas/purchase-orders';
-import { SUPPLIER_INVOICE_FLAG_LABELS } from '@/schemas/supplier-invoices';
+import { SUPPLIER_INVOICE_HOLD_LABELS } from '@/schemas/supplier-invoices';
 
 interface ProblemDetailProps {
   problem: PurchaseOrderProblem;
   onOpen?: (problem: PurchaseOrderProblem) => void;
 }
 
-// One flag as its document reports it — what was found, on which receipt or invoice, for which batch; with `onOpen`
-// the document number opens it, otherwise the row around it does
+// One problem as its document reports it — a receipt's flag or an invoice's open hold: what was found, on which receipt or
+// invoice, for which batch, and whether it holds up payment; with `onOpen` the document number opens it, otherwise the
+// row around it does
 export const ProblemDetail: React.FC<ProblemDetailProps> = ({ problem, onOpen }) => (
   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
     <div className="flex items-center justify-between gap-3">
-      <span className="font-medium text-foreground">
+      <span className="flex items-center gap-1.5 font-medium text-foreground">
         {problem.source === 'GOODS_RECEIPT'
           ? goodsReceiptItemFlagLabels[problem.code]
-          : SUPPLIER_INVOICE_FLAG_LABELS[problem.code]}
+          : SUPPLIER_INVOICE_HOLD_LABELS[problem.code]}
+        {problem.blocksPayment && <Badge variant="warning">Blocks payment</Badge>}
       </span>
       <span className="flex shrink-0 items-center gap-1.5">
         {onOpen ? (

@@ -7,7 +7,7 @@ export class GoodsReceiptLotResponseDto {
   @ApiProperty() lotNumber: string;
   @ApiPropertyOptional({ nullable: true }) manufacturingDate: string | null;
   @ApiProperty() expiryDate: string;
-  @ApiPropertyOptional({ nullable: true, description: 'Set after publish' })
+  @ApiPropertyOptional({ nullable: true, description: 'Set after posting' })
   resolvedLotId: string | null;
   @ApiPropertyOptional({ type: () => CurrencyAmountDto, nullable: true }) mrp: CurrencyAmountDto | null;
   @ApiProperty() linesCount: number;

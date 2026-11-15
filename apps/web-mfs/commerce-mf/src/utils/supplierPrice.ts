@@ -187,7 +187,7 @@ export function selectSitePriceHistory(
   today: string,
 ): SitePriceHistorySelection {
   const lines = data.sites
-    .map((site) => ({ ...site, id: site.siteId, label: site.siteName ?? site.siteCode ?? site.siteId }))
+    .map((site) => ({ ...site, id: site.siteId, label: site.siteName }))
     .sort((a, b) => a.label.localeCompare(b.label));
   return { ...selectPriceLines(lines, contextPriceRange(context, today), today), currency: data.currency ?? '' };
 }

@@ -121,16 +121,21 @@ const resolveHop = <TTable extends PgTable>(hop: { table: TTable; fk: (table: TT
 export const ownedByWorkspaceExpression = (table?: string) =>
   sql<boolean>`coalesce(${sql.raw(exactlyThisWorkspaceSql(table))}, false)`;
 
-// The owner columns, defaulted from the request's workspace so a plain insert stamps itself
-export const workspaceScopeColumns = {
-  legalEntityId: uuid('legal_entity_id').default(sql.raw(LE_GUC)),
-  siteId: uuid('site_id').default(sql.raw(SITE_GUC)),
-};
-
 // The tenant column every payments table carries, defaulted from the request's organization
-export const organizationIdColumn = uuid('organization_id')
-  .notNull()
-  .default(sql.raw("cast(current_setting('app.org_id') as uuid)"));
+export const organizationIdColumn = () =>
+  uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)"));
+
+// The legal entity a row belongs to, defaulted from the request's legal entity
+export const legalEntityIdColumn = () => uuid('legal_entity_id').default(sql.raw(LE_GUC));
+
+// The site a row belongs to, defaulted from the request's site
+export const siteIdColumn = () => uuid('site_id').default(sql.raw(SITE_GUC));
+
+// The owner columns, defaulted from the request's workspace so a plain insert stamps itself
+export const workspaceScopeColumns = () => ({
+  legalEntityId: legalEntityIdColumn(),
+  siteId: siteIdColumn(),
+});
 
 // PERMISSIVE, FOR ALL. The tenant gate, and the OR-base every restrictive policy below narrows.
 // Each factory already includes it — a schema file must never add it a second time.

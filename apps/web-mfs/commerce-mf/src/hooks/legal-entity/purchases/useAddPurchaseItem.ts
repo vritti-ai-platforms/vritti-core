@@ -1,0 +1,22 @@
+import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
+import type { AxiosError } from 'axios';
+import type { AddPurchaseItemPayload, PurchaseItem } from '@/schemas/purchases';
+import { addPurchaseItem } from '@/services/legal-entity/purchases.service';
+import { invalidatePurchase, PURCHASE_ITEMS_KEY } from './keys';
+
+// Adds an item to a purchase's items and refreshes the purchase's header, items
+export function useAddPurchaseItem(
+  options?: Omit<UseMutationOptions<CreateResponse<PurchaseItem>, AxiosError, AddPurchaseItemPayload>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+  return useMutation<CreateResponse<PurchaseItem>, AxiosError, AddPurchaseItemPayload>({
+    ...options,
+    mutationFn: addPurchaseItem,
+    onSuccess: (...args) => {
+      const [, variables] = args;
+      invalidatePurchase(queryClient, variables.id, [PURCHASE_ITEMS_KEY]);
+      options?.onSuccess?.(...args);
+    },
+  });
+}

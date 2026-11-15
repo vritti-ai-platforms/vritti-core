@@ -15,10 +15,12 @@ import {
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemMrps } from './inventory-item-mrps';
 import { inventoryItems } from './inventory-items';
+import { purchaseItems } from './purchase-items';
+import { purchases } from './purchases';
 import { suppliers } from './suppliers';
 import { uom } from './uom';
 import {
-  LE_GUC,
+  legalEntityIdColumn,
   organizationIdColumn,
   scopeFromOwnerPolicies,
   siteDocumentPolicies,
@@ -32,11 +34,12 @@ export const supplierQuotations = commerceSchema.table(
   'supplier_quotations',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    ...workspaceScopeColumns,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id, { onDelete: 'restrict' }),
+    purchaseId: uuid('purchase_id').references(() => purchases.id, { onDelete: 'set null' }),
     quotationNumber: varchar('quotation_number', { length: 100 }).notNull(),
     // One of the supplier's currencies; every line's price and MRP is in it
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
@@ -54,6 +57,7 @@ export const supplierQuotations = commerceSchema.table(
   (table) => [
     uniqueIndex('uq_supplier_quotations_supplier_number').on(table.supplierId, table.quotationNumber),
     index('idx_supplier_quotations_supplier').on(table.supplierId, table.validFrom),
+    index('idx_supplier_quotations_purchase').on(table.purchaseId),
     check('supplier_quotations_validity_chk', sql`${table.validTo} IS NULL OR ${table.validTo} >= ${table.validFrom}`),
     // A site sees only the quotations posted to it
     ...workspaceHierarchyPolicies({
@@ -71,7 +75,7 @@ export const supplierQuotationItems = commerceSchema.table(
   'supplier_quotation_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     quotationId: uuid('quotation_id')
       .notNull()
       .references(() => supplierQuotations.id, { onDelete: 'cascade' }),
@@ -81,6 +85,7 @@ export const supplierQuotationItems = commerceSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
+    purchaseItemId: uuid('purchase_item_id').references(() => purchaseItems.id, { onDelete: 'set null' }),
     supplierItemCode: varchar('supplier_item_code', { length: 100 }),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     mrpId: uuid('mrp_id').references(() => inventoryItemMrps.id, { onDelete: 'restrict' }),
@@ -96,6 +101,7 @@ export const supplierQuotationItems = commerceSchema.table(
   (table) => [
     uniqueIndex('uq_supplier_quotation_items_item_uom').on(table.quotationId, table.inventoryItemId, table.uomId),
     index('idx_supplier_quotation_items_inventory_item').on(table.inventoryItemId),
+    index('idx_supplier_quotation_items_purchase_item').on(table.purchaseItemId),
     check(
       'supplier_quotation_items_scheme_chk',
       sql`(${table.schemeBuyQty} IS NULL) = (${table.schemeFreeQty} IS NULL)`,
@@ -112,8 +118,8 @@ export const supplierQuotationSites = commerceSchema.table(
   'supplier_quotation_sites',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw(LE_GUC)),
+    organizationId: organizationIdColumn(),
+    legalEntityId: legalEntityIdColumn().notNull(),
     quotationId: uuid('quotation_id')
       .notNull()
       .references((): AnyPgColumn => supplierQuotations.id, { onDelete: 'cascade' }),

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   type LegalEntity,
   legalEntities,
@@ -11,24 +11,14 @@ import {
   siteGroups,
   sites,
 } from '@/db/schema';
+import type { AppSiteRow } from '../dto/entity/app-site.dto';
 import { SITE_TYPE_LABELS } from '../site-type-labels';
-
-export interface AppSiteRow {
-  id: string;
-  code: string;
-  name: string;
-  type: SiteType;
-  timezone: string;
-  legalEntityId: string;
-  currencyCode: string;
-  sortOrder: number;
-}
 
 export type SiteAccessKeys = Pick<Site, 'id' | 'type' | 'groupId' | 'legalEntityId'>;
 
 export type SiteGroupParent = Pick<SiteGroup, 'id' | 'parentId'>;
 
-export interface SiteSelectScope {
+export interface SiteIdScope {
   siteIds?: string[];
   excludeSiteIds?: string[];
 }
@@ -51,7 +41,7 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
   async findForSelectOptions(
     legalEntityId: string,
     query: SelectOptionsQueryDto,
-    scope: SiteSelectScope = {},
+    scope: SiteIdScope = {},
   ): Promise<SelectQueryResult> {
     if (scope.siteIds?.length === 0) return { options: [], hasMore: false, totalCount: 0 };
 
@@ -60,18 +50,36 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     if (scope.excludeSiteIds?.length) conditions.push(notInArray(sites.id, scope.excludeSiteIds));
 
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'name',
       description: 'code',
-      search: query.search,
       searchKeys: ['name', 'code'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: { legalEntityId, isActive: true },
       orderBy: { sortOrder: 'asc', name: 'asc' },
       conditions,
+    });
+  }
+
+  // A legal entity's sites for a data table, kept to the scope's sites, in the legal entity's order unless sorted
+  async findForTable(
+    orgId: string,
+    legalEntityId: string,
+    scope: SiteIdScope,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: Site[]; count: number }> {
+    if (scope.siteIds?.length === 0) return { result: [], count: 0 };
+    return this.findAllAndCount({
+      where: and(
+        eq(sites.organizationId, orgId),
+        eq(sites.legalEntityId, legalEntityId),
+        scope.siteIds ? inArray(sites.id, scope.siteIds) : undefined,
+        scope.excludeSiteIds?.length ? notInArray(sites.id, scope.excludeSiteIds) : undefined,
+        options.where,
+      ),
+      orderBy: options.orderBy.length > 0 ? options.orderBy : [asc(sites.sortOrder), asc(sites.name)],
+      limit: options.limit,
+      offset: options.offset,
     });
   }
 
@@ -111,15 +119,11 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     query: SelectOptionsQueryDto & { legalEntityId?: string },
   ): Promise<SelectQueryResult> {
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'name',
       description: 'code',
-      search: query.search,
       searchKeys: ['name', 'code'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: {
         organizationId: orgId,
         isActive: true,
@@ -139,15 +143,11 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     if (siteIds.length === 0) return { options: [], hasMore: false, totalCount: 0 };
 
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'name',
       description: 'type',
-      search: query.search,
       searchKeys: ['name', 'code'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: { organizationId: orgId },
       orderBy: { sortOrder: 'asc', name: 'asc' },
       conditions: [inArray(sites.id, siteIds)],
@@ -159,14 +159,10 @@ export class SiteDomainRepository extends PrimaryBaseRepository<typeof sites> {
     const labelCases = Object.entries(SITE_TYPE_LABELS).map(([type, label]) => sql`when ${type} then ${label}`);
 
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'type',
       label: sql<string>`case ${sites.type} ${sql.join(labelCases, sql` `)} else ${sites.type}::text end`,
       distinct: true,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       where: { organizationId: orgId, isActive: true },
       orderByKey: 'type',
     });

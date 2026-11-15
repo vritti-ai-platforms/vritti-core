@@ -14,4 +14,11 @@ export class SuppliersSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   inventoryItemId?: string;
+
+  @ApiPropertyOptional({
+    description: "Only suppliers with an active enrollment at this one of the legal entity's sites",
+  })
+  @IsOptional()
+  @IsUUID('7')
+  enrolledAtSiteId?: string;
 }

@@ -3,6 +3,9 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddSupplierInvoiceLineVars,
   CreateSupplierInvoicePayload,
+  InvoiceableGoodsReceipt,
+  InvoiceableGoodsReceiptsParams,
+  ReleaseSupplierInvoiceHoldVars,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
   SupplierInvoiceDetail,
@@ -13,19 +16,31 @@ import type {
 } from '@/schemas/supplier-invoices';
 
 const BASE = 'commerce-api/le/supplier-invoices';
-const purchaseOrderBase = (purchaseOrderId: string) => `commerce-api/le/purchase-orders/${purchaseOrderId}/invoices`;
 
 // Fetches the invoices of the legal entity's sites for the data table, narrowed by the table's saved context
 export function getSupplierInvoicesTable(): Promise<SupplierInvoicesTableResponse> {
   return axios.get<SupplierInvoicesTableResponse>(`${BASE}/table`).then((r) => r.data);
 }
 
-// Fetches an invoice with its lines, flags and linked receipts
+// Fetches an invoice with its lines and holds
 export function getSupplierInvoice(invoiceId: string): Promise<SupplierInvoiceDetail> {
   return axios.get<SupplierInvoiceDetail>(`${BASE}/${invoiceId}`).then((r) => r.data);
 }
 
-// Records a draft invoice billing a purchase order of one of the legal entity's sites
+// Fetches a supplier's posted receipt batches at one of the legal entity's sites with quantity left to invoice
+export function getInvoiceableGoodsReceipts(
+  supplierId: string,
+  siteId: string,
+  params: InvoiceableGoodsReceiptsParams,
+): Promise<InvoiceableGoodsReceipt[]> {
+  return axios
+    .get<InvoiceableGoodsReceipt[]>(`${BASE}/invoiceable-goods-receipts/sites/${siteId}`, {
+      params: { supplierId, ...params },
+    })
+    .then((r) => r.data);
+}
+
+// Records a draft invoice from a supplier at one of the legal entity's sites
 export function createSupplierInvoice(data: CreateSupplierInvoicePayload): Promise<SupplierInvoice> {
   return axios.post<CreateResponse<SupplierInvoice>>(BASE, data).then((r) => r.data.data);
 }
@@ -35,12 +50,12 @@ export function updateSupplierInvoice({ invoice, data }: UpdateSupplierInvoiceVa
   return axios.patch<SuccessResponse>(`${BASE}/${invoice.id}`, data).then((r) => r.data);
 }
 
-// Posts a draft invoice, setting the final cost of the stock it bills
+// Posts a draft invoice, setting the final cost of the stock it covers
 export function postSupplierInvoice(invoice: SupplierInvoiceRef): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${invoice.id}/post`).then((r) => r.data);
 }
 
-// Cancels an invoice, reversing its costing when it was posted
+// Cancels an invoice, reversing its costing and invoiced quantities when it was posted
 export function cancelSupplierInvoice(invoice: SupplierInvoiceRef): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${invoice.id}/cancel`).then((r) => r.data);
 }
@@ -50,7 +65,7 @@ export function deleteSupplierInvoice(invoice: SupplierInvoiceRef): Promise<Succ
   return axios.delete<SuccessResponse>(`${BASE}/${invoice.id}`).then((r) => r.data);
 }
 
-// Adds a billed line to an invoice
+// Adds an item or charge line to an invoice
 export function addSupplierInvoiceLine({ invoice, data }: AddSupplierInvoiceLineVars): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${invoice.id}/lines`, data).then((r) => r.data);
 }
@@ -72,15 +87,18 @@ export function removeSupplierInvoiceLine({
   return axios.delete<SuccessResponse>(`${BASE}/${invoice.id}/lines/${lineId}`).then((r) => r.data);
 }
 
-// Fetches the invoices billing a purchase order of one of the legal entity's sites
-export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
-  return axios.get<SupplierInvoicesTableResponse>(`${purchaseOrderBase(purchaseOrderId)}/table`).then((r) => r.data);
+// Releases an open hold on an invoice, recording why
+export function releaseSupplierInvoiceHold({
+  invoice,
+  holdId,
+  reason,
+}: ReleaseSupplierInvoiceHoldVars): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${invoice.id}/holds/${holdId}/release`, { reason }).then((r) => r.data);
 }
 
-// Records a draft invoice billing the purchase order; the order travels in the URL, not the body
-export function createPurchaseOrderInvoice({
-  purchaseOrderId,
-  ...data
-}: CreateSupplierInvoicePayload): Promise<SupplierInvoice> {
-  return axios.post<CreateResponse<SupplierInvoice>>(purchaseOrderBase(purchaseOrderId), data).then((r) => r.data.data);
+// Fetches the invoices with a line on a purchase order of one of the legal entity's sites
+export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
+  return axios
+    .get<SupplierInvoicesTableResponse>(`commerce-api/le/purchase-orders/${purchaseOrderId}/invoices/table`)
+    .then((r) => r.data);
 }

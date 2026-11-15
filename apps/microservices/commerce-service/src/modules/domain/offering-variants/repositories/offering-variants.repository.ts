@@ -15,14 +15,15 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { attributesFacetSql, dimensionsFacetSql } from '@/common/variant-facets';
 import {
+  attributesFacetSql,
   type CatalogChannelType,
   catalogChannels,
   catalogListingChannelExclusions,
   catalogListings,
   catalogs,
   channelSpecificity,
+  dimensionsFacetSql,
   type FulfilmentType,
   FulfilmentTypeValues,
   inventoryItems,
@@ -479,6 +480,7 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       limit: options.limit,
       offset: options.offset,
       excludeIds: options.excludeIds,
+      withTotalCount: true,
       orderByKey: 'code',
       orderDirection: 'asc',
       joins: [{ table: offerings, on: eq(offerings.id, offeringVariants.offeringId), type: 'inner' }],

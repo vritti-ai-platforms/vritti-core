@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type SiteGroup, siteGroups, sites } from '@/db/schema';
 
 @Injectable()
@@ -28,15 +28,11 @@ export class SiteGroupDomainRepository extends PrimaryBaseRepository<typeof site
     }
 
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'name',
       description: 'code',
-      search: query.search,
       searchKeys: ['name', 'code'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderBy: { name: 'asc' },
       conditions,
     });

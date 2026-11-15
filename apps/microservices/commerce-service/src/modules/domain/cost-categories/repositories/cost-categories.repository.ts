@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, ne } from '@vritti/api-sdk/drizzle-orm';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
-import { type CostCategory, type CostCategoryKind, costCategories } from '@/db/schema';
+import { type CostCategory, type CostCategoryKind, CostCategoryKindValues, costCategories } from '@/db/schema';
 
 @Injectable()
 export class CostCategoriesDomainRepository extends PrimaryBaseRepository<typeof costCategories> {
@@ -10,9 +10,14 @@ export class CostCategoriesDomainRepository extends PrimaryBaseRepository<typeof
     super(database, costCategories);
   }
 
-  // Paginated cost-category options for the selector dropdown
-  findForSelect(config: FindForSelectConfig): Promise<SelectQueryResult> {
-    return super.findForSelect(config);
+  // Paginated cost-category options for the selector dropdown; chargeOnly keeps the active ones that are not ITEM
+  findForSelect(config: FindForSelectConfig, options?: { chargeOnly?: boolean }): Promise<SelectQueryResult> {
+    return super.findForSelect({
+      ...config,
+      conditions: options?.chargeOnly
+        ? [eq(costCategories.isActive, true), ne(costCategories.kind, CostCategoryKindValues.ITEM)]
+        : undefined,
+    });
   }
 
   // Lookup by `code` within an org. Used when the admin needs an exact-string match.

@@ -1,5 +1,5 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
-import { z, zodNumericField } from '@vritti/quantum-ui/zod';
+import { z } from '@vritti/quantum-ui/zod';
 
 export interface InventoryItemLocationData {
   id: string;
@@ -7,21 +7,21 @@ export interface InventoryItemLocationData {
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
-  reorderLevel: number;
+  isBlocked: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export const createInventoryItemLocationSchema = z.object({
   locationId: z.uuid('Location is required'),
-  reorderLevel: zodNumericField({ required: 'Min stock level is required', min: 0 }),
-});
-
-export const updateInventoryItemLocationSchema = z.object({
-  reorderLevel: zodNumericField({ required: 'Min stock level is required', min: 0 }),
+  isBlocked: z.boolean(),
 });
 
 export type CreateInventoryItemLocationFormData = z.infer<typeof createInventoryItemLocationSchema>;
-export type UpdateInventoryItemLocationFormData = z.infer<typeof updateInventoryItemLocationSchema>;
+
+export interface UpdateInventoryItemLocationPayload {
+  locationConfigId: string;
+  isBlocked: boolean;
+}
 
 export type InventoryItemLocationsTableResponse = TableResponse<InventoryItemLocationData>;

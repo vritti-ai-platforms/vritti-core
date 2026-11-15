@@ -6,7 +6,7 @@ export class InventoryItemLocationDto {
   locationId: string;
   locationName: string | null;
   locationPath: string | null;
-  reorderLevel: number;
+  isBlocked: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -23,7 +23,7 @@ export class InventoryItemLocationDto {
     dto.locationId = row.locationId;
     dto.locationName = row.locationName ?? null;
     dto.locationPath = row.locationPath ?? null;
-    dto.reorderLevel = row.minLevel;
+    dto.isBlocked = row.isBlocked;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

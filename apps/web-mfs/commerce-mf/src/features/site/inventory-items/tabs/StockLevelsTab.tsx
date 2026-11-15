@@ -53,26 +53,10 @@ export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId,
         ),
       },
       {
-        accessorKey: 'reorderLevel',
-        header: 'Min. Stock Level',
-        cell: ({ row }) =>
-          row.original.reorderLevel != null ? (
-            <span className="font-mono">
-              <NumberCell value={row.original.reorderLevel} /> {uomSymbol}
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground">—</span>
-          ),
-      },
-      {
         id: 'status',
         header: 'Status',
         cell: ({ row }) => {
-          const { stockedQuantity, availableQuantity, reorderLevel } = row.original;
-          if (stockedQuantity === 0) return <Badge variant="destructive">No Stock</Badge>;
-          if (reorderLevel != null && reorderLevel > 0 && availableQuantity <= reorderLevel) {
-            return <Badge variant="secondary">Low Stock</Badge>;
-          }
+          if (row.original.stockedQuantity === 0) return <Badge variant="destructive">No Stock</Badge>;
           return <Badge variant="default">In Stock</Badge>;
         },
       },

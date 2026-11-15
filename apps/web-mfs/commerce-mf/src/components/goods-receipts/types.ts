@@ -5,9 +5,7 @@ import type {
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
-  AddGoodsReceiptPurchaseOrderPayload,
   CreateGoodsReceiptFromDeliveryPayload,
-  CreateGoodsReceiptFromPurchaseOrdersPayload,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -30,7 +28,7 @@ export interface GoodsReceiptPermissions {
   add: string;
   edit: string;
   delete: string;
-  publish: string;
+  post: string;
 }
 
 type MutationOptions<TData, TVars> = Omit<UseMutationOptions<TData, AxiosError, TVars>, 'mutationFn'>;
@@ -60,20 +58,13 @@ export type UseGoodsReceiptLineItemsTable = (
 export type UseCreateGoodsReceiptFromDelivery = (
   options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>,
 ) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>;
-export type UseCreateGoodsReceiptFromPurchaseOrders = (
-  options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromPurchaseOrdersPayload>,
-) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromPurchaseOrdersPayload>;
-export type UsePublishGoodsReceipt = (
+export type UsePostGoodsReceipt = (
   id: string,
   options?: MutationOptions<GoodsReceiptData, void>,
 ) => MutationResult<GoodsReceiptData, void>;
 export type UseDeleteGoodsReceipt = (
   options?: MutationOptions<SuccessResponse, string>,
 ) => MutationResult<SuccessResponse, string>;
-export type UseAddGoodsReceiptPurchaseOrder = (
-  goodsReceiptId: string,
-  options?: MutationOptions<SuccessResponse, AddGoodsReceiptPurchaseOrderPayload>,
-) => MutationResult<SuccessResponse, AddGoodsReceiptPurchaseOrderPayload>;
 export type UseUpdateGoodsReceipt = (
   goodsReceiptId: string,
   options?: MutationOptions<SuccessResponse, UpdateGoodsReceiptPayload>,

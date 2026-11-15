@@ -163,21 +163,33 @@ export type WorkspaceScope = (typeof WorkspaceScopeValues)[keyof typeof Workspac
 export const workspaceScopeOf = (row: { legalEntityId: string | null; siteId: string | null }): WorkspaceScope =>
   row.siteId ? WorkspaceScopeValues.SITE : row.legalEntityId ? WorkspaceScopeValues.LE : WorkspaceScopeValues.ORG;
 
-// The owner columns, defaulted from the request's workspace so a plain insert stamps itself
-export const workspaceScopeColumns = {
-  legalEntityId: uuid('legal_entity_id').default(sql.raw(LE_GUC)),
-  siteId: uuid('site_id').default(sql.raw(SITE_GUC)),
-};
+// The tenant column every commerce table carries, defaulted from the request's organization
+export const organizationIdColumn = () =>
+  uuid('organization_id').notNull().default(sql.raw("cast(current_setting('app.org_id') as uuid)"));
+
+// The legal entity a row belongs to, defaulted from the request's legal entity
+export const legalEntityIdColumn = () => uuid('legal_entity_id').default(sql.raw(LE_GUC));
+
+// The site a row belongs to, defaulted from the request's site
+export const siteIdColumn = () => uuid('site_id').default(sql.raw(SITE_GUC));
+
+// The owner columns of a row the org, a legal entity or a site may own, defaulted from the request's workspace so a
+// plain insert stamps itself
+export const workspaceScopeColumns = () => ({
+  legalEntityId: legalEntityIdColumn(),
+  siteId: siteIdColumn(),
+});
+
+// The owner columns of a site document (siteDocumentPolicies): both always set
+export const siteDocumentColumns = () => ({
+  legalEntityId: legalEntityIdColumn().notNull(),
+  siteId: siteIdColumn().notNull(),
+});
 
 // A site column as a unique-index key where an empty site stands for the legal entity: every empty site is the same
 // stratum, which a plain NULL key would treat as distinct
 export const siteStratum = (siteId: AnyPgColumn) =>
   sql`coalesce(${siteId}, '00000000-0000-0000-0000-000000000000'::uuid)`;
-
-// The tenant column every commerce table carries, defaulted from the request's organization
-export const organizationIdColumn = uuid('organization_id')
-  .notNull()
-  .default(sql.raw("cast(current_setting('app.org_id') as uuid)"));
 
 // PERMISSIVE, FOR ALL.
 export const orgIsolationPolicy = () =>

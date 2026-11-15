@@ -58,7 +58,7 @@ export const EditChangeLineForm = ({
     >
       <p className="text-sm">
         <span className="text-muted-foreground">Quant:</span> {line.quantLotNumber ? `${line.quantLotNumber} @ ` : ''}
-        {line.quantLocationName ?? line.quantLocationId ?? '—'}
+        {line.quantLocationName ?? '—'}
       </p>
       {!isItem ? (
         <>

@@ -1,16 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, exists, getColumns, isNull, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  getColumns,
+  gte,
+  inArray,
+  isNull,
+  like,
+  lte,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import {
   inventoryItemMrps,
   inventoryItems,
   type NewSupplierQuotationItem,
+  parties,
   type SupplierQuotation,
   type SupplierQuotationItem,
   type SupplierQuotationSite,
   supplierQuotationItems,
   supplierQuotationSites,
   supplierQuotations,
+  suppliers,
   uom,
 } from '@/db/schema';
 
@@ -21,6 +38,44 @@ export type SupplierQuotationItemRow = SupplierQuotationItem & {
   uomSymbol: string | null;
   currencyCode: string;
   mrpAmount: bigint | null;
+};
+
+export type PurchaseQuotationRow = {
+  id: string;
+  quotationNumber: string;
+  supplierId: string;
+  supplierName: string;
+  isPosted: boolean;
+  validFrom: string;
+  validTo: string | null;
+  currencyCode: string;
+};
+
+export type PurchaseQuotationItemRow = {
+  id: string;
+  quotationId: string;
+  purchaseItemId: string | null;
+  inventoryItemId: string;
+  inventoryItemName: string;
+  uomId: string;
+  uomSymbol: string;
+  unitPrice: bigint;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  currencyCode: string;
+};
+
+export type PurchaseQuotationItemTermsRow = {
+  id: string;
+  quotationId: string;
+  supplierId: string;
+  purchaseItemId: string | null;
+  inventoryItemId: string;
+  uomId: string;
+  currencyCode: string;
+  unitPrice: bigint;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
 };
 
 @Injectable()
@@ -88,6 +143,134 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
       )
       .limit(1);
     return row as SupplierQuotation | undefined;
+  }
+
+  // Returns the supplier's quotation numbers that start with the prefix
+  async findNumbersStartingWith(supplierId: string, prefix: string): Promise<string[]> {
+    const rows = await this.findAllWithSelect<{ quotationNumber: string }>({
+      select: { quotationNumber: supplierQuotations.quotationNumber },
+      where: and(eq(supplierQuotations.supplierId, supplierId), like(supplierQuotations.quotationNumber, `${prefix}%`)),
+    });
+    return rows.map((row) => row.quotationNumber);
+  }
+
+  // Returns the quotations a purchase requested with the supplier's name and whether each is posted to the site
+  findForPurchase(purchaseId: string, siteId: string): Promise<PurchaseQuotationRow[]> {
+    return this.findAllWithSelect<PurchaseQuotationRow>({
+      select: {
+        id: supplierQuotations.id,
+        quotationNumber: supplierQuotations.quotationNumber,
+        supplierId: supplierQuotations.supplierId,
+        supplierName: parties.displayName,
+        isPosted: this.postedToSite(siteId),
+        validFrom: supplierQuotations.validFrom,
+        validTo: supplierQuotations.validTo,
+        currencyCode: supplierQuotations.currencyCode,
+      },
+      innerJoins: [
+        { table: suppliers, on: eq(suppliers.id, supplierQuotations.supplierId) },
+        { table: parties, on: eq(parties.id, suppliers.partyId) },
+      ],
+      where: eq(supplierQuotations.purchaseId, purchaseId),
+      orderBy: [asc(supplierQuotations.createdAt)],
+    });
+  }
+
+  // Returns the lines of every quotation a purchase requested with the item's name and the unit's symbol
+  findItemsForPurchase(purchaseId: string): Promise<PurchaseQuotationItemRow[]> {
+    return this.findAllWithSelect<PurchaseQuotationItemRow>({
+      select: {
+        id: supplierQuotationItems.id,
+        quotationId: supplierQuotationItems.quotationId,
+        purchaseItemId: supplierQuotationItems.purchaseItemId,
+        inventoryItemId: supplierQuotationItems.inventoryItemId,
+        inventoryItemName: inventoryItems.name,
+        uomId: supplierQuotationItems.uomId,
+        uomSymbol: uom.symbol,
+        unitPrice: supplierQuotationItems.unitPrice,
+        schemeBuyQty: supplierQuotationItems.schemeBuyQty,
+        schemeFreeQty: supplierQuotationItems.schemeFreeQty,
+        currencyCode: supplierQuotations.currencyCode,
+      },
+      innerJoins: [
+        { table: supplierQuotationItems, on: eq(supplierQuotationItems.quotationId, supplierQuotations.id) },
+        { table: inventoryItems, on: eq(inventoryItems.id, supplierQuotationItems.inventoryItemId) },
+        { table: uom, on: eq(uom.id, supplierQuotationItems.uomId) },
+      ],
+      where: eq(supplierQuotations.purchaseId, purchaseId),
+      orderBy: [asc(inventoryItems.name)],
+    });
+  }
+
+  // Returns the given lines of the purchase's quotations that are posted to the site or its legal entity and valid on
+  // the day
+  findPostedItemsForPurchase(
+    purchaseId: string,
+    siteId: string,
+    quotationItemIds: string[],
+    onDate: string,
+  ): Promise<PurchaseQuotationItemTermsRow[]> {
+    return this.findAllWithSelect<PurchaseQuotationItemTermsRow>({
+      select: {
+        id: supplierQuotationItems.id,
+        quotationId: supplierQuotationItems.quotationId,
+        supplierId: supplierQuotations.supplierId,
+        purchaseItemId: supplierQuotationItems.purchaseItemId,
+        inventoryItemId: supplierQuotationItems.inventoryItemId,
+        uomId: supplierQuotationItems.uomId,
+        currencyCode: supplierQuotations.currencyCode,
+        unitPrice: supplierQuotationItems.unitPrice,
+        schemeBuyQty: supplierQuotationItems.schemeBuyQty,
+        schemeFreeQty: supplierQuotationItems.schemeFreeQty,
+      },
+      innerJoin: { table: supplierQuotationItems, on: eq(supplierQuotationItems.quotationId, supplierQuotations.id) },
+      where: and(
+        eq(supplierQuotations.purchaseId, purchaseId),
+        inArray(supplierQuotationItems.id, quotationItemIds),
+        this.postedToSite(siteId),
+        lte(supplierQuotations.validFrom, onDate),
+        or(isNull(supplierQuotations.validTo), gte(supplierQuotations.validTo, onDate)),
+      ),
+    });
+  }
+
+  // Returns whether any quotation is linked to the purchase
+  existsForPurchase(purchaseId: string): Promise<boolean> {
+    return this.exists(eq(supplierQuotations.purchaseId, purchaseId));
+  }
+
+  // Counts the quotations linked to the purchase
+  countForPurchase(purchaseId: string): Promise<number> {
+    return this.count(eq(supplierQuotations.purchaseId, purchaseId));
+  }
+
+  // Counts the suppliers with a quotation for the purchase posted to the site or its legal entity
+  async countPostedSuppliersForPurchase(purchaseId: string, siteId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ count: sql<number>`count(distinct ${supplierQuotations.supplierId})::int`.mapWith(Number) })
+      .from(supplierQuotations)
+      .where(and(eq(supplierQuotations.purchaseId, purchaseId), this.postedToSite(siteId)));
+    return row?.count ?? 0;
+  }
+
+  // Inserts quotation lines
+  async insertItems(rows: Omit<NewSupplierQuotationItem, 'organizationId'>[]): Promise<void> {
+    await this.db.insert(supplierQuotationItems).values(rows);
+  }
+
+  // Matches a quotation posted to the site or to its whole legal entity
+  private postedToSite(siteId: string): SQL {
+    return exists(
+      this.db
+        .select({ one: sql`1` })
+        .from(supplierQuotationSites)
+        .where(
+          and(
+            eq(supplierQuotationSites.quotationId, supplierQuotations.id),
+            or(eq(supplierQuotationSites.siteId, siteId), isNull(supplierQuotationSites.siteId)),
+          ),
+        ),
+    );
   }
 
   async findByNumber(supplierId: string, quotationNumber: string): Promise<SupplierQuotation | undefined> {

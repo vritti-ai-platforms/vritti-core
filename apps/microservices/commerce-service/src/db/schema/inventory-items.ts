@@ -1,5 +1,15 @@
 import { sql } from '@vritti/api-sdk/drizzle-orm';
-import { codeCheck, index, jsonb, timestamp, unique, uuid, varchar } from '@vritti/api-sdk/drizzle-pg-core';
+import {
+  check,
+  codeCheck,
+  decimal,
+  index,
+  jsonb,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from '@vritti/api-sdk/drizzle-pg-core';
 import { categories } from './categories';
 import { commerceSchema } from './commerce-schema';
 import { inventoryItemTypeEnum, inventoryPickStrategyEnum, inventoryTrackingEnum } from './enums';
@@ -11,7 +21,7 @@ export const inventoryItems = commerceSchema.table(
   'inventory_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     name: varchar('name', { length: 255 }).notNull(),
     sku: varchar('sku', { length: 100 }).notNull(),
     type: inventoryItemTypeEnum('type').notNull(),
@@ -29,6 +39,11 @@ export const inventoryItems = commerceSchema.table(
       .notNull()
       .references(() => taxClasses.id),
     metadata: jsonb('metadata').notNull().default({}),
+    weight: decimal('weight', { precision: 12, scale: 3, mode: 'number' }),
+    volume: decimal('volume', { precision: 12, scale: 3, mode: 'number' }),
+    length: decimal('length', { precision: 12, scale: 3, mode: 'number' }),
+    width: decimal('width', { precision: 12, scale: 3, mode: 'number' }),
+    height: decimal('height', { precision: 12, scale: 3, mode: 'number' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
@@ -38,6 +53,14 @@ export const inventoryItems = commerceSchema.table(
   (table) => [
     unique('uq_inventory_items_org_sku').on(table.organizationId, table.sku),
     codeCheck('inventory_items_sku_chk', table.sku),
+    check(
+      'inventory_items_measures_chk',
+      sql`(${table.weight} IS NULL OR ${table.weight} > 0)
+        AND (${table.volume} IS NULL OR ${table.volume} > 0)
+        AND (${table.length} IS NULL OR ${table.length} > 0)
+        AND (${table.width} IS NULL OR ${table.width} > 0)
+        AND (${table.height} IS NULL OR ${table.height} > 0)`,
+    ),
     index('idx_inventory_items_category').on(table.categoryId),
     index('idx_inventory_items_tax_class').on(table.taxClassId),
     index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),

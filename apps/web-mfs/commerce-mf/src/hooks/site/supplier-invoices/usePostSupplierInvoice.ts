@@ -2,6 +2,7 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { PURCHASE_ORDERS_KEY } from '@/hooks/site/purchase-orders/keys';
+import { PURCHASES_KEY } from '@/hooks/site/purchases/keys';
 import type { SupplierInvoiceRef } from '@/schemas/supplier-invoices';
 import { postSupplierInvoice } from '@/services/site/supplier-invoices.service';
 import { SITE_SUPPLIER_INVOICES_KEY } from './keys';
@@ -17,6 +18,7 @@ export function usePostSupplierInvoice(
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_INVOICES_KEY });
       queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_KEY });
+      queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
       options?.onSuccess?.(...args);
     },
   });

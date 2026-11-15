@@ -54,5 +54,4 @@ export class LocationStockDto {
   stockedQuantity: number;
   reservedQuantity: number;
   availableQuantity: number;
-  reorderLevel: number | null;
 }

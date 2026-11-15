@@ -6,7 +6,12 @@ import { Text } from '@vritti/quantum-ui-native/Text';
 import { useUnstableNativeVariable } from 'nativewind';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import type { GoodsReceipt, GoodsReceiptStatus, InboundDeliverySource } from '../../../../../../types/goods-receipts';
+import {
+  type GoodsReceipt,
+  type GoodsReceiptStatus,
+  GoodsReceiptStatusValues,
+  type InboundDeliverySource,
+} from '../../../../../../types/goods-receipts';
 
 const useThemeVar = useUnstableNativeVariable as unknown as (name: string) => string | undefined;
 
@@ -16,8 +21,8 @@ const DELIVERY_SOURCE_LABEL: Record<InboundDeliverySource, string> = {
 };
 
 const STATUS_META: Record<GoodsReceiptStatus, { label: string; token: string }> = {
-  DRAFT: { label: 'Draft', token: '--muted-foreground' },
-  PUBLISHED: { label: 'Published', token: '--success' },
+  [GoodsReceiptStatusValues.DRAFT]: { label: 'Draft', token: '--muted-foreground' },
+  [GoodsReceiptStatusValues.POSTED]: { label: 'Posted', token: '--success' },
 };
 
 function InfoRow({ label, children }: { label: string; children: ReactNode }) {
@@ -34,7 +39,7 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 // dates via useFormatters (never hand-rolled).
 export function OverviewTab({ gr }: { gr: GoodsReceipt }) {
   const fmt = useFormatters();
-  const meta = STATUS_META[gr.status] ?? STATUS_META.DRAFT;
+  const meta = STATUS_META[gr.status] ?? STATUS_META[GoodsReceiptStatusValues.DRAFT];
   const statusVar = useThemeVar(meta.token);
   const statusHsl = statusVar ? statusVar.split(' ').join(', ') : undefined;
   const statusColor = statusHsl ? `hsl(${statusHsl})` : undefined;

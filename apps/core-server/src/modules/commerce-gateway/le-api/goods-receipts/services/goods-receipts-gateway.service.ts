@@ -1,8 +1,6 @@
 import type { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import type { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
-import type { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
 import type { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
-import type { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import type { LeAddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-add-goods-receipt-lot.dto';
 import type { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/le-update-goods-receipt-lot.dto';
 import type { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
@@ -21,10 +19,8 @@ import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/respo
 import type { GoodsReceiptTreeNodeResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-tree-response.dto';
 import type { LeGoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/le-goods-receipt-response.dto';
 import type { LeGoodsReceiptTableResponseDto } from '@commerce/goods-receipts/dto/response/le-goods-receipt-table-response.dto';
-import { SiteDomainRepository } from '@domain/site/repositories/site.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
-import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { NatsClientService } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
@@ -37,31 +33,12 @@ export class LeGoodsReceiptsGatewayService {
     private readonly nats: NatsClientService,
     private readonly tableStateService: TableStateService,
     private readonly ownerNames: OwnerNameService,
-    private readonly siteRepository: SiteDomainRepository,
   ) {}
 
   // Creates a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
   createFromDelivery(dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
     this.logger.log(`le.goodsReceipts.createFromDelivery — inboundDeliveryId: ${dto.inboundDeliveryId}`);
     return this.nats.send('commerce', 'le.goodsReceipts.createFromDelivery', dto);
-  }
-
-  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
-  createFromPurchaseOrders(
-    dto: CreateGoodsReceiptFromPurchaseOrdersDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log(
-      `le.goodsReceipts.createFromPurchaseOrders — supplierId: ${dto.supplierId}, purchaseOrders: ${dto.purchaseOrderIds.length}`,
-    );
-    return this.nats.send('commerce', 'le.goodsReceipts.createFromPurchaseOrders', dto);
-  }
-
-  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
-  addPurchaseOrder(goodsReceiptId: string, dto: AddGoodsReceiptPurchaseOrderDto): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.goodsReceipts.addPurchaseOrder — goodsReceiptId: ${goodsReceiptId}, purchaseOrderId: ${dto.purchaseOrderId}`,
-    );
-    return this.nats.send('commerce', 'le.goodsReceipts.addPurchaseOrder', { goodsReceiptId, ...dto });
   }
 
   // Returns the goods receipts of the legal entity's sites with site names
@@ -84,7 +61,7 @@ export class LeGoodsReceiptsGatewayService {
     return named;
   }
 
-  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  // Changes a draft goods receipt's notes
   update(id: string, dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.goodsReceipts.update — id: ${id}`);
     return this.nats.send('commerce', 'le.goodsReceipts.update', { id, ...dto });
@@ -96,13 +73,10 @@ export class LeGoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'le.goodsReceipts.tree', { goodsReceiptId });
   }
 
-  // Publishes a goods receipt, landing its stock at its site valued in the legal entity's currency
-  async publish(id: string, legalEntityId: string | undefined): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`le.goodsReceipts.publish — id: ${id}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.publish', {
-      id,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+  // Posts a goods receipt, landing its stock at its site valued in the legal entity's currency
+  post(id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`le.goodsReceipts.post — id: ${id}`);
+    return this.nats.send('commerce', 'le.goodsReceipts.post', { id });
   }
 
   // Deletes a draft goods receipt
@@ -118,18 +92,12 @@ export class LeGoodsReceiptsGatewayService {
   }
 
   // Returns the provisional cost of a goods receipt's items in the legal entity's currency
-  async findItemsCost(
-    goodsReceiptId: string,
-    legalEntityId: string | undefined,
-  ): Promise<GoodsReceiptItemsCostResponseDto> {
+  findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
     this.logger.log(`le.goodsReceipts.itemsCost — goodsReceiptId: ${goodsReceiptId}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.itemsCost', {
-      goodsReceiptId,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.goodsReceipts.itemsCost', { goodsReceiptId });
   }
 
-  // Returns the quants a published goods receipt item landed in
+  // Returns the quants a posted goods receipt item landed in
   findItemQuants(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemQuantsResponseDto> {
     this.logger.log(`le.goodsReceipts.itemQuants — goodsReceiptId: ${goodsReceiptId}, itemId: ${itemId}`);
     return this.nats.send('commerce', 'le.goodsReceipts.itemQuants', { goodsReceiptId, itemId });
@@ -169,51 +137,30 @@ export class LeGoodsReceiptsGatewayService {
   }
 
   // Returns the lots of a goods receipt item, their MRP in the legal entity's currency
-  async findLots(
-    goodsReceiptId: string,
-    itemId: string,
-    legalEntityId: string | undefined,
-  ): Promise<GoodsReceiptLotResponseDto[]> {
+  findLots(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
     this.logger.log(`le.goodsReceipts.lots — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.lots', {
-      goodsReceiptId,
-      itemId,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.goodsReceipts.lots', { goodsReceiptId, itemId });
   }
 
   // Adds a lot to a goods receipt item, its MRP in the legal entity's currency
-  async addLot(
+  addLot(
     goodsReceiptId: string,
     itemId: string,
     dto: LeAddGoodsReceiptLotDto,
-    legalEntityId: string | undefined,
   ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
     this.logger.log(`le.goodsReceipts.addLot — itemId: ${itemId}, lot: ${dto.lotNumber}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.addLot', {
-      goodsReceiptId,
-      itemId,
-      ...dto,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.goodsReceipts.addLot', { goodsReceiptId, itemId, ...dto });
   }
 
   // Changes a lot of a goods receipt item, its MRP in the legal entity's currency
-  async updateLot(
+  updateLot(
     goodsReceiptId: string,
     itemId: string,
     lotId: string,
     dto: LeUpdateGoodsReceiptLotDto,
-    legalEntityId: string | undefined,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`le.goodsReceipts.updateLot — lotId: ${lotId}`);
-    return this.nats.send('commerce', 'le.goodsReceipts.updateLot', {
-      goodsReceiptId,
-      itemId,
-      lotId,
-      ...dto,
-      leCurrencyCode: await this.leCurrencyCode(legalEntityId),
-    });
+    return this.nats.send('commerce', 'le.goodsReceipts.updateLot', { goodsReceiptId, itemId, lotId, ...dto });
   }
 
   // Removes a lot from a goods receipt item
@@ -339,12 +286,5 @@ export class LeGoodsReceiptsGatewayService {
       lineId,
       subItemId,
     });
-  }
-
-  // Resolves the legal entity's currency that receipt costs and MRPs are kept in; an LE request carries no site context
-  private async leCurrencyCode(legalEntityId: string | undefined): Promise<string> {
-    const legalEntity = legalEntityId ? await this.siteRepository.findLegalEntityById(legalEntityId) : undefined;
-    if (!legalEntity) throw new NotFoundException('Legal entity not found.');
-    return legalEntity.currencyCode;
   }
 }

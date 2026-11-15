@@ -1,12 +1,15 @@
 import type { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
 import type { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
+import type { CreateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/create-inventory-item-storage-type.dto';
 import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
 import type { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
+import type { UpdateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/update-inventory-item-storage-type.dto';
 import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
+import type { InventoryItemStorageTypeResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-storage-type-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
@@ -166,5 +169,38 @@ export class InventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Returns the storage types an inventory item may be stored in
+  findStorageTypes(inventoryItemId: string): Promise<InventoryItemStorageTypeResponseDto[]> {
+    this.logger.log(`org.inventoryItems.storageTypes.findAll — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.findAll', { inventoryItemId });
+  }
+
+  // Allows an inventory item in a storage type with a maximum per location
+  createStorageType(
+    inventoryItemId: string,
+    dto: CreateInventoryItemStorageTypeDto,
+  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+    this.logger.log(
+      `org.inventoryItems.storageTypes.create — inventoryItemId: ${inventoryItemId}, storageTypeId: ${dto.storageTypeId}`,
+    );
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.create', { inventoryItemId, ...dto });
+  }
+
+  // Updates an item × storage type row
+  updateStorageType(
+    inventoryItemId: string,
+    id: string,
+    dto: UpdateInventoryItemStorageTypeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.storageTypes.update — inventoryItemId: ${inventoryItemId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.update', { inventoryItemId, id, ...dto });
+  }
+
+  // Stops allowing an inventory item in a storage type
+  deleteStorageType(inventoryItemId: string, id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.storageTypes.delete — inventoryItemId: ${inventoryItemId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.delete', { inventoryItemId, id });
   }
 }

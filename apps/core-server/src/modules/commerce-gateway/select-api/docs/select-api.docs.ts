@@ -34,6 +34,11 @@ export function ApiCostCategoriesSelect() {
       description: 'Returns paginated cost category options for the select component.',
     }),
     ...BASE_SELECT_QUERIES,
+    ApiQuery({
+      name: 'chargeOnly',
+      description: 'Only active categories that can be charged on an invoice line (not ITEM)',
+      required: false,
+    }),
     ApiResponse({ status: 200, description: 'Cost category select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
@@ -127,6 +132,19 @@ export function ApiInventoryItemSerialsSelect() {
   );
 }
 
+export function ApiInventoryItemsWithoutStockLevelsSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get inventory item select options without stock levels at the current site',
+      description:
+        "Returns paginated inventory item options for the items that have no stock levels at the request's site yet — the ones a site can set stock levels for.",
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Inventory item select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
 export function ApiInventoryItemsSelect() {
   return applyDecorators(
     ApiOperation({
@@ -157,6 +175,13 @@ export function ApiLocationsSelect() {
       required: false,
     }),
     ApiQuery({ name: 'inventoryItemId', description: 'Optional inventory item context', required: false }),
+    ApiQuery({
+      name: 'atSiteId',
+      description: "Only the locations of this one of the legal entity's sites",
+      required: false,
+    }),
+    ApiResponse({ status: 400, description: "The site is not one of the legal entity's." }),
+    ApiResponse({ status: 404, description: 'Site not found.' }),
     ApiQuery({
       name: 'excludeUsedOnGoodsReceiptItemId',
       description: 'Hide locations already used by lines on this goods receipt item',
@@ -260,7 +285,8 @@ export function ApiPurchaseOrderItemsSelect() {
   return applyDecorators(
     ApiOperation({
       summary: 'Get purchase order line select options',
-      description: 'Returns paginated options for the lines of one purchase order.',
+      description:
+        'Returns paginated options for the lines of one purchase order, with `orderedQty`, `primaryUomQty`, `freePrimaryQty`, `receivedPrimaryQty`, `invoicedPrimaryQty`, `cancelledPrimaryQty`, `uomSymbol` and `allowDecimal` as additional values.',
     }),
     ...BASE_SELECT_QUERIES,
     ApiQuery({
@@ -269,25 +295,6 @@ export function ApiPurchaseOrderItemsSelect() {
       required: true,
     }),
     ApiResponse({ status: 200, description: 'Purchase order line select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
-export function ApiReceivablePurchaseOrdersSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get receivable purchase order select options',
-      description:
-        "Returns paginated options for a supplier's confirmed or partially received purchase orders that still have a line left to receive outside their open inbound deliveries, newest PO number first — the goods receipt purchase order picker.",
-    }),
-    ...BASE_SELECT_QUERIES,
-    ApiQuery({ name: 'supplierId', description: 'Supplier whose purchase orders are listed', required: true }),
-    ApiQuery({
-      name: 'goodsReceiptId',
-      description: 'Goods receipt being added to: narrows to its site and leaves out the purchase orders already on it',
-      required: false,
-    }),
-    ApiResponse({ status: 200, description: 'Receivable purchase order select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -310,7 +317,7 @@ export function ApiDeliverablePurchaseOrderItemsSelect() {
     ApiOperation({
       summary: 'Get deliverable purchase order line select options',
       description:
-        "Returns paginated options for the lines of an inbound delivery's supplier at its site, on sent, confirmed or partially received purchase orders, not yet on the delivery and with quantity left to announce (`deliverableQty`), sorted by PO number with it as the description — the inbound delivery line picker.",
+        "Returns paginated options for the lines of an inbound delivery's supplier at its site, on confirmed purchase orders not fully received, not yet on the delivery and with quantity left to deliver (`deliverablePrimaryQty`, and `deliverableQty` in the line unit), sorted by PO number with it as the description — the inbound delivery line picker.",
     }),
     ...BASE_SELECT_QUERIES,
     ApiQuery({
@@ -333,6 +340,19 @@ export function ApiPurchaseOrdersSelect() {
     ApiQuery({ name: 'status', description: 'Optional status filter (single or comma-separated)', required: false }),
     ApiQuery({ name: 'supplierId', description: 'Optional supplier filter', required: false }),
     ApiResponse({ status: 200, description: 'Purchase order select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiPurchasesSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get purchase select options',
+      description:
+        "Returns paginated purchase options, newest first, for the workspace's site or every site of its legal entity. Keys default to `valueKey=id`, `labelKey=purchaseNumber` (also what `search` matches) and `descriptionKey=stage`, the computed stage: Requesting, Quoting, Sourcing or Procuring while open, Completed or Cancelled once closed.",
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Purchase select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }
@@ -374,6 +394,13 @@ export function ApiSuppliersSelect() {
       description: 'Only suppliers with a supplier item for this inventory item',
       required: false,
     }),
+    ApiQuery({
+      name: 'enrolledAtSiteId',
+      description: "Only suppliers with an active enrollment at this one of the legal entity's sites",
+      required: false,
+    }),
+    ApiResponse({ status: 400, description: "The site is not one of the legal entity's." }),
+    ApiResponse({ status: 404, description: 'Site not found.' }),
     ApiResponse({ status: 200, description: 'Supplier select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
@@ -387,6 +414,18 @@ export function ApiPaymentTermsSelect() {
     }),
     ...BASE_SELECT_QUERIES,
     ApiResponse({ status: 200, description: 'Payment term select options retrieved successfully.' }),
+    ApiResponse({ status: 401, description: 'Unauthorized.' }),
+  );
+}
+
+export function ApiStorageTypesSelect() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get storage type select options',
+      description: 'Returns paginated storage type options of the organization for the select component.',
+    }),
+    ...BASE_SELECT_QUERIES,
+    ApiResponse({ status: 200, description: 'Storage type select options retrieved successfully.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );
 }

@@ -11,7 +11,10 @@ import {
   type SupplierQuotationSite,
   supplierQuotations,
 } from '@/db/schema';
+import { PurchaseQuotationDto } from '../dto/entity/purchase-quotation.dto';
+import { PurchaseQuotationItemTermsDto } from '../dto/entity/purchase-quotation-item-terms.dto';
 import { SupplierQuotationDetailDto, SupplierQuotationDto } from '../dto/entity/supplier-quotation.dto';
+import type { CreatePurchaseQuotationDraftDto } from '../dto/request/create-purchase-quotation-draft.dto';
 import type { CreateSupplierQuotationDto } from '../dto/request/create-supplier-quotation.dto';
 import type { SupplierQuotationItemFieldsDto } from '../dto/request/supplier-quotation-item-fields.dto';
 import type { UpdateSupplierQuotationDto } from '../dto/request/update-supplier-quotation.dto';
@@ -95,6 +98,96 @@ export class SupplierQuotationsDomainService {
     });
     this.logger.log(`Created supplier quotation ${entity.quotationNumber} (${entity.id})`);
     return SupplierQuotationDto.from({ ...entity, itemCount: 0, siteCount: 0 });
+  }
+
+  // Records a draft quotation the legal entity owns for a purchase, one unpriced line per purchase item, numbered after the
+  // purchase; the caller runs it in the legal entity's workspace, which RLS requires for an LE-owned row
+  async createDraftForPurchase(
+    input: CreatePurchaseQuotationDraftDto,
+    createdBy: string | null,
+  ): Promise<{ quotationId: string }> {
+    if (input.lines.length === 0) {
+      throw new BadRequestException({
+        label: 'No Items',
+        detail: 'Add the items to buy to the purchase before requesting a quotation for them.',
+      });
+    }
+    const quotationNumber = SupplierQuotationsDomainService.nextFreeNumber(
+      input.purchaseNumber,
+      await this.repository.findNumbersStartingWith(input.supplierId, input.purchaseNumber),
+    );
+    const quotation = await this.repository.transaction(async () => {
+      const created = await this.repository.create({
+        siteId: null,
+        supplierId: input.supplierId,
+        purchaseId: input.purchaseId,
+        quotationNumber,
+        quotationDate: input.validFrom,
+        currencyCode: input.currencyCode,
+        validFrom: input.validFrom,
+        createdBy,
+      });
+      await this.repository.insertItems(
+        input.lines.map((line) => ({
+          quotationId: created.id,
+          purchaseItemId: line.purchaseItemId,
+          inventoryItemId: line.inventoryItemId,
+          uomId: line.uomId,
+          unitPrice: 0n,
+        })),
+      );
+      return created;
+    });
+    this.logger.log(`Created quotation ${quotationNumber} (${quotation.id}) for purchase ${input.purchaseId}`);
+    return { quotationId: quotation.id };
+  }
+
+  // Returns the quotations a purchase requested with their lines, each marked posted when it is posted to the site or
+  // its legal entity
+  async findForPurchase(purchaseId: string, siteId: string): Promise<PurchaseQuotationDto[]> {
+    const [quotations, items] = await Promise.all([
+      this.repository.findForPurchase(purchaseId, siteId),
+      this.repository.findItemsForPurchase(purchaseId),
+    ]);
+    return quotations.map((quotation) =>
+      PurchaseQuotationDto.from(
+        quotation,
+        items.filter((item) => item.quotationId === quotation.id),
+      ),
+    );
+  }
+
+  // Returns the terms of the given lines of the purchase's quotations posted to the site or its legal entity and valid
+  // on the day; lines that are not are left out
+  async findPostedItemsForPurchase(
+    purchaseId: string,
+    siteId: string,
+    quotationItemIds: string[],
+    onDate: string,
+  ): Promise<PurchaseQuotationItemTermsDto[]> {
+    if (quotationItemIds.length === 0) return [];
+    const rows = await this.repository.findPostedItemsForPurchase(
+      purchaseId,
+      siteId,
+      [...new Set(quotationItemIds)],
+      onDate,
+    );
+    return rows.map(PurchaseQuotationItemTermsDto.from);
+  }
+
+  // Counts the suppliers that have a quotation for the purchase posted to the site or its legal entity
+  countPostedSuppliersForPurchase(purchaseId: string, siteId: string): Promise<number> {
+    return this.repository.countPostedSuppliersForPurchase(purchaseId, siteId);
+  }
+
+  // Counts the quotations the purchase requested that the workspace can read, drafts included
+  countForPurchase(purchaseId: string): Promise<number> {
+    return this.repository.countForPurchase(purchaseId);
+  }
+
+  // Returns whether the purchase requested any quotation the workspace can read, drafts included
+  hasForPurchase(purchaseId: string): Promise<boolean> {
+    return this.repository.existsForPurchase(purchaseId);
   }
 
   // Updates the header; the validity is what the posted prices carry, so it changes only while the quotation is a draft,
@@ -222,6 +315,15 @@ export class SupplierQuotationsDomainService {
       detail: `This supplier already has a quotation numbered "${quotationNumber}".`,
       errors: [{ field: 'quotationNumber', message: 'Already used for this supplier' }],
     });
+  }
+
+  // The purchase number when the supplier has no quotation by it, else the first free "<number>-<n>" from 2 up
+  private static nextFreeNumber(purchaseNumber: string, taken: string[]): string {
+    const takenNumbers = new Set(taken);
+    if (!takenNumbers.has(purchaseNumber)) return purchaseNumber;
+    let suffix = 2;
+    while (takenNumbers.has(`${purchaseNumber}-${suffix}`)) suffix += 1;
+    return `${purchaseNumber}-${suffix}`;
   }
 
   private static assertValidity(validFrom: string, validTo: string | null): void {

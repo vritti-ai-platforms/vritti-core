@@ -13,6 +13,15 @@ export const COST_CATEGORY_KIND_OPTIONS: { value: CostCategoryKind; label: strin
   { value: 'OTHER', label: 'Other', description: 'Anything not covered above' },
 ];
 
+export const COST_CATEGORY_KIND_LABELS: Record<CostCategoryKind, string> = {
+  ITEM: 'Item',
+  FREIGHT: 'Freight',
+  DUTY: 'Duty',
+  INSURANCE: 'Insurance',
+  SERVICE: 'Service',
+  OTHER: 'Other',
+};
+
 const kindSchema = z.enum(COST_CATEGORY_KIND_VALUES);
 
 export const createCostCategorySchema = z.object({
@@ -42,3 +51,6 @@ export interface CostCategoryData {
 }
 
 export type CostCategoriesTableResponse = TableResponse<CostCategoryData>;
+
+export type CreateCostCategoryPayload = CreateCostCategoryFormData;
+export type UpdateCostCategoryPayload = UpdateCostCategoryFormData;

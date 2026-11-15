@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import Decimal from '@vritti/api-sdk/decimal';
 import { and, desc, eq, getColumns, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { ConflictException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import {
   type GoodsReceiptLine,
   goodsReceiptItems,
   goodsReceiptLineItems,
   goodsReceiptLines,
   goodsReceiptLots,
-  type InventoryTracking,
-  InventoryTrackingValues,
   inventoryItems,
   locations,
   uom,
@@ -27,25 +23,8 @@ export type GoodsReceiptLineRow = GoodsReceiptLine & {
   lineItemsCount: number;
 };
 
-export interface DistributedReceiptItem {
-  id: string;
-  siteId: string;
-  tracking: InventoryTracking;
-  receivedQty: number;
-  rejectedQuantity: number;
-}
-
 @Injectable()
 export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typeof goodsReceiptLines> {
-  private static readonly LOT_TRACKINGS: InventoryTracking[] = [
-    InventoryTrackingValues.LOT,
-    InventoryTrackingValues.LOT_SERIAL,
-  ];
-  private static readonly SERIAL_TRACKINGS: InventoryTracking[] = [
-    InventoryTrackingValues.SERIAL,
-    InventoryTrackingValues.LOT_SERIAL,
-  ];
-
   constructor(database: PrimaryDatabaseService) {
     super(database, goodsReceiptLines);
   }
@@ -78,90 +57,46 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
     });
   }
 
-  // Loads a line of the given receipt item, throwing when it is not on it
-  async findOnItemOrThrow(itemId: string, lineId: string): Promise<GoodsReceiptLineRow> {
-    const line = await this.findById<GoodsReceiptLineRow>(lineId, {
+  // Loads a line of the given receipt item
+  findOnItem(itemId: string, lineId: string): Promise<GoodsReceiptLineRow | undefined> {
+    return this.findById<GoodsReceiptLineRow>(lineId, {
       select: this.selection(),
       leftJoins: this.joins(),
       where: eq(goodsReceiptLines.goodsReceiptItemId, itemId),
     });
-    if (!line) throw new NotFoundException('Goods receipt line not found.');
-    return line;
   }
 
-  // Rejects a lot that does not suit the item: lot-tracked items need one of their own lots, the others take none
-  async assertLotFitsItem(item: DistributedReceiptItem, goodsReceiptLotId: string | null): Promise<void> {
-    const isLotTracked = GoodsReceiptLinesDomainRepository.LOT_TRACKINGS.includes(item.tracking);
-    if (!isLotTracked && goodsReceiptLotId === null) return;
-    if (!isLotTracked) {
-      throw new ValidationException({
-        label: 'Lot Not Tracked',
-        detail: `This item is tracked by ${item.tracking.toLowerCase()}, so its lines take no lot.`,
-        errors: [{ field: 'goodsReceiptLotId', message: 'Not tracked by lot' }],
-      });
-    }
-    if (goodsReceiptLotId === null) {
-      throw new ValidationException({
-        label: 'Lot Required',
-        detail: 'This item is tracked by lot; pick the lot the line holds.',
-        errors: [{ field: 'goodsReceiptLotId', message: 'Lot is required' }],
-      });
-    }
+  // Whether the lot is one of the receipt item's lots
+  async isLotOfItem(goodsReceiptLotId: string, itemId: string): Promise<boolean> {
     const [lot] = await this.db
       .select({ id: goodsReceiptLots.id })
       .from(goodsReceiptLots)
-      .where(and(eq(goodsReceiptLots.id, goodsReceiptLotId), eq(goodsReceiptLots.goodsReceiptItemId, item.id)))
+      .where(and(eq(goodsReceiptLots.id, goodsReceiptLotId), eq(goodsReceiptLots.goodsReceiptItemId, itemId)))
       .limit(1);
-    if (lot) return;
-    throw new ValidationException({
-      label: 'Unknown Lot',
-      detail: "The lot is not one of this item's lots on the goods receipt.",
-      errors: [{ field: 'goodsReceiptLotId', message: 'Not a lot of this item' }],
-    });
+    return lot !== undefined;
   }
 
-  // Rejects a zero-quantity line unless its serials are still to be scanned
-  assertQuantityAllowed(item: DistributedReceiptItem, quantity: number): void {
-    if (quantity > 0 || GoodsReceiptLinesDomainRepository.SERIAL_TRACKINGS.includes(item.tracking)) return;
-    throw new ValidationException({
-      label: 'Quantity Required',
-      detail: 'Enter how much of the item this line holds.',
-      errors: [{ field: 'quantity', message: 'Must be more than 0' }],
-    });
-  }
-
-  // Rejects lines that would hold more than the item's accepted (received less rejected) quantity
-  async assertWithinAcceptedQuantity(
-    item: DistributedReceiptItem,
-    quantity: number,
-    excludeLineId?: string,
-  ): Promise<void> {
+  // Sums the quantity the receipt item's lines already hold, leaving out one line when given
+  async sumQuantityOfItem(itemId: string, excludeLineId?: string): Promise<string> {
     const [{ total }] = await this.db
       .select({ total: sql<string>`coalesce(sum(${goodsReceiptLines.quantity}), 0)` })
       .from(goodsReceiptLines)
       .where(
         and(
-          eq(goodsReceiptLines.goodsReceiptItemId, item.id),
+          eq(goodsReceiptLines.goodsReceiptItemId, itemId),
           excludeLineId ? ne(goodsReceiptLines.id, excludeLineId) : undefined,
         ),
       );
-    const accepted = new Decimal(item.receivedQty).minus(item.rejectedQuantity);
-    const remaining = accepted.minus(total);
-    if (remaining.gte(quantity)) return;
-    throw new ValidationException({
-      label: 'Exceeds Accepted Quantity',
-      detail: `Only ${remaining.toString()} of the ${accepted.toString()} accepted is not on a line yet.`,
-      errors: [{ field: 'quantity', message: `At most ${remaining.toString()}` }],
-    });
+    return total;
   }
 
-  // Rejects a second line for the same item, lot and location
-  async assertLocationFree(
+  // Whether another line of the receipt item already holds the same lot at the same location
+  isLocationTaken(
     itemId: string,
     line: { goodsReceiptLotId: string | null; locationId: string },
     excludeLineId?: string,
-  ): Promise<void> {
-    const isTaken = await this.exists(
+  ): Promise<boolean> {
+    return this.exists(
       and(
         eq(goodsReceiptLines.goodsReceiptItemId, itemId),
         eq(goodsReceiptLines.locationId, line.locationId),
@@ -171,20 +106,10 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
         excludeLineId ? ne(goodsReceiptLines.id, excludeLineId) : undefined,
       ) as SQL,
     );
-    if (!isTaken) return;
-    throw new ConflictException({
-      label: 'Duplicate Line',
-      detail: 'A line for this location already exists on this item. Edit that line instead.',
-      errors: [{ field: 'locationId', message: 'Already has a line' }],
-    });
   }
 
-  // Marks a line balanced: always when it carries no serials, otherwise once its serial count matches its quantity
-  async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
-    if (!GoodsReceiptLinesDomainRepository.SERIAL_TRACKINGS.includes(tracking)) {
-      await this.update(lineId, { isBalanced: true });
-      return;
-    }
+  // Marks a line balanced exactly when its serial count matches its quantity
+  async updateIsBalancedFromSerialCount(lineId: string): Promise<void> {
     const serialCount = this.db.$count(
       goodsReceiptLineItems,
       eq(goodsReceiptLineItems.goodsReceiptLineId, goodsReceiptLines.id),

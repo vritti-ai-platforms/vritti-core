@@ -3,19 +3,25 @@ import { check, date, decimal, index, text, timestamp, unique, uuid, varchar } f
 import { commerceSchema } from './commerce-schema';
 import { inboundDeliverySourceEnum, inboundDeliveryStatusEnum } from './enums';
 import { purchaseOrderItems } from './purchase-orders';
+import { purchases } from './purchases';
 import { suppliers } from './suppliers';
-import { LE_GUC, organizationIdColumn, scopeFromOwnerPolicies, siteDocumentPolicies } from './workspace-scope';
+import {
+  organizationIdColumn,
+  scopeFromOwnerPolicies,
+  siteDocumentColumns,
+  siteDocumentPolicies,
+} from './workspace-scope';
 
 export const inboundDeliveries = commerceSchema.table(
   'inbound_deliveries',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw(LE_GUC)),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    ...siteDocumentColumns(),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id),
+    purchaseId: uuid('purchase_id').references(() => purchases.id, { onDelete: 'restrict' }),
     deliveryNumber: varchar('delivery_number', { length: 50 }).notNull(),
     status: inboundDeliveryStatusEnum('status').notNull().default('PLANNED'),
     source: inboundDeliverySourceEnum('source').notNull().default('ANNOUNCED'),
@@ -36,6 +42,11 @@ export const inboundDeliveries = commerceSchema.table(
     index('idx_inbound_deliveries_site').on(table.organizationId, table.siteId),
     index('idx_inbound_deliveries_supplier').on(table.supplierId),
     index('idx_inbound_deliveries_supplier_note').on(table.supplierId, table.supplierDeliveryNoteNumber),
+    index('idx_inbound_deliveries_purchase').on(table.purchaseId),
+    check(
+      'inbound_deliveries_source_purchase_chk',
+      sql`${table.source} = 'ANNOUNCED' OR ${table.purchaseId} IS NOT NULL`,
+    ),
     ...siteDocumentPolicies(),
   ],
 );
@@ -47,7 +58,7 @@ export const inboundDeliveryLines = commerceSchema.table(
   'inbound_delivery_lines',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     inboundDeliveryId: uuid('inbound_delivery_id')
       .notNull()
       .references(() => inboundDeliveries.id, { onDelete: 'cascade' }),
@@ -55,6 +66,7 @@ export const inboundDeliveryLines = commerceSchema.table(
       .notNull()
       .references(() => purchaseOrderItems.id),
     quantity: decimal('quantity', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

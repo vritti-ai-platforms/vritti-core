@@ -4,12 +4,14 @@ import type { SuccessResponse, TableResponse } from '@vritti/quantum-ui/types/ap
 import type { AxiosError } from 'axios';
 import type {
   CreateSupplierEnrollmentPayload,
+  EnrollmentPurchasing,
   SetSupplierEnrollmentActiveVars,
   SupplierEnrollment,
   SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
   SupplierEnrollmentsTableResponse,
   SupplierParty,
+  UpdateEnrollmentPurchasingVars,
   UpdateSupplierEnrollmentVars,
 } from '@/schemas/supplier-enrollments';
 import type {
@@ -82,6 +84,10 @@ export type UseSetEnrollmentActive = (
 export type UseDeleteEnrollment = (
   options?: MutationOptions<SuccessResponse, SupplierEnrollmentKey>,
 ) => MutationResult<SuccessResponse, SupplierEnrollmentKey>;
+export type UseEnrollmentPurchasing = (key: SupplierEnrollmentKey) => { data: EnrollmentPurchasing | null };
+export type UseUpdateEnrollmentPurchasing = (
+  options?: MutationOptions<SuccessResponse, UpdateEnrollmentPurchasingVars>,
+) => MutationResult<SuccessResponse, UpdateEnrollmentPurchasingVars>;
 
 export type UseSiteItemsTable = (ref: SupplierEnrollmentRef) => {
   data: SupplierSiteItemDataTableResponse | undefined;

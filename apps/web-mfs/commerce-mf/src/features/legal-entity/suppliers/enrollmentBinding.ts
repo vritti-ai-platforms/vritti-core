@@ -11,10 +11,12 @@ import {
   useDeleteSupplierEnrollment,
   useSetSupplierEnrollmentActive,
   useSupplierEnrollment,
+  useSupplierEnrollmentPurchasing,
   useSupplierEnrollmentRef,
   useSupplierEnrollmentSiteItemsTable,
   useSupplierEnrollmentsTable,
   useUpdateSupplierEnrollment,
+  useUpdateSupplierEnrollmentPurchasing,
 } from '@/hooks/legal-entity/supplier-enrollments';
 import { useSupplierLookup, useUpdateSupplierSiteItem } from '@/hooks/legal-entity/suppliers';
 import type { SupplierEnrollmentKey, SupplierParty } from '@/schemas/supplier-enrollments';
@@ -56,7 +58,7 @@ export const enrollmentBinding: SupplierEnrollmentBinding = {
     queryKey: (scope) => SUPPLIER_ENROLLMENTS_TABLE_KEY(scope.supplierId ?? ''),
     slug: (scope) => `commerce-le-supplier-${scope.supplierId}-enrollments`,
     // The tab route is `<supplier>/enrollments`, so a row's page is one segment deeper
-    rowPath: (row) => buildSlug(row.siteName ?? row.siteCode ?? row.siteId, row.siteId),
+    rowPath: (row) => buildSlug(row.siteName, row.siteId),
   },
   quotations: quotationsBinding,
   siteItemsTableKey: (ref) => SUPPLIER_ENROLLMENT_SITE_ITEMS_TABLE_KEY(ref.supplierId, ref.siteId ?? ''),
@@ -70,6 +72,10 @@ export const enrollmentBinding: SupplierEnrollmentBinding = {
   useUpdateEnrollment: useUpdateSupplierEnrollment,
   useSetEnrollmentActive: useSetSupplierEnrollmentActive,
   useDeleteEnrollment: useDeleteSupplierEnrollment,
+  purchasing: {
+    usePurchasing: useSupplierEnrollmentPurchasing,
+    useUpdatePurchasing: useUpdateSupplierEnrollmentPurchasing,
+  },
 
   useSiteItemsTable: useSupplierEnrollmentSiteItemsTable,
   useUpdateSiteItem: useUpdateSupplierSiteItem,

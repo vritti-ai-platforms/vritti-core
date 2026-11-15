@@ -16,10 +16,14 @@ import { Eye, ReceiptText } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SUPPLIER_INVOICE_STATUS_LABELS, type SupplierInvoice } from '@/schemas/supplier-invoices';
-import { AddSupplierInvoiceAction } from './AddSupplierInvoiceAction';
+import {
+  SUPPLIER_INVOICE_STATUS_LABELS,
+  type SupplierInvoice,
+  supplierInvoicePaymentStatusConfig,
+} from '@/schemas/supplier-invoices';
 import type { SupplierInvoicesListBinding } from './bindings';
-import { SupplierInvoiceFlagCount } from './SupplierInvoiceFlags';
+import { SupplierInvoiceOpenHoldCount } from './SupplierInvoiceHoldBadges';
+import { SupplierInvoicePaymentStatusBadge } from './SupplierInvoicePaymentStatusBadge';
 import { SupplierInvoiceStatusBadge } from './SupplierInvoiceStatusBadge';
 
 interface SupplierInvoicesTableProps {
@@ -31,13 +35,18 @@ interface SupplierInvoicesTableProps {
   supplierId?: string;
   purchaseOrderId?: string;
   contextBar?: React.ReactNode;
+  addAction: React.ReactNode;
   emptyDescription: string;
 }
 
 const STATUS_OPTIONS = Object.entries(SUPPLIER_INVOICE_STATUS_LABELS).map(([value, label]) => ({ label, value }));
+const PAYMENT_STATUS_OPTIONS = Object.entries(supplierInvoicePaymentStatusConfig).map(([value, { label }]) => ({
+  label,
+  value,
+}));
 
-// Supplier invoices, newest first, with their match flags; a list narrowed to a supplier or purchase order drops that
-// column (an order's also drops its one site), and its new invoices bill it
+// Supplier invoices, newest first, with the orders they cover, their payment and the holds blocking it; a list narrowed
+// to a supplier drops that column, and an order's list drops its one site
 export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
   binding,
   mode,
@@ -47,12 +56,12 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
   supplierId,
   purchaseOrderId,
   contextBar,
+  addAction,
   emptyDescription,
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const showSupplier = !supplierId && !purchaseOrderId;
-  const showPurchaseOrder = !purchaseOrderId;
   const showSite = binding.spansSites && !purchaseOrderId;
 
   const columns = useMemo<ColumnDef<SupplierInvoice>[]>(
@@ -70,22 +79,21 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
       ...(showSupplier
         ? [{ accessorKey: 'supplierName', header: 'Supplier' } satisfies ColumnDef<SupplierInvoice>]
         : []),
-      ...(showPurchaseOrder
-        ? [
-            {
-              accessorKey: 'poNumber',
-              header: 'Purchase Order',
-              cell: ({ row }) => <StringCell value={row.original.poNumber} mono />,
-            } satisfies ColumnDef<SupplierInvoice>,
-          ]
-        : []),
+      {
+        accessorKey: 'poNumbers',
+        header: 'Purchase Orders',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <StringCell value={row.original.poNumbers.length > 0 ? row.original.poNumbers.join(', ') : null} mono />
+        ),
+      },
       ...(showSite
         ? [
             {
               id: 'site',
               header: 'Site',
               enableSorting: false,
-              cell: ({ row }) => <StringCell value={row.original.siteName ?? row.original.siteCode} />,
+              cell: ({ row }) => <StringCell value={row.original.siteName} />,
             } satisfies ColumnDef<SupplierInvoice>,
           ]
         : []),
@@ -93,6 +101,16 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => <SupplierInvoiceStatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: 'paymentStatus',
+        header: 'Payment',
+        cell: ({ row }) => <SupplierInvoicePaymentStatusBadge status={row.original.paymentStatus} />,
+      },
+      {
+        accessorKey: 'dueDate',
+        header: 'Due',
+        cell: ({ row }) => <DateCell value={row.original.dueDate} />,
       },
       {
         accessorKey: 'lineCount',
@@ -107,9 +125,9 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
         cell: ({ row }) => <CurrencyCell value={row.original.totalAmount} exchangeRate={row.original.exchangeRate} />,
       },
       {
-        accessorKey: 'flagCount',
-        header: 'Flags',
-        cell: ({ row }) => <SupplierInvoiceFlagCount count={row.original.flagCount} />,
+        accessorKey: 'openHoldCount',
+        header: 'Holds',
+        cell: ({ row }) => <SupplierInvoiceOpenHoldCount count={row.original.openHoldCount} />,
       },
       {
         id: 'actions',
@@ -131,7 +149,7 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
         ),
       },
     ],
-    [binding, navigate, showSupplier, showPurchaseOrder, showSite],
+    [binding, navigate, showSupplier, showSite],
   );
 
   const supplierInvoicesTable = useDataTable({
@@ -145,27 +163,29 @@ export const SupplierInvoicesTable: React.FC<SupplierInvoicesTableProps> = ({
     onStatePush: () => queryClient.invalidateQueries({ queryKey }),
   });
 
-  const addAction = (
-    <AddSupplierInvoiceAction binding={binding} supplierId={supplierId} purchaseOrderId={purchaseOrderId} />
-  );
-
   return (
     <DataTable
       table={supplierInvoicesTable}
       mode={mode}
       permission={binding.permissions.view}
-      onRowClick={(invoice) => navigate(binding.invoicePath(invoice), { relative: 'path' })}
       searchConfig={{
         columns: [
           { id: 'invoiceNumber', label: 'Invoice' },
           ...(showSupplier ? [{ id: 'supplierName', label: 'Supplier' }] : []),
-          ...(showPurchaseOrder ? [{ id: 'poNumber', label: 'Purchase Order' }] : []),
+          { id: 'poNumbers', label: 'Purchase Order' },
         ],
         searchAll: true,
       }}
       filters={[
         <SelectFilter key="status" name="status" label="Status" options={STATUS_OPTIONS} multiple />,
-        <ValueFilter key="flagCount" name="flagCount" label="Flags" fieldType="number" />,
+        <SelectFilter
+          key="paymentStatus"
+          name="paymentStatus"
+          label="Payment"
+          options={PAYMENT_STATUS_OPTIONS}
+          multiple
+        />,
+        <ValueFilter key="openHoldCount" name="openHoldCount" label="Holds" fieldType="number" />,
       ]}
       contextBar={contextBar}
       toolbarActions={{ actions: addAction }}

@@ -74,7 +74,7 @@ export const EditEnrollmentDialog: React.FC<EditEnrollmentDialogProps> = ({
           <Select
             name="partyTaxRegistrationId"
             label="Tax Registration"
-            placeholder="Select the registration the site is billed under"
+            placeholder="Select the registration the site is invoiced under"
             description="Leave empty if the supplier is unregistered"
             searchable
             clearable

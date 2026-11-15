@@ -8,6 +8,8 @@ export class InboundDeliveryDto {
   siteId: string;
   supplierId: string;
   supplierName: string;
+  purchaseId: string | null;
+  purchaseNumber: string | null;
   status: InboundDeliveryStatus;
   source: InboundDeliverySource;
   expectedDeliveryDate: string;
@@ -20,8 +22,6 @@ export class InboundDeliveryDto {
   poNumbers: string[];
   goodsReceiptCount: number;
   draftGoodsReceiptId: string | null;
-  sourceGoodsReceiptId: string | null;
-  sourceGrNumber: string | null;
   isEditable: boolean;
   canCancel: boolean;
   canDelete: boolean;
@@ -37,6 +37,8 @@ export class InboundDeliveryDto {
     dto.siteId = row.siteId;
     dto.supplierId = row.supplierId;
     dto.supplierName = row.supplierName ?? '';
+    dto.purchaseId = row.purchaseId;
+    dto.purchaseNumber = row.purchaseNumber;
     dto.status = row.status;
     dto.source = row.source;
     dto.expectedDeliveryDate = row.expectedDeliveryDate;
@@ -49,8 +51,6 @@ export class InboundDeliveryDto {
     dto.poNumbers = row.poNumbers;
     dto.goodsReceiptCount = row.goodsReceiptCount;
     dto.draftGoodsReceiptId = row.draftGoodsReceiptId;
-    dto.sourceGoodsReceiptId = row.sourceGoodsReceiptId;
-    dto.sourceGrNumber = row.sourceGrNumber;
     dto.isEditable = row.isEditable;
     dto.canCancel = row.canCancel;
     dto.canDelete = row.canDelete;

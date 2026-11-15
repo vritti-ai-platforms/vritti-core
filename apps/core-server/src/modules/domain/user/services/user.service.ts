@@ -9,7 +9,7 @@ import { and, eq } from '@vritti/api-sdk/drizzle-orm';
 import { EmailService } from '@vritti/api-sdk/email';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { AUTH_STATUS_EVENTS, SessionRevokedEvent, UserUpdatedEvent } from '@/common/events/auth-status.events';
 import { SessionTypeValues, type User, UserStatusValues, users } from '@/db/schema';
 import { UserDto } from '../dto/entity/user.dto';
@@ -55,16 +55,12 @@ export class UserDomainService {
     this.logger.log(`Fetched user select options (limit: ${query.limit}, offset: ${query.offset})`);
 
     return this.userRepository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'fullName',
       description: query.descriptionKey || 'email',
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'fullName',
       orderDirection: query.orderDirection || 'asc',
     });
@@ -164,6 +160,12 @@ export class UserDomainService {
       throw new NotFoundException('User not found.');
     }
     return user;
+  }
+
+  // Returns the full names of an organization's users by id, leaving out ids it has no user for
+  async findNamesByIds(organizationId: string, ids: string[]): Promise<Map<string, string>> {
+    const rows = await this.userRepository.findNamesByIds(organizationId, [...new Set(ids)]);
+    return new Map(rows.map((row) => [row.id, row.fullName]));
   }
 
   // Updates the last login timestamp for a user

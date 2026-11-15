@@ -8,9 +8,8 @@ export const catalogs = commerceSchema.table(
   'catalogs',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: workspaceScopeColumns.legalEntityId,
-    siteId: workspaceScopeColumns.siteId,
+    organizationId: organizationIdColumn(),
+    ...workspaceScopeColumns(),
     name: varchar('name', { length: 255 }).notNull(),
     taxInclusive: boolean('tax_inclusive').notNull().default(false),
     filterMode: catalogFilterModeEnum('filter_mode').notNull().default('STATIC'),

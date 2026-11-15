@@ -1,6 +1,6 @@
-import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-// Per-item location config (the "Locations" tab — reorder threshold per storage location).
+// Per-item fixed location (the "Locations" tab — a storage location the item is fixed to, optionally blocked).
 @ObjectType()
 export class InventoryItemLocation {
   @Field(() => ID)
@@ -18,8 +18,8 @@ export class InventoryItemLocation {
   @Field(() => String, { nullable: true })
   locationPath: string | null;
 
-  @Field(() => Float)
-  reorderLevel: number;
+  @Field(() => Boolean)
+  isBlocked: boolean;
 }
 
 // Relay Cursor Connection — Apollo's relayStylePagination merges pages in the client cache.

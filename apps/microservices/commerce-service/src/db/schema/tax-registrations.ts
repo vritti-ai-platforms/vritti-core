@@ -3,14 +3,14 @@ import { boolean, index, timestamp, unique, uuid, varchar } from '@vritti/api-sd
 import { commerceSchema } from './commerce-schema';
 import { taxRegistrationTypeEnum } from './enums';
 import { taxJurisdictions } from './tax-jurisdictions';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { legalEntityIdColumn, organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
 
 export const taxRegistrations = commerceSchema.table(
   'tax_registrations',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw("cast(current_setting('app.le_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    legalEntityId: legalEntityIdColumn().notNull(),
     countryCode: varchar('country_code', { length: 2 }).notNull(),
     jurisdictionId: uuid('jurisdiction_id').references(() => taxJurisdictions.id),
     registrationNumber: varchar('registration_number', { length: 50 }).notNull(),

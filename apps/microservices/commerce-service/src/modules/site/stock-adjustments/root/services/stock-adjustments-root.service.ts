@@ -4,6 +4,7 @@ import {
   type CreateQuantParams,
   InventoryItemQuantsDomainService,
 } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
+import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
 import { StockAdjustmentLineItemsDomainRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
@@ -51,22 +52,28 @@ export class StockAdjustmentsService {
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
     private readonly ledgerService: InventoryItemLedgerDomainService,
     private readonly adjustmentsService: StockAdjustmentsDomainService,
+    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
   ) {}
 
-  table(state: TableState, siteCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    return this.adjustmentsService.findForTable(state, siteCurrencyCode);
+  table(state: TableState, leCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    return this.adjustmentsService.findForTable(state, leCurrencyCode);
   }
 
-  findById(id: string, siteCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.findById(id, siteCurrencyCode);
+  findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.findById(id, leCurrencyCode);
   }
 
-  create(data: {
-    inventoryItemId: string;
-    type: StockAdjustmentType;
-    reason: string;
-    unitCost?: bigint | null;
-  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
+  // Creates an adjustment for an item that has stock levels set at the site
+  async create(
+    siteId: string,
+    data: {
+      inventoryItemId: string;
+      type: StockAdjustmentType;
+      reason: string;
+      unitCost?: bigint | null;
+    },
+  ): Promise<CreateResponseDto<StockAdjustmentDto>> {
+    await this.siteStockLevelsService.ensureStockLevels(siteId, [data.inventoryItemId], 'inventoryItemId');
     return this.adjustmentsService.create(data);
   }
 
@@ -77,12 +84,12 @@ export class StockAdjustmentsService {
   update(
     id: string,
     data: { reason?: string; unitCost?: bigint | null },
-    siteCurrencyCode?: string,
+    leCurrencyCode?: string,
   ): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.updateAdjustment(id, data, siteCurrencyCode);
+    return this.adjustmentsService.updateAdjustment(id, data, leCurrencyCode);
   }
 
-  async publish(id: string, siteCurrencyCode: string): Promise<StockAdjustmentDto> {
+  async publish(id: string, leCurrencyCode: string): Promise<StockAdjustmentDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
@@ -135,7 +142,7 @@ export class StockAdjustmentsService {
     await this.database.runInTransaction(async () => {
       // Phase A: resolve lots (OPENING_STOCK, lot/item tracking) → create inventory_item_lots, set resolvedLotId
       for (const lot of lots) {
-        await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id, siteCurrencyCode);
+        await this.lotsService.resolveInventoryLot(adjustment.inventoryItemId, lot.id, leCurrencyCode);
       }
 
       const resolvedLots =
@@ -156,7 +163,7 @@ export class StockAdjustmentsService {
             line,
             lineItems,
             resolvedLots,
-            siteCurrencyCode,
+            leCurrencyCode,
             unitCostMinor as bigint,
           );
         } else {
@@ -168,7 +175,7 @@ export class StockAdjustmentsService {
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
-    return this.adjustmentsService.findById(id, siteCurrencyCode);
+    return this.adjustmentsService.findById(id, leCurrencyCode);
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not QUANTITY, quantity, [serials]).
@@ -179,7 +186,7 @@ export class StockAdjustmentsService {
     line: StockAdjustmentLineWithRefs,
     lineItems: StockAdjustmentLineItem[],
     lots: StockAdjustmentLot[],
-    siteCurrencyCode: string,
+    leCurrencyCode: string,
     unitCost: bigint,
   ): Promise<void> {
     if (!line.locationId) {
@@ -190,7 +197,7 @@ export class StockAdjustmentsService {
 
     const costProvenance = {
       unitCost,
-      costCurrency: siteCurrencyCode,
+      costCurrency: leCurrencyCode,
       sourceType: CostSourceTypeValues.STOCK_ADJUSTMENT,
       sourceId: adjustmentId,
     };

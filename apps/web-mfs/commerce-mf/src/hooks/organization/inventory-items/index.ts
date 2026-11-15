@@ -1,6 +1,7 @@
 export {
   ORG_INVENTORY_ITEM_KEY,
   ORG_INVENTORY_ITEM_MRP_KEY,
+  ORG_INVENTORY_ITEM_STORAGE_TYPES_KEY,
   ORG_INVENTORY_ITEM_SUPPLIERS_TABLE_KEY,
   ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY,
   ORG_INVENTORY_ITEMS_TABLE_KEY,
@@ -14,6 +15,12 @@ export {
   useInventoryItemMrpTable,
   useUpdateInventoryItemMrp,
 } from './useInventoryItemMrp';
+export {
+  useCreateInventoryItemStorageType,
+  useDeleteInventoryItemStorageType,
+  useInventoryItemStorageTypes,
+  useUpdateInventoryItemStorageType,
+} from './useInventoryItemStorageTypes';
 export { useInventoryItemSuppliersTable } from './useInventoryItemSuppliers';
 export { useInventoryItemsTable } from './useInventoryItemsTable';
 export {

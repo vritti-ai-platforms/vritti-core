@@ -17,4 +17,9 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   goodsReceiptLotId?: string;
+
+  // Only this site's locations; the gateway has checked it is one of the legal entity's sites
+  @IsOptional()
+  @IsUUID('7')
+  atSiteId?: string;
 }

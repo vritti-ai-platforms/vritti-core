@@ -16,7 +16,12 @@ import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import type { InboundDeliveryData, InboundDeliveryLineData } from '@/schemas/inbound-deliveries';
+import { PurchaseOrderReceiptStatusBadge } from '@/components/purchase-orders/PurchaseOrderStatusBadge';
+import {
+  type InboundDeliveryData,
+  type InboundDeliveryLineData,
+  InboundDeliverySourceValues,
+} from '@/schemas/inbound-deliveries';
 import { workspaceBase } from '@/utils/workspace';
 import type { InboundDeliveriesBinding, InboundDeliveryMutationsBinding } from '../../bindings';
 import { AddInboundDeliveryLinesDialog } from './forms/AddInboundDeliveryLinesDialog';
@@ -31,7 +36,8 @@ interface DeliveryLinesTableProps {
   toolbarAction?: React.ReactNode;
 }
 
-// The delivery's purchase order lines with how much of each comes on it and how much of that has been received
+// The delivery's purchase order lines with how much of each comes on it and how much of that has been received, in the
+// line's unit and the item's primary unit
 const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delivery, rowActions, toolbarAction }) => {
   const deliveryId = delivery.id;
   const navigate = useNavigate();
@@ -69,6 +75,12 @@ const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delive
         enableSorting: true,
       },
       {
+        accessorKey: 'poReceiptStatus',
+        header: 'PO Receipt',
+        cell: ({ row }) => <PurchaseOrderReceiptStatusBadge status={row.original.poReceiptStatus} />,
+        enableSorting: false,
+      },
+      {
         accessorKey: 'uomSymbol',
         header: 'UOM',
         cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
@@ -93,9 +105,21 @@ const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delive
         enableSorting: true,
       },
       {
+        accessorKey: 'primaryUomQty',
+        header: 'On Delivery (Primary)',
+        cell: ({ row }) => <NumberCell value={row.original.primaryUomQty} />,
+        enableSorting: false,
+      },
+      {
         accessorKey: 'receivedOnDeliveryQty',
         header: 'Received On Delivery',
         cell: ({ row }) => <NumberCell value={row.original.receivedOnDeliveryQty} />,
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'receivedOnDeliveryPrimaryQty',
+        header: 'Received (Primary)',
+        cell: ({ row }) => <NumberCell value={row.original.receivedOnDeliveryPrimaryQty} />,
         enableSorting: false,
       },
       {
@@ -241,7 +265,7 @@ const EditableLinesTab: React.FC<EditableLinesTabProps> = ({ binding, mutations,
         className="max-w-3xl"
         icon={Boxes}
         title="Add Lines"
-        description={`Pick open lines of ${delivery.supplierName}'s purchase orders at this site and how much of each comes on this delivery.`}
+        description={`Pick open lines of ${delivery.supplierName}'s confirmed purchase orders at this site and how much of each comes on this delivery.`}
         content={(close) => (
           <AddInboundDeliveryLinesDialog
             mutations={mutations}
@@ -260,10 +284,10 @@ interface LinesTabProps {
   delivery: InboundDeliveryData;
 }
 
-// The delivery's lines; editable where the binding enters deliveries, read-only elsewhere and on a delivery a goods
-// receipt created, whose lines follow that receipt
+// The delivery's lines; editable where the binding enters deliveries, read-only elsewhere and on a delivery that belongs
+// to a purchase
 export const LinesTab: React.FC<LinesTabProps> = ({ binding, delivery }) =>
-  binding.mutations && delivery.source === 'ANNOUNCED' ? (
+  binding.mutations && delivery.source === InboundDeliverySourceValues.ANNOUNCED ? (
     <EditableLinesTab binding={binding} mutations={binding.mutations} delivery={delivery} />
   ) : (
     <DeliveryLinesTable binding={binding} delivery={delivery} />

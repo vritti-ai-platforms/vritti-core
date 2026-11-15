@@ -11,13 +11,13 @@ import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { NatsHeaders } from '@vritti/api-sdk/nats';
-import { variantLabel } from '@/common/variant-label';
 import {
   type Checkout,
   type CheckoutLine,
   CheckoutStatusValues,
   OrderTypeValues,
   PartyCommunicationChannelValues,
+  variantLabel,
 } from '@/db/schema';
 import { type CheckoutOrderRefDto, CheckoutStartedDto, CheckoutStatusDto } from '../dto/entity/checkout.dto';
 import type {

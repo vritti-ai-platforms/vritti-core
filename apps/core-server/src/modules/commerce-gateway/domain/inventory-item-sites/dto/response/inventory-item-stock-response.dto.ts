@@ -7,5 +7,4 @@ export class InventoryItemStockResponseDto {
   @ApiProperty() stockedQuantity: number;
   @ApiProperty() reservedQuantity: number;
   @ApiProperty() availableQuantity: number;
-  @ApiPropertyOptional({ nullable: true }) reorderLevel: number | null;
 }

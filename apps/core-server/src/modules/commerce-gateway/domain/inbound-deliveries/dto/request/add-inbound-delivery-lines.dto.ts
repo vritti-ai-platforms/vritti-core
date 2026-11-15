@@ -4,13 +4,14 @@ import { ArrayMinSize, ArrayUnique, IsArray, IsNumber, IsPositive, IsUUID, Valid
 
 export class AddInboundDeliveryLineDto {
   @ApiProperty({
-    description: "Line of one of the supplier's sent, confirmed or partially received purchase orders for the site",
+    description: "Line of one of the supplier's confirmed, not fully received purchase orders for the site",
   })
   @IsUUID('7')
   purchaseOrderItemId: string;
 
   @ApiProperty({
-    description: 'Quantity announced, in the PO line unit, paid and free together; at most what the line has left',
+    description:
+      'Quantity on the delivery, in the PO line unit, paid and free together; at most what is open on the order',
     example: 10,
   })
   @IsNumber({ maxDecimalPlaces: 3 })

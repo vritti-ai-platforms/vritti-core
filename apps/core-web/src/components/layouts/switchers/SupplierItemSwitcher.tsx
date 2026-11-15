@@ -2,9 +2,11 @@ import { Button } from '@vritti/quantum-ui/Button';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Separator } from '@vritti/quantum-ui/Separator';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { ChevronsUpDown, Package } from 'lucide-react';
+import { Package } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SupplierItemSelector } from '@/utils/RemoteSelectors';
+import { SwitcherCrumb, SwitcherTrigger } from './SwitcherCrumb';
 
 interface SupplierItemSwitcherProps {
   // The raw `name~uuid` breadcrumb segment of an LE supplier item view
@@ -29,52 +31,45 @@ function itemLabel(label: string, option: SelectOption): string {
 
 export const SupplierItemSwitcher = ({ segment, supplierId, basePath, tab }: SupplierItemSwitcherProps) => {
   const navigate = useNavigate();
+  const [label, setLabel] = useState(labelOf(segment));
   const current = idOf(segment);
 
   return (
-    <SupplierItemSelector
-      params={{ supplierId }}
-      value={current}
-      transformLabel={itemLabel}
-      // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
-      label={undefined}
-      searchPlaceholder="Find item..."
-      contentClassName="w-72"
-      anchor={({ selectedOption }) => (
-        <Button
-          startAdornment={<Package className="size-4 text-muted-foreground" />}
-          variant="ghost"
-          className="h-auto min-w-25 gap-1.5 p-0 text-sm font-normal hover:bg-transparent"
-        >
-          <span className="flex-1 text-left font-normal text-foreground">
-            {selectedOption?.label ?? labelOf(segment)}
-          </span>
-          <span className="flex size-6 items-center justify-center rounded-full border border-border transition-colors hover:bg-accent">
-            <ChevronsUpDown className="size-3.5 text-muted-foreground" />
-          </span>
-        </Button>
-      )}
-      footer={
-        <>
-          <Separator />
-          <div className="p-1">
-            <Button
-              variant="ghost"
-              className="h-auto w-full justify-start px-2 py-1.5 text-sm font-normal"
-              onClick={() => navigate(`${basePath}/items`)}
-            >
-              All Items
-            </Button>
-          </div>
-        </>
-      }
-      onOptionSelect={(option) => {
-        // Skip the on-mount initial-resolve fire (same item) — only navigate on a real switch
-        if (option && String(option.value) !== current) {
+    <SwitcherCrumb icon={Package} label={label} to={`${basePath}/items/${segment}`}>
+      <SupplierItemSelector
+        params={{ supplierId }}
+        value={current}
+        transformLabel={itemLabel}
+        // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
+        label={undefined}
+        searchPlaceholder="Find item..."
+        contentClassName="w-72"
+        anchor={() => <SwitcherTrigger label="Switch item" />}
+        footer={
+          <>
+            <Separator />
+            <div className="p-1">
+              <Button
+                variant="ghost"
+                className="h-auto w-full justify-start px-2 py-1.5 text-sm font-normal"
+                onClick={() => navigate(`${basePath}/items`)}
+              >
+                All Items
+              </Button>
+            </div>
+          </>
+        }
+        onOptionSelect={(option) => {
+          if (!option) return;
+          // The on-mount initial-resolve fire is the current item: it names the crumb; any other is a real switch
+          if (String(option.value) === current) {
+            setLabel(String(option.label));
+            return;
+          }
           const slug = buildSlug(itemLabel(String(option.label), option), String(option.value));
           navigate(tab ? `${basePath}/items/${slug}/${tab}` : `${basePath}/items/${slug}`);
-        }
-      }}
-    />
+        }}
+      />
+    </SwitcherCrumb>
   );
 };

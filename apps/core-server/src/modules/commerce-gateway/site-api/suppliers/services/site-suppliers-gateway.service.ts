@@ -5,8 +5,11 @@ import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollmen
 import type { SupplierEnrollmentRowResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-row-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import type { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
+import type { InvoiceableGoodsReceiptsQueryDto } from '@commerce/supplier-invoices/dto/request/invoiceable-goods-receipts-query.dto';
+import type { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import type { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import type { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
+import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -129,7 +132,7 @@ export class SiteSuppliersGatewayService {
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
-  // Returns one of the supplier's invoices with its lines, flags and linked receipts
+  // Returns one of the supplier's invoices with its lines and holds
   async findInvoiceById(supplierId: string, id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
     this.logger.log(`site.suppliers.invoices.findById — supplierId: ${supplierId}, id: ${id}`);
     const invoice = await this.nats.send<Omit<SupplierInvoiceDetailResponseDto, 'siteName' | 'siteCode'>>(
@@ -141,12 +144,24 @@ export class SiteSuppliersGatewayService {
     return named;
   }
 
-  // Records a draft invoice billing one of this site's purchase orders
-  createInvoice(dto: CreateSupplierInvoiceDto): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+  // Returns the supplier's posted receipt lots at this site still to invoice, oldest receipt first
+  findInvoiceableGoodsReceipts(
+    supplierId: string,
+    query: InvoiceableGoodsReceiptsQueryDto,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(
-      `site.suppliers.invoices.create — purchaseOrderId: ${dto.purchaseOrderId}, number: ${dto.invoiceNumber}`,
+      `site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${supplierId}, purchaseOrderId: ${query.purchaseOrderId}`,
     );
-    return this.nats.send('commerce', 'site.suppliers.invoices.create', dto);
+    return this.nats.send('commerce', 'site.suppliers.invoices.invoiceableGoodsReceipts', { ...query, supplierId });
+  }
+
+  // Records a draft invoice of the supplier at this site; payment term and due date come from its enrollment
+  createInvoice(
+    supplierId: string,
+    dto: CreateSupplierInvoiceDto,
+  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+    this.logger.log(`site.suppliers.invoices.create — supplierId: ${supplierId}, number: ${dto.invoiceNumber}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.create', { ...dto, supplierId });
   }
 
   // Updates an invoice's header
@@ -155,13 +170,23 @@ export class SiteSuppliersGatewayService {
     return this.nats.send('commerce', 'site.suppliers.invoices.update', { ...dto, id });
   }
 
-  // Posts a draft invoice, setting the final cost of the stock it bills
+  // Posts a draft invoice, setting the final cost of the stock it invoices
   postInvoice(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.post — id: ${id}`);
     return this.nats.send('commerce', 'site.suppliers.invoices.post', { id });
   }
 
-  // Adds a billed line to an invoice
+  // Releases an open hold of an invoice with a reason
+  releaseInvoiceHold(
+    supplierInvoiceId: string,
+    id: string,
+    dto: ReleaseSupplierInvoiceHoldDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.holds.release — invoiceId: ${supplierInvoiceId}, hold: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.holds.release', { ...dto, supplierInvoiceId, id });
+  }
+
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
   createInvoiceLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.lines.create — invoiceId: ${supplierInvoiceId}`);
     return this.nats.send('commerce', 'site.suppliers.invoices.lines.create', { ...dto, supplierInvoiceId });

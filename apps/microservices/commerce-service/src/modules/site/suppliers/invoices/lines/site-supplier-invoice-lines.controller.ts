@@ -1,44 +1,46 @@
 import { AddSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/add-supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice-line.dto';
-import { SupplierInvoiceLinesDomainService } from '@domain/supplier-invoices/services/supplier-invoice-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SupplierInvoiceLinesService } from './services/supplier-invoice-lines.service';
 
 @Controller()
 export class SiteSupplierInvoiceLinesController {
   private readonly logger = new Logger(SiteSupplierInvoiceLinesController.name);
 
-  constructor(private readonly service: SupplierInvoiceLinesDomainService) {}
+  constructor(private readonly service: SupplierInvoiceLinesService) {}
 
-  // Adds a billed line to an invoice
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
   @MessagePattern({ cmd: 'site.suppliers.invoices.lines.create' })
   create(
     @Payload() dto: AddSupplierInvoiceLineDto,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.lines.create — invoiceId: ${dto.supplierInvoiceId}`);
-    return this.service.create(dto, siteCurrencyCode);
+    this.logger.log(
+      `site.suppliers.invoices.lines.create — invoiceId: ${dto.supplierInvoiceId}, type: ${dto.lineType}`,
+    );
+    return this.service.create(dto, leCurrencyCode);
   }
 
   // Updates a line of an invoice
   @MessagePattern({ cmd: 'site.suppliers.invoices.lines.update' })
   update(
     @Payload() dto: UpdateSupplierInvoiceLineDto,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.lines.update — id: ${dto.id}`);
-    return this.service.update(dto, siteCurrencyCode);
+    return this.service.update(dto, leCurrencyCode);
   }
 
   // Removes a line from an invoice
   @MessagePattern({ cmd: 'site.suppliers.invoices.lines.delete' })
   delete(
     @Payload() data: { supplierInvoiceId: string; id: string },
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.lines.delete — id: ${data.id}`);
-    return this.service.delete(data.supplierInvoiceId, data.id, siteCurrencyCode);
+    return this.service.delete(data.supplierInvoiceId, data.id, leCurrencyCode);
   }
 }

@@ -19,7 +19,7 @@ export const paymentTerms = commerceSchema.table(
   'payment_terms',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     name: varchar('name', { length: 255 }).notNull(),
     baseline: paymentTermBaselineEnum('baseline').notNull().default(PaymentTermBaselineValues.INVOICE_DATE),
     description: varchar('description', { length: 500 }),
@@ -45,7 +45,7 @@ export const paymentTermRules = commerceSchema.table(
   'payment_term_rules',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     paymentTermId: uuid('payment_term_id')
       .notNull()
       .references(() => paymentTerms.id, { onDelete: 'cascade' }),

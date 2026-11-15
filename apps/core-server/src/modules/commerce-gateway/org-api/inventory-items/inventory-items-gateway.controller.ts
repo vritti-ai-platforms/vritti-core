@@ -1,22 +1,43 @@
 import { AddInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/add-inventory-item-mrp.dto';
 import { CreateInventoryItemDto } from '@commerce/inventory-items/dto/request/create-inventory-item.dto';
+import { CreateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/create-inventory-item-storage-type.dto';
 import { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
 import { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/update-inventory-item.dto';
 import { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
+import { UpdateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/update-inventory-item-storage-type.dto';
 import { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
+import type { InventoryItemStorageTypeResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-storage-type-response.dto';
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Logger, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import {
+  ApiCreateInventoryItemStorageType,
+  ApiDeleteInventoryItemStorageType,
+  ApiFindInventoryItemStorageTypes,
+  ApiUpdateInventoryItemStorageType,
+} from './docs/inventory-items-gateway.docs';
 import { InventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Org Inventory Items')
@@ -139,6 +160,53 @@ export class InventoryItemsGatewayController {
   getSuppliersTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemSupplierTableResponseDto> {
     this.logger.log(`GET /commerce-api/org/inventory-items/${id}/suppliers/table`);
     return this.service.findSuppliersTable(id, userId);
+  }
+
+  // Returns the storage types an inventory item may be stored in
+  @Get(':id/storage-types')
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.view)
+  @ApiFindInventoryItemStorageTypes()
+  findStorageTypes(@Param('id', new ParseUUIDPipe()) id: string): Promise<InventoryItemStorageTypeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/storage-types`);
+    return this.service.findStorageTypes(id);
+  }
+
+  // Allows an inventory item in a storage type with a maximum per location
+  @Post(':id/storage-types')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.add)
+  @ApiCreateInventoryItemStorageType()
+  createStorageType(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateInventoryItemStorageTypeDto,
+  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+    this.logger.log(`POST /commerce-api/org/inventory-items/${id}/storage-types`);
+    return this.service.createStorageType(id, dto);
+  }
+
+  // Updates an item × storage type row
+  @Patch(':id/storage-types/:rowId')
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.edit)
+  @ApiUpdateInventoryItemStorageType()
+  updateStorageType(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('rowId', new ParseUUIDPipe()) rowId: string,
+    @Body() dto: UpdateInventoryItemStorageTypeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}/storage-types/${rowId}`);
+    return this.service.updateStorageType(id, rowId, dto);
+  }
+
+  // Stops allowing an inventory item in a storage type
+  @Delete(':id/storage-types/:rowId')
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.delete)
+  @ApiDeleteInventoryItemStorageType()
+  deleteStorageType(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('rowId', new ParseUUIDPipe()) rowId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/storage-types/${rowId}`);
+    return this.service.deleteStorageType(id, rowId);
   }
 
   // Returns a single inventory item

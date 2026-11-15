@@ -8,3 +8,4 @@ export const LE_INVENTORY_ITEM_PRICE_HISTORY_KEY = (id: string) =>
 export const LE_INVENTORY_ITEM_PRICES_TABLE_KEY = (id: string) =>
   [...LE_INVENTORY_ITEM_KEY(id), 'prices', 'table'] as const;
 export const LE_INVENTORY_ITEM_MRP_KEY = (id: string) => [...LE_INVENTORY_ITEM_KEY(id), 'mrp'] as const;
+export const LE_SITE_STOCK_LEVELS_KEY = (id: string) => [...LE_INVENTORY_ITEM_KEY(id), 'site-stock-levels'] as const;

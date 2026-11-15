@@ -4,14 +4,14 @@ import { commerceSchema } from './commerce-schema';
 import { goodsReceiptItems } from './goods-receipt-items';
 import { goodsReceiptLines } from './goods-receipt-lines';
 import { goodsReceipts } from './goods-receipts';
-import { organizationIdColumn, scopeFromOwnerPolicies } from './workspace-scope';
+import { organizationIdColumn, scopeFromOwnerPolicies, siteIdColumn } from './workspace-scope';
 
 export const goodsReceiptLineItems = commerceSchema.table(
   'goods_receipt_line_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     goodsReceiptLineId: uuid('goods_receipt_line_id')
       .notNull()
       .references(() => goodsReceiptLines.id, { onDelete: 'cascade' }),

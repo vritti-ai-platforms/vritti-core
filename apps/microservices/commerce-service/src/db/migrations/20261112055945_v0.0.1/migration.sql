@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."inventory_item_site_stock_levels" DROP COLUMN "is_stocked";

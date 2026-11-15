@@ -1,0 +1,114 @@
+import { LE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
+import { LE_PURCHASES } from '@vritti/commerce-permissions/purchases';
+import { buildSlug } from '@vritti/quantum-ui/slug';
+import type { PurchasesBinding } from '@/components/purchases/bindings';
+import {
+  PURCHASES_TABLE_KEY,
+  useAddPurchaseAllocation,
+  useAddPurchaseAllocationsFromQuotation,
+  useAddPurchaseItem,
+  useApprovePurchaseLeg,
+  useCancelPurchase,
+  useClosePurchaseLeg,
+  useCompletePurchaseQuotations,
+  useConfirmPurchaseLegPurchaseOrder,
+  useCreatePurchase,
+  useCreatePurchaseLegGoodsReceipt,
+  useCreatePurchaseLegInboundDelivery,
+  useCreatePurchaseLegPurchaseOrders,
+  useCreatePurchaseSupplierInvoice,
+  useCreateReceiveWithInvoice,
+  useDeletePurchase,
+  useDiscardReceiveWithInvoice,
+  usePostReceiveWithInvoice,
+  usePurchase,
+  usePurchaseEvents,
+  usePurchaseItems,
+  usePurchaseQuotations,
+  usePurchaseSourcingItems,
+  usePurchaseSuppliers,
+  usePurchasesTable,
+  useReceiveWithInvoice,
+  useReceiveWithInvoiceOpenLines,
+  useRejectPurchaseLeg,
+  useRemovePurchaseAllocation,
+  useRemovePurchaseItem,
+  useRequestPurchaseQuotation,
+  useSubmitPurchase,
+  useSubmitPurchaseItems,
+  useSubmitPurchaseLeg,
+  useUpdatePurchase,
+  useUpdatePurchaseAllocation,
+  useUpdatePurchaseItem,
+  useUpdateReceiveWithInvoice,
+} from '@/hooks/legal-entity/purchases';
+import { SupplierFilter, SupplierSelector } from '@/selectors/supplier';
+
+// The purchases of the site picked in the list's context bar; a quotation's draft opens under its supplier's Quotations,
+// where the legal entity prices and posts it
+export const binding: PurchasesBinding = {
+  permissions: LE_PURCHASES,
+  spansSites: true,
+  SupplierSelector,
+  supplierParams: (siteId) => ({ enrolledAtSiteId: siteId }),
+  SupplierFilter,
+  quotations: {
+    draftLabel: 'Draft',
+    quotationPath: ({ supplierId, supplierName, quotationId, quotationNumber }) =>
+      `suppliers/${buildSlug(supplierName, supplierId)}/quotations/${
+        quotationNumber ? buildSlug(quotationNumber, quotationId) : quotationId
+      }`,
+  },
+  invoicePath: (invoice) => `supplier-invoices/${buildSlug(invoice.invoiceNumber, invoice.id)}`,
+  mrpEditPermission: LE_INVENTORY_ITEMS.mrp.edit,
+  locationParams: (siteId) => ({ atSiteId: siteId }),
+
+  tableKey: PURCHASES_TABLE_KEY,
+  tableSlug: 'commerce-le-purchases',
+
+  useTable: usePurchasesTable,
+  usePurchase,
+  usePurchaseItems,
+  usePurchaseQuotations,
+  usePurchaseSourcingItems,
+  usePurchaseSuppliers,
+  usePurchaseEvents,
+
+  useCreate: useCreatePurchase,
+  useUpdate: useUpdatePurchase,
+  useCancel: useCancelPurchase,
+  useDelete: useDeletePurchase,
+
+  useAddItem: useAddPurchaseItem,
+  useUpdateItem: useUpdatePurchaseItem,
+  useRemoveItem: useRemovePurchaseItem,
+  useSubmitItems: useSubmitPurchaseItems,
+
+  useRequestQuotation: useRequestPurchaseQuotation,
+  useCompleteQuotations: useCompletePurchaseQuotations,
+
+  useAddAllocation: useAddPurchaseAllocation,
+  useAddAllocationsFromQuotation: useAddPurchaseAllocationsFromQuotation,
+  useUpdateAllocation: useUpdatePurchaseAllocation,
+  useRemoveAllocation: useRemovePurchaseAllocation,
+  useSubmit: useSubmitPurchase,
+
+  useSubmitLeg: useSubmitPurchaseLeg,
+  useApproveLeg: useApprovePurchaseLeg,
+  useRejectLeg: useRejectPurchaseLeg,
+
+  useCreateLegPurchaseOrders: useCreatePurchaseLegPurchaseOrders,
+  useConfirmLegPurchaseOrder: useConfirmPurchaseLegPurchaseOrder,
+  useCreateLegInboundDelivery: useCreatePurchaseLegInboundDelivery,
+  useCreateLegGoodsReceipt: useCreatePurchaseLegGoodsReceipt,
+  useCloseSupplier: useClosePurchaseLeg,
+  useCreateSupplierInvoice: useCreatePurchaseSupplierInvoice,
+  receiveWithInvoices: {
+    useOpenLines: useReceiveWithInvoiceOpenLines,
+    useReceiveWithInvoice,
+    useCreate: useCreateReceiveWithInvoice,
+    useUpdate: useUpdateReceiveWithInvoice,
+    usePost: usePostReceiveWithInvoice,
+    useDiscard: useDiscardReceiveWithInvoice,
+  },
+};

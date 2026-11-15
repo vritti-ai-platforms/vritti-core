@@ -45,7 +45,7 @@ const columns: ColumnDef<GoodsReceiptItemQuantRow>[] = [
   },
 ];
 
-// The stock batches a published item created, with their landed cost and the grand total
+// The stock batches a posted item created, with their landed cost and the grand total
 export const ItemQuantsDialogContent: React.FC<ItemQuantsDialogContentProps> = ({
   binding,
   goodsReceiptId,

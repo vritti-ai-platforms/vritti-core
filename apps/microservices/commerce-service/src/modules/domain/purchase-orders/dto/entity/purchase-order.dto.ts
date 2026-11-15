@@ -1,5 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { PurchaseOrderStatus } from '@/db/schema';
+import type { PurchaseOrderInvoiceStatus, PurchaseOrderReceiptStatus, PurchaseOrderStatus } from '@/db/schema';
 import type { PurchaseOrderRow } from '../../repositories/purchase-orders.repository';
 
 export class PurchaseOrderDto {
@@ -10,6 +10,11 @@ export class PurchaseOrderDto {
   supplierName: string;
   poNumber: string;
   status: PurchaseOrderStatus;
+  receiptStatus: PurchaseOrderReceiptStatus;
+  invoiceStatus: PurchaseOrderInvoiceStatus;
+  paymentTermId: string;
+  purchaseId: string | null;
+  purchaseNumber: string | null;
   currencyCode: string;
   exchangeRate: number;
   conversionRates: Record<string, string>;
@@ -19,7 +24,7 @@ export class PurchaseOrderDto {
   timezone: string;
   notes: string | null;
   totalAmount: CurrencyAmountDto;
-  hasPublishedGoodsReceipt: boolean;
+  hasPostedGoodsReceipt: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -32,6 +37,11 @@ export class PurchaseOrderDto {
     dto.supplierName = row.supplierName ?? '';
     dto.poNumber = row.poNumber;
     dto.status = row.status;
+    dto.receiptStatus = row.receiptStatus;
+    dto.invoiceStatus = row.invoiceStatus;
+    dto.paymentTermId = row.paymentTermId;
+    dto.purchaseId = row.purchaseId;
+    dto.purchaseNumber = row.purchaseNumber;
     dto.currencyCode = row.currencyCode;
     dto.exchangeRate = row.exchangeRate;
     dto.conversionRates = row.conversionRates;
@@ -41,7 +51,7 @@ export class PurchaseOrderDto {
     dto.timezone = row.timezone;
     dto.notes = row.notes;
     dto.totalAmount = CurrencyAmountDto.from(row.totalAmount, row.currencyCode);
-    dto.hasPublishedGoodsReceipt = row.hasPublishedGoodsReceipt;
+    dto.hasPostedGoodsReceipt = row.hasPostedGoodsReceipt;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

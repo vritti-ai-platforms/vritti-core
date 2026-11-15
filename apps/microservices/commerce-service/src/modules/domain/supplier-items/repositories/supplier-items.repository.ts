@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import {
   and,
+  asc,
   desc,
   eq,
   getColumns,
@@ -10,6 +11,7 @@ import {
   isNull,
   lte,
   ne,
+  notExists,
   or,
   type SQL,
   sql,
@@ -523,6 +525,78 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       limit: options.limit,
       offset: options.offset,
     });
+  }
+
+  // Returns the unit the supplier sells each of the items in at the site — the preferred site item's, else the first set
+  // up — one row per item it supplies there
+  findSiteUnits(
+    supplierId: string,
+    siteId: string,
+    inventoryItemIds: string[],
+  ): Promise<{ inventoryItemId: string; uomId: string }[]> {
+    return this.db
+      .selectDistinctOn([supplierSiteItems.inventoryItemId], {
+        inventoryItemId: supplierSiteItems.inventoryItemId,
+        uomId: supplierItems.uomId,
+      })
+      .from(supplierSiteItems)
+      .innerJoin(supplierItems, eq(supplierItems.id, supplierSiteItems.supplierItemId))
+      .where(
+        and(
+          eq(supplierItems.supplierId, supplierId),
+          eq(supplierSiteItems.siteId, siteId),
+          inArray(supplierSiteItems.inventoryItemId, inventoryItemIds),
+        ),
+      )
+      .orderBy(
+        supplierSiteItems.inventoryItemId,
+        desc(supplierSiteItems.isPreferred),
+        asc(supplierSiteItems.createdAt),
+      );
+  }
+
+  // Returns the lead time at the site of every unit the supplier supplies each of the items in, preferred site items first
+  findSiteLeadTimes(
+    supplierId: string,
+    siteId: string,
+    inventoryItemIds: string[],
+  ): Promise<{ inventoryItemId: string; uomId: string; leadTimeDays: number }[]> {
+    return this.db
+      .select({
+        inventoryItemId: supplierSiteItems.inventoryItemId,
+        uomId: supplierItems.uomId,
+        leadTimeDays: supplierSiteItems.leadTimeDays,
+      })
+      .from(supplierSiteItems)
+      .innerJoin(supplierItems, eq(supplierItems.id, supplierSiteItems.supplierItemId))
+      .where(
+        and(
+          eq(supplierItems.supplierId, supplierId),
+          eq(supplierSiteItems.siteId, siteId),
+          inArray(supplierSiteItems.inventoryItemId, inventoryItemIds),
+        ),
+      )
+      .orderBy(desc(supplierSiteItems.isPreferred), asc(supplierSiteItems.createdAt));
+  }
+
+  // Returns the names of the items the supplier does not supply at the site
+  async findNamesNotSuppliedAt(supplierId: string, siteId: string, inventoryItemIds: string[]): Promise<string[]> {
+    const suppliedAtSite = this.db
+      .select({ id: supplierSiteItems.id })
+      .from(supplierSiteItems)
+      .innerJoin(supplierItems, eq(supplierItems.id, supplierSiteItems.supplierItemId))
+      .where(
+        and(
+          eq(supplierSiteItems.inventoryItemId, inventoryItems.id),
+          eq(supplierSiteItems.siteId, siteId),
+          eq(supplierItems.supplierId, supplierId),
+        ),
+      );
+    const missing = await this.db
+      .select({ name: inventoryItems.name })
+      .from(inventoryItems)
+      .where(and(inArray(inventoryItems.id, inventoryItemIds), notExists(suppliedAtSite)));
+    return missing.map((item) => item.name);
   }
 
   // Finds a supplier item's site item at one site

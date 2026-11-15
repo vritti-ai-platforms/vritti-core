@@ -8,7 +8,7 @@ export class UpdateSupplierEnrollmentDto {
   paymentTermId?: string;
 
   @ApiPropertyOptional({
-    description: "Supplier's GSTIN or VAT registration this site is billed under; null clears it",
+    description: "Supplier's GSTIN or VAT registration this site is invoiced under; null clears it",
     nullable: true,
   })
   @IsOptional()

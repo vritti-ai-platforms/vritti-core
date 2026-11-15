@@ -4,7 +4,7 @@ import { DynamicIcon } from '@vritti/quantum-ui-native/DynamicIcon';
 import { Text } from '@vritti/quantum-ui-native/Text';
 import { useUnstableNativeVariable } from 'nativewind';
 import { View } from 'react-native';
-import { stockStatus } from '../../../../services/site/stock-levels';
+import { StockStatusValues, stockStatus } from '../../../../services/site/stock-levels';
 import type { StockLevel } from '../../../../types/stock-levels';
 
 const PIN_ICON = {
@@ -16,9 +16,8 @@ const PIN_ICON = {
 // than a `bg-X/15` class — NativeWind's opacity modifier doesn't composite these `hsl(var(--X))` tokens
 // reliably here (renders ~black), and reading the var also respects the app theme, not the system appearance.
 const STATUS_META = {
-  out: { label: 'No Stock', cssVar: '--destructive', textClass: 'text-destructive' },
-  low: { label: 'Low Stock', cssVar: '--warning', textClass: 'text-warning' },
-  in: { label: 'In Stock', cssVar: '--success', textClass: 'text-success' },
+  [StockStatusValues.OUT]: { label: 'No Stock', cssVar: '--destructive', textClass: 'text-destructive' },
+  [StockStatusValues.IN]: { label: 'In Stock', cssVar: '--success', textClass: 'text-success' },
 } as const;
 
 // One label + value cell of the footer grid. Value is monospace; the UOM symbol (when present) is muted.
@@ -42,11 +41,11 @@ function StatCell({ label, value, uom }: { label: string; value: number | null; 
 
 interface StockLevelCardProps {
   stock: StockLevel;
-  // The item's primary UOM symbol — appended to stocked / available / min-level values.
+  // The item's primary UOM symbol — appended to stocked / available values.
   uomSymbol: string | null;
 }
 
-// Two-section card: header (location + status pill), divider, then a 2×2 grid of stock figures.
+// Two-section card: header (location + status pill), divider, then a grid of stock figures.
 export function StockLevelCard({ stock, uomSymbol }: StockLevelCardProps) {
   const status = STATUS_META[stockStatus(stock)];
   // Resolve the themed token (bare HSL triplet, e.g. "0 84% 60%") and composite a translucent pill fill.
@@ -92,7 +91,7 @@ export function StockLevelCard({ stock, uomSymbol }: StockLevelCardProps) {
         </View>
         <View className="flex-row gap-4">
           <StatCell label="Available" value={stock.availableQuantity} uom={uomSymbol} />
-          <StatCell label="Min. Level" value={stock.reorderLevel} uom={uomSymbol} />
+          <View className="flex-1" />
         </View>
       </View>
     </Card>

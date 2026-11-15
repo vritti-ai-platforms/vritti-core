@@ -1,4 +1,6 @@
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
+import { ChangePurchaseOrderExchangeRateDto } from '@domain/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
+import { ChangePurchaseOrderSupplierDto } from '@domain/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import { SetPurchaseOrderConversionRateDto } from '@domain/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import { UpdatePurchaseOrderNotesDto } from '@domain/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/request/update-purchase-order-status.dto';
@@ -7,11 +9,10 @@ import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/pu
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrderProblemsDto } from '@/modules/site/purchase-orders/root/dto/entity/purchase-order-problems.dto';
 import { PurchaseOrdersService } from '@/modules/site/purchase-orders/root/services/purchase-orders-root.service';
-import { LeChangePurchaseOrderExchangeRateDto } from './dto/request/le-change-purchase-order-exchange-rate.dto';
-import { LeChangePurchaseOrderSupplierDto } from './dto/request/le-change-purchase-order-supplier.dto';
 import { LeCreatePurchaseOrderDto } from './dto/request/le-create-purchase-order.dto';
 
 @Controller()
@@ -37,7 +38,7 @@ export class LePurchaseOrdersRootController {
     return this.purchaseOrdersService.findById(data.id);
   }
 
-  // Returns the flags raised on a purchase order's receipts and invoices, grouped by order line
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoices, grouped by order line
   @MessagePattern({ cmd: 'le.purchaseOrders.problems' })
   problems(@Payload() data: { id: string }): Promise<PurchaseOrderProblemsDto> {
     this.logger.log(`le.purchaseOrders.problems — id: ${data.id}`);
@@ -46,9 +47,12 @@ export class LePurchaseOrdersRootController {
 
   // Creates a purchase order at one of the legal entity's sites, in that site's timezone
   @MessagePattern({ cmd: 'le.purchaseOrders.create' })
-  create(@Payload() dto: LeCreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  create(
+    @Payload() dto: LeCreatePurchaseOrderDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<CreateResponseDto<PurchaseOrderDto>> {
     this.logger.log(`le.purchaseOrders.create — supplier: ${dto.supplierId}, site: ${dto.siteId}`);
-    const { siteId, timezone, leCurrencyCode, ...purchaseOrder } = dto;
+    const { siteId, timezone, ...purchaseOrder } = dto;
     return this.service.create(purchaseOrder, { siteId, timezone, leCurrencyCode });
   }
 
@@ -68,18 +72,22 @@ export class LePurchaseOrdersRootController {
 
   // Moves a draft purchase order to another supplier
   @MessagePattern({ cmd: 'le.purchaseOrders.changeSupplier' })
-  changeSupplier(@Payload() dto: LeChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+  changeSupplier(
+    @Payload() dto: ChangePurchaseOrderSupplierDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.changeSupplier — id: ${dto.id}, supplier: ${dto.supplierId}`);
-    const { leCurrencyCode, ...change } = dto;
-    return this.service.changeSupplier(change, leCurrencyCode);
+    return this.service.changeSupplier(dto, leCurrencyCode);
   }
 
   // Changes a foreign-currency purchase order's exchange rate
   @MessagePattern({ cmd: 'le.purchaseOrders.changeExchangeRate' })
-  changeExchangeRate(@Payload() dto: LeChangePurchaseOrderExchangeRateDto): Promise<SuccessResponseDto> {
+  changeExchangeRate(
+    @Payload() dto: ChangePurchaseOrderExchangeRateDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.changeExchangeRate — id: ${dto.id}, rate: ${dto.exchangeRate}`);
-    const { leCurrencyCode, ...change } = dto;
-    return this.purchaseOrdersService.changeExchangeRate(change, leCurrencyCode);
+    return this.service.changeExchangeRate(dto, leCurrencyCode);
   }
 
   // Sets the rate from another of the supplier's currencies into the purchase order's
@@ -89,24 +97,27 @@ export class LePurchaseOrdersRootController {
     return this.service.setConversionRate(dto);
   }
 
-  // Closes a purchase order short
-  @MessagePattern({ cmd: 'le.purchaseOrders.closeShort' })
-  closeShort(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchaseOrders.closeShort — id: ${data.id}`);
-    return this.purchaseOrdersService.closeShort(data.id);
+  // Marks a confirmed purchase order delivery completed, cancelling what its lines still had to receive
+  @MessagePattern({ cmd: 'le.purchaseOrders.completeDelivery' })
+  completeDelivery(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchaseOrders.completeDelivery — id: ${data.id}`);
+    return this.service.completeDelivery(data.id);
   }
 
-  // Moves a purchase order along its manual workflow
+  // Moves a purchase order along its manual workflow: send, confirm or cancel
   @MessagePattern({ cmd: 'le.purchaseOrders.updateStatus' })
-  updateStatus(@Payload() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
+  updateStatus(
+    @Payload() dto: UpdatePurchaseOrderStatusDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
-    return this.purchaseOrdersService.updateStatus(dto);
+    return this.service.updateStatus(dto, headers.userId || null);
   }
 
   // Deletes a draft purchase order
   @MessagePattern({ cmd: 'le.purchaseOrders.delete' })
   delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.delete — id: ${data.id}`);
-    return this.purchaseOrdersService.delete(data.id);
+    return this.service.delete(data.id);
   }
 }

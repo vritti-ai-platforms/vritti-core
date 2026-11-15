@@ -1,44 +1,40 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
-import {
-  type ColumnDef,
-  DataTable,
-  NumberCell,
-  RowActions,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { MapPin, Package, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CompactSwitch } from '@vritti/quantum-ui/Switch';
+import { MapPin, Package, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
   INVENTORY_ITEM_LOCATIONS_KEY,
   useDeleteInventoryItemLocation,
   useInventoryItemLocationsTable,
+  useUpdateInventoryItemLocation,
 } from '@/hooks/site/inventory-items';
 import type { InventoryItemLocationData } from '@/schemas/inventory-item-locations';
 import { AddInventoryItemLocationForm } from './forms/AddInventoryItemLocationForm';
-import { EditInventoryItemLocationForm } from './forms/EditInventoryItemLocationForm';
 
 interface LocationsTabProps {
   inventoryItemId: string;
-  uomSymbol: string | null;
 }
 
-export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uomSymbol }) => {
+export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
   const inventoryItemLocationsTableQuery = useInventoryItemLocationsTable(inventoryItemId);
+  const updateMutation = useUpdateInventoryItemLocation(inventoryItemId);
   const deleteMutation = useDeleteInventoryItemLocation(inventoryItemId);
 
   const handleDelete = useCallback(
     async (row: InventoryItemLocationData) => {
+      const locationName = row.locationName ?? 'this location';
       const confirmed = await confirm({
-        title: 'Remove config?',
-        description: `Remove minimum stock level for "${row.locationName ?? 'this location'}"?`,
+        title: `Remove ${locationName}?`,
+        description: `${locationName} will no longer be a fixed location for this item. Stock already there stays.`,
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -62,11 +58,18 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
         enableSorting: false,
       },
       {
-        accessorKey: 'reorderLevel',
-        header: 'Min. Stock Level',
+        accessorKey: 'isBlocked',
+        header: 'Blocked',
         cell: ({ row }) => (
-          <span className="font-mono">
-            <NumberCell value={row.original.reorderLevel} /> {uomSymbol}
+          <span className="inline-flex items-center gap-2">
+            <CompactSwitch
+              checked={row.original.isBlocked}
+              permission={SITE_INVENTORY_ITEMS.locations.edit}
+              disabled={updateMutation.isPending && updateMutation.variables?.locationConfigId === row.original.id}
+              onCheckedChange={(isBlocked) => updateMutation.mutate({ locationConfigId: row.original.id, isBlocked })}
+              aria-label={`Block putaway into ${row.original.locationName ?? 'this location'}`}
+            />
+            <span className="text-xs text-muted-foreground">{row.original.isBlocked ? 'No new putaway' : 'Open'}</span>
           </span>
         ),
         enableSorting: true,
@@ -78,30 +81,11 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
           <RowActions
             actions={[
               {
-                id: 'edit',
-                icon: Pencil,
-                label: 'Edit',
-                dialog: {
-                  title: 'Edit Min. Stock Level',
-                  description: `Update the reorder threshold for ${row.original.locationName ?? 'this location'}.`,
-                  content: (close) => (
-                    <EditInventoryItemLocationForm
-                      inventoryItemId={inventoryItemId}
-                      locationConfigId={row.original.id}
-                      locationName={row.original.locationName}
-                      currentReorderLevel={row.original.reorderLevel}
-                      uomSymbol={uomSymbol}
-                      onSuccess={close}
-                      onCancel={close}
-                    />
-                  ),
-                },
-              },
-              {
                 id: 'delete',
                 icon: Trash2,
-                label: 'Delete',
+                label: 'Remove',
                 variant: 'destructive',
+                permission: SITE_INVENTORY_ITEMS.locations.delete,
                 onClick: () => handleDelete(row.original),
               },
             ]}
@@ -111,17 +95,17 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
         enableHiding: false,
       },
     ],
-    [inventoryItemId, uomSymbol, handleDelete],
+    [handleDelete, updateMutation],
   );
 
   const inventoryItemLocationsTable = useDataTable({
     columns,
     query: inventoryItemLocationsTableQuery,
     slug: `inventory-item-${inventoryItemId}-locations`,
-    label: 'config',
+    label: 'location',
     enableRowSelection: false,
     enableSorting: true,
-    onStatePush: () => queryClient.invalidateQueries({ queryKey: [...INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId)] }),
+    onStatePush: () => queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) }),
   });
 
   return (
@@ -129,19 +113,29 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
       <DataTable
         table={inventoryItemLocationsTable}
         mode="tab"
+        permission={SITE_INVENTORY_ITEMS.locations.view}
         toolbarActions={{
           actions: (
-            <Button size="sm" startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              size="sm"
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={SITE_INVENTORY_ITEMS.locations.add}
+            >
               Add Location
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: MapPin,
-          title: 'No Locations Allocated for this item',
-          description: 'Add a location to set minimum stock levels for this item.',
+          title: 'No fixed locations',
+          description: 'Give this item a fixed location so putaway sends its stock there first.',
           action: (
-            <Button startAdornment={<Plus className="size-4" />} onClick={addDialog.open}>
+            <Button
+              startAdornment={<Plus className="size-4" />}
+              onClick={addDialog.open}
+              permission={SITE_INVENTORY_ITEMS.locations.add}
+            >
               Add Location
             </Button>
           ),
@@ -151,8 +145,8 @@ export const LocationsTab: React.FC<LocationsTabProps> = ({ inventoryItemId, uom
       <Dialog
         handle={addDialog}
         icon={Package}
-        title="Add Location"
-        description="Set a minimum stock level for a storage location."
+        title="Add Fixed Location"
+        description="A location this item is always put away to first, unless it is blocked."
         content={(close) => (
           <AddInventoryItemLocationForm inventoryItemId={inventoryItemId} onSuccess={close} onCancel={close} />
         )}

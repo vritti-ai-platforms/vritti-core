@@ -1,11 +1,12 @@
 import type { GoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/entity/goods-receipt-lot.dto';
+import { AddGoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/request/add-goods-receipt-lot.dto';
+import { UpdateGoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/request/update-goods-receipt-lot.dto';
 import { GoodsReceiptLotsDomainService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { GoodsReceiptsLotsService } from '@/modules/site/goods-receipts/lots/services/goods-receipts-lots.service';
-import { LeAddGoodsReceiptLotDto } from './dto/request/le-add-goods-receipt-lot.dto';
-import { LeUpdateGoodsReceiptLotDto } from './dto/request/le-update-goods-receipt-lot.dto';
 
 @Controller()
 export class LeGoodsReceiptsLotsController {
@@ -19,26 +20,31 @@ export class LeGoodsReceiptsLotsController {
   // Returns the lots of a goods receipt item
   @MessagePattern({ cmd: 'le.goodsReceipts.lots' })
   lots(
-    @Payload() data: { goodsReceiptId: string; itemId: string; leCurrencyCode: string },
+    @Payload() data: { goodsReceiptId: string; itemId: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<GoodsReceiptLotDto[]> {
     this.logger.log(`le.goodsReceipts.lots — item: ${data.itemId}`);
-    return this.lotsService.findByItem(data.itemId, data.leCurrencyCode);
+    return this.lotsService.findByItem(data.itemId, leCurrencyCode);
   }
 
   // Adds a lot to a goods receipt item
   @MessagePattern({ cmd: 'le.goodsReceipts.addLot' })
-  addLot(@Payload() dto: LeAddGoodsReceiptLotDto): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
+  addLot(
+    @Payload() dto: AddGoodsReceiptLotDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<CreateResponseDto<GoodsReceiptLotDto>> {
     this.logger.log(`le.goodsReceipts.addLot — item: ${dto.itemId}, lot: ${dto.lotNumber}`);
-    const { leCurrencyCode, ...lot } = dto;
-    return this.service.addLot(lot, leCurrencyCode);
+    return this.service.addLot(dto, leCurrencyCode);
   }
 
   // Changes a lot of a goods receipt item
   @MessagePattern({ cmd: 'le.goodsReceipts.updateLot' })
-  updateLot(@Payload() dto: LeUpdateGoodsReceiptLotDto): Promise<SuccessResponseDto> {
+  updateLot(
+    @Payload() dto: UpdateGoodsReceiptLotDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`le.goodsReceipts.updateLot — lot: ${dto.lotId}`);
-    const { leCurrencyCode, ...lot } = dto;
-    return this.service.updateLot(lot, leCurrencyCode);
+    return this.service.updateLot(dto, leCurrencyCode);
   }
 
   // Removes a lot from a goods receipt item

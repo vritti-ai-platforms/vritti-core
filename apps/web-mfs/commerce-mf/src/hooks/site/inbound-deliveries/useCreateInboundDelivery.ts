@@ -5,7 +5,7 @@ import type { CreateInboundDeliveryPayload, InboundDeliveryData } from '@/schema
 import { createInboundDelivery } from '@/services/site/inbound-deliveries.service';
 import { INBOUND_DELIVERIES_TABLE_KEY } from './keys';
 
-// Announces a delivery from a supplier at the site
+// Creates an inbound delivery from a supplier at the site
 export function useCreateInboundDelivery(
   options?: Omit<
     UseMutationOptions<CreateResponse<InboundDeliveryData>, AxiosError, CreateInboundDeliveryPayload>,

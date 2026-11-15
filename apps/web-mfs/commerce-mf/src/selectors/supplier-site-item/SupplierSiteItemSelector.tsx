@@ -15,8 +15,8 @@ export const SupplierSiteItemSelector = forwardRef<HTMLButtonElement, SupplierSi
       () =>
         (data?.result ?? []).map((site) => ({
           value: site.siteId,
-          label: site.siteName ?? site.siteId,
-          description: site.siteCode ?? undefined,
+          label: site.siteName,
+          description: site.siteCode,
         })),
       [data],
     );

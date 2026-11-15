@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, exists, getColumns, inArray, ne, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   CONTACTABLE_CHANNELS,
   type MessagingApp,
@@ -175,15 +175,11 @@ export class PartyCommunicationsDomainRepository extends PrimaryBaseRepository<t
       );
     }
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'value',
       additionalKeys: query.additionalKeys,
-      search: query.search,
       searchKeys: ['value'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: 'value',
       orderDirection: 'asc',
       where: { partyId, channel, isActive: true },

@@ -4,7 +4,7 @@ import { IsDateString, IsOptional, IsString, Matches, MaxLength } from 'class-va
 
 export class UpdateInboundDeliveryDto {
   @ApiPropertyOptional({
-    description: 'New expected date (YYYY-MM-DD); the PO lines on the delivery follow it',
+    description: 'New expected date (YYYY-MM-DD); the PO lines on the delivery keep their own',
     example: '2026-11-18',
   })
   @IsOptional()

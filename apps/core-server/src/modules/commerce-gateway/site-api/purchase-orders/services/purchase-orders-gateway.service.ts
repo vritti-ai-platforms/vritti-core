@@ -20,7 +20,6 @@ import {
   PurchaseOrderDocumentsService,
   type PurchaseOrderPdf,
 } from '@commerce/purchase-orders/services/purchase-order-documents.service';
-import type { CreatePurchaseOrderInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-purchase-order-invoice.dto';
 import type { PurchaseOrderInvoiceSummaryResponseDto } from '@commerce/supplier-invoices/dto/response/purchase-order-invoice-summary-response.dto';
 import type { SupplierInvoiceResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
@@ -118,7 +117,7 @@ export class PurchaseOrdersGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns the flags raised on a purchase order's receipts and invoices, grouped by order line
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
   findProblems(id: string): Promise<PurchaseOrderProblemsResponseDto> {
     this.logger.log(`site.purchaseOrders.problems — id: ${id}`);
     return this.nats.send('commerce', 'site.purchaseOrders.problems', { id });
@@ -172,10 +171,10 @@ export class PurchaseOrdersGatewayService {
     return this.nats.send('commerce', 'site.purchaseOrders.setConversionRate', { id, ...dto });
   }
 
-  // Closes a purchase order short — no further receipts expected
-  async closePurchaseOrder(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.closeShort — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.closeShort', { id });
+  // Marks a purchase order delivery completed — no further receipts expected
+  async completeDelivery(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.completeDelivery — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.completeDelivery', { id });
   }
 
   // Updates a purchase order status
@@ -200,7 +199,7 @@ export class PurchaseOrdersGatewayService {
     return this.nats.send('commerce', 'site.purchaseOrders.delete', { id });
   }
 
-  // Returns the invoices billing a purchase order for the data table
+  // Returns the invoices with a line invoicing a purchase order for the data table
   async findInvoicesTable(
     purchaseOrderId: string,
     userId: string,
@@ -218,21 +217,10 @@ export class PurchaseOrdersGatewayService {
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
-  // Rolls a purchase order's invoices up into counts and the share of the ordered quantity billed
+  // Rolls a purchase order's invoices up into counts and the share of the due quantity invoiced
   findInvoicesSummary(purchaseOrderId: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`site.purchaseOrders.invoices.summary — purchaseOrderId: ${purchaseOrderId}`);
     return this.nats.send('commerce', 'site.purchaseOrders.invoices.summary', { purchaseOrderId });
-  }
-
-  // Records a draft invoice billing the purchase order
-  createInvoice(
-    purchaseOrderId: string,
-    dto: CreatePurchaseOrderInvoiceDto,
-  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
-    this.logger.log(
-      `site.purchaseOrders.invoices.create — purchaseOrderId: ${purchaseOrderId}, number: ${dto.invoiceNumber}`,
-    );
-    return this.nats.send('commerce', 'site.purchaseOrders.invoices.create', { ...dto, purchaseOrderId });
   }
 
   // Renders the purchase order as a PDF for download

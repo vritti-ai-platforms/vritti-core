@@ -23,7 +23,8 @@ export class UpdateSupplierInvoiceDto {
   invoiceNumber?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'invoiceDate must be YYYY-MM-DD' })
   invoiceDate?: string;
 
   @IsOptional()

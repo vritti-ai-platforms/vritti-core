@@ -1,5 +1,4 @@
 import { CreatePurchaseOrderDto } from '@domain/purchase-orders/dto/request/create-purchase-order.dto';
-import { IsCurrencyCode } from '@vritti/api-sdk/money';
 import { IsTimeZone, IsUUID } from 'class-validator';
 
 export class LeCreatePurchaseOrderDto extends CreatePurchaseOrderDto {
@@ -8,7 +7,4 @@ export class LeCreatePurchaseOrderDto extends CreatePurchaseOrderDto {
 
   @IsTimeZone()
   timezone: string;
-
-  @IsCurrencyCode()
-  leCurrencyCode: string;
 }

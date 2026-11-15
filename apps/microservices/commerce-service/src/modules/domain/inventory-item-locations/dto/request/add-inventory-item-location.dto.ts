@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
 export class AddInventoryItemLocationDto {
   @IsUUID('7')
@@ -7,7 +7,7 @@ export class AddInventoryItemLocationDto {
   @IsUUID('7')
   locationId: string;
 
-  @IsNumber()
-  @Min(0)
-  reorderLevel: number;
+  @IsOptional()
+  @IsBoolean()
+  isBlocked?: boolean;
 }

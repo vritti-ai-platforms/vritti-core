@@ -20,11 +20,13 @@ function failures(body: unknown): string[] {
 }
 
 const page = {
-  filters: [
-    { field: 'status', operator: 'isAnyOf', value: ['ACTIVE', 'PENDING'] },
-    { field: 'name', operator: 'contains', value: 'acme' },
-    { field: 'amount', operator: 'gte', value: 100 },
-  ],
+  filters: {
+    panel: [
+      { field: 'status', operator: 'isAnyOf', value: ['ACTIVE', 'PENDING'] },
+      { field: 'name', operator: 'contains', value: 'acme' },
+    ],
+    context: [{ field: 'amount', operator: 'gte', value: 100 }],
+  },
   search: { columnId: 'name', value: 'acme' },
   sort: [{ field: 'createdAt', direction: 'desc' }],
   pagination: { limit: 20, offset: 40 },
@@ -36,8 +38,9 @@ describe('InternalTablePageDto', () => {
   });
 
   it('accepts no search and empty lists', () => {
-    expect(failures({ ...page, filters: [], sort: [], search: null })).toEqual([]);
-    expect(failures({ filters: [], sort: [], pagination: page.pagination })).toEqual([]);
+    const noFilters = { panel: [], context: [] };
+    expect(failures({ ...page, filters: noFilters, sort: [], search: null })).toEqual([]);
+    expect(failures({ filters: noFilters, sort: [], pagination: page.pagination })).toEqual([]);
   });
 
   it('rejects filters sent as a JSON string', () => {
@@ -46,11 +49,15 @@ describe('InternalTablePageDto', () => {
 
   it('rejects an unknown operator, an empty field and a non-string list item', () => {
     const bad = [
-      { field: 'status', operator: 'between', value: ['a', 'b'] },
+      { field: 'status', operator: 'resembles', value: ['a', 'b'] },
       { field: '', operator: 'equals', value: 'x' },
       { field: 'status', operator: 'isAnyOf', value: ['ACTIVE', 1] },
     ];
-    expect(failures({ ...page, filters: bad })).toEqual(['filters.0.operator', 'filters.1.field', 'filters.2.value']);
+    expect(failures({ ...page, filters: { panel: bad, context: [] } })).toEqual([
+      'filters.panel.0.operator',
+      'filters.panel.1.field',
+      'filters.panel.2.value',
+    ]);
   });
 
   it('rejects an object value and a non-finite number', () => {
@@ -58,7 +65,10 @@ describe('InternalTablePageDto', () => {
       { field: 'amount', operator: 'gte', value: { currency: 'INR', value: '100' } },
       { field: 'amount', operator: 'gte', value: Number.POSITIVE_INFINITY },
     ];
-    expect(failures({ ...page, filters: bad })).toEqual(['filters.0.value', 'filters.1.value']);
+    expect(failures({ ...page, filters: { panel: [], context: bad } })).toEqual([
+      'filters.context.0.value',
+      'filters.context.1.value',
+    ]);
   });
 
   it('rejects a bad sort direction and out-of-range paging', () => {

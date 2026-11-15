@@ -13,24 +13,36 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-import { purchaseOrderStatusEnum } from './enums';
+import { purchaseOrderInvoiceStatusEnum, purchaseOrderReceiptStatusEnum, purchaseOrderStatusEnum } from './enums';
 import { inventoryItems } from './inventory-items';
+import { paymentTerms } from './payment-terms';
+import { purchases } from './purchases';
 import { suppliers } from './suppliers';
 import { uom } from './uom';
-import { LE_GUC, organizationIdColumn, scopeFromOwnerPolicies, siteDocumentPolicies } from './workspace-scope';
+import {
+  organizationIdColumn,
+  scopeFromOwnerPolicies,
+  siteDocumentColumns,
+  siteDocumentPolicies,
+} from './workspace-scope';
 
 export const purchaseOrders = commerceSchema.table(
   'purchase_orders',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    legalEntityId: uuid('legal_entity_id').notNull().default(sql.raw(LE_GUC)),
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    ...siteDocumentColumns(),
     supplierId: uuid('supplier_id')
       .notNull()
       .references(() => suppliers.id),
+    purchaseId: uuid('purchase_id').references(() => purchases.id, { onDelete: 'restrict' }),
     poNumber: varchar('po_number', { length: 50 }).notNull(),
     status: purchaseOrderStatusEnum('status').notNull().default('DRAFT'),
+    receiptStatus: purchaseOrderReceiptStatusEnum('receipt_status').notNull().default('NOT_RECEIVED'),
+    invoiceStatus: purchaseOrderInvoiceStatusEnum('invoice_status').notNull().default('NOTHING_TO_INVOICE'),
+    paymentTermId: uuid('payment_term_id')
+      .notNull()
+      .references(() => paymentTerms.id, { onDelete: 'restrict' }),
     currencyCode: varchar('currency_code', { length: 3 }).notNull(),
     exchangeRate: decimal('exchange_rate', { precision: 18, scale: 6, mode: 'number' }).notNull().default(1),
     // Rates from the currencies of lines priced in another of the supplier's currencies into the PO currency,
@@ -53,6 +65,7 @@ export const purchaseOrders = commerceSchema.table(
     unique('uq_purchase_orders_org_po_number').on(table.organizationId, table.poNumber),
     index('idx_purchase_orders_site').on(table.organizationId, table.siteId),
     index('idx_purchase_orders_supplier').on(table.supplierId),
+    index('idx_purchase_orders_purchase').on(table.purchaseId),
     ...siteDocumentPolicies(),
   ],
 );
@@ -64,7 +77,7 @@ export const purchaseOrderItems = commerceSchema.table(
   'purchase_order_items',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     purchaseOrderId: uuid('purchase_order_id')
       .notNull()
       .references(() => purchaseOrders.id, { onDelete: 'cascade' }),
@@ -78,12 +91,26 @@ export const purchaseOrderItems = commerceSchema.table(
       .notNull()
       .references(() => uom.id, { onDelete: 'restrict' }),
     uomQty: decimal('uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
-    receivedQuantity: decimal('received_quantity', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     schemeBuyQty: decimal('scheme_buy_qty', { precision: 12, scale: 3, mode: 'number' }),
     schemeFreeQty: decimal('scheme_free_qty', { precision: 12, scale: 3, mode: 'number' }),
     hasScheme: boolean('has_scheme').notNull().default(false),
-    freeQty: decimal('free_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
     primaryUomQty: decimal('primary_uom_qty', { precision: 12, scale: 3, mode: 'number' }).notNull(),
+    freePrimaryQty: decimal('free_primary_qty', { precision: 12, scale: 3, mode: 'number' }).notNull().default(0),
+    receivedPrimaryQty: decimal('received_primary_qty', { precision: 12, scale: 3, mode: 'number' })
+      .notNull()
+      .default(0),
+    rejectedPrimaryQty: decimal('rejected_primary_qty', { precision: 12, scale: 3, mode: 'number' })
+      .notNull()
+      .default(0),
+    invoicedPrimaryQty: decimal('invoiced_primary_qty', { precision: 12, scale: 3, mode: 'number' })
+      .notNull()
+      .default(0),
+    returnedPrimaryQty: decimal('returned_primary_qty', { precision: 12, scale: 3, mode: 'number' })
+      .notNull()
+      .default(0),
+    cancelledPrimaryQty: decimal('cancelled_primary_qty', { precision: 12, scale: 3, mode: 'number' })
+      .notNull()
+      .default(0),
     primaryUomUnitPrice: bigint('primary_uom_unit_price', { mode: 'bigint' }).notNull(),
     unitPrice: bigint('unit_price', { mode: 'bigint' }).notNull(),
     totalPrice: bigint('total_price', { mode: 'bigint' }).notNull(),

@@ -245,7 +245,7 @@ export default (rspackEnv) => {
         runtimePlugins: [path.resolve(__dirname, 'src/mf-share-logger.ts')],
         exposes: {
           './Org/Categories': './src/features/organization/categories/index.tsx',
-          './Le/CostCategories': './src/features/legal-entity/cost-categories/index.tsx',
+          './Org/CostCategories': './src/features/organization/cost-categories/index.tsx',
           './Site/Customers': './src/features/site/customers/index.tsx',
           './Site/GoodsReceipts': './src/features/site/goods-receipts/index.tsx',
           './Site/InventoryItems': './src/features/site/inventory-items/index.tsx',

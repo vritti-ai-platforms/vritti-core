@@ -8,6 +8,8 @@ export { useCreateSupplierEnrollment } from './useCreateSupplierEnrollment';
 export { useDeleteSupplierEnrollment } from './useDeleteSupplierEnrollment';
 export { useSetSupplierEnrollmentActive } from './useSetSupplierEnrollmentActive';
 export { useSupplierEnrollment, useSupplierEnrollmentRef } from './useSupplierEnrollment';
+export { useSupplierEnrollmentPurchasing } from './useSupplierEnrollmentPurchasing';
 export { useSupplierEnrollmentSiteItemsTable } from './useSupplierEnrollmentSiteItems';
 export { useSupplierEnrollmentsTable } from './useSupplierEnrollmentsTable';
 export { useUpdateSupplierEnrollment } from './useUpdateSupplierEnrollment';
+export { useUpdateSupplierEnrollmentPurchasing } from './useUpdateSupplierEnrollmentPurchasing';

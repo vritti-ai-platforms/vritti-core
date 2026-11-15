@@ -1,24 +1,21 @@
-import { Field, Float, ID, InputType } from '@nestjs/graphql';
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { Field, ID, InputType } from '@nestjs/graphql';
+import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
 
-// Mirror the item-location create/update payloads so the resolver forwards straight to
-// gateway.createItemLocation/updateItemLocation. reorderLevel ("Min.
 @InputType()
 export class CreateInventoryItemLocationInput {
   @Field(() => ID)
   @IsUUID('7')
   locationId: string;
 
-  @Field(() => Float)
-  @IsNumber()
-  @Min(0)
-  reorderLevel: number;
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isBlocked?: boolean;
 }
 
 @InputType()
 export class UpdateInventoryItemLocationInput {
-  @Field(() => Float)
-  @IsNumber()
-  @Min(0)
-  reorderLevel: number;
+  @Field(() => Boolean)
+  @IsBoolean()
+  isBlocked: boolean;
 }

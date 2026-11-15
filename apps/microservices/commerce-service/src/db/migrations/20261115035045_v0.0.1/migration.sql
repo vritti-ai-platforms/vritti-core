@@ -1,0 +1,1 @@
+CREATE INDEX "idx_inventory_item_quants_site_item_active" ON "commerce"."inventory_item_quants" ("site_id","inventory_item_id") WHERE "quantity" > 0;

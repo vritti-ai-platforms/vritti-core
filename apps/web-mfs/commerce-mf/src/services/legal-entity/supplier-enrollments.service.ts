@@ -2,11 +2,12 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CreateSupplierEnrollmentPayload,
+  LeSupplierEnrollmentDetail,
   SetSupplierEnrollmentActiveVars,
   SupplierEnrollment,
-  SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
   SupplierEnrollmentsTableResponse,
+  UpdateEnrollmentPurchasingVars,
   UpdateSupplierEnrollmentVars,
 } from '@/schemas/supplier-enrollments';
 import type { SupplierSiteItemDataTableResponse } from '@/schemas/suppliers';
@@ -20,12 +21,12 @@ export function getSupplierEnrollmentsTable(supplierId: string): Promise<Supplie
   return axios.get<SupplierEnrollmentsTableResponse>(`${base(supplierId)}/table`).then((r) => r.data);
 }
 
-// Fetches the supplier as one of the legal entity's sites sees it, enrolled there or not
+// Fetches the supplier as one of the legal entity's sites sees it, enrolled there or not, with its purchasing settings
 export function getSupplierEnrollment({
   supplierId,
   siteId,
-}: SupplierEnrollmentKey): Promise<SupplierEnrollmentDetail> {
-  return axios.get<SupplierEnrollmentDetail>(`${base(supplierId)}/${siteId}`).then((r) => r.data);
+}: SupplierEnrollmentKey): Promise<LeSupplierEnrollmentDetail> {
+  return axios.get<LeSupplierEnrollmentDetail>(`${base(supplierId)}/${siteId}`).then((r) => r.data);
 }
 
 // Enrolls the supplier at one of the legal entity's sites
@@ -43,6 +44,15 @@ export function updateSupplierEnrollment({
   data,
 }: UpdateSupplierEnrollmentVars): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${base(supplierId)}/${siteId}`, data).then((r) => r.data);
+}
+
+// Updates how the supplier's purchase legs at a site run: type, approval, quality check, receipt location, tolerances
+export function updateSupplierEnrollmentPurchasing({
+  supplierId,
+  siteId,
+  data,
+}: UpdateEnrollmentPurchasingVars): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${base(supplierId)}/${siteId}/purchasing`, data).then((r) => r.data);
 }
 
 // Activates or deactivates the supplier's enrollment at a site

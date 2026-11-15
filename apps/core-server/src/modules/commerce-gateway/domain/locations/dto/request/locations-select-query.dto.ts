@@ -43,4 +43,9 @@ export class LocationsSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   goodsReceiptLotId?: string;
+
+  @ApiPropertyOptional({ description: "Only the locations of this one of the legal entity's sites" })
+  @IsOptional()
+  @IsUUID('7')
+  atSiteId?: string;
 }

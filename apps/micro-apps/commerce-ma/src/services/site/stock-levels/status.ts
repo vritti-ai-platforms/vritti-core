@@ -1,13 +1,13 @@
 import type { StockLevel } from '../../../types/stock-levels';
 
-export type StockStatus = 'out' | 'low' | 'in';
+export const StockStatusValues = {
+  OUT: 'out',
+  IN: 'in',
+} as const;
 
-// Mirrors the web StockLevelsTab logic: no stock when nothing is stocked; low when available is at/below a
-// configured reorder level; otherwise in stock.
-export function stockStatus(
-  s: Pick<StockLevel, 'stockedQuantity' | 'availableQuantity' | 'reorderLevel'>,
-): StockStatus {
-  if (s.stockedQuantity === 0) return 'out';
-  if (s.reorderLevel != null && s.reorderLevel > 0 && s.availableQuantity <= s.reorderLevel) return 'low';
-  return 'in';
+export type StockStatus = (typeof StockStatusValues)[keyof typeof StockStatusValues];
+
+// No stock when nothing is stocked; otherwise in stock. Reorder thresholds are a site-level setting, not per location.
+export function stockStatus(s: Pick<StockLevel, 'stockedQuantity'>): StockStatus {
+  return s.stockedQuantity === 0 ? StockStatusValues.OUT : StockStatusValues.IN;
 }

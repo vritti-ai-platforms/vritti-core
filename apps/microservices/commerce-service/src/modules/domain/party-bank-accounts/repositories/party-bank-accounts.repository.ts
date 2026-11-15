@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type PartyBankAccount, parties, partyBankAccounts } from '@/db/schema';
 
 @Injectable()
@@ -50,16 +50,12 @@ export class PartyBankAccountsDomainRepository extends PrimaryBaseRepository<typ
   // Returns a party's active bank accounts as select options, primary first — account name label, bank + masked number description
   findOptionsForSelect(partyId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     return this.findForSelect({
+      ...selectPageOptions(query),
       value: 'id',
       label: 'accountName',
       description: sql`coalesce(${partyBankAccounts.bankName} || ' ', '') || '····' || right(${partyBankAccounts.accountNumber}, 4)`,
       additionalKeys: ['isPrimary'],
-      search: query.search,
       searchKeys: ['accountName'],
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderBy: { isPrimary: 'desc', accountName: 'asc' },
       where: { partyId, isActive: true },
     });

@@ -27,6 +27,8 @@ const _locationSchema = z.object({
   isActive: z.boolean(),
   area: z.string().max(100).optional().or(z.literal('')),
   managerId: z.uuid().optional().nullable(),
+  storageTypeId: z.uuid().optional().nullable(),
+  inheritStorageType: z.boolean(),
 });
 
 export type LocationFormData = {
@@ -38,11 +40,54 @@ export type LocationFormData = {
   isActive: boolean;
   area: string;
   managerId: string;
+  storageTypeId?: string | null;
+  inheritStorageType: boolean;
 };
 export const locationFormResolver = zodResolver(_locationSchema) as unknown as Resolver<LocationFormData>;
 export type CreateLocationResponse = CreateResponse<LocationData>;
 
-export interface LocationData {
+export type CreateLocationData = Omit<LocationFormData, 'storageTypeId' | 'inheritStorageType'> & {
+  storageTypeId?: string;
+};
+
+export interface LocationFillData {
+  capacityPercent: number;
+  weightUsed: number;
+  weightMax: number | null;
+  volumeUsed: number;
+  volumeMax: number | null;
+  unconfiguredItemCount: number;
+}
+
+export interface LocationStorageTypeFields {
+  storageTypeId: string | null;
+  storageTypeName: string | null;
+  isStorageTypeOverridden: boolean;
+  inheritedFromLocationName: string | null;
+  fill: LocationFillData | null;
+}
+
+export const LocationFillStatusValues = {
+  OK: 'OK',
+  NEARLY_FULL: 'NEARLY_FULL',
+  OVER_CAPACITY: 'OVER_CAPACITY',
+} as const;
+export type LocationFillStatus = (typeof LocationFillStatusValues)[keyof typeof LocationFillStatusValues];
+
+export const LocationFillStatusLabels: Record<LocationFillStatus, string> = {
+  [LocationFillStatusValues.OK]: 'Room left',
+  [LocationFillStatusValues.NEARLY_FULL]: 'Nearly full',
+  [LocationFillStatusValues.OVER_CAPACITY]: 'Over capacity',
+};
+
+// Places a capacity percentage on the fill scale: 80% and up is nearly full, past 100% is over capacity
+export function locationFillStatus(capacityPercent: number): LocationFillStatus {
+  if (capacityPercent > 100) return LocationFillStatusValues.OVER_CAPACITY;
+  if (capacityPercent >= 80) return LocationFillStatusValues.NEARLY_FULL;
+  return LocationFillStatusValues.OK;
+}
+
+export interface LocationData extends LocationStorageTypeFields {
   id: string;
   organizationId: string;
   siteId: string;
@@ -61,7 +106,7 @@ export interface LocationData {
   updatedAt: string;
 }
 
-export interface LocationTreeNode {
+export interface LocationTreeNode extends LocationStorageTypeFields {
   id: string;
   name: string;
   locationRole: LocationRole;
@@ -107,4 +152,7 @@ export type UpdateLocationData = Partial<
     LocationFormData,
     'name' | 'code' | 'parentId' | 'sortOrder' | 'locationRole' | 'isActive' | 'area' | 'managerId'
   >
->;
+> & {
+  storageTypeId?: string | null;
+  inheritStorageType?: boolean;
+};

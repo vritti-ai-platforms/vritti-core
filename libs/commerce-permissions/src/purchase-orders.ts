@@ -6,8 +6,6 @@ export const LE_PURCHASE_ORDERS = {
   delete: 'le.purchase-orders.delete',
   invoices: {
     view: 'le.purchase-orders.invoices.view',
-    add: 'le.purchase-orders.invoices.add',
-    edit: 'le.purchase-orders.invoices.edit',
   },
 } as const;
 
@@ -19,7 +17,5 @@ export const SITE_PURCHASE_ORDERS = {
   delete: 'site.purchase-orders.delete',
   invoices: {
     view: 'site.purchase-orders.invoices.view',
-    add: 'site.purchase-orders.invoices.add',
-    edit: 'site.purchase-orders.invoices.edit',
   },
 } as const;

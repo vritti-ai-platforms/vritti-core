@@ -3,7 +3,7 @@ import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc } from '@vritti/api-sdk/drizzle-orm';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { type SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { taxGroups } from '@/db/schema';
 import { TaxGroupDto } from '../dto/entity/tax-group.dto';
 import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
@@ -50,16 +50,12 @@ export class TaxGroupsDomainService {
   // Returns tax-group options for select dropdowns, only one country's when `country` is given
   findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
+      ...selectPageOptions(query),
       value: query.valueKey || 'id',
       label: query.labelKey || 'name',
       description: query.descriptionKey || 'code',
       additionalKeys: query.additionalKeys,
       groupIdKey: query.groupIdKey,
-      search: query.search,
-      limit: query.limit,
-      offset: query.offset,
-      values: query.values,
-      excludeIds: query.excludeIds,
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
       where: options?.country ? { countryCode: options.country } : undefined,

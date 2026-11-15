@@ -1,38 +1,44 @@
-import { LeAddSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/le-add-supplier-invoice-line.dto';
-import { LeUpdateSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/le-update-supplier-invoice-line.dto';
-import { SupplierInvoiceLinesDomainService } from '@domain/supplier-invoices/services/supplier-invoice-lines.service';
+import { AddSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/add-supplier-invoice-line.dto';
+import { UpdateSupplierInvoiceLineDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice-line.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SupplierInvoiceLinesService } from '@/modules/site/suppliers/invoices/lines/services/supplier-invoice-lines.service';
 
 @Controller()
 export class LeSupplierInvoiceLinesController {
   private readonly logger = new Logger(LeSupplierInvoiceLinesController.name);
 
-  constructor(private readonly service: SupplierInvoiceLinesDomainService) {}
+  constructor(private readonly service: SupplierInvoiceLinesService) {}
 
-  // Adds a billed line to an invoice
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
   @MessagePattern({ cmd: 'le.supplierInvoices.lines.create' })
-  create(@Payload() dto: LeAddSupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    const { leCurrencyCode, ...line } = dto;
-    this.logger.log(`le.supplierInvoices.lines.create — invoiceId: ${line.supplierInvoiceId}`);
-    return this.service.create(line, leCurrencyCode);
+  create(
+    @Payload() dto: AddSupplierInvoiceLineDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.lines.create — invoiceId: ${dto.supplierInvoiceId}, type: ${dto.lineType}`);
+    return this.service.create(dto, leCurrencyCode);
   }
 
   // Updates a line of an invoice
   @MessagePattern({ cmd: 'le.supplierInvoices.lines.update' })
-  update(@Payload() dto: LeUpdateSupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    const { leCurrencyCode, ...line } = dto;
-    this.logger.log(`le.supplierInvoices.lines.update — id: ${line.id}`);
-    return this.service.update(line, leCurrencyCode);
+  update(
+    @Payload() dto: UpdateSupplierInvoiceLineDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.lines.update — id: ${dto.id}`);
+    return this.service.update(dto, leCurrencyCode);
   }
 
   // Removes a line from an invoice
   @MessagePattern({ cmd: 'le.supplierInvoices.lines.delete' })
   delete(
-    @Payload() data: { supplierInvoiceId: string; id: string; leCurrencyCode: string },
+    @Payload() data: { supplierInvoiceId: string; id: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.lines.delete — id: ${data.id}`);
-    return this.service.delete(data.supplierInvoiceId, data.id, data.leCurrencyCode);
+    return this.service.delete(data.supplierInvoiceId, data.id, leCurrencyCode);
   }
 }

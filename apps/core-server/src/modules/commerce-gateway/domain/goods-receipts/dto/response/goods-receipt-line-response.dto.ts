@@ -14,7 +14,7 @@ export class GoodsReceiptLineResponseDto {
   @ApiProperty() quantity: number;
   @ApiProperty({ description: "Quantity in the inventory item's primary UOM" }) primaryUomQty: number;
   @ApiPropertyOptional({ nullable: true }) primaryUomSymbol: string | null;
-  @ApiPropertyOptional({ nullable: true, description: 'Set after publish' })
+  @ApiPropertyOptional({ nullable: true, description: 'Set after posting' })
   resolvedQuantId: string | null;
   @ApiProperty() isBalanced: boolean;
   @ApiProperty() lineItemsCount: number;

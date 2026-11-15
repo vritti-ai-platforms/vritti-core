@@ -48,6 +48,41 @@ export class InventoryItemResponseDto {
   @ApiPropertyOptional({ nullable: true })
   taxClassName: string | null;
 
+  @ApiProperty({
+    description: 'Weight of one primary unit, in grams (g); null when not maintained',
+    type: Number,
+    nullable: true,
+  })
+  weight: number | null;
+
+  @ApiProperty({
+    description: 'Volume of one primary unit, in millilitres (ml); null when not maintained',
+    type: Number,
+    nullable: true,
+  })
+  volume: number | null;
+
+  @ApiProperty({
+    description: 'Length of one primary unit, in millimetres (mm); null when not maintained',
+    type: Number,
+    nullable: true,
+  })
+  length: number | null;
+
+  @ApiProperty({
+    description: 'Width of one primary unit, in millimetres (mm); null when not maintained',
+    type: Number,
+    nullable: true,
+  })
+  width: number | null;
+
+  @ApiProperty({
+    description: 'Height of one primary unit, in millimetres (mm); null when not maintained',
+    type: Number,
+    nullable: true,
+  })
+  height: number | null;
+
   @ApiProperty({ description: 'Whether this item can be deleted' })
   canDelete: boolean;
 

@@ -1,8 +1,10 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { Separator } from '@vritti/quantum-ui/Separator';
-import { ChevronsUpDown, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WhatsappAccountSelector } from '@/utils/RemoteSelectors';
+import { SwitcherCrumb, SwitcherTrigger } from './SwitcherCrumb';
 
 interface WhatsappAccountSwitcherProps {
   // The raw detail crumb segment — WhatsApp accounts are keyed by UUID, so this is the account id
@@ -15,47 +17,42 @@ interface WhatsappAccountSwitcherProps {
 // Renders the WhatsApp account switcher dropdown in the top bar breadcrumb
 export const WhatsappAccountSwitcher = ({ segment, basePath }: WhatsappAccountSwitcherProps) => {
   const navigate = useNavigate();
+  const [label, setLabel] = useState(segment);
 
   return (
-    <WhatsappAccountSelector
-      value={segment}
-      // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
-      label={undefined}
-      searchPlaceholder="Find account..."
-      contentClassName="w-60"
-      anchor={({ selectedOption }) => (
-        <Button
-          startAdornment={<MessageCircle className="size-4 text-muted-foreground" />}
-          variant="ghost"
-          className="h-auto min-w-25 p-0 gap-1.5 text-sm font-normal hover:bg-transparent"
-        >
-          <span className="flex-1 text-left font-normal text-foreground">{selectedOption?.label ?? segment}</span>
-          <span className="flex items-center justify-center size-6 rounded-full border border-border hover:bg-accent transition-colors">
-            <ChevronsUpDown className="size-3.5 text-muted-foreground" />
-          </span>
-        </Button>
-      )}
-      footer={
-        <>
-          <Separator />
-          <div className="p-1">
-            <Button
-              variant="ghost"
-              className="w-full justify-start h-auto px-2 py-1.5 text-sm font-normal"
-              onClick={() => navigate(basePath)}
-            >
-              All WhatsApp Accounts
-            </Button>
-          </div>
-        </>
-      }
-      onOptionSelect={(option) => {
-        // Skip the on-mount initial-resolve fire (same account) — only navigate on a real switch
-        if (option && String(option.value) !== segment) {
+    <SwitcherCrumb icon={MessageCircle} label={label} to={`${basePath}/${segment}/overview`}>
+      <WhatsappAccountSelector
+        value={segment}
+        // The anchor replaces the trigger but not the surrounding Field, so a label would still render above it
+        label={undefined}
+        searchPlaceholder="Find account..."
+        contentClassName="w-60"
+        anchor={() => <SwitcherTrigger label="Switch WhatsApp account" />}
+        footer={
+          <>
+            <Separator />
+            <div className="p-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-auto px-2 py-1.5 text-sm font-normal"
+                onClick={() => navigate(basePath)}
+              >
+                All WhatsApp Accounts
+              </Button>
+            </div>
+          </>
+        }
+        onOptionSelect={(option) => {
+          if (!option) return;
+          // The on-mount initial-resolve fire is the current WhatsApp account: it names the crumb; any other is a real switch
+          if (String(option.value) === segment) {
+            setLabel(String(option.label));
+            return;
+          }
           // The tab resets rather than carrying over: each account has its own numbers and templates
           navigate(`${basePath}/${option.value}/overview`);
-        }
-      }}
-    />
+        }}
+      />
+    </SwitcherCrumb>
   );
 };

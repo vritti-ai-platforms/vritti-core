@@ -3,7 +3,7 @@ import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, asc, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type CurrencyCode, majorToMinor, minorToMajor } from '@vritti/api-sdk/money';
-import type { SelectOptionsQueryDto, SelectQueryResult } from '@vritti/api-sdk/select';
+import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type InventoryItemMrp, inventoryItemMrps, uom } from '@/db/schema';
 import { InventoryItemMrpDto } from '../dto/entity/inventory-item-mrp.dto';
 import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
@@ -39,14 +39,12 @@ export class InventoryItemMrpsDomainService {
     },
   ): Promise<SelectQueryResult> {
     const config = {
+      ...selectPageOptions(query),
+      search: undefined,
       value: query.valueKey || 'id',
       label: query.labelKey || 'amount',
       additionalKeys: ['currencyCode', 'isCurrent', 'uomId'],
       additionalExpressions: { uomSymbol: sql`${uom.symbol}` },
-      values: query.values,
-      excludeIds: query.excludeIds,
-      limit: query.limit,
-      offset: query.offset,
       orderByKey: query.orderByKey || 'amount',
       orderDirection: query.orderDirection || ('asc' as const),
     };
@@ -72,7 +70,7 @@ export class InventoryItemMrpsDomainService {
     };
   }
 
-  // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is published.
+  // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is posted.
   upsert(
     inventoryItemId: string,
     uomId: string,

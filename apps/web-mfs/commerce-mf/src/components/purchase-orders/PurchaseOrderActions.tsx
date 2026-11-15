@@ -16,13 +16,13 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { purchaseLockTip } from '@/components/purchases/purchaseDocuments';
 import {
   type ManualPurchaseOrderStatus,
   nextPurchaseOrderStatusAction,
   type PurchaseOrderDetail,
   type PurchaseOrderStatus,
   purchaseOrderStatusConfig,
-  RECEIVABLE_PURCHASE_ORDER_STATUSES,
 } from '@/schemas/purchase-orders';
 import type { PurchaseOrdersBinding } from './bindings';
 import { ChangeConversionRateDialog } from './forms/ChangeConversionRateDialog';
@@ -32,7 +32,7 @@ import { SendEmailDialog } from './forms/SendEmailDialog';
 import { UpdateNotesDialog } from './forms/UpdateNotesDialog';
 import { UpdateTaxDateDialog } from './forms/UpdateTaxDateDialog';
 
-const OPEN_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED', 'PARTIALLY_RECEIVED'];
+const OPEN_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED'];
 const CANCELLABLE_STATUSES: PurchaseOrderStatus[] = ['SENT', 'CONFIRMED'];
 const TAX_DATE_EDITABLE_STATUSES: PurchaseOrderStatus[] = ['DRAFT', 'SENT', 'CONFIRMED'];
 
@@ -56,14 +56,16 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
   const confirm = useConfirm();
   const leCurrencyCode = useWorkspaceCurrency();
   const updateStatusMutation = binding.useUpdateStatus();
-  const closeMutation = binding.useClose();
+  const completeDeliveryMutation = binding.useCompleteDelivery();
   const deleteMutation = binding.useDelete();
   const downloadPdfMutation = binding.useDownloadPdf({ onSuccess: openPdf });
 
   const { status, poNumber } = purchaseOrder;
   const nextAction = nextPurchaseOrderStatusAction[status];
   const isOpen = OPEN_STATUSES.includes(status);
-  const isPricingLocked = purchaseOrder.hasPublishedGoodsReceipt;
+  const isPricingLocked = purchaseOrder.hasPostedGoodsReceipt;
+  // A purchase's order keeps the supplier, currency and rates the purchase gave it
+  const purchaseLock = purchaseOrder.purchaseNumber ? purchaseLockTip(purchaseOrder.purchaseNumber) : undefined;
 
   // Confirms and applies a manual status step
   const handleStatusChange = async (nextStatus: ManualPurchaseOrderStatus, label: string) => {
@@ -86,15 +88,15 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
     if (confirmed) updateStatusMutation.mutate({ id: purchaseOrder.id, status: 'CANCELLED' });
   };
 
-  // Confirms and closes the order short of its ordered quantities
-  const handleClose = async () => {
+  // Confirms and marks the order delivery completed short of its ordered quantities
+  const handleCompleteDelivery = async () => {
     const confirmed = await confirm({
-      title: `Close "${poNumber}"?`,
+      title: `Mark "${poNumber}" delivery completed?`,
       description:
-        'No further goods receipts will be allowed. Quantities already received are kept; the remaining balance is abandoned.',
-      confirmLabel: 'Close PO',
+        'No further goods receipts will be allowed. Quantities already received are kept; what is still open on each line is cancelled, and only received goods remain to be invoiced.',
+      confirmLabel: 'Mark Delivery Completed',
     });
-    if (confirmed) closeMutation.mutate(purchaseOrder.id);
+    if (confirmed) completeDeliveryMutation.mutate(purchaseOrder.id);
   };
 
   // Confirms and deletes the draft, returning to the list
@@ -155,13 +157,38 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
       icon: Truck,
       permission: permissions.edit,
       hidden: status !== 'DRAFT',
-      dialog: hasLines
-        ? { title: 'Change Supplier', description: 'Remove all line items before changing the supplier.' }
+      dialog: purchaseLock
+        ? { title: 'Change Supplier', description: purchaseLock }
+        : hasLines
+          ? { title: 'Change Supplier', description: 'Remove all line items before changing the supplier.' }
+          : {
+              title: 'Change Supplier',
+              description: 'Select a new supplier for this purchase order.',
+              content: (close) => (
+                <ChangeSupplierDialog
+                  binding={binding}
+                  purchaseOrder={purchaseOrder}
+                  onSuccess={close}
+                  onCancel={close}
+                />
+              ),
+            },
+    },
+    {
+      type: 'dialog',
+      id: 'change-exchange-rate',
+      label: 'Change Exchange Rate',
+      icon: Wallet,
+      permission: permissions.edit,
+      hidden: !isOpen || purchaseOrder.currencyCode === leCurrencyCode,
+      disabled: isPricingLocked,
+      dialog: purchaseLock
+        ? { title: 'Change Exchange Rate', description: purchaseLock }
         : {
-            title: 'Change Supplier',
-            description: 'Select a new supplier for this purchase order.',
+            title: 'Change Exchange Rate',
+            description: `How much 1 ${purchaseOrder.currencyCode} is in ${leCurrencyCode}. Locks once a goods receipt is posted.`,
             content: (close) => (
-              <ChangeSupplierDialog
+              <ChangeExchangeRateDialog
                 binding={binding}
                 purchaseOrder={purchaseOrder}
                 onSuccess={close}
@@ -172,46 +199,27 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
     },
     {
       type: 'dialog',
-      id: 'change-exchange-rate',
-      label: 'Change Exchange Rate',
-      icon: Wallet,
-      permission: permissions.edit,
-      hidden: !isOpen || purchaseOrder.currencyCode === leCurrencyCode,
-      disabled: isPricingLocked,
-      dialog: {
-        title: 'Change Exchange Rate',
-        description: `How much 1 ${purchaseOrder.currencyCode} is in ${leCurrencyCode}. Locks once a goods receipt is published.`,
-        content: (close) => (
-          <ChangeExchangeRateDialog
-            binding={binding}
-            purchaseOrder={purchaseOrder}
-            onSuccess={close}
-            onCancel={close}
-          />
-        ),
-      },
-    },
-    {
-      type: 'dialog',
       id: 'change-conversion-rate',
       label: 'Change Conversion Rate',
       icon: Wallet,
       permission: permissions.edit,
       hidden: !isOpen || Object.keys(purchaseOrder.conversionRates).length === 0,
       disabled: isPricingLocked,
-      dialog: {
-        title: 'Change Conversion Rate',
-        description:
-          "Rate from one of the supplier's other currencies into the PO currency. Locks once a goods receipt is published.",
-        content: (close) => (
-          <ChangeConversionRateDialog
-            binding={binding}
-            purchaseOrder={purchaseOrder}
-            onSuccess={close}
-            onCancel={close}
-          />
-        ),
-      },
+      dialog: purchaseLock
+        ? { title: 'Change Conversion Rate', description: purchaseLock }
+        : {
+            title: 'Change Conversion Rate',
+            description:
+              "Rate from one of the supplier's other currencies into the PO currency. Locks once a goods receipt is posted.",
+            content: (close) => (
+              <ChangeConversionRateDialog
+                binding={binding}
+                purchaseOrder={purchaseOrder}
+                onSuccess={close}
+                onCancel={close}
+              />
+            ),
+          },
     },
     {
       type: 'dialog',
@@ -231,13 +239,13 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
     },
     {
       type: 'item',
-      id: 'close-po',
-      label: 'Close PO',
+      id: 'complete-delivery',
+      label: 'Mark Delivery Completed',
       icon: PackageX,
       permission: permissions.edit,
-      hidden: !RECEIVABLE_PURCHASE_ORDER_STATUSES.includes(status),
-      disabled: closeMutation.isPending,
-      onClick: handleClose,
+      hidden: status !== 'CONFIRMED',
+      disabled: completeDeliveryMutation.isPending,
+      onClick: handleCompleteDelivery,
     },
     {
       type: 'item',
@@ -247,6 +255,7 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
       variant: 'destructive',
       permission: permissions.edit,
       hidden: !CANCELLABLE_STATUSES.includes(status),
+      disabled: purchaseOrder.receiptStatus !== 'NOT_RECEIVED',
       onClick: handleCancelOrder,
     },
     {
@@ -257,7 +266,7 @@ export const PurchaseOrderActions: React.FC<PurchaseOrderActionsProps> = ({ bind
       variant: 'destructive',
       permission: permissions.delete,
       hidden: status !== 'DRAFT',
-      disabled: deleteMutation.isPending,
+      disabled: deleteMutation.isPending || !!purchaseLock,
       onClick: handleDelete,
     },
   ];

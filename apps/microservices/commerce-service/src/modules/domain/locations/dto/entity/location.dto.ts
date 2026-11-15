@@ -1,4 +1,10 @@
 import type { Location, LocationRole } from '@/db/schema';
+import type { LocationFillDto } from './location-fill.dto';
+
+export type LocationRow = Location & {
+  storageTypeName: string | null;
+  inheritedFromLocationName: string | null;
+};
 
 export class LocationDto {
   id: string;
@@ -13,13 +19,18 @@ export class LocationDto {
   area: string | null;
   managerId: string | null;
   locationRole: LocationRole;
+  storageTypeId: string | null;
+  storageTypeName: string | null;
+  isStorageTypeOverridden: boolean;
+  inheritedFromLocationName: string | null;
+  fill: LocationFillDto | null;
   isActive: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
-  // Maps a Location entity to a DTO
-  static from(entity: Location, canDelete = true): LocationDto {
+  // Maps a location row with its storage type name and inheritance source to a DTO; fill is attached by the caller
+  static from(entity: LocationRow, canDelete = true): LocationDto {
     const dto = new LocationDto();
     dto.id = entity.id;
     dto.organizationId = entity.organizationId;
@@ -38,6 +49,11 @@ export class LocationDto {
     dto.area = entity.area ?? null;
     dto.managerId = entity.managerId ?? null;
     dto.locationRole = entity.locationRole;
+    dto.storageTypeId = entity.storageTypeId ?? null;
+    dto.storageTypeName = entity.storageTypeName ?? null;
+    dto.isStorageTypeOverridden = entity.isStorageTypeOverridden;
+    dto.inheritedFromLocationName = entity.inheritedFromLocationName ?? null;
+    dto.fill = null;
     dto.isActive = entity.isActive;
     dto.canDelete = canDelete;
     dto.createdAt = entity.createdAt.toISOString();

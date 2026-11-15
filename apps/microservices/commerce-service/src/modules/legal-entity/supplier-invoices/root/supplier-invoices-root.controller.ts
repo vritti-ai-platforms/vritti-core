@@ -1,71 +1,94 @@
+import type { InvoiceableGoodsReceiptDto } from '@domain/supplier-invoices/dto/entity/invoiceable-goods-receipt.dto';
 import type {
   SupplierInvoiceDetailDto,
   SupplierInvoiceDto,
 } from '@domain/supplier-invoices/dto/entity/supplier-invoice.dto';
-import { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
-import { LeUpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/le-update-supplier-invoice.dto';
+import { LeCreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/le-create-supplier-invoice.dto';
+import { LeInvoiceableGoodsReceiptsQueryDto } from '@domain/supplier-invoices/dto/request/le-invoiceable-goods-receipts-query.dto';
+import { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
+import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SupplierInvoicesService } from '@/modules/site/suppliers/invoices/root/services/supplier-invoices.service';
 
 @Controller()
 export class LeSupplierInvoicesRootController {
   private readonly logger = new Logger(LeSupplierInvoicesRootController.name);
 
-  constructor(private readonly service: SupplierInvoicesDomainService) {}
+  constructor(
+    private readonly invoicesService: SupplierInvoicesDomainService,
+    private readonly service: SupplierInvoicesService,
+  ) {}
 
   // Returns the invoices of the legal entity's sites for the data table
   @MessagePattern({ cmd: 'le.supplierInvoices.table' })
   table(@Payload() state: TableState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     this.logger.log('le.supplierInvoices.table');
-    return this.service.findForTable(state);
+    return this.invoicesService.findForTable(state);
   }
 
-  // Returns an invoice with its lines, flags and linked receipts
+  // Returns an invoice with its lines and holds
   @MessagePattern({ cmd: 'le.supplierInvoices.findById' })
-  findById(@Payload() data: { id: string; leCurrencyCode: string }): Promise<SupplierInvoiceDetailDto> {
+  findById(
+    @Payload() data: { id: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SupplierInvoiceDetailDto> {
     this.logger.log(`le.supplierInvoices.findById — id: ${data.id}`);
-    return this.service.findById(data.id, data.leCurrencyCode);
+    return this.invoicesService.findById(data.id, leCurrencyCode);
   }
 
-  // Records a draft invoice billing a purchase order of one of the legal entity's sites
+  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker
+  @MessagePattern({ cmd: 'le.supplierInvoices.invoiceableGoodsReceipts' })
+  invoiceableGoodsReceipts(
+    @Payload() query: LeInvoiceableGoodsReceiptsQueryDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptDto[]> {
+    this.logger.log(
+      `le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${query.siteId}`,
+    );
+    return this.invoicesService.findInvoiceableGoodsReceipts(query, leCurrencyCode);
+  }
+
+  // Records a draft invoice of a supplier at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.supplierInvoices.create' })
   create(
-    @Payload() dto: CreateSupplierInvoiceDto,
+    @Payload() dto: LeCreateSupplierInvoiceDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<CreateResponseDto<SupplierInvoiceDto>> {
-    this.logger.log(
-      `le.supplierInvoices.create — purchaseOrderId: ${dto.purchaseOrderId}, number: ${dto.invoiceNumber}`,
-    );
-    return this.service.create(dto, headers.userId || null);
+    const { siteId, ...invoice } = dto;
+    this.logger.log(`le.supplierInvoices.create — supplierId: ${invoice.supplierId}, site: ${siteId}`);
+    return this.service.create(invoice, {
+      siteId,
+      leCurrencyCode: headers.leCurrencyCode,
+      createdBy: headers.userId || null,
+    });
   }
 
   // Updates an invoice's header
   @MessagePattern({ cmd: 'le.supplierInvoices.update' })
-  update(@Payload() dto: LeUpdateSupplierInvoiceDto): Promise<SuccessResponseDto> {
-    const { leCurrencyCode, ...invoice } = dto;
-    this.logger.log(`le.supplierInvoices.update — id: ${invoice.id}`);
-    return this.service.update(invoice, leCurrencyCode);
-  }
-
-  // Posts a draft invoice, setting the final cost of the stock it bills
-  @MessagePattern({ cmd: 'le.supplierInvoices.post' })
-  post(
-    @Payload() data: { id: string; leCurrencyCode: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
+  update(
+    @Payload() dto: UpdateSupplierInvoiceDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`le.supplierInvoices.post — id: ${data.id}`);
-    return this.service.post(data.id, data.leCurrencyCode, headers.userId || null);
+    this.logger.log(`le.supplierInvoices.update — id: ${dto.id}`);
+    return this.service.update(dto, leCurrencyCode);
   }
 
-  // Cancels an invoice, reversing its costing when it was posted
+  // Posts a draft invoice, setting the final cost of the stock it invoices
+  @MessagePattern({ cmd: 'le.supplierInvoices.post' })
+  post(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.post — id: ${data.id}`);
+    return this.service.post(data.id, headers.leCurrencyCode, headers.userId || null);
+  }
+
+  // Cancels an invoice, reversing its costing and invoiced quantities when it was posted
   @MessagePattern({ cmd: 'le.supplierInvoices.cancel' })
-  cancel(@Payload() data: { id: string; leCurrencyCode: string }): Promise<SuccessResponseDto> {
+  cancel(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.cancel — id: ${data.id}`);
-    return this.service.cancel(data.id, data.leCurrencyCode);
+    return this.service.cancel(data.id, headers.leCurrencyCode, headers.userId || null);
   }
 
   // Deletes a draft invoice

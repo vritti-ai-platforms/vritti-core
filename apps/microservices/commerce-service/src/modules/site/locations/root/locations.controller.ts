@@ -9,12 +9,16 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SiteLocationsService } from './services/locations-root.service';
 
 @Controller()
 export class LocationsController {
   private readonly logger = new Logger(LocationsController.name);
 
-  constructor(private readonly locationsService: LocationsDomainService) {}
+  constructor(
+    private readonly locationsService: LocationsDomainService,
+    private readonly rootService: SiteLocationsService,
+  ) {}
 
   // Returns total storage location count
   @MessagePattern({ cmd: 'site.locations.count' })
@@ -23,11 +27,11 @@ export class LocationsController {
     return this.locationsService.count();
   }
 
-  // Returns storage locations as a tree hierarchy for TreeView
+  // Returns storage locations as a tree hierarchy for TreeView, each node with its storage type and fill
   @MessagePattern({ cmd: 'site.locations.tree' })
   async tree(@Payload() data?: { search?: string }): Promise<LocationTreeDto[]> {
     this.logger.log('locations.tree');
-    return this.locationsService.findTree(data?.search);
+    return this.rootService.findTree(data?.search);
   }
 
   // Returns paginated child locations for a given parent ID
@@ -36,14 +40,14 @@ export class LocationsController {
     @Payload() data: { parentId: string } & TableState,
   ): Promise<{ result: LocationDto[]; count: number }> {
     this.logger.log(`locations.childrenTable — parentId: ${data.parentId}`);
-    return this.locationsService.findChildrenForTable(data.parentId, data);
+    return this.rootService.findChildrenForTable(data.parentId, data);
   }
 
   // Returns a single storage location by ID
   @MessagePattern({ cmd: 'site.locations.findById' })
   async findById(@Payload() data: { id: string }): Promise<LocationDto> {
     this.logger.log(`locations.findById — id: ${data.id}`);
-    return this.locationsService.findById(data.id);
+    return this.rootService.findById(data.id);
   }
 
   // Reorders siblings under a parent location
@@ -57,7 +61,7 @@ export class LocationsController {
   @MessagePattern({ cmd: 'site.locations.create' })
   async create(@Payload() dto: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
     this.logger.log(`locations.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.locationsService.create(dto);
+    return this.rootService.create(dto);
   }
 
   // Updates an storage location by ID
@@ -65,7 +69,7 @@ export class LocationsController {
   async update(@Payload() data: UpdateLocationPayloadDto): Promise<SuccessResponseDto> {
     const { id, ...updateData } = data;
     this.logger.log(`locations.update — id: ${id}`);
-    return this.locationsService.update(id, updateData);
+    return this.rootService.update(id, updateData);
   }
 
   // Deletes an storage location by ID

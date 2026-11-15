@@ -10,7 +10,6 @@ export { useDeleteInboundDelivery } from './useDeleteInboundDelivery';
 export { useInboundDeliveriesTable } from './useInboundDeliveriesTable';
 export { useInboundDelivery } from './useInboundDelivery';
 export { useInboundDeliveryLinesTable } from './useInboundDeliveryLinesTable';
-export { useReceiveInboundDelivery } from './useReceiveInboundDelivery';
 export { useRemoveInboundDeliveryLine } from './useRemoveInboundDeliveryLine';
 export { useUpdateInboundDelivery } from './useUpdateInboundDelivery';
 export { useUpdateInboundDeliveryLine } from './useUpdateInboundDeliveryLine';

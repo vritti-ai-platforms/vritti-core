@@ -1,9 +1,7 @@
 import type { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import type { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
 import type { AddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-lot.dto';
-import type { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
 import type { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
-import type { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import type { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import type { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
@@ -52,24 +50,6 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'site.goodsReceipts.createFromDelivery', dto);
   }
 
-  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
-  createFromPurchaseOrders(
-    dto: CreateGoodsReceiptFromPurchaseOrdersDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log(
-      `site.goodsReceipts.createFromPurchaseOrders — supplierId: ${dto.supplierId}, purchaseOrders: ${dto.purchaseOrderIds.length}`,
-    );
-    return this.nats.send('commerce', 'site.goodsReceipts.createFromPurchaseOrders', dto);
-  }
-
-  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
-  addPurchaseOrder(goodsReceiptId: string, dto: AddGoodsReceiptPurchaseOrderDto): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `site.goodsReceipts.addPurchaseOrder — goodsReceiptId: ${goodsReceiptId}, purchaseOrderId: ${dto.purchaseOrderId}`,
-    );
-    return this.nats.send('commerce', 'site.goodsReceipts.addPurchaseOrder', { goodsReceiptId, ...dto });
-  }
-
   // Returns the site's goods receipts for the data table with server-stored state
   async findForTable(userId: string): Promise<GoodsReceiptTableResponseDto> {
     this.logger.log('site.goodsReceipts.table');
@@ -98,7 +78,7 @@ export class GoodsReceiptsGatewayService {
     });
   }
 
-  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  // Changes a draft goods receipt's notes
   update(id: string, dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.goodsReceipts.update — id: ${id}`);
     return this.nats.send('commerce', 'site.goodsReceipts.update', { id, ...dto });
@@ -110,10 +90,10 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'site.goodsReceipts.tree', { goodsReceiptId });
   }
 
-  // Publishes a goods receipt, landing its stock at the site
-  publish(id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`site.goodsReceipts.publish — id: ${id}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.publish', { id });
+  // Posts a goods receipt, landing its stock at the site
+  post(id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`site.goodsReceipts.post — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.post', { id });
   }
 
   // Deletes a draft goods receipt
@@ -134,7 +114,7 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'site.goodsReceipts.itemsCost', { goodsReceiptId });
   }
 
-  // Returns the quants a published goods receipt item landed in
+  // Returns the quants a posted goods receipt item landed in
   findItemQuants(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemQuantsResponseDto> {
     this.logger.log(`site.goodsReceipts.itemQuants — goodsReceiptId: ${goodsReceiptId}, itemId: ${itemId}`);
     return this.nats.send('commerce', 'site.goodsReceipts.itemQuants', { goodsReceiptId, itemId });

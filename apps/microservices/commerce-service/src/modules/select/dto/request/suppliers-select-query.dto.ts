@@ -11,4 +11,9 @@ export class SuppliersSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   inventoryItemId?: string;
+
+  // Only the suppliers with an active enrollment at this site; the gateway has checked it is one of the legal entity's
+  @IsOptional()
+  @IsUUID('7')
+  enrolledAtSiteId?: string;
 }

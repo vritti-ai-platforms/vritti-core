@@ -9,11 +9,12 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Plus, Truck } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { SupplierEnrollmentBinding } from './bindings';
 import { EditEnrollmentDialog } from './forms/EditEnrollmentDialog';
 import { EnrollDialog } from './forms/EnrollDialog';
 import { OverviewTab } from './tabs/OverviewTab';
+import { PurchasingTab } from './tabs/purchasing/PurchasingTab';
 import { QuotationsTab } from './tabs/quotations/QuotationsTab';
 import { SiteItemsTab } from './tabs/site-items/SiteItemsTab';
 
@@ -21,10 +22,12 @@ interface SupplierEnrollmentDetailProps {
   binding: SupplierEnrollmentBinding;
 }
 
-// A supplier as one site sees it — enrolled or not: enrollment, the items the site buys, and removal from the site
+// A supplier as one site sees it — enrolled or not: enrollment, the items the site buys, removal from the site and, where
+// the binding sets them, how its purchases at the site run
 export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> = ({ binding }) => {
   const supplierRef = binding.useEnrollmentRef();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') ?? 'overview');
   const { data: supplier } = binding.useEnrollment(supplierRef);
   const navigate = useNavigate();
   const exitPath = binding.useExitPath();
@@ -34,17 +37,16 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
   const deleteMutation = binding.useDeleteEnrollment({ onSuccess: () => navigate(exitPath) });
   const setActiveMutation = binding.useSetEnrollmentActive();
 
-  const siteLabel = supplier.siteName ?? 'this site';
   const enrolled = supplier.enrollmentStatus === 'ENROLLED';
   const handleUnenroll = useCallback(async () => {
     const confirmed = await confirm({
-      title: `Unenroll "${supplier.partyName}" from ${siteLabel}?`,
+      title: `Unenroll "${supplier.partyName}" from ${supplier.siteName}?`,
       description: 'The site will no longer be able to purchase from this supplier. Its price history is kept.',
       confirmLabel: 'Unenroll',
       variant: 'destructive',
     });
     if (confirmed) deleteMutation.mutate(supplierRef);
-  }, [supplier, siteLabel, supplierRef, confirm, deleteMutation]);
+  }, [supplier, supplierRef, confirm, deleteMutation]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -64,14 +66,14 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
                 }
                 isLoading={setActiveMutation.isPending}
                 onCheckedChange={(isActive) => setActiveMutation.mutate({ ...supplierRef, isActive })}
-                ariaLabel={`Mark ${supplier.partyName} active at ${siteLabel}`}
+                ariaLabel={`Mark ${supplier.partyName} active at ${supplier.siteName}`}
               />
             </div>
           ) : (
             <Badge variant="outline">Not Enrolled</Badge>
           )
         }
-        description={supplier.siteName ? `${supplier.supplierCode} · ${supplier.siteName}` : supplier.supplierCode}
+        description={`${supplier.supplierCode} · ${supplier.siteName}`}
         actions={
           enrolled ? (
             <Button
@@ -128,6 +130,24 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
               />
             ),
           },
+          ...(binding.purchasing && enrolled
+            ? [
+                {
+                  value: 'purchasing',
+                  label: 'Purchasing',
+                  permission: binding.permissions.view,
+                  content: (
+                    <PurchasingTab
+                      binding={binding.purchasing}
+                      enrollmentKey={supplierRef}
+                      editPermission={binding.permissions.editEnroll}
+                      supplierName={supplier.partyName}
+                      siteLabel={supplier.siteName}
+                    />
+                  ),
+                },
+              ]
+            : []),
           ...(binding.invoices
             ? [
                 {
@@ -171,7 +191,7 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
 
           <DangerZone
             title="Unenroll from site"
-            description={`${siteLabel[0].toUpperCase()}${siteLabel.slice(1)} will no longer be able to purchase from this supplier.`}
+            description={`${supplier.siteName} will no longer be able to purchase from this supplier.`}
             buttonText="Unenroll Supplier"
             permission={binding.permissions.unenroll}
             onClick={handleUnenroll}

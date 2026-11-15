@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, ne, type SQL, sql, sum } from '@vritti/api-sdk/drizzle-orm';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type PaymentTerm, paymentTermRules, paymentTerms, supplierEnrollments, suppliers } from '@/db/schema';
 
 export type PaymentTermDetail = PaymentTerm & {
@@ -17,55 +16,27 @@ export class PaymentTermsDomainRepository extends PrimaryBaseRepository<typeof p
     super(database, paymentTerms);
   }
 
-  async findByIdOrThrow(id: string): Promise<PaymentTerm> {
-    const entity = await this.findById(id);
-    if (!entity) throw new NotFoundException('Payment term not found.');
-    return entity;
+  // Loads a payment term with its rule count, rule total and how many suppliers and enrollments use it
+  findDetail(id: string): Promise<PaymentTermDetail | undefined> {
+    return this.findById<PaymentTermDetail>(id, { select: this.selection() });
   }
 
-  async findDetailOrThrow(id: string): Promise<PaymentTermDetail> {
-    const entity = await this.findById<PaymentTermDetail>(id, { select: this.selection() });
-    if (!entity) throw new NotFoundException('Payment term not found.');
-    return entity;
+  // Loads a payment term only while it is a draft
+  findDraft(id: string): Promise<PaymentTerm | undefined> {
+    return this.findById(id, { where: eq(paymentTerms.isPublished, false) });
   }
 
-  // A published term is in use or may be picked at any moment; unpublish it to edit
-  async findDraftOrThrow(id: string): Promise<PaymentTerm> {
-    const draft = await this.findById(id, { where: eq(paymentTerms.isPublished, false) });
-    if (!draft) {
-      throw new BadRequestException({
-        label: 'Payment term is published',
-        detail: 'Unpublish the payment term before editing it.',
-      });
-    }
-    return draft;
-  }
-
-  // Names are unique per org regardless of case — they are what pickers show
-  async assertNameFree(name: string, excludeId?: string): Promise<void> {
-    const taken = await this.exists(
+  // Whether another payment term of the org already has the name, compared case-insensitively
+  isNameTaken(name: string, excludeId?: string): Promise<boolean> {
+    return this.exists(
       and(
         sql`lower(${paymentTerms.name}) = lower(${name})`,
         excludeId ? ne(paymentTerms.id, excludeId) : undefined,
       ) as SQL,
     );
-    if (!taken) return;
-    throw new ConflictException({
-      label: 'Name already used',
-      detail: `A payment term named "${name}" already exists.`,
-      errors: [{ field: 'name', message: 'Already used by another payment term' }],
-    });
   }
 
-  // Suppliers depend on a term they use as their default or on a site enrollment; the detail returns both counts
-  assertNotInUse(term: PaymentTermDetail, action: 'delete' | 'unpublish'): void {
-    if (term.supplierCount === 0 && term.enrollmentCount === 0) return;
-    throw new ConflictException({
-      label: 'Payment term in use',
-      detail: `Suppliers use this payment term. Move them to another payment term before you ${action} it.`,
-    });
-  }
-
+  // Selects a payment term with its rule count, rule total and the suppliers and enrollments that use it
   private selection() {
     const ownRules = eq(paymentTermRules.paymentTermId, paymentTerms.id);
     return {

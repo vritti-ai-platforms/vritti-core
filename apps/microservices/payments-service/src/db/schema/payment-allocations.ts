@@ -14,7 +14,7 @@ export const paymentAllocations = paymentsSchema.table(
   'payment_allocations',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
+    organizationId: organizationIdColumn(),
     intentId: uuid('intent_id')
       .notNull()
       .references(() => paymentIntents.id, { onDelete: 'cascade' }),

@@ -5,7 +5,6 @@ import {
   check,
   decimal,
   index,
-  pgPolicy,
   timestamp,
   uniqueIndex,
   uuid,
@@ -18,14 +17,14 @@ import { locations } from './locations';
 import { stockAdjustmentLots } from './stock-adjustment-lots';
 import { stockAdjustments } from './stock-adjustments';
 import { uom } from './uom';
-import { organizationIdColumn, orgIsolationPolicy } from './workspace-scope';
+import { organizationIdColumn, scopeFromOwnerPolicies, siteIdColumn } from './workspace-scope';
 
 export const stockAdjustmentLines = commerceSchema.table(
   'stock_adjustment_lines',
   {
     id: uuid('id').primaryKey().default(sql`uuidv7()`),
-    organizationId: organizationIdColumn,
-    siteId: uuid('site_id').notNull().default(sql.raw("cast(current_setting('app.site_id') as uuid)")),
+    organizationId: organizationIdColumn(),
+    siteId: siteIdColumn().notNull(),
     stockAdjustmentId: uuid('stock_adjustment_id')
       .notNull()
       .references(() => stockAdjustments.id, { onDelete: 'cascade' }),
@@ -63,23 +62,7 @@ export const stockAdjustmentLines = commerceSchema.table(
       sql`(${table.locationId} IS NOT NULL AND ${table.quantId} IS NULL)
        OR (${table.locationId} IS NULL AND ${table.quantId} IS NOT NULL)`,
     ),
-    orgIsolationPolicy(),
-    pgPolicy('site_read', {
-      for: 'select',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_write', {
-      for: 'insert',
-      withCheck: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_update', {
-      for: 'update',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
-    pgPolicy('site_delete', {
-      for: 'delete',
-      using: sql`site_id = (select current_setting('app.site_id', true)::uuid)`,
-    }),
+    ...scopeFromOwnerPolicies({ owner: stockAdjustments, fk: table.stockAdjustmentId, ownerIs: 'siteDocument' }),
   ],
 );
 

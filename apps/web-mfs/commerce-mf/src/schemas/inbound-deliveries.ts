@@ -1,19 +1,28 @@
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
+import type { PurchaseOrderReceiptStatus, PurchaseOrderStatus } from '@/schemas/purchase-orders';
 
-export type InboundDeliveryStatus =
-  | 'PLANNED'
-  | 'IN_TRANSIT'
-  | 'ARRIVED'
-  | 'PARTIALLY_RECEIVED'
-  | 'RECEIVED'
-  | 'CANCELLED';
+export const InboundDeliveryStatusValues = {
+  PLANNED: 'PLANNED',
+  IN_TRANSIT: 'IN_TRANSIT',
+  ARRIVED: 'ARRIVED',
+  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
+  RECEIVED: 'RECEIVED',
+  CANCELLED: 'CANCELLED',
+} as const;
+export type InboundDeliveryStatus = (typeof InboundDeliveryStatusValues)[keyof typeof InboundDeliveryStatusValues];
 
-export type InboundDeliverySource = 'ANNOUNCED' | 'RECEIPT';
+export const InboundDeliverySourceValues = {
+  ANNOUNCED: 'ANNOUNCED',
+  GOODS_RECEIPT: 'GOODS_RECEIPT',
+  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE',
+} as const;
+export type InboundDeliverySource = (typeof InboundDeliverySourceValues)[keyof typeof InboundDeliverySourceValues];
 
 export const inboundDeliverySourceConfig: Record<InboundDeliverySource, { label: string }> = {
   ANNOUNCED: { label: 'Announced' },
-  RECEIPT: { label: 'From Receipt' },
+  GOODS_RECEIPT: { label: 'From Goods Receipt' },
+  SUPPLIER_INVOICE: { label: 'From Supplier Invoice' },
 };
 
 export type ManualInboundDeliveryStatus = Extract<InboundDeliveryStatus, 'IN_TRANSIT' | 'ARRIVED' | 'CANCELLED'>;
@@ -44,10 +53,12 @@ export interface InboundDeliveryData {
   deliveryNumber: string;
   legalEntityId: string;
   siteId: string;
-  siteName?: string | null;
-  siteCode?: string | null;
+  siteName?: string;
+  siteCode?: string;
   supplierId: string;
   supplierName: string;
+  purchaseId: string | null;
+  purchaseNumber: string | null;
   status: InboundDeliveryStatus;
   source: InboundDeliverySource;
   expectedDeliveryDate: string;
@@ -60,8 +71,6 @@ export interface InboundDeliveryData {
   poNumbers: string[];
   goodsReceiptCount: number;
   draftGoodsReceiptId: string | null;
-  sourceGoodsReceiptId: string | null;
-  sourceGrNumber: string | null;
   isEditable: boolean;
   canCancel: boolean;
   canDelete: boolean;
@@ -76,7 +85,8 @@ export interface InboundDeliveryLineData {
   purchaseOrderItemId: string;
   purchaseOrderId: string;
   poNumber: string;
-  poStatus: string;
+  poStatus: PurchaseOrderStatus;
+  poReceiptStatus: PurchaseOrderReceiptStatus;
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
@@ -85,7 +95,9 @@ export interface InboundDeliveryLineData {
   orderedQty: number;
   poReceivedQty: number;
   quantity: number;
+  primaryUomQty: number;
   receivedOnDeliveryQty: number;
+  receivedOnDeliveryPrimaryQty: number;
   openQty: number;
   maxQuantity: number;
   createdAt: string;
@@ -138,28 +150,23 @@ export interface UpdateInboundDeliveryLinePayload extends InboundDeliveryLineRef
   quantity: number;
 }
 
-export interface ReceiveInboundDeliveryPayload {
-  id: string;
-  receivedDate: string;
-  notes?: string | null;
-}
-
 export interface DeliverablePurchaseOrderLine {
   purchaseOrderItemId: string;
   inventoryItemName: string;
   poNumber: string;
   uomSymbol: string;
   allowDecimal: boolean;
-  orderedQty: number;
-  receivedQty: number;
+  uomQty: number;
+  primaryUomQty: number;
   deliverableQty: number;
+  deliverablePrimaryQty: number;
 }
 
 const expectedDeliveryDateField = z
   .string({ error: 'Expected delivery date is required' })
   .min(1, 'Expected delivery date is required');
 
-export const supplierDeliveryNoteShape = {
+const supplierDeliveryNoteShape = {
   supplierDeliveryNoteNumber: z.string().max(100, 'At most 100 characters'),
   supplierDeliveryNoteDate: z.string().nullish(),
 };
@@ -173,11 +180,14 @@ const deliveryDetailsShape = {
 };
 
 // An announced delivery's note is issued before the goods arrive, so it cannot be dated after the expected day
-function noteDatedByExpectedDay(data: { expectedDeliveryDate: string; supplierDeliveryNoteDate?: string | null }) {
+export function noteDatedByExpectedDay(data: {
+  expectedDeliveryDate: string;
+  supplierDeliveryNoteDate?: string | null;
+}) {
   return !data.supplierDeliveryNoteDate || data.supplierDeliveryNoteDate <= data.expectedDeliveryDate;
 }
 
-const noteDateRefinement = {
+export const noteDateRefinement = {
   message: 'Cannot be after the expected delivery date',
   path: ['supplierDeliveryNoteDate'],
 };
@@ -196,13 +206,6 @@ export const updateInboundDeliverySchema = z
   .refine(noteDatedByExpectedDay, noteDateRefinement);
 
 export type UpdateInboundDeliveryFormData = z.infer<typeof updateInboundDeliverySchema>;
-
-export const receiveInboundDeliverySchema = z.object({
-  receivedDate: z.string({ error: 'Received date is required' }).min(1, 'Received date is required'),
-  notes: z.string(),
-});
-
-export type ReceiveInboundDeliveryFormData = z.infer<typeof receiveInboundDeliverySchema>;
 
 // `findLine` resolves a picked purchase order line, so each quantity is checked against what is still left to deliver
 // of it and against its unit

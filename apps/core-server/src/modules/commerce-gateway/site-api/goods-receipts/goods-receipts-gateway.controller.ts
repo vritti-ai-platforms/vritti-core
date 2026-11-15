@@ -1,9 +1,7 @@
 import { AddGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line.dto';
 import { AddGoodsReceiptLineItemDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-line-item.dto';
 import { AddGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-lot.dto';
-import { AddGoodsReceiptPurchaseOrderDto } from '@commerce/goods-receipts/dto/request/add-goods-receipt-purchase-order.dto';
 import { CreateGoodsReceiptFromDeliveryDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
-import { CreateGoodsReceiptFromPurchaseOrdersDto } from '@commerce/goods-receipts/dto/request/create-goods-receipt-from-purchase-orders.dto';
 import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
@@ -31,9 +29,7 @@ import {
   ApiAddLine,
   ApiAddLineItem,
   ApiAddLot,
-  ApiAddPurchaseOrder,
   ApiCreateFromDelivery,
-  ApiCreateFromPurchaseOrders,
   ApiDelete,
   ApiFindById,
   ApiFindForTable,
@@ -47,7 +43,7 @@ import {
   ApiLinesByLotTable,
   ApiLinesTable,
   ApiLots,
-  ApiPublish,
+  ApiPost,
   ApiRemoveItem,
   ApiRemoveLine,
   ApiRemoveLineItem,
@@ -82,30 +78,6 @@ export class GoodsReceiptsGatewayController {
     return this.service.createFromDelivery(dto);
   }
 
-  // Creates an arrived inbound delivery of a supplier's purchase orders and a draft goods receipt of it
-  @Post('from-purchase-orders')
-  @RequirePermission(SITE_GOODS_RECEIPTS.add)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiCreateFromPurchaseOrders()
-  createFromPurchaseOrders(
-    @Body() dto: CreateGoodsReceiptFromPurchaseOrdersDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log('POST /commerce-api/goods-receipts/from-purchase-orders');
-    return this.service.createFromPurchaseOrders(dto);
-  }
-
-  // Adds the open lines of another purchase order of the supplier to a draft goods receipt and its inbound delivery
-  @Post(':id/purchase-orders')
-  @RequirePermission(SITE_GOODS_RECEIPTS.edit)
-  @ApiAddPurchaseOrder()
-  addPurchaseOrder(
-    @Param('id') goodsReceiptId: string,
-    @Body() dto: AddGoodsReceiptPurchaseOrderDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/purchase-orders`);
-    return this.service.addPurchaseOrder(goodsReceiptId, dto);
-  }
-
   // Returns the site's goods receipts for the data table
   @Get('table')
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
@@ -124,7 +96,7 @@ export class GoodsReceiptsGatewayController {
     return this.service.findById(id);
   }
 
-  // Changes a draft goods receipt's notes and the supplier's delivery note on the inbound delivery it created
+  // Changes a draft goods receipt's notes
   @Patch(':id')
   @RequirePermission(SITE_GOODS_RECEIPTS.edit)
   @ApiUpdate()
@@ -142,13 +114,13 @@ export class GoodsReceiptsGatewayController {
     return this.service.findTree(id);
   }
 
-  // Publishes a goods receipt, landing its stock at the site
-  @Post(':id/publish')
-  @RequirePermission(SITE_GOODS_RECEIPTS.publish)
-  @ApiPublish()
-  publish(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${id}/publish`);
-    return this.service.publish(id);
+  // Posts a goods receipt, landing its stock at the site
+  @Post(':id/post')
+  @RequirePermission(SITE_GOODS_RECEIPTS.post)
+  @ApiPost()
+  post(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`POST /commerce-api/goods-receipts/${id}/post`);
+    return this.service.post(id);
   }
 
   // Deletes a draft goods receipt
@@ -187,7 +159,7 @@ export class GoodsReceiptsGatewayController {
     return this.service.findItemsCost(goodsReceiptId);
   }
 
-  // Returns the quants a published goods receipt item landed in
+  // Returns the quants a posted goods receipt item landed in
   @Get(':id/items/:itemId/quants')
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiItemQuants()

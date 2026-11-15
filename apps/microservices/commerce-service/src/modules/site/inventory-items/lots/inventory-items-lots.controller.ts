@@ -2,7 +2,7 @@ import type { InventoryItemLotDto } from '@domain/inventory-item-lots/dto/entity
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { RpcSiteCurrencyCode } from '@vritti/api-sdk/nats';
+import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import { InventoryItemsLotsService } from './services/inventory-items-lots.service';
 
 @Controller()
@@ -15,9 +15,9 @@ export class InventoryItemsLotsController {
   @MessagePattern({ cmd: 'site.inventoryItems.lotsTable' })
   async lotsTable(
     @Payload() data: { inventoryItemId: string } & TableState,
-    @RpcSiteCurrencyCode() siteCurrencyCode: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
   ): Promise<{ result: InventoryItemLotDto[]; count: number }> {
     this.logger.log(`inventoryItems.lotsTable — inventoryItemId: ${data.inventoryItemId}`);
-    return this.itemsLotsService.findForTable(data.inventoryItemId, data, siteCurrencyCode);
+    return this.itemsLotsService.findForTable(data.inventoryItemId, data, leCurrencyCode);
   }
 }
