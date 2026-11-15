@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Trim } from '@vritti/api-sdk/decorators';
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { PartyFunctionAssignmentDto } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 import { PartyCommunicationAppDto } from './party-communication-app.dto';
 
 export class UpdatePersonCommunicationDto {
@@ -32,4 +33,14 @@ export class UpdatePersonCommunicationDto {
   @ValidateNested({ each: true })
   @Type(() => PartyCommunicationAppDto)
   apps?: PartyCommunicationAppDto[];
+
+  @ApiPropertyOptional({
+    type: [PartyFunctionAssignmentDto],
+    description: 'Full set of functions this value handles (ordering only)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentDto)
+  functions?: PartyFunctionAssignmentDto[];
 }

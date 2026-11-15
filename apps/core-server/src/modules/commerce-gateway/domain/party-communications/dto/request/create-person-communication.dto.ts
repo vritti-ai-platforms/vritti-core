@@ -11,6 +11,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
+import { PartyFunctionAssignmentDto } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 import {
   PARTY_COMMUNICATION_CHANNELS,
   PartyCommunicationAppDto,
@@ -48,4 +49,14 @@ export class CreatePersonCommunicationDto {
   @ValidateNested({ each: true })
   @Type(() => PartyCommunicationAppDto)
   apps?: PartyCommunicationAppDto[];
+
+  @ApiPropertyOptional({
+    type: [PartyFunctionAssignmentDto],
+    description: 'Functions this value handles (ordering only)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyFunctionAssignmentDto)
+  functions?: PartyFunctionAssignmentDto[];
 }

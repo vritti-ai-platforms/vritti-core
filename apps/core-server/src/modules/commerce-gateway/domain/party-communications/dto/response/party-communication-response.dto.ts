@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PARTY_FUNCTION_TYPES } from '@/modules/commerce-gateway/_shared/dto/party-function-assignment.dto';
 import {
   PARTY_COMMUNICATION_CHANNELS,
   PartyCommunicationAppDto,
@@ -26,6 +27,9 @@ export class PartyCommunicationResponseDto {
 
   @ApiProperty({ type: [PartyCommunicationAppDto], description: 'Messaging apps reachable on this number' })
   apps: PartyCommunicationAppDto[];
+
+  @ApiProperty({ enum: [PARTY_FUNCTION_TYPES.ORDERING], isArray: true, description: 'Functions this value handles' })
+  functions: (typeof PARTY_FUNCTION_TYPES.ORDERING)[];
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
