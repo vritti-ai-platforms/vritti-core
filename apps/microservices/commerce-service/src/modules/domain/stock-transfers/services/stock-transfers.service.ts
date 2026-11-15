@@ -19,6 +19,34 @@ export class StockTransfersDomainService {
 
   constructor(private readonly repository: StockTransfersDomainRepository) {}
 
+  // Creates a new stock transfer request
+  async create(data: CreateStockTransferDto): Promise<StockTransferDto> {
+    const entity = await this.repository.create({
+      inventoryItemId: data.inventoryItemId,
+      fromSiteId: data.fromSiteId,
+      toSiteId: data.toSiteId,
+      quantity: data.quantity,
+      requestedBy: data.requestedBy ?? null,
+      notes: data.notes ?? null,
+    });
+
+    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromSiteId}, to: ${data.toSiteId})`);
+    return StockTransferDto.from(entity);
+  }
+
+  // Persists the status change. Call after batch operations have been applied by the app-layer.
+  async applyStatus(
+    id: string,
+    data: Omit<UpdateStockTransferStatusDto, 'id'>,
+  ): Promise<{ success: boolean; message: string }> {
+    await this.repository.update(id, {
+      status: data.status as StockTransferStatus,
+      ...(data.receivedBy && { receivedBy: data.receivedBy }),
+    });
+    this.logger.log(`Updated stock transfer ${id} status: -> ${data.status}`);
+    return { success: true, message: `Transfer status updated to ${data.status}.` };
+  }
+
   // Returns paginated stock transfers for the data table
   async findForTable(state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, StockTransfersDomainService.FIELD_MAP);
@@ -35,21 +63,6 @@ export class StockTransfersDomainService {
     });
 
     return { result: rows.map((row) => StockTransferRowDto.fromRow(row)), count };
-  }
-
-  // Creates a new stock transfer request
-  async create(data: CreateStockTransferDto): Promise<StockTransferDto> {
-    const entity = await this.repository.create({
-      inventoryItemId: data.inventoryItemId,
-      fromSiteId: data.fromSiteId,
-      toSiteId: data.toSiteId,
-      quantity: data.quantity,
-      requestedBy: data.requestedBy ?? null,
-      notes: data.notes ?? null,
-    });
-
-    this.logger.log(`Created stock transfer: ${entity.id} (from: ${data.fromSiteId}, to: ${data.toSiteId})`);
-    return StockTransferDto.from(entity);
   }
 
   // Validates a status transition and returns the transfer entity.
@@ -73,18 +86,5 @@ export class StockTransfersDomainService {
     }
 
     return { transfer: StockTransferDto.from(entity), currentStatus, newStatus };
-  }
-
-  // Persists the status change. Call after batch operations have been applied by the app-layer.
-  async applyStatus(
-    id: string,
-    data: Omit<UpdateStockTransferStatusDto, 'id'>,
-  ): Promise<{ success: boolean; message: string }> {
-    await this.repository.update(id, {
-      status: data.status as StockTransferStatus,
-      ...(data.receivedBy && { receivedBy: data.receivedBy }),
-    });
-    this.logger.log(`Updated stock transfer ${id} status: -> ${data.status}`);
-    return { success: true, message: `Transfer status updated to ${data.status}.` };
   }
 }

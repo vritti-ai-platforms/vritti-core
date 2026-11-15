@@ -13,16 +13,6 @@ export class PeopleSocialProfilesController {
 
   constructor(private readonly service: PartySocialProfilesDomainService) {}
 
-  // Returns the paginated social profiles of a person
-  @MessagePattern({ cmd: 'org.people.socialProfiles.table' })
-  table(
-    @Payload() data: { personId: string } & TableState,
-  ): Promise<{ result: PartySocialProfileDto[]; count: number }> {
-    const { personId, ...state } = data;
-    this.logger.log(`people.socialProfiles.table — personId: ${personId}`);
-    return this.service.findForTable(personId, state);
-  }
-
   // Creates a social profile for a person
   @MessagePattern({ cmd: 'org.people.socialProfiles.create' })
   create(@Payload() dto: CreatePersonSocialProfileDto): Promise<CreateResponseDto<PartySocialProfileDto>> {
@@ -37,6 +27,16 @@ export class PeopleSocialProfilesController {
     const { id, ...payload } = dto;
     this.logger.log(`people.socialProfiles.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  // Returns the paginated social profiles of a person
+  @MessagePattern({ cmd: 'org.people.socialProfiles.table' })
+  table(
+    @Payload() data: { personId: string } & TableState,
+  ): Promise<{ result: PartySocialProfileDto[]; count: number }> {
+    const { personId, ...state } = data;
+    this.logger.log(`people.socialProfiles.table — personId: ${personId}`);
+    return this.service.findForTable(personId, state);
   }
 
   // Deletes a social profile by ID

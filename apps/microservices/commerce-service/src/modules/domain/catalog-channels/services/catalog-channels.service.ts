@@ -42,6 +42,63 @@ export class CatalogChannelsDomainService {
 
   constructor(private readonly repository: CatalogChannelsDomainRepository) {}
 
+  // Makes a catalog available through an app, or through every unnamed caller when appId is absent
+  upsertApp(data: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.upsertChannel({
+      type: CatalogChannelTypeValues.APP,
+      catalogId: data.catalogId,
+      appId: data.appId ?? null,
+      terminalId: null,
+    });
+  }
+
+  // Makes a catalog available at one terminal, or at every terminal in reach when terminalId is absent
+  upsertPos(data: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.upsertChannel({
+      type: CatalogChannelTypeValues.POS,
+      catalogId: data.catalogId,
+      appId: null,
+      terminalId: data.terminalId ?? null,
+    });
+  }
+
+  // Makes a catalog available to wholesale buyers — through one wholesale site, or every unnamed caller
+  upsertB2b(data: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
+    return this.upsertChannel({
+      type: CatalogChannelTypeValues.B2B,
+      catalogId: data.catalogId,
+      appId: data.appId ?? null,
+      terminalId: null,
+    });
+  }
+
+  // Excludes or re-includes one item on one channel, either outright or in one currency only
+  async setItemVisibility(
+    channelId: string,
+    listingId: string,
+    availableHere: boolean,
+    currencyCode?: string | null,
+  ): Promise<SuccessResponseDto> {
+    const channel = await this.requireChannel(channelId, { owned: true });
+    const listing = await this.repository.findListingInCatalog(listingId, channel.catalogId);
+    if (!listing) throw new NotFoundException('That item is not in this channel’s catalog.');
+
+    const currency = currencyCode ?? null;
+    if (availableHere) {
+      await this.repository.removeExclusion(listingId, channelId, currency);
+    } else {
+      await this.repository.addExclusion(listingId, channelId, currency);
+    }
+
+    const where = currency ? ` in ${currency}` : '';
+    return {
+      success: true,
+      message: availableHere
+        ? `"${listing.code}" is now available on this channel${where}.`
+        : `"${listing.code}" is now excluded from this channel${where}.`,
+    };
+  }
+
   // Returns paginated items of one channel, each flagged with whether that channel makes it available
   async findItemsForTable(channelId: string, state: TableState): Promise<{ result: ChannelItemDto[]; count: number }> {
     const channel = await this.requireChannel(channelId);
@@ -103,71 +160,6 @@ export class CatalogChannelsDomainService {
           .value(),
       )
       .value();
-  }
-
-  // Makes a catalog available through an app, or through every unnamed caller when appId is absent
-  upsertApp(data: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
-    return this.upsertChannel({
-      type: CatalogChannelTypeValues.APP,
-      catalogId: data.catalogId,
-      appId: data.appId ?? null,
-      terminalId: null,
-    });
-  }
-
-  // Makes a catalog available at one terminal, or at every terminal in reach when terminalId is absent
-  upsertPos(data: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
-    return this.upsertChannel({
-      type: CatalogChannelTypeValues.POS,
-      catalogId: data.catalogId,
-      appId: null,
-      terminalId: data.terminalId ?? null,
-    });
-  }
-
-  // Makes a catalog available to wholesale buyers — through one wholesale site, or every unnamed caller
-  upsertB2b(data: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelDto>> {
-    return this.upsertChannel({
-      type: CatalogChannelTypeValues.B2B,
-      catalogId: data.catalogId,
-      appId: data.appId ?? null,
-      terminalId: null,
-    });
-  }
-
-  // Removes a channel, so its callers fall back to the wildcard or to a wider scope
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const channel = await this.requireChannel(id, { owned: true });
-    await this.repository.delete(id);
-    this.logger.log(`Deleted ${channel.type} channel ${id}`);
-    return { success: true, message: `${channel.type} channel removed from "${channel.catalogName}".` };
-  }
-
-  // Excludes or re-includes one item on one channel, either outright or in one currency only
-  async setItemVisibility(
-    channelId: string,
-    listingId: string,
-    availableHere: boolean,
-    currencyCode?: string | null,
-  ): Promise<SuccessResponseDto> {
-    const channel = await this.requireChannel(channelId, { owned: true });
-    const listing = await this.repository.findListingInCatalog(listingId, channel.catalogId);
-    if (!listing) throw new NotFoundException('That item is not in this channel’s catalog.');
-
-    const currency = currencyCode ?? null;
-    if (availableHere) {
-      await this.repository.removeExclusion(listingId, channelId, currency);
-    } else {
-      await this.repository.addExclusion(listingId, channelId, currency);
-    }
-
-    const where = currency ? ` in ${currency}` : '';
-    return {
-      success: true,
-      message: availableHere
-        ? `"${listing.code}" is now available on this channel${where}.`
-        : `"${listing.code}" is now excluded from this channel${where}.`,
-    };
   }
 
   // What this storefront can switch between: the currencies its resolved catalog carries.
@@ -245,6 +237,14 @@ export class CatalogChannelsDomainService {
       );
     }
     return groups;
+  }
+
+  // Removes a channel, so its callers fall back to the wildcard or to a wider scope
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const channel = await this.requireChannel(id, { owned: true });
+    await this.repository.delete(id);
+    this.logger.log(`Deleted ${channel.type} channel ${id}`);
+    return { success: true, message: `${channel.type} channel removed from "${channel.catalogName}".` };
   }
 
   // Each group is counted with every OTHER group's selections applied, but never its own.

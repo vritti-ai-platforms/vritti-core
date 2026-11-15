@@ -86,6 +86,155 @@ export class PeopleGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new person
+  create(dto: CreatePersonDto): Promise<CreateResponseDto<PersonResponseDto>> {
+    this.logger.log(`org.people.create — firstName: ${dto.firstName}`);
+    return this.nats.send('commerce', 'org.people.create', dto);
+  }
+
+  // Adds an identifier to a person
+  addIdentifier(personId: string, dto: AddPersonIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
+    this.logger.log(`org.people.identifiers.add — personId: ${personId}, idType: ${dto.idType}`);
+    return this.nats.send('commerce', 'org.people.identifiers.add', { personId, ...dto });
+  }
+
+  // Adds an address to a person
+  addAddress(personId: string, dto: AddPersonAddressDto): Promise<CreateResponseDto<PartyAddressResponseDto>> {
+    this.logger.log(`org.people.addresses.add — personId: ${personId}`);
+    return this.nats.send('commerce', 'org.people.addresses.add', { personId, ...dto });
+  }
+
+  // Adds one. Scoped by construction — the party is what it is created under
+  addPartyAddress(
+    partyId: string,
+    dto: Omit<AddPersonAddressDto, 'personId'>,
+  ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
+    this.logger.log(`org.people.addresses.add — party: ${partyId}`);
+    return this.nats.send('commerce', 'org.people.addresses.add', { personId: partyId, ...dto });
+  }
+
+  // Creates a tax registration for a person
+  createRegistration(
+    personId: string,
+    dto: CreatePersonRegistrationDto,
+  ): Promise<CreateResponseDto<PersonRegistrationResponseDto>> {
+    this.logger.log(`org.people.registrations.create — personId: ${personId}`);
+    return this.nats.send('commerce', 'org.people.registrations.create', { personId, ...dto });
+  }
+
+  // Creates a license for a person
+  createLicense(personId: string, dto: CreatePersonLicenseDto): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
+    this.logger.log(`org.people.licenses.create — personId: ${personId}, licenseType: ${dto.licenseType}`);
+    return this.nats.send('commerce', 'org.people.licenses.create', { personId, ...dto });
+  }
+
+  // Creates a bank account for a person
+  createBankAccount(
+    personId: string,
+    dto: CreatePersonBankAccountDto,
+  ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
+    this.logger.log(`org.people.bankAccounts.create — personId: ${personId}, accountName: ${dto.accountName}`);
+    return this.nats.send('commerce', 'org.people.bankAccounts.create', { personId, ...dto });
+  }
+
+  // Creates a communication for a person
+  createCommunication(
+    personId: string,
+    dto: CreatePersonCommunicationDto,
+  ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
+    this.logger.log(`org.people.communications.create — personId: ${personId}, channel: ${dto.channel}`);
+    return this.nats.send('commerce', 'org.people.communications.create', { personId, ...dto });
+  }
+
+  // Creates a social profile for a person
+  createSocialProfile(
+    personId: string,
+    dto: CreatePersonSocialProfileDto,
+  ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
+    this.logger.log(`org.people.socialProfiles.create — personId: ${personId}, platform: ${dto.platform}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.create', { personId, ...dto });
+  }
+
+  async addToShopperWishlist(input: {
+    appId: string;
+    partyId: string;
+    code: string;
+    currencyCode: string;
+  }): Promise<WishlistAddPayload> {
+    this.logger.log(`org.wishlist.add — party: ${input.partyId}, code: ${input.code}`);
+
+    const result = await this.nats.send<{ alreadyExists: boolean; wishlistItems: WishlistItemPayload[] }>(
+      'commerce',
+      'org.wishlist.add',
+      input,
+    );
+    return { alreadyExists: result.alreadyExists, wishlist: result.wishlistItems };
+  }
+
+  // Updates a person by ID
+  update(id: string, dto: UpdatePersonDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.people.update', { id, ...dto });
+  }
+
+  // Updates an address of a person by ID
+  updateAddress(addressId: string, dto: UpdatePersonAddressDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.addresses.update — id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
+  }
+
+  // Edits one of theirs
+  async updatePartyAddress(
+    partyId: string,
+    addressId: string,
+    dto: Omit<UpdatePersonAddressDto, 'id'>,
+  ): Promise<SuccessResponseDto> {
+    await this.assertOwned(partyId, addressId);
+    this.logger.log(`org.people.addresses.update — party: ${partyId}, id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
+  }
+
+  // Updates a person tax registration by ID
+  updateRegistration(registrationId: string, dto: UpdatePersonRegistrationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.registrations.update — id: ${registrationId}`);
+    return this.nats.send('commerce', 'org.people.registrations.update', { id: registrationId, ...dto });
+  }
+
+  // Updates a person license by ID
+  updateLicense(licenseId: string, dto: UpdatePersonLicenseDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.licenses.update — id: ${licenseId}`);
+    return this.nats.send('commerce', 'org.people.licenses.update', { id: licenseId, ...dto });
+  }
+
+  // Updates a person bank account by ID
+  updateBankAccount(accountId: string, dto: UpdatePersonBankAccountDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.bankAccounts.update — id: ${accountId}`);
+    return this.nats.send('commerce', 'org.people.bankAccounts.update', { id: accountId, ...dto });
+  }
+
+  // Updates a person communication by ID
+  updateCommunication(communicationId: string, dto: UpdatePersonCommunicationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.communications.update — id: ${communicationId}`);
+    return this.nats.send('commerce', 'org.people.communications.update', { id: communicationId, ...dto });
+  }
+
+  // Updates a person social profile by ID
+  updateSocialProfile(profileId: string, dto: UpdatePersonSocialProfileDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.socialProfiles.update — id: ${profileId}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.update', { id: profileId, ...dto });
+  }
+
+  setRegistrationActive(registrationId: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.registrations.setActive — id: ${registrationId}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.people.registrations.setActive', { id: registrationId, isActive });
+  }
+
+  // Finds a person by ID
+  findById(id: string): Promise<PersonResponseDto> {
+    this.logger.log(`org.people.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.people.findById', { id });
+  }
+
   // Returns paginated, filtered, and sorted people for the data table
   async findForTable(userId: string): Promise<PersonTableResponseDto> {
     this.logger.log('org.people.table');
@@ -95,6 +244,23 @@ export class PeopleGatewayService {
       'commerce',
       'org.people.table',
       state,
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns the companies a person is linked to for the data table
+  async findCompaniesForTable(personId: string, userId: string): Promise<PersonCompanyTableResponseDto> {
+    this.logger.log(`org.people.companies.table — personId: ${personId}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `commerce-org-person-${personId}-companies`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: PersonCompanyResponseDto[]; count: number }>(
+      'commerce',
+      'org.people.companies.table',
+      { personId, ...state },
     );
 
     return { result, count, state, activeViewId };
@@ -113,30 +279,6 @@ export class PeopleGatewayService {
   ): Promise<PersonResponseDto[]> {
     const ids = await this.findPartiesByCommunication(channel, value);
     return Promise.all(ids.map((id) => this.findById(id)));
-  }
-
-  // Creates a new person
-  create(dto: CreatePersonDto): Promise<CreateResponseDto<PersonResponseDto>> {
-    this.logger.log(`org.people.create — firstName: ${dto.firstName}`);
-    return this.nats.send('commerce', 'org.people.create', dto);
-  }
-
-  // Finds a person by ID
-  findById(id: string): Promise<PersonResponseDto> {
-    this.logger.log(`org.people.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.people.findById', { id });
-  }
-
-  // Updates a person by ID
-  update(id: string, dto: UpdatePersonDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.people.update', { id, ...dto });
-  }
-
-  // Deletes a person by ID
-  delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.delete — id: ${id}`);
-    return this.nats.send('commerce', 'org.people.delete', { id });
   }
 
   // A person's saved items. Read only — see the microservice controller for why
@@ -162,35 +304,6 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns the companies a person is linked to for the data table
-  async findCompaniesForTable(personId: string, userId: string): Promise<PersonCompanyTableResponseDto> {
-    this.logger.log(`org.people.companies.table — personId: ${personId}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `commerce-org-person-${personId}-companies`,
-    );
-
-    const { result, count } = await this.nats.send<{ result: PersonCompanyResponseDto[]; count: number }>(
-      'commerce',
-      'org.people.companies.table',
-      { personId, ...state },
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
-  // Adds an identifier to a person
-  addIdentifier(personId: string, dto: AddPersonIdentifierDto): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
-    this.logger.log(`org.people.identifiers.add — personId: ${personId}, idType: ${dto.idType}`);
-    return this.nats.send('commerce', 'org.people.identifiers.add', { personId, ...dto });
-  }
-
-  // Removes an identifier from a person
-  removeIdentifier(identifierId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.identifiers.remove — id: ${identifierId}`);
-    return this.nats.send('commerce', 'org.people.identifiers.remove', { id: identifierId });
-  }
-
   // Returns the addresses of a person for the data table
   async listAddresses(personId: string, userId: string): Promise<PartyAddressTableResponseDto> {
     this.logger.log(`org.people.addresses.table — personId: ${personId}`);
@@ -208,24 +321,6 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Adds an address to a person
-  addAddress(personId: string, dto: AddPersonAddressDto): Promise<CreateResponseDto<PartyAddressResponseDto>> {
-    this.logger.log(`org.people.addresses.add — personId: ${personId}`);
-    return this.nats.send('commerce', 'org.people.addresses.add', { personId, ...dto });
-  }
-
-  // Updates an address of a person by ID
-  updateAddress(addressId: string, dto: UpdatePersonAddressDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.addresses.update — id: ${addressId}`);
-    return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
-  }
-
-  // Removes an address from a person
-  removeAddress(addressId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.addresses.remove — id: ${addressId}`);
-    return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
-  }
-
   // ── The party's own address book, for a storefront acting for one signed-in party ── Every method takes `partyId`
   // from the caller's signature, and it is not optional on any of them.
 
@@ -233,41 +328,6 @@ export class PeopleGatewayService {
   listShopperAddresses(partyId: string): Promise<PartyAddressResponseDto[]> {
     this.logger.log(`org.people.addresses.list — party: ${partyId}`);
     return this.nats.send('commerce', 'org.people.addresses.list', { personId: partyId });
-  }
-
-  // Adds one. Scoped by construction — the party is what it is created under
-  addPartyAddress(
-    partyId: string,
-    dto: Omit<AddPersonAddressDto, 'personId'>,
-  ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
-    this.logger.log(`org.people.addresses.add — party: ${partyId}`);
-    return this.nats.send('commerce', 'org.people.addresses.add', { personId: partyId, ...dto });
-  }
-
-  // Edits one of theirs
-  async updatePartyAddress(
-    partyId: string,
-    addressId: string,
-    dto: Omit<UpdatePersonAddressDto, 'id'>,
-  ): Promise<SuccessResponseDto> {
-    await this.assertOwned(partyId, addressId);
-    this.logger.log(`org.people.addresses.update — party: ${partyId}, id: ${addressId}`);
-    return this.nats.send('commerce', 'org.people.addresses.update', { id: addressId, ...dto });
-  }
-
-  // Removes one of theirs
-  async removePartyAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
-    await this.assertOwned(partyId, addressId);
-    this.logger.log(`org.people.addresses.remove — party: ${partyId}, id: ${addressId}`);
-    return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
-  }
-
-  // Refuses an address that is not this party's
-  private async assertOwned(partyId: string, addressId: string): Promise<void> {
-    const addresses = await this.listShopperAddresses(partyId);
-    if (!addresses.some((address) => address.id === addressId)) {
-      throw new NotFoundException({ label: 'Address Not Found', detail: 'That address does not exist.' });
-    }
   }
 
   // Returns the tax registrations of a person for the data table
@@ -287,32 +347,6 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a tax registration for a person
-  createRegistration(
-    personId: string,
-    dto: CreatePersonRegistrationDto,
-  ): Promise<CreateResponseDto<PersonRegistrationResponseDto>> {
-    this.logger.log(`org.people.registrations.create — personId: ${personId}`);
-    return this.nats.send('commerce', 'org.people.registrations.create', { personId, ...dto });
-  }
-
-  // Updates a person tax registration by ID
-  updateRegistration(registrationId: string, dto: UpdatePersonRegistrationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.registrations.update — id: ${registrationId}`);
-    return this.nats.send('commerce', 'org.people.registrations.update', { id: registrationId, ...dto });
-  }
-
-  setRegistrationActive(registrationId: string, isActive: boolean): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.registrations.setActive — id: ${registrationId}, isActive: ${isActive}`);
-    return this.nats.send('commerce', 'org.people.registrations.setActive', { id: registrationId, isActive });
-  }
-
-  // Deletes a person tax registration by ID
-  deleteRegistration(registrationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.registrations.delete — id: ${registrationId}`);
-    return this.nats.send('commerce', 'org.people.registrations.delete', { id: registrationId });
-  }
-
   // Returns the licenses of a person for the data table
   async listLicenses(personId: string, userId: string): Promise<PartyLicenseTableResponseDto> {
     this.logger.log(`org.people.licenses.table — personId: ${personId}`);
@@ -328,24 +362,6 @@ export class PeopleGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a license for a person
-  createLicense(personId: string, dto: CreatePersonLicenseDto): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
-    this.logger.log(`org.people.licenses.create — personId: ${personId}, licenseType: ${dto.licenseType}`);
-    return this.nats.send('commerce', 'org.people.licenses.create', { personId, ...dto });
-  }
-
-  // Updates a person license by ID
-  updateLicense(licenseId: string, dto: UpdatePersonLicenseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.licenses.update — id: ${licenseId}`);
-    return this.nats.send('commerce', 'org.people.licenses.update', { id: licenseId, ...dto });
-  }
-
-  // Deletes a person license by ID
-  deleteLicense(licenseId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.licenses.delete — id: ${licenseId}`);
-    return this.nats.send('commerce', 'org.people.licenses.delete', { id: licenseId });
   }
 
   // Returns the bank accounts of a person for the data table
@@ -365,27 +381,6 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a bank account for a person
-  createBankAccount(
-    personId: string,
-    dto: CreatePersonBankAccountDto,
-  ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
-    this.logger.log(`org.people.bankAccounts.create — personId: ${personId}, accountName: ${dto.accountName}`);
-    return this.nats.send('commerce', 'org.people.bankAccounts.create', { personId, ...dto });
-  }
-
-  // Updates a person bank account by ID
-  updateBankAccount(accountId: string, dto: UpdatePersonBankAccountDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.bankAccounts.update — id: ${accountId}`);
-    return this.nats.send('commerce', 'org.people.bankAccounts.update', { id: accountId, ...dto });
-  }
-
-  // Deletes a person bank account by ID
-  deleteBankAccount(accountId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.bankAccounts.delete — id: ${accountId}`);
-    return this.nats.send('commerce', 'org.people.bankAccounts.delete', { id: accountId });
-  }
-
   // Returns paginated communications of a person for the data table
   async listCommunications(personId: string, userId: string): Promise<PartyCommunicationTableResponseDto> {
     this.logger.log(`org.people.communications.table — personId: ${personId}`);
@@ -401,27 +396,6 @@ export class PeopleGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a communication for a person
-  createCommunication(
-    personId: string,
-    dto: CreatePersonCommunicationDto,
-  ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
-    this.logger.log(`org.people.communications.create — personId: ${personId}, channel: ${dto.channel}`);
-    return this.nats.send('commerce', 'org.people.communications.create', { personId, ...dto });
-  }
-
-  // Updates a person communication by ID
-  updateCommunication(communicationId: string, dto: UpdatePersonCommunicationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.communications.update — id: ${communicationId}`);
-    return this.nats.send('commerce', 'org.people.communications.update', { id: communicationId, ...dto });
-  }
-
-  // Deletes a person communication by ID
-  deleteCommunication(communicationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.communications.delete — id: ${communicationId}`);
-    return this.nats.send('commerce', 'org.people.communications.delete', { id: communicationId });
   }
 
   // Returns paginated social profiles of a person for the data table
@@ -441,27 +415,6 @@ export class PeopleGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a social profile for a person
-  createSocialProfile(
-    personId: string,
-    dto: CreatePersonSocialProfileDto,
-  ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
-    this.logger.log(`org.people.socialProfiles.create — personId: ${personId}, platform: ${dto.platform}`);
-    return this.nats.send('commerce', 'org.people.socialProfiles.create', { personId, ...dto });
-  }
-
-  // Updates a person social profile by ID
-  updateSocialProfile(profileId: string, dto: UpdatePersonSocialProfileDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.socialProfiles.update — id: ${profileId}`);
-    return this.nats.send('commerce', 'org.people.socialProfiles.update', { id: profileId, ...dto });
-  }
-
-  // Deletes a person social profile by ID
-  deleteSocialProfile(profileId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.people.socialProfiles.delete — id: ${profileId}`);
-    return this.nats.send('commerce', 'org.people.socialProfiles.delete', { id: profileId });
-  }
-
   // ── The party's own wishlist, for a storefront acting for one signed-in party ──
 
   // Which products the party has saved — codes only, with no catalogue to resolve
@@ -476,20 +429,59 @@ export class PeopleGatewayService {
     return this.nats.send('commerce', 'org.wishlist.list', { appId, partyId, currencyCode });
   }
 
-  async addToShopperWishlist(input: {
-    appId: string;
-    partyId: string;
-    code: string;
-    currencyCode: string;
-  }): Promise<WishlistAddPayload> {
-    this.logger.log(`org.wishlist.add — party: ${input.partyId}, code: ${input.code}`);
+  // Deletes a person by ID
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.people.delete', { id });
+  }
 
-    const result = await this.nats.send<{ alreadyExists: boolean; wishlistItems: WishlistItemPayload[] }>(
-      'commerce',
-      'org.wishlist.add',
-      input,
-    );
-    return { alreadyExists: result.alreadyExists, wishlist: result.wishlistItems };
+  // Removes an identifier from a person
+  removeIdentifier(identifierId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.identifiers.remove — id: ${identifierId}`);
+    return this.nats.send('commerce', 'org.people.identifiers.remove', { id: identifierId });
+  }
+
+  // Removes an address from a person
+  removeAddress(addressId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.addresses.remove — id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
+  }
+
+  // Removes one of theirs
+  async removePartyAddress(partyId: string, addressId: string): Promise<SuccessResponseDto> {
+    await this.assertOwned(partyId, addressId);
+    this.logger.log(`org.people.addresses.remove — party: ${partyId}, id: ${addressId}`);
+    return this.nats.send('commerce', 'org.people.addresses.remove', { id: addressId });
+  }
+
+  // Deletes a person tax registration by ID
+  deleteRegistration(registrationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.registrations.delete — id: ${registrationId}`);
+    return this.nats.send('commerce', 'org.people.registrations.delete', { id: registrationId });
+  }
+
+  // Deletes a person license by ID
+  deleteLicense(licenseId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.licenses.delete — id: ${licenseId}`);
+    return this.nats.send('commerce', 'org.people.licenses.delete', { id: licenseId });
+  }
+
+  // Deletes a person bank account by ID
+  deleteBankAccount(accountId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.bankAccounts.delete — id: ${accountId}`);
+    return this.nats.send('commerce', 'org.people.bankAccounts.delete', { id: accountId });
+  }
+
+  // Deletes a person communication by ID
+  deleteCommunication(communicationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.communications.delete — id: ${communicationId}`);
+    return this.nats.send('commerce', 'org.people.communications.delete', { id: communicationId });
+  }
+
+  // Deletes a person social profile by ID
+  deleteSocialProfile(profileId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.people.socialProfiles.delete — id: ${profileId}`);
+    return this.nats.send('commerce', 'org.people.socialProfiles.delete', { id: profileId });
   }
 
   async removeFromShopperWishlist(input: {
@@ -500,5 +492,13 @@ export class PeopleGatewayService {
   }): Promise<WishlistItemPayload[]> {
     this.logger.log(`org.wishlist.remove — party: ${input.partyId}, code: ${input.code}`);
     return this.nats.send('commerce', 'org.wishlist.remove', input);
+  }
+
+  // Refuses an address that is not this party's
+  private async assertOwned(partyId: string, addressId: string): Promise<void> {
+    const addresses = await this.listShopperAddresses(partyId);
+    if (!addresses.some((address) => address.id === addressId)) {
+      throw new NotFoundException({ label: 'Address Not Found', detail: 'That address does not exist.' });
+    }
   }
 }

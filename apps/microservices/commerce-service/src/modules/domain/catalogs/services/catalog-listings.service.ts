@@ -40,49 +40,6 @@ export class CatalogListingsDomainService {
     private readonly currenciesRepository: CatalogCurrenciesDomainRepository,
   ) {}
 
-  // Returns one page of a catalog's listings, each with its prices.
-  async findForTable(
-    catalogId: string,
-    state: TableState,
-    currencyCode?: string,
-  ): Promise<{ result: CatalogListingDto[]; count: number }> {
-    await this.requireCatalog(catalogId);
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CatalogListingsDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CatalogListingsDomainService.SEARCH_FIELD_MAP);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...CatalogListingsDomainService.SEARCH_FIELD_MAP,
-      ...CatalogListingsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-    const { result: rows, count } = await this.repository.findForTable({
-      where: and(eq(catalogListings.catalogId, catalogId), filterWhere, searchWhere) as SQL,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
-      limit,
-      offset,
-    });
-    const ids = rows.map((row) => row.id);
-    const prices = await this.repository.findPrices(ids, currencyCode);
-    const exclusions = await this.repository.findExclusions(ids);
-    // Read once for the page — every listing in a catalog shares both, and the table needs the counts to
-    // say "2 of 2 Currencies" without the tab fetching either list itself
-    const [channelCount, currencyCount] = await Promise.all([
-      this.catalogsRepository.findChannels(catalogId).then((channels) => channels.length),
-      this.currenciesRepository.countForCatalog(catalogId),
-    ]);
-    return {
-      result: rows.map((row) =>
-        CatalogListingDto.from(
-          row,
-          prices.filter((price) => price.catalogListingId === row.id),
-          exclusions.filter((x) => x.catalogListingId === row.id).map((x) => x.catalogChannelId),
-          channelCount,
-          currencyCount,
-        ),
-      ),
-      count,
-    };
-  }
-
   // Lists a variant in a catalog, optionally keyed to one MRP slice, with an optional opening price
   async add(data: AddCatalogListingDto): Promise<CreateResponseDto<CatalogListingDto>> {
     const catalog = await this.requireCatalog(data.catalogId);
@@ -228,20 +185,6 @@ export class CatalogListingsDomainService {
     };
   }
 
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const item = await this.requireOwned(id);
-    await this.repository.deleteListing(id);
-    return { success: true, message: `"${item.code}" removed from this catalog.` };
-  }
-
-  // Removes every selected listing from one catalog, or none of them
-  async bulkRemove(data: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
-    const { catalog, listings } = await this.requireBatch(data.catalogId, data.ids);
-    this.requireOwnedBatch(listings);
-    const removed = await this.repository.deleteListings(listings.map((listing) => listing.id));
-    return { success: true, message: `${pluralize('listing', removed, true)} removed from "${catalog.name}".` };
-  }
-
   // Prices every selected listing the same, refused outright if any one of them is keyed to a lower MRP
   async bulkSetPrice(data: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
     const { catalog, listings } = await this.requireBatch(data.catalogId, data.ids);
@@ -304,6 +247,63 @@ export class CatalogListingsDomainService {
         ? `${pluralize('listing', ids.length, true)} in "${catalog.name}" now available on ${where}.`
         : `${pluralize('listing', ids.length, true)} in "${catalog.name}" now excluded from ${where}.`,
     };
+  }
+
+  // Returns one page of a catalog's listings, each with its prices.
+  async findForTable(
+    catalogId: string,
+    state: TableState,
+    currencyCode?: string,
+  ): Promise<{ result: CatalogListingDto[]; count: number }> {
+    await this.requireCatalog(catalogId);
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CatalogListingsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CatalogListingsDomainService.SEARCH_FIELD_MAP);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...CatalogListingsDomainService.SEARCH_FIELD_MAP,
+      ...CatalogListingsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+    const { result: rows, count } = await this.repository.findForTable({
+      where: and(eq(catalogListings.catalogId, catalogId), filterWhere, searchWhere) as SQL,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
+      limit,
+      offset,
+    });
+    const ids = rows.map((row) => row.id);
+    const prices = await this.repository.findPrices(ids, currencyCode);
+    const exclusions = await this.repository.findExclusions(ids);
+    // Read once for the page — every listing in a catalog shares both, and the table needs the counts to
+    // say "2 of 2 Currencies" without the tab fetching either list itself
+    const [channelCount, currencyCount] = await Promise.all([
+      this.catalogsRepository.findChannels(catalogId).then((channels) => channels.length),
+      this.currenciesRepository.countForCatalog(catalogId),
+    ]);
+    return {
+      result: rows.map((row) =>
+        CatalogListingDto.from(
+          row,
+          prices.filter((price) => price.catalogListingId === row.id),
+          exclusions.filter((x) => x.catalogListingId === row.id).map((x) => x.catalogChannelId),
+          channelCount,
+          currencyCount,
+        ),
+      ),
+      count,
+    };
+  }
+
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const item = await this.requireOwned(id);
+    await this.repository.deleteListing(id);
+    return { success: true, message: `"${item.code}" removed from this catalog.` };
+  }
+
+  // Removes every selected listing from one catalog, or none of them
+  async bulkRemove(data: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    const { catalog, listings } = await this.requireBatch(data.catalogId, data.ids);
+    this.requireOwnedBatch(listings);
+    const removed = await this.repository.deleteListings(listings.map((listing) => listing.id));
+    return { success: true, message: `${pluralize('listing', removed, true)} removed from "${catalog.name}".` };
   }
 
   // Loads a whole selection, refusing it unless every id still belongs to the catalog being acted on

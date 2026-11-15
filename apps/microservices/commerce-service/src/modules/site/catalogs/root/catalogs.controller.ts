@@ -20,6 +20,31 @@ export class SiteCatalogsController {
     readonly _listingsService: CatalogListingsDomainService,
   ) {}
 
+  @MessagePattern({ cmd: 'site.catalogs.create' })
+  create(@Payload() dto: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
+    this.logger.log(`catalogs.create — name: ${dto.name}`);
+    return this.service.create(dto);
+  }
+
+  @MessagePattern({ cmd: 'site.catalogs.currencies.add' })
+  addCurrency(@Payload() data: { catalogId: string; currencyCode: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.currencies.add — catalogId: ${data.catalogId}, currency: ${data.currencyCode}`);
+    return this.service.addCurrency(data.catalogId, data.currencyCode);
+  }
+
+  @MessagePattern({ cmd: 'site.catalogs.update' })
+  update(@Payload() dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`catalogs.update — id: ${id}`);
+    return this.service.update(id, data);
+  }
+
+  @MessagePattern({ cmd: 'site.catalogs.findById' })
+  findById(@Payload() data: { id: string }): Promise<CatalogDto> {
+    this.logger.log(`catalogs.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
   // Returns paginated catalogs for the data table
   @MessagePattern({ cmd: 'site.catalogs.table' })
   findForTable(@Payload() state: TableState): Promise<{ result: CatalogDto[]; count: number }> {
@@ -42,25 +67,6 @@ export class SiteCatalogsController {
     return this.service.findChannels(data.catalogId);
   }
 
-  @MessagePattern({ cmd: 'site.catalogs.findById' })
-  findById(@Payload() data: { id: string }): Promise<CatalogDto> {
-    this.logger.log(`catalogs.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  @MessagePattern({ cmd: 'site.catalogs.create' })
-  create(@Payload() dto: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
-    this.logger.log(`catalogs.create — name: ${dto.name}`);
-    return this.service.create(dto);
-  }
-
-  @MessagePattern({ cmd: 'site.catalogs.update' })
-  update(@Payload() dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`catalogs.update — id: ${id}`);
-    return this.service.update(id, data);
-  }
-
   // The currencies this catalog may be priced in, with how much of it each one covers
   @MessagePattern({ cmd: 'site.catalogs.currencies' })
   currencies(@Payload() data: { catalogId: string }): Promise<CatalogCurrencyDto[]> {
@@ -68,10 +74,11 @@ export class SiteCatalogsController {
     return this.service.findCurrencyCoverage(data.catalogId);
   }
 
-  @MessagePattern({ cmd: 'site.catalogs.currencies.add' })
-  addCurrency(@Payload() data: { catalogId: string; currencyCode: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogs.currencies.add — catalogId: ${data.catalogId}, currency: ${data.currencyCode}`);
-    return this.service.addCurrency(data.catalogId, data.currencyCode);
+  // Deletes a catalog; refused while it still lists anything
+  @MessagePattern({ cmd: 'site.catalogs.delete' })
+  delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.delete — id: ${data.id}`);
+    return this.service.delete(data.id);
   }
 
   // Refused while the currency still prices anything — the caller clears those first
@@ -79,12 +86,5 @@ export class SiteCatalogsController {
   removeCurrency(@Payload() data: { catalogId: string; currencyCode: string }): Promise<SuccessResponseDto> {
     this.logger.log(`catalogs.currencies.remove — catalogId: ${data.catalogId}, currency: ${data.currencyCode}`);
     return this.service.removeCurrency(data.catalogId, data.currencyCode);
-  }
-
-  // Deletes a catalog; refused while it still lists anything
-  @MessagePattern({ cmd: 'site.catalogs.delete' })
-  delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogs.delete — id: ${data.id}`);
-    return this.service.delete(data.id);
   }
 }

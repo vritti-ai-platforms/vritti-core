@@ -20,6 +20,18 @@ export class StockTransfersGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  // Creates a new stock transfer
+  async create(dto: CreateStockTransferDto): Promise<StockTransferResponseDto> {
+    this.logger.log(`stockTransfers.create — from: ${dto.fromSiteId}, to: ${dto.toSiteId}`);
+    return this.nats.send('commerce', 'site.stockTransfers.create', dto);
+  }
+
+  // Updates the status of a stock transfer
+  async updateStatus(id: string, dto: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
+    this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${dto.status}`);
+    return this.nats.send('commerce', 'site.stockTransfers.updateStatus', { id, ...dto });
+  }
+
   // Returns paginated, filtered, and sorted stock transfers for the data table
   async findForTable(userId: string, orgId: string): Promise<StockTransferTableResponseDto> {
     this.logger.log('site.stockTransfers.table');
@@ -41,17 +53,5 @@ export class StockTransfersGatewayService {
     }));
 
     return { result: named, count, state, activeViewId };
-  }
-
-  // Creates a new stock transfer
-  async create(dto: CreateStockTransferDto): Promise<StockTransferResponseDto> {
-    this.logger.log(`stockTransfers.create — from: ${dto.fromSiteId}, to: ${dto.toSiteId}`);
-    return this.nats.send('commerce', 'site.stockTransfers.create', dto);
-  }
-
-  // Updates the status of a stock transfer
-  async updateStatus(id: string, dto: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
-    this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${dto.status}`);
-    return this.nats.send('commerce', 'site.stockTransfers.updateStatus', { id, ...dto });
   }
 }

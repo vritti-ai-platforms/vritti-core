@@ -17,6 +17,25 @@ export class InventoryItemLotsDomainService {
 
   constructor(private readonly repository: InventoryItemLotsDomainRepository) {}
 
+  // Creates a new inventory lot. Used by the publish flow when resolving draft adjustment lots.
+  createLot(data: {
+    inventoryItemId: string;
+    lotNumber: string;
+    manufacturingDate?: string | null;
+    expiryDate: string;
+    mrp?: bigint | null;
+    mrpCurrencyCode?: string | null;
+  }): Promise<InventoryItemLot> {
+    return this.repository.createLot({
+      inventoryItemId: data.inventoryItemId,
+      lotNumber: data.lotNumber,
+      manufacturingDate: data.manufacturingDate ?? null,
+      expiryDate: data.expiryDate,
+      mrp: data.mrp ?? null,
+      mrpCurrencyCode: data.mrpCurrencyCode ?? null,
+    });
+  }
+
   async findLotsForTable(
     inventoryItemId: string,
     state: TableState,
@@ -68,25 +87,6 @@ export class InventoryItemLotsDomainService {
   // Returns the inventory lot for an item if one already exists with this lot number.
   findByItemAndNumber(inventoryItemId: string, lotNumber: string): Promise<InventoryItemLot | undefined> {
     return this.repository.findByItemAndNumber(inventoryItemId, lotNumber);
-  }
-
-  // Creates a new inventory lot. Used by the publish flow when resolving draft adjustment lots.
-  createLot(data: {
-    inventoryItemId: string;
-    lotNumber: string;
-    manufacturingDate?: string | null;
-    expiryDate: string;
-    mrp?: bigint | null;
-    mrpCurrencyCode?: string | null;
-  }): Promise<InventoryItemLot> {
-    return this.repository.createLot({
-      inventoryItemId: data.inventoryItemId,
-      lotNumber: data.lotNumber,
-      manufacturingDate: data.manufacturingDate ?? null,
-      expiryDate: data.expiryDate,
-      mrp: data.mrp ?? null,
-      mrpCurrencyCode: data.mrpCurrencyCode ?? null,
-    });
   }
 
   // Returns paginated lot options, optionally filtered to a specific inventory item

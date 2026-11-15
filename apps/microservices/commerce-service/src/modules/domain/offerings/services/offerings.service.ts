@@ -66,172 +66,6 @@ export class OfferingsDomainService {
 
   constructor(private readonly repository: OfferingsDomainRepository) {}
 
-  // Returns paginated, filtered, and sorted offerings for the data table
-  async findForTable(state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.SEARCH_FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...OfferingsDomainService.SEARCH_FIELD_MAP,
-      ...OfferingsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where: where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.name)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map((row) => this.toTableDto(row)), count };
-  }
-
-  // Offering options for select dropdowns, restricted to active offerings
-  findForSelect(query: SelectOptionsQueryDto & { catalogId?: string }): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      conditions: [eq(offerings.isActive, true), ...this.listableInCatalog(query.catalogId)],
-    });
-  }
-
-  // Hides an offering whose every active variant is already listed for any batch in this catalog —
-  // picking it would open a form with nothing left to choose
-  private listableInCatalog(catalogId?: string): SQL[] {
-    if (!catalogId) return [];
-    return [
-      sql`exists (
-        select 1 from ${offeringVariants} v
-        where v.offering_id = ${offerings.id}
-          and v.is_active
-          and v.is_offering_active
-          and not exists (
-            select 1 from ${catalogListings} cl
-            where cl.offering_variant_id = v.id
-              and cl.catalog_id = ${catalogId}
-              and cl.inventory_item_mrp_id is null
-          )
-      )` as SQL,
-    ];
-  }
-
-  // Flat rows for the file export.
-  async findForExport(page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
-    const rows = await this.repository.findForExport(page);
-    return rows.map((row) => ({
-      Code: row.code,
-      Name: row.name,
-      Description: row.description ?? '',
-      Fulfilment: row.fulfilmentType,
-      Owner: workspaceScopeOf(row),
-      Dimensions: row.dimensionCount,
-      Variants: row.variantCount,
-      Status: row.isActive ? 'Active' : 'Inactive',
-    }));
-  }
-
-  async findById(id: string): Promise<OfferingDto> {
-    const row = await this.repository.findDetailById(id);
-    if (!row) throw new NotFoundException('Offering not found.');
-    return this.toDto(row);
-  }
-
-  // Where this offering sells, a row per target rather than per channel.
-  //
-  // A channel naming no target is the default every target of its kind inherits, so the row an operator acts
-  // on is the target: one app, one till. Each target's channel is the most specific one that covers it, ranked
-  // the way channelSpecificity ranks them — its own override first, then the narrowest default in reach.
-  // Targets whose catalog carries nothing of this offering are left out; there is nothing to say about them.
-  async findTargetsForOffering(offeringId: string, appIds: string[]): Promise<OfferingTargetRow[]> {
-    await this.findById(offeringId);
-
-    const [slots, listedCounts, exclusions, variants, terminals] = await Promise.all([
-      this.repository.findChannelSlots(),
-      this.repository.findListedCountsByChannel(offeringId),
-      this.repository.findOfferingExclusions(offeringId),
-      this.repository.countVariants(offeringId),
-      this.repository.findPosTerminals(),
-    ]);
-
-    const listedBy = new Map(listedCounts.map((row) => [row.channelId, row.listed]));
-    const rows: OfferingTargetRow[] = [];
-
-    for (const [type, targets] of OfferingsDomainService.targetsByType(appIds, terminals)) {
-      for (const target of targets) {
-        const channel = OfferingsDomainService.channelFor(slots, type, target);
-        if (!channel) continue;
-
-        const listed = listedBy.get(channel.channelId) ?? 0;
-        if (listed === 0) continue;
-
-        rows.push({
-          type,
-          targetId: target.id,
-          targetName: target.name,
-          targetKind: target.kind,
-          catalogId: channel.catalogId,
-          catalogName: channel.catalogName,
-          // An override is this target's own channel; anything else is the default it inherits
-          isAssigned: channel.appId === target.id || channel.terminalId === target.id,
-          isOwn: channel.isOwn,
-          variants,
-          listed,
-          available: listed - OfferingsDomainService.excludedCount(exclusions, channel.channelId, target),
-        });
-      }
-    }
-
-    return rows;
-  }
-
-  // An app is a target of both storefront types; a till is a target of POS alone
-  private static targetsByType(
-    appIds: string[],
-    terminals: { id: string; name: string }[],
-  ): [CatalogChannelType, ChannelTarget[]][] {
-    const apps = appIds.map((id) => ({ id, name: '', kind: 'APP' as const }));
-    const tills = terminals.map((terminal) => ({ ...terminal, kind: 'TERMINAL' as const }));
-    return [
-      [CatalogChannelTypeValues.APP, apps],
-      [CatalogChannelTypeValues.B2B, apps],
-      [CatalogChannelTypeValues.POS, tills],
-    ];
-  }
-
-  // The channel serving one target: its own override if it has one, else the narrowest default in reach.
-  // The slots arrive ranked by specificity, so the first match is the winner.
-  private static channelFor(
-    slots: ChannelSlotRow[],
-    type: CatalogChannelType,
-    target: ChannelTarget,
-  ): ChannelSlotRow | undefined {
-    return slots.find((slot) => {
-      if (slot.type !== type) return false;
-      const named = target.kind === 'APP' ? slot.appId : slot.terminalId;
-      const other = target.kind === 'APP' ? slot.terminalId : slot.appId;
-      return other === null && (named === null || named === target.id);
-    });
-  }
-
-  // Variants this target cannot be offered: the channel's own exclusions plus the ones naming this target
-  private static excludedCount(exclusions: OfferingExclusionRow[], channelId: string, target: ChannelTarget): number {
-    const hit = new Set<string>();
-    for (const exclusion of exclusions) {
-      if (exclusion.channelId !== channelId) continue;
-
-      const forChannel = exclusion.appId === null && exclusion.terminalId === null;
-      const forTarget = target.kind === 'APP' ? exclusion.appId === target.id : exclusion.terminalId === target.id;
-      if (forChannel || forTarget) hit.add(exclusion.variantId);
-    }
-    return hit.size;
-  }
-
   // Creates an offering owned by the calling workspace; the database stamps the owner from its GUCs
   async create(data: CreateOfferingDto): Promise<CreateResponseDto<OfferingDto>> {
     const { nameTaken, codeTaken } = await this.repository.findConflicts(data.name, data.code);
@@ -391,6 +225,110 @@ export class OfferingsDomainService {
     };
   }
 
+  async findById(id: string): Promise<OfferingDto> {
+    const row = await this.repository.findDetailById(id);
+    if (!row) throw new NotFoundException('Offering not found.');
+    return this.toDto(row);
+  }
+
+  // Returns paginated, filtered, and sorted offerings for the data table
+  async findForTable(state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingsDomainService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...OfferingsDomainService.SEARCH_FIELD_MAP,
+      ...OfferingsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where: where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offerings.name)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map((row) => this.toTableDto(row)), count };
+  }
+
+  // Offering options for select dropdowns, restricted to active offerings
+  findForSelect(query: SelectOptionsQueryDto & { catalogId?: string }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      conditions: [eq(offerings.isActive, true), ...this.listableInCatalog(query.catalogId)],
+    });
+  }
+
+  // Flat rows for the file export.
+  async findForExport(page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    const rows = await this.repository.findForExport(page);
+    return rows.map((row) => ({
+      Code: row.code,
+      Name: row.name,
+      Description: row.description ?? '',
+      Fulfilment: row.fulfilmentType,
+      Owner: workspaceScopeOf(row),
+      Dimensions: row.dimensionCount,
+      Variants: row.variantCount,
+      Status: row.isActive ? 'Active' : 'Inactive',
+    }));
+  }
+
+  // Where this offering sells, a row per target rather than per channel.
+  //
+  // A channel naming no target is the default every target of its kind inherits, so the row an operator acts
+  // on is the target: one app, one till. Each target's channel is the most specific one that covers it, ranked
+  // the way channelSpecificity ranks them — its own override first, then the narrowest default in reach.
+  // Targets whose catalog carries nothing of this offering are left out; there is nothing to say about them.
+  async findTargetsForOffering(offeringId: string, appIds: string[]): Promise<OfferingTargetRow[]> {
+    await this.findById(offeringId);
+
+    const [slots, listedCounts, exclusions, variants, terminals] = await Promise.all([
+      this.repository.findChannelSlots(),
+      this.repository.findListedCountsByChannel(offeringId),
+      this.repository.findOfferingExclusions(offeringId),
+      this.repository.countVariants(offeringId),
+      this.repository.findPosTerminals(),
+    ]);
+
+    const listedBy = new Map(listedCounts.map((row) => [row.channelId, row.listed]));
+    const rows: OfferingTargetRow[] = [];
+
+    for (const [type, targets] of OfferingsDomainService.targetsByType(appIds, terminals)) {
+      for (const target of targets) {
+        const channel = OfferingsDomainService.channelFor(slots, type, target);
+        if (!channel) continue;
+
+        const listed = listedBy.get(channel.channelId) ?? 0;
+        if (listed === 0) continue;
+
+        rows.push({
+          type,
+          targetId: target.id,
+          targetName: target.name,
+          targetKind: target.kind,
+          catalogId: channel.catalogId,
+          catalogName: channel.catalogName,
+          // An override is this target's own channel; anything else is the default it inherits
+          isAssigned: channel.appId === target.id || channel.terminalId === target.id,
+          isOwn: channel.isOwn,
+          variants,
+          listed,
+          available: listed - OfferingsDomainService.excludedCount(exclusions, channel.channelId, target),
+        });
+      }
+    }
+
+    return rows;
+  }
+
   // Deleting cascades into dimensions and variants, so it is blocked while any variant exists — a variant may already
   // carry stock or sit on an order line.
   async delete(id: string): Promise<SuccessResponseDto> {
@@ -404,6 +342,68 @@ export class OfferingsDomainService {
     await this.repository.delete(id);
     this.logger.log(`Deleted offering ${existing.code} (${id})`);
     return { success: true, message: `"${existing.name}" deleted.` };
+  }
+
+  // Hides an offering whose every active variant is already listed for any batch in this catalog —
+  // picking it would open a form with nothing left to choose
+  private listableInCatalog(catalogId?: string): SQL[] {
+    if (!catalogId) return [];
+    return [
+      sql`exists (
+        select 1 from ${offeringVariants} v
+        where v.offering_id = ${offerings.id}
+          and v.is_active
+          and v.is_offering_active
+          and not exists (
+            select 1 from ${catalogListings} cl
+            where cl.offering_variant_id = v.id
+              and cl.catalog_id = ${catalogId}
+              and cl.inventory_item_mrp_id is null
+          )
+      )` as SQL,
+    ];
+  }
+
+  // An app is a target of both storefront types; a till is a target of POS alone
+  private static targetsByType(
+    appIds: string[],
+    terminals: { id: string; name: string }[],
+  ): [CatalogChannelType, ChannelTarget[]][] {
+    const apps = appIds.map((id) => ({ id, name: '', kind: 'APP' as const }));
+    const tills = terminals.map((terminal) => ({ ...terminal, kind: 'TERMINAL' as const }));
+    return [
+      [CatalogChannelTypeValues.APP, apps],
+      [CatalogChannelTypeValues.B2B, apps],
+      [CatalogChannelTypeValues.POS, tills],
+    ];
+  }
+
+  // The channel serving one target: its own override if it has one, else the narrowest default in reach.
+  // The slots arrive ranked by specificity, so the first match is the winner.
+  private static channelFor(
+    slots: ChannelSlotRow[],
+    type: CatalogChannelType,
+    target: ChannelTarget,
+  ): ChannelSlotRow | undefined {
+    return slots.find((slot) => {
+      if (slot.type !== type) return false;
+      const named = target.kind === 'APP' ? slot.appId : slot.terminalId;
+      const other = target.kind === 'APP' ? slot.terminalId : slot.appId;
+      return other === null && (named === null || named === target.id);
+    });
+  }
+
+  // Variants this target cannot be offered: the channel's own exclusions plus the ones naming this target
+  private static excludedCount(exclusions: OfferingExclusionRow[], channelId: string, target: ChannelTarget): number {
+    const hit = new Set<string>();
+    for (const exclusion of exclusions) {
+      if (exclusion.channelId !== channelId) continue;
+
+      const forChannel = exclusion.appId === null && exclusion.terminalId === null;
+      const forTarget = target.kind === 'APP' ? exclusion.appId === target.id : exclusion.terminalId === target.id;
+      if (forChannel || forTarget) hit.add(exclusion.variantId);
+    }
+    return hit.size;
   }
 
   // The code is the first segment of every Code derived from it.

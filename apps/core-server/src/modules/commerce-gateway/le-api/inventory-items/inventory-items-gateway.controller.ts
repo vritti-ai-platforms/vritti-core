@@ -32,6 +32,42 @@ export class LeInventoryItemsGatewayController {
 
   constructor(private readonly service: LeInventoryItemsGatewayService) {}
 
+  // Sets the item's stock levels at one of the legal entity's sites
+  @Post(':id/site-stock-levels/:siteId')
+  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.add)
+  @ApiCreateSiteStockLevels()
+  createSiteStockLevels(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: CreateSiteStockLevelsDto,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
+    return this.service.createSiteStockLevels(id, siteId, dto, legalEntityId);
+  }
+
+  // Updates the item's stock levels at one of the legal entity's sites
+  @Patch(':id/site-stock-levels/:siteId')
+  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.edit)
+  @ApiUpdateSiteStockLevels()
+  updateSiteStockLevels(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: UpdateSiteStockLevelsDto,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
+    return this.service.updateSiteStockLevels(id, siteId, dto, legalEntityId);
+  }
+
+  // Returns one master item, read-only from a legal entity
+  @Get(':id')
+  @RequirePermission(LE_INVENTORY_ITEMS.view)
+  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
+    this.logger.log(`GET /commerce-api/le/inventory-items/${id}`);
+    return this.service.findById(id);
+  }
+
   // Returns the organization's master items, read-only from a legal entity
   @Get('table')
   @RequirePermission(LE_INVENTORY_ITEMS.view)
@@ -70,34 +106,6 @@ export class LeInventoryItemsGatewayController {
     return this.service.findSiteStockLevelsTable(id, userId, orgId, legalEntityId);
   }
 
-  // Sets the item's stock levels at one of the legal entity's sites
-  @Post(':id/site-stock-levels/:siteId')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.add)
-  @ApiCreateSiteStockLevels()
-  createSiteStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Body() dto: CreateSiteStockLevelsDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.createSiteStockLevels(id, siteId, dto, legalEntityId);
-  }
-
-  // Updates the item's stock levels at one of the legal entity's sites
-  @Patch(':id/site-stock-levels/:siteId')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.edit)
-  @ApiUpdateSiteStockLevels()
-  updateSiteStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Body() dto: UpdateSiteStockLevelsDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.updateSiteStockLevels(id, siteId, dto, legalEntityId);
-  }
-
   // Removes the item's stock levels at one of the legal entity's sites
   @Delete(':id/site-stock-levels/:siteId')
   @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.delete)
@@ -109,13 +117,5 @@ export class LeInventoryItemsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
     return this.service.deleteSiteStockLevels(id, siteId, legalEntityId);
-  }
-
-  // Returns one master item, read-only from a legal entity
-  @Get(':id')
-  @RequirePermission(LE_INVENTORY_ITEMS.view)
-  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
-    this.logger.log(`GET /commerce-api/le/inventory-items/${id}`);
-    return this.service.findById(id);
   }
 }

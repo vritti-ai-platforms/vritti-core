@@ -37,6 +37,45 @@ export class TaxJurisdictionsGatewayController {
 
   constructor(private readonly service: TaxJurisdictionsGatewayService) {}
 
+  // Creates a new tax jurisdiction
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_JURISDICTIONS.add)
+  create(@Body() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
+    this.logger.log('POST /commerce-api/org/tax-jurisdictions');
+    return this.service.create(dto);
+  }
+
+  // Updates a tax jurisdiction by ID
+  @Patch(':id')
+  @RequirePermission(ORG_TAX_JURISDICTIONS.edit)
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateTaxJurisdictionDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/tax-jurisdictions/${id}`);
+    return this.service.update(id, dto);
+  }
+
+  // Returns a tax jurisdiction by ID
+  @Get(':id')
+  @RequirePermission(ORG_TAX_JURISDICTIONS.view)
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxJurisdictionResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated child jurisdictions for a given parent jurisdiction
+  @Get(':parentId/children/table')
+  @RequirePermission(ORG_TAX_JURISDICTIONS.view)
+  childrenTable(
+    @Param('parentId', new ParseUUIDPipe()) parentId: string,
+    @UserId() userId: string,
+  ): Promise<TaxJurisdictionChildrenTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${parentId}/children/table`);
+    return this.service.findChildrenForTable(userId, parentId);
+  }
+
   // Returns total tax jurisdiction count
   @Get('count')
   @RequirePermission(ORG_TAX_JURISDICTIONS.view)
@@ -51,45 +90,6 @@ export class TaxJurisdictionsGatewayController {
   findTree(@Query() query: TaxJurisdictionTreeQueryDto): Promise<TaxJurisdictionTreeResponseDto[]> {
     this.logger.log('GET /commerce-api/org/tax-jurisdictions/tree');
     return this.service.findTree(query);
-  }
-
-  // Returns paginated child jurisdictions for a given parent jurisdiction
-  @Get(':parentId/children/table')
-  @RequirePermission(ORG_TAX_JURISDICTIONS.view)
-  childrenTable(
-    @Param('parentId', new ParseUUIDPipe()) parentId: string,
-    @UserId() userId: string,
-  ): Promise<TaxJurisdictionChildrenTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${parentId}/children/table`);
-    return this.service.findChildrenForTable(userId, parentId);
-  }
-
-  // Creates a new tax jurisdiction
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_TAX_JURISDICTIONS.add)
-  create(@Body() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
-    this.logger.log('POST /commerce-api/org/tax-jurisdictions');
-    return this.service.create(dto);
-  }
-
-  // Returns a tax jurisdiction by ID
-  @Get(':id')
-  @RequirePermission(ORG_TAX_JURISDICTIONS.view)
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxJurisdictionResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${id}`);
-    return this.service.findById(id);
-  }
-
-  // Updates a tax jurisdiction by ID
-  @Patch(':id')
-  @RequirePermission(ORG_TAX_JURISDICTIONS.edit)
-  update(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: UpdateTaxJurisdictionDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/tax-jurisdictions/${id}`);
-    return this.service.update(id, dto);
   }
 
   // Deletes a tax jurisdiction by ID

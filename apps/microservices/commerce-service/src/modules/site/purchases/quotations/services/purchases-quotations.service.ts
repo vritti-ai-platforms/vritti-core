@@ -154,6 +154,11 @@ export class PurchasesQuotationsService {
     }));
   }
 
+  // Runs a step in the legal entity's own workspace, which RLS requires to write or read its draft quotations
+  inLegalEntityWorkspace<T>(headers: NatsHeaders, run: () => Promise<T>): Promise<T> {
+    return this.database.runWithRlsContext({ ...headers, siteId: '', siteTimezone: '' }, run);
+  }
+
   // Works out once per item and unit how many primary units one unit of a quotation line holds
   private async findPrimaryPerUnit(quotations: PurchaseQuotationDto[]): Promise<Map<string, number>> {
     const primaryPerUnit = new Map<string, number>();
@@ -166,10 +171,5 @@ export class PurchasesQuotationsService {
       );
     }
     return primaryPerUnit;
-  }
-
-  // Runs a step in the legal entity's own workspace, which RLS requires to write or read its draft quotations
-  inLegalEntityWorkspace<T>(headers: NatsHeaders, run: () => Promise<T>): Promise<T> {
-    return this.database.runWithRlsContext({ ...headers, siteId: '', siteTimezone: '' }, run);
   }
 }

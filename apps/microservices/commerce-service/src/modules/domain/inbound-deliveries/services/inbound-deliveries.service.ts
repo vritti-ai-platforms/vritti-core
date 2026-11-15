@@ -78,39 +78,6 @@ export class InboundDeliveriesDomainService {
 
   constructor(private readonly repository: InboundDeliveriesDomainRepository) {}
 
-  // Returns one page of inbound deliveries, only those carrying a line of the purchase order when one is given
-  async findForTable(
-    state: TableState,
-    scope: { purchaseOrderId?: string } = {},
-  ): Promise<{ result: InboundDeliveryDto[]; count: number }> {
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InboundDeliveriesDomainService.SORT_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, InboundDeliveriesDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, InboundDeliveriesDomainService.SEARCH_FIELD_MAP),
-        scope.purchaseOrderId ? this.repository.carriesPurchaseOrder(scope.purchaseOrderId) : undefined,
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(inboundDeliveries.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(InboundDeliveryDto.from), count };
-  }
-
-  // Returns one inbound delivery with its supplier, purchase orders, receipts and what may still happen to it
-  async findById(id: string): Promise<InboundDeliveryDto> {
-    return InboundDeliveryDto.from(await this.findDetailOrThrow(id));
-  }
-
-  // Loads a delivery with its supplier, lines, purchase orders, receipts and what may still happen to it, throwing when it is out of reach
-  async findDetailOrThrow(id: string): Promise<InboundDeliveryRow> {
-    const delivery = await this.repository.findDetail(id);
-    if (!delivery) throw new NotFoundException('Inbound delivery not found.');
-    return delivery;
-  }
-
   // Creates a planned delivery of one supplier at the session site, without lines yet, with the supplier's delivery note when it is known
   async create(dto: CreateInboundDeliveryDto): Promise<CreateResponseDto<InboundDeliveryDto>> {
     this.assertDeliveryNoteDate(
@@ -165,37 +132,6 @@ export class InboundDeliveriesDomainService {
     return created;
   }
 
-  // Returns the deliveries a purchase created, with their receipts and what may still happen to them
-  findForPurchase(purchaseId: string): Promise<InboundDeliveryRow[]> {
-    return this.repository.findForPurchase(purchaseId);
-  }
-
-  // Deletes a delivery a purchase created behind a receipt or invoice once no receipt names it, with its lines, in the
-  // caller's transaction
-  async deleteForPurchase(delivery: Pick<InboundDeliveryRow, 'id' | 'deliveryNumber' | 'source'>): Promise<void> {
-    if (delivery.source === InboundDeliverySourceValues.ANNOUNCED) {
-      throw new ConflictException({
-        label: 'Cannot Delete',
-        detail: `"${delivery.deliveryNumber}" was entered in Inbound Deliveries, so it is cancelled there instead.`,
-      });
-    }
-    await this.repository.delete(delivery.id);
-    this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id}) of its purchase`);
-  }
-
-  // Returns the site's ANNOUNCED inbound deliveries a goods receipt can be created from, by delivery number
-  findForSelectReceivable(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectReceivable({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'deliveryNumber',
-      description: query.descriptionKey || 'displayName',
-      additionalKeys: query.additionalKeys,
-      searchKeys: ['deliveryNumber', 'displayName'],
-      orderBy: { expectedDeliveryDate: 'asc', deliveryNumber: 'asc' },
-    });
-  }
-
   // Changes the expected date, carrier, tracking number, supplier's delivery note or notes of a delivery that is not yet
   // received or cancelled, keeping the supplier's delivery note unique and not dated after the delivery
   async update(delivery: InboundDeliveryRow, dto: UpdateInboundDeliveryDto): Promise<SuccessResponseDto> {
@@ -237,12 +173,55 @@ export class InboundDeliveriesDomainService {
     this.logger.log(`Inbound delivery ${progress.deliveryNumber} status → ${nextStatus} from its receipts`);
   }
 
-  // Deletes a planned delivery that has no lines and no goods receipts
-  async delete(delivery: InboundDeliveryRow): Promise<SuccessResponseDto> {
-    this.assertDeletable(delivery);
-    await this.repository.delete(delivery.id);
-    this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id})`);
-    return { success: true, message: `Inbound delivery "${delivery.deliveryNumber}" deleted successfully.` };
+  // Returns one inbound delivery with its supplier, purchase orders, receipts and what may still happen to it
+  async findById(id: string): Promise<InboundDeliveryDto> {
+    return InboundDeliveryDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Returns one page of inbound deliveries, only those carrying a line of the purchase order when one is given
+  async findForTable(
+    state: TableState,
+    scope: { purchaseOrderId?: string } = {},
+  ): Promise<{ result: InboundDeliveryDto[]; count: number }> {
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InboundDeliveriesDomainService.SORT_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, InboundDeliveriesDomainService.FILTER_FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, InboundDeliveriesDomainService.SEARCH_FIELD_MAP),
+        scope.purchaseOrderId ? this.repository.carriesPurchaseOrder(scope.purchaseOrderId) : undefined,
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inboundDeliveries.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(InboundDeliveryDto.from), count };
+  }
+
+  // Loads a delivery with its supplier, lines, purchase orders, receipts and what may still happen to it, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<InboundDeliveryRow> {
+    const delivery = await this.repository.findDetail(id);
+    if (!delivery) throw new NotFoundException('Inbound delivery not found.');
+    return delivery;
+  }
+
+  // Returns the deliveries a purchase created, with their receipts and what may still happen to them
+  findForPurchase(purchaseId: string): Promise<InboundDeliveryRow[]> {
+    return this.repository.findForPurchase(purchaseId);
+  }
+
+  // Returns the site's ANNOUNCED inbound deliveries a goods receipt can be created from, by delivery number
+  findForSelectReceivable(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectReceivable({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'deliveryNumber',
+      description: query.descriptionKey || 'displayName',
+      additionalKeys: query.additionalKeys,
+      searchKeys: ['deliveryNumber', 'displayName'],
+      orderBy: { expectedDeliveryDate: 'asc', deliveryNumber: 'asc' },
+    });
   }
 
   // Rejects a change to a delivery's date, lines or details once it is received or cancelled, or when a purchase created it
@@ -278,6 +257,27 @@ export class InboundDeliveriesDomainService {
       label: 'Nothing Left to Receive',
       detail: `Every line of "${delivery.deliveryNumber}" is fully received.`,
     });
+  }
+
+  // Deletes a planned delivery that has no lines and no goods receipts
+  async delete(delivery: InboundDeliveryRow): Promise<SuccessResponseDto> {
+    this.assertDeletable(delivery);
+    await this.repository.delete(delivery.id);
+    this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id})`);
+    return { success: true, message: `Inbound delivery "${delivery.deliveryNumber}" deleted successfully.` };
+  }
+
+  // Deletes a delivery a purchase created behind a receipt or invoice once no receipt names it, with its lines, in the
+  // caller's transaction
+  async deleteForPurchase(delivery: Pick<InboundDeliveryRow, 'id' | 'deliveryNumber' | 'source'>): Promise<void> {
+    if (delivery.source === InboundDeliverySourceValues.ANNOUNCED) {
+      throw new ConflictException({
+        label: 'Cannot Delete',
+        detail: `"${delivery.deliveryNumber}" was entered in Inbound Deliveries, so it is cancelled there instead.`,
+      });
+    }
+    await this.repository.delete(delivery.id);
+    this.logger.log(`Deleted inbound delivery ${delivery.deliveryNumber} (${delivery.id}) of its purchase`);
   }
 
   // Derives the status a delivery's posted receipts give it, keeping its status while no receipt is posted

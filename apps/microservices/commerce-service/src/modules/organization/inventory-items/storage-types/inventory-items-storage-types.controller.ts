@@ -12,13 +12,6 @@ export class InventoryItemsStorageTypesController {
 
   constructor(private readonly service: InventoryItemsStorageTypesService) {}
 
-  // Returns the storage types an inventory item may be stored in
-  @MessagePattern({ cmd: 'org.inventoryItems.storageTypes.findAll' })
-  async findAll(@Payload() data: { inventoryItemId: string }): Promise<InventoryItemStorageTypeDto[]> {
-    this.logger.log(`inventoryItems.storageTypes.findAll — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findAll(data.inventoryItemId);
-  }
-
   // Allows an inventory item in a storage type with its max quantity per location
   @MessagePattern({ cmd: 'org.inventoryItems.storageTypes.create' })
   async create(
@@ -35,6 +28,13 @@ export class InventoryItemsStorageTypesController {
   async update(@Payload() dto: UpdateInventoryItemStorageTypeDto): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.storageTypes.update — inventoryItemId: ${dto.inventoryItemId}, id: ${dto.id}`);
     return this.service.update(dto);
+  }
+
+  // Returns the storage types an inventory item may be stored in
+  @MessagePattern({ cmd: 'org.inventoryItems.storageTypes.findAll' })
+  async findAll(@Payload() data: { inventoryItemId: string }): Promise<InventoryItemStorageTypeDto[]> {
+    this.logger.log(`inventoryItems.storageTypes.findAll — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findAll(data.inventoryItemId);
   }
 
   // Removes a storage type from an inventory item

@@ -18,19 +18,19 @@ export class CustomersGatewayController {
 
   constructor(private readonly customersGatewayService: CustomersGatewayService) {}
 
-  // Returns paginated customers for the data table with server-stored state
-  @Get('table')
-  getCustomerTable(@UserId() userId: string): Promise<CustomerTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/customers/table');
-    return this.customersGatewayService.findForTable(userId);
-  }
-
   // Creates a new customer
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateCustomerDto): Promise<CustomerResponseDto> {
     this.logger.log('POST /commerce-api/site/customers');
     return this.customersGatewayService.create(dto);
+  }
+
+  // Updates a customer by ID
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/customers/${id}`);
+    return this.customersGatewayService.update(id, dto);
   }
 
   // Returns a single customer by ID
@@ -40,11 +40,11 @@ export class CustomersGatewayController {
     return this.customersGatewayService.findById(id);
   }
 
-  // Updates a customer by ID
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/customers/${id}`);
-    return this.customersGatewayService.update(id, dto);
+  // Returns paginated customers for the data table with server-stored state
+  @Get('table')
+  getCustomerTable(@UserId() userId: string): Promise<CustomerTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/customers/table');
+    return this.customersGatewayService.findForTable(userId);
   }
 
   // Deletes a customer by ID

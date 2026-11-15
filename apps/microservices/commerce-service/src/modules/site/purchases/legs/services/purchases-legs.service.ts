@@ -79,6 +79,127 @@ export class PurchasesLegsService {
     private readonly documentsService: PurchaseLegDocumentsService,
   ) {}
 
+  // Creates a leg's purchase orders: one sent PO per currency of its allocations, each allocation becoming a line of it
+  async createPurchaseOrder(
+    dto: CreateLegPurchaseOrderDto,
+    headers: NatsHeaders,
+    site: PurchaseSiteContext,
+  ): Promise<CreateResponseDto<{ purchaseOrderIds: string[] }>> {
+    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
+    this.legsService.assertActionAvailable(
+      leg,
+      purchase,
+      fulfilment.facts,
+      PurchaseLegActionValues.CREATE_PURCHASE_ORDER,
+    );
+    const allocations = await this.allocationsService.findWithLegs({ purchaseSupplierId: leg.id });
+    const terms = {
+      orderDate: dto.orderDate,
+      status: PurchaseOrderStatusValues.SENT,
+      exchangeRates: new Map((dto.exchangeRates ?? []).map((rate) => [rate.currencyCode, rate.rate])),
+      expectedDeliveryDate: dto.expectedDeliveryDate,
+    };
+    const plan = await this.documentsService.planOrders(purchase, leg, allocations, terms, site);
+
+    const orders = await this.database.runInTransaction(async () => {
+      const created = await this.documentsService.createOrders(purchase, leg, plan, terms);
+      for (const po of created) await this.recordOrdered(purchase, leg, po.id, headers);
+      return created;
+    });
+    this.logger.log(
+      `purchases.legs.createPurchaseOrder — ${purchase.purchaseNumber}, leg: ${leg.id}, POs: ${orders.length}`,
+    );
+    return {
+      success: true,
+      message: `${pluralize('purchase order', orders.length, true)} sent to ${leg.supplierName} for "${purchase.purchaseNumber}": ${orders.map((po) => po.poNumber).join(', ')}.`,
+      data: { purchaseOrderIds: orders.map((po) => po.id) },
+    };
+  }
+
+  // Creates an inbound delivery of a leg's confirmed PO lines, each within what it still has open to deliver
+  async createInboundDelivery(
+    dto: CreateLegInboundDeliveryDto,
+    headers: NatsHeaders,
+  ): Promise<CreateResponseDto<{ inboundDeliveryId: string }>> {
+    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
+    this.legsService.assertActionAvailable(
+      leg,
+      purchase,
+      fulfilment.facts,
+      PurchaseLegActionValues.CREATE_INBOUND_DELIVERY,
+    );
+    this.assertConfirmedLinesOfLeg(
+      fulfilment,
+      dto.lines.map((line) => line.purchaseOrderItemId),
+    );
+
+    const delivery = await this.database.runInTransaction(async () => {
+      const created = await this.deliveriesService.createForPurchase({
+        purchaseId: purchase.id,
+        supplierId: leg.supplierId,
+        siteId: purchase.siteId,
+        source: InboundDeliverySourceValues.ANNOUNCED,
+        expectedDeliveryDate: dto.expectedDeliveryDate,
+        carrier: dto.carrier,
+        trackingNumber: dto.trackingNumber,
+        supplierDeliveryNoteNumber: dto.supplierDeliveryNoteNumber,
+        supplierDeliveryNoteDate: dto.supplierDeliveryNoteDate,
+      });
+      const row = await this.deliveriesService.findDetailOrThrow(created.id);
+      const items = await this.deliveryLinesService.findDeliverableOrThrow(
+        row,
+        dto.lines.map((line) => line.purchaseOrderItemId),
+      );
+      await this.deliveryLinesService.addLines(row, { inboundDeliveryId: row.id, lines: dto.lines }, items);
+      await this.progressService.recordLegEvent(
+        purchase,
+        leg,
+        {
+          action: PurchaseEventActionValues.CREATE_INBOUND_DELIVERY,
+          documentType: PurchaseEventDocumentTypeValues.INBOUND_DELIVERY,
+          documentId: row.id,
+        },
+        headers.userId || null,
+      );
+      return row;
+    });
+    this.logger.log(
+      `purchases.legs.createInboundDelivery — ${purchase.purchaseNumber}, delivery: ${delivery.deliveryNumber}`,
+    );
+    return {
+      success: true,
+      message: `Inbound delivery "${delivery.deliveryNumber}" created for "${purchase.purchaseNumber}".`,
+      data: { inboundDeliveryId: delivery.id },
+    };
+  }
+
+  // Starts a draft receipt of a leg: from one of its deliveries, or from its open confirmed lines through a delivery
+  // created behind it; a direct receipt orders its allocations first
+  async createGoodsReceipt(
+    dto: CreateLegGoodsReceiptDto,
+    headers: NatsHeaders,
+    site: PurchaseSiteContext,
+  ): Promise<CreateResponseDto<{ goodsReceiptId: string }>> {
+    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
+    this.legsService.assertActionAvailable(
+      leg,
+      purchase,
+      fulfilment.facts,
+      PurchaseLegActionValues.CREATE_GOODS_RECEIPT,
+    );
+    const receipt = dto.inboundDeliveryId
+      ? await this.receiveInboundDelivery(purchase, leg, dto, dto.inboundDeliveryId, headers)
+      : await this.receiveWithoutDelivery(purchase, leg, fulfilment, dto, headers, site);
+    this.logger.log(
+      `purchases.legs.createGoodsReceipt — ${purchase.purchaseNumber}, receipt: ${receipt.data.grNumber}`,
+    );
+    return {
+      success: true,
+      message: `Goods receipt "${receipt.data.grNumber}" drafted for "${purchase.purchaseNumber}".`,
+      data: { goodsReceiptId: receipt.data.id },
+    };
+  }
+
   // Starts a leg in sourcing against its supplier's current enrollment and sourced total, and records it, in the
   // caller's transaction; returns the step it reached
   async startLeg(
@@ -169,43 +290,6 @@ export class PurchasesLegsService {
     };
   }
 
-  // Creates a leg's purchase orders: one sent PO per currency of its allocations, each allocation becoming a line of it
-  async createPurchaseOrder(
-    dto: CreateLegPurchaseOrderDto,
-    headers: NatsHeaders,
-    site: PurchaseSiteContext,
-  ): Promise<CreateResponseDto<{ purchaseOrderIds: string[] }>> {
-    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
-    this.legsService.assertActionAvailable(
-      leg,
-      purchase,
-      fulfilment.facts,
-      PurchaseLegActionValues.CREATE_PURCHASE_ORDER,
-    );
-    const allocations = await this.allocationsService.findWithLegs({ purchaseSupplierId: leg.id });
-    const terms = {
-      orderDate: dto.orderDate,
-      status: PurchaseOrderStatusValues.SENT,
-      exchangeRates: new Map((dto.exchangeRates ?? []).map((rate) => [rate.currencyCode, rate.rate])),
-      expectedDeliveryDate: dto.expectedDeliveryDate,
-    };
-    const plan = await this.documentsService.planOrders(purchase, leg, allocations, terms, site);
-
-    const orders = await this.database.runInTransaction(async () => {
-      const created = await this.documentsService.createOrders(purchase, leg, plan, terms);
-      for (const po of created) await this.recordOrdered(purchase, leg, po.id, headers);
-      return created;
-    });
-    this.logger.log(
-      `purchases.legs.createPurchaseOrder — ${purchase.purchaseNumber}, leg: ${leg.id}, POs: ${orders.length}`,
-    );
-    return {
-      success: true,
-      message: `${pluralize('purchase order', orders.length, true)} sent to ${leg.supplierName} for "${purchase.purchaseNumber}": ${orders.map((po) => po.poNumber).join(', ')}.`,
-      data: { purchaseOrderIds: orders.map((po) => po.id) },
-    };
-  }
-
   // Confirms a sent PO of a leg through the PO's own rule and records it on the leg
   async confirmPurchaseOrder(dto: ConfirmLegPurchaseOrderDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
@@ -231,90 +315,6 @@ export class PurchasesLegsService {
     });
     this.logger.log(`purchases.legs.confirmPurchaseOrder — ${purchase.purchaseNumber}, PO: ${po.poNumber}`);
     return { success: true, message: `Purchase order "${po.poNumber}" confirmed.` };
-  }
-
-  // Creates an inbound delivery of a leg's confirmed PO lines, each within what it still has open to deliver
-  async createInboundDelivery(
-    dto: CreateLegInboundDeliveryDto,
-    headers: NatsHeaders,
-  ): Promise<CreateResponseDto<{ inboundDeliveryId: string }>> {
-    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
-    this.legsService.assertActionAvailable(
-      leg,
-      purchase,
-      fulfilment.facts,
-      PurchaseLegActionValues.CREATE_INBOUND_DELIVERY,
-    );
-    this.assertConfirmedLinesOfLeg(
-      fulfilment,
-      dto.lines.map((line) => line.purchaseOrderItemId),
-    );
-
-    const delivery = await this.database.runInTransaction(async () => {
-      const created = await this.deliveriesService.createForPurchase({
-        purchaseId: purchase.id,
-        supplierId: leg.supplierId,
-        siteId: purchase.siteId,
-        source: InboundDeliverySourceValues.ANNOUNCED,
-        expectedDeliveryDate: dto.expectedDeliveryDate,
-        carrier: dto.carrier,
-        trackingNumber: dto.trackingNumber,
-        supplierDeliveryNoteNumber: dto.supplierDeliveryNoteNumber,
-        supplierDeliveryNoteDate: dto.supplierDeliveryNoteDate,
-      });
-      const row = await this.deliveriesService.findDetailOrThrow(created.id);
-      const items = await this.deliveryLinesService.findDeliverableOrThrow(
-        row,
-        dto.lines.map((line) => line.purchaseOrderItemId),
-      );
-      await this.deliveryLinesService.addLines(row, { inboundDeliveryId: row.id, lines: dto.lines }, items);
-      await this.progressService.recordLegEvent(
-        purchase,
-        leg,
-        {
-          action: PurchaseEventActionValues.CREATE_INBOUND_DELIVERY,
-          documentType: PurchaseEventDocumentTypeValues.INBOUND_DELIVERY,
-          documentId: row.id,
-        },
-        headers.userId || null,
-      );
-      return row;
-    });
-    this.logger.log(
-      `purchases.legs.createInboundDelivery — ${purchase.purchaseNumber}, delivery: ${delivery.deliveryNumber}`,
-    );
-    return {
-      success: true,
-      message: `Inbound delivery "${delivery.deliveryNumber}" created for "${purchase.purchaseNumber}".`,
-      data: { inboundDeliveryId: delivery.id },
-    };
-  }
-
-  // Starts a draft receipt of a leg: from one of its deliveries, or from its open confirmed lines through a delivery
-  // created behind it; a direct receipt orders its allocations first
-  async createGoodsReceipt(
-    dto: CreateLegGoodsReceiptDto,
-    headers: NatsHeaders,
-    site: PurchaseSiteContext,
-  ): Promise<CreateResponseDto<{ goodsReceiptId: string }>> {
-    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
-    this.legsService.assertActionAvailable(
-      leg,
-      purchase,
-      fulfilment.facts,
-      PurchaseLegActionValues.CREATE_GOODS_RECEIPT,
-    );
-    const receipt = dto.inboundDeliveryId
-      ? await this.receiveInboundDelivery(purchase, leg, dto, dto.inboundDeliveryId, headers)
-      : await this.receiveWithoutDelivery(purchase, leg, fulfilment, dto, headers, site);
-    this.logger.log(
-      `purchases.legs.createGoodsReceipt — ${purchase.purchaseNumber}, receipt: ${receipt.data.grNumber}`,
-    );
-    return {
-      success: true,
-      message: `Goods receipt "${receipt.data.grNumber}" drafted for "${purchase.purchaseNumber}".`,
-      data: { goodsReceiptId: receipt.data.id },
-    };
   }
 
   // Closes a leg: its confirmed POs complete delivery and its sent ones are cancelled; the purchase completes with its last leg

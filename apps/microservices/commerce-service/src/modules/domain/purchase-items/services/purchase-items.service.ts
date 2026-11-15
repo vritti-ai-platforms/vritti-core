@@ -20,23 +20,6 @@ export class PurchaseItemsDomainService {
 
   constructor(private readonly repository: PurchaseItemsDomainRepository) {}
 
-  // Returns the items of a purchase with item names, primary units and allocated quantities
-  findByPurchaseId(purchaseId: string): Promise<PurchaseItemRow[]> {
-    return this.repository.findByPurchaseId(purchaseId);
-  }
-
-  // Returns one purchase item of a purchase
-  async findById(purchaseId: string, itemId: string): Promise<PurchaseItemDto> {
-    return PurchaseItemDto.from(await this.findOnPurchaseOrThrow(purchaseId, itemId));
-  }
-
-  // Loads a purchase item of the given purchase, throwing when it is not on it
-  async findOnPurchaseOrThrow(purchaseId: string, itemId: string): Promise<PurchaseItemRow> {
-    const item = await this.repository.findDetailOnPurchase(purchaseId, itemId);
-    if (!item) throw new NotFoundException('Purchase item not found.');
-    return item;
-  }
-
   // Adds an item to a purchase's items, or adds the quantity to the line that already requests it; a new line is needed
   // by the purchase's date unless it names its own
   async add(
@@ -78,6 +61,23 @@ export class PurchaseItemsDomainService {
       notes: dto.notes,
     });
     this.logger.log(`Updated item ${item.id} on purchase ${purchase.purchaseNumber}`);
+  }
+
+  // Returns one purchase item of a purchase
+  async findById(purchaseId: string, itemId: string): Promise<PurchaseItemDto> {
+    return PurchaseItemDto.from(await this.findOnPurchaseOrThrow(purchaseId, itemId));
+  }
+
+  // Returns the items of a purchase with item names, primary units and allocated quantities
+  findByPurchaseId(purchaseId: string): Promise<PurchaseItemRow[]> {
+    return this.repository.findByPurchaseId(purchaseId);
+  }
+
+  // Loads a purchase item of the given purchase, throwing when it is not on it
+  async findOnPurchaseOrThrow(purchaseId: string, itemId: string): Promise<PurchaseItemRow> {
+    const item = await this.repository.findDetailOnPurchase(purchaseId, itemId);
+    if (!item) throw new NotFoundException('Purchase item not found.');
+    return item;
   }
 
   // Removes an item from a purchase's items

@@ -19,27 +19,6 @@ export class LePurchasesLegsController {
 
   constructor(private readonly service: PurchasesLegsService) {}
 
-  // Starts one leg still in sourcing, routing approval against the legal entity's currency
-  @MessagePattern({ cmd: 'le.purchases.legs.submitSupplier' })
-  submitSupplier(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.submitSupplier — id: ${data.id}, leg: ${data.legId}`);
-    return this.service.submitSupplier(data, headers, headers.leCurrencyCode);
-  }
-
-  // Approves a leg waiting for approval
-  @MessagePattern({ cmd: 'le.purchases.legs.approve' })
-  approve(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.approve — id: ${data.id}, leg: ${data.legId}`);
-    return this.service.approve(data, headers);
-  }
-
-  // Rejects a leg waiting for approval, returning only that leg to sourcing
-  @MessagePattern({ cmd: 'le.purchases.legs.reject' })
-  reject(@Payload() dto: RejectPurchaseLegDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.reject — id: ${dto.id}, leg: ${dto.legId}`);
-    return this.service.reject(dto, headers);
-  }
-
   // Creates a leg's purchase orders: one sent purchase order per currency of its allocations, rated against the legal entity's currency
   @MessagePattern({ cmd: 'le.purchases.legs.createPurchaseOrder' })
   createPurchaseOrder(
@@ -54,18 +33,6 @@ export class LePurchasesLegsController {
       timezone: timezone ?? null,
       leCurrencyCode: headers.leCurrencyCode,
     });
-  }
-
-  // Confirms a sent purchase order of a leg
-  @MessagePattern({ cmd: 'le.purchases.legs.confirmPurchaseOrder' })
-  confirmPurchaseOrder(
-    @Payload() dto: ConfirmLegPurchaseOrderDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
-    );
-    return this.service.confirmPurchaseOrder(dto, headers);
   }
 
   // Creates an inbound delivery of a leg's confirmed purchase order lines
@@ -94,6 +61,39 @@ export class LePurchasesLegsController {
       timezone: timezone ?? null,
       leCurrencyCode: headers.leCurrencyCode,
     });
+  }
+
+  // Starts one leg still in sourcing, routing approval against the legal entity's currency
+  @MessagePattern({ cmd: 'le.purchases.legs.submitSupplier' })
+  submitSupplier(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.submitSupplier — id: ${data.id}, leg: ${data.legId}`);
+    return this.service.submitSupplier(data, headers, headers.leCurrencyCode);
+  }
+
+  // Approves a leg waiting for approval
+  @MessagePattern({ cmd: 'le.purchases.legs.approve' })
+  approve(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.approve — id: ${data.id}, leg: ${data.legId}`);
+    return this.service.approve(data, headers);
+  }
+
+  // Rejects a leg waiting for approval, returning only that leg to sourcing
+  @MessagePattern({ cmd: 'le.purchases.legs.reject' })
+  reject(@Payload() dto: RejectPurchaseLegDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.reject — id: ${dto.id}, leg: ${dto.legId}`);
+    return this.service.reject(dto, headers);
+  }
+
+  // Confirms a sent purchase order of a leg
+  @MessagePattern({ cmd: 'le.purchases.legs.confirmPurchaseOrder' })
+  confirmPurchaseOrder(
+    @Payload() dto: ConfirmLegPurchaseOrderDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
+    );
+    return this.service.confirmPurchaseOrder(dto, headers);
   }
 
   // Closes a leg, completing delivery of its open purchase orders

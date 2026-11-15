@@ -17,11 +17,6 @@ export class PaymentTermsRulesService {
     private readonly rulesService: PaymentTermRulesDomainService,
   ) {}
 
-  async findAll(paymentTermId: string): Promise<PaymentTermRulesDto> {
-    const term = await this.termsService.findByIdOrThrow(paymentTermId);
-    return this.rulesService.findByTerm(term.id);
-  }
-
   async add(data: AddPaymentTermRuleDto): Promise<SuccessResponseDto> {
     const term = await this.termsService.findDraftOrThrow(data.paymentTermId);
     return this.rulesService.add(term, data);
@@ -32,13 +27,18 @@ export class PaymentTermsRulesService {
     return this.rulesService.update(term, data);
   }
 
-  async delete(paymentTermId: string, id: string): Promise<SuccessResponseDto> {
-    const term = await this.termsService.findDraftOrThrow(paymentTermId);
-    return this.rulesService.delete(term, id);
+  async findAll(paymentTermId: string): Promise<PaymentTermRulesDto> {
+    const term = await this.termsService.findByIdOrThrow(paymentTermId);
+    return this.rulesService.findByTerm(term.id);
   }
 
   async previewSchedule(data: PreviewPaymentScheduleDto): Promise<PaymentScheduleDto> {
     const term = await this.termsService.findByIdOrThrow(data.paymentTermId);
     return this.rulesService.previewSchedule(term, data);
+  }
+
+  async delete(paymentTermId: string, id: string): Promise<SuccessResponseDto> {
+    const term = await this.termsService.findDraftOrThrow(paymentTermId);
+    return this.rulesService.delete(term, id);
   }
 }

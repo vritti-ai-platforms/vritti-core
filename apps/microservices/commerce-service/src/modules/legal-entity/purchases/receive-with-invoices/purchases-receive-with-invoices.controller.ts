@@ -16,16 +16,6 @@ export class LePurchasesReceiveWithInvoicesController {
 
   constructor(private readonly service: PurchasesReceiveWithInvoicesService) {}
 
-  // Returns the supplier's allocations at one of the legal entity's sites an invoice may still receive
-  @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.openLines' })
-  openLines(@Payload() query: LeReceiveWithInvoiceOpenLinesQueryDto): Promise<ReceiveWithInvoiceOpenLineDto[]> {
-    this.logger.log(
-      `le.purchases.receiveWithInvoices.openLines — site: ${query.siteId}, supplier: ${query.supplierId}`,
-    );
-    const { siteId, ...openLines } = query;
-    return this.service.findOpenLines(openLines, siteId);
-  }
-
   // Drafts a supplier's invoice entered with its goods at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.create' })
   create(
@@ -39,16 +29,6 @@ export class LePurchasesReceiveWithInvoicesController {
       { siteId, timezone: timezone ?? null, leCurrencyCode: headers.leCurrencyCode },
       headers,
     );
-  }
-
-  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
-  @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.findById' })
-  findById(
-    @Payload() data: ReceiveWithInvoiceRefDto,
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<ReceiveWithInvoiceDetailDto> {
-    this.logger.log(`le.purchases.receiveWithInvoices.findById — invoice: ${data.invoiceId}`);
-    return this.service.findById(data.invoiceId, leCurrencyCode);
   }
 
   // Replaces a draft Receive with Invoice, at the site it was drafted for
@@ -71,6 +51,26 @@ export class LePurchasesReceiveWithInvoicesController {
   post(@Payload() data: ReceiveWithInvoiceRefDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.receiveWithInvoices.post — invoice: ${data.invoiceId}`);
     return this.service.post(data.invoiceId, headers.leCurrencyCode, headers);
+  }
+
+  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
+  @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.findById' })
+  findById(
+    @Payload() data: ReceiveWithInvoiceRefDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<ReceiveWithInvoiceDetailDto> {
+    this.logger.log(`le.purchases.receiveWithInvoices.findById — invoice: ${data.invoiceId}`);
+    return this.service.findById(data.invoiceId, leCurrencyCode);
+  }
+
+  // Returns the supplier's allocations at one of the legal entity's sites an invoice may still receive
+  @MessagePattern({ cmd: 'le.purchases.receiveWithInvoices.openLines' })
+  openLines(@Payload() query: LeReceiveWithInvoiceOpenLinesQueryDto): Promise<ReceiveWithInvoiceOpenLineDto[]> {
+    this.logger.log(
+      `le.purchases.receiveWithInvoices.openLines — site: ${query.siteId}, supplier: ${query.supplierId}`,
+    );
+    const { siteId, ...openLines } = query;
+    return this.service.findOpenLines(openLines, siteId);
   }
 
   // Discards a draft Receive with Invoice and the documents it drafted

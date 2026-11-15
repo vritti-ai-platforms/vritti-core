@@ -13,13 +13,6 @@ export class PurchasesItemsController {
 
   constructor(private readonly service: PurchasesItemsService) {}
 
-  // Returns a purchase's items
-  @MessagePattern({ cmd: 'site.purchases.items.findByPurchase' })
-  findByPurchase(@Payload() data: { id: string }): Promise<PurchaseItemDto[]> {
-    this.logger.log(`site.purchases.items.findByPurchase — id: ${data.id}`);
-    return this.service.findByPurchase(data.id);
-  }
-
   // Adds a purchase item, or adds the quantity to the item already requested
   @MessagePattern({ cmd: 'site.purchases.items.create' })
   create(
@@ -35,6 +28,13 @@ export class PurchasesItemsController {
   update(@Payload() dto: UpdatePurchaseItemDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchases.items.update — id: ${dto.id}, item: ${dto.itemId}`);
     return this.service.update(dto, headers);
+  }
+
+  // Returns a purchase's items
+  @MessagePattern({ cmd: 'site.purchases.items.findByPurchase' })
+  findByPurchase(@Payload() data: { id: string }): Promise<PurchaseItemDto[]> {
+    this.logger.log(`site.purchases.items.findByPurchase — id: ${data.id}`);
+    return this.service.findByPurchase(data.id);
   }
 
   // Removes a purchase item

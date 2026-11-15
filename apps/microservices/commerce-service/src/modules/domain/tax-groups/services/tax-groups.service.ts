@@ -30,43 +30,6 @@ export class TaxGroupsDomainService {
 
   constructor(private readonly repository: TaxGroupsDomainRepository) {}
 
-  // Returns paginated tax groups with their rate and class counts, filtered by the table's panel and context
-  async findForTable(state: TableState): Promise<{ result: TaxGroupDto[]; count: number }> {
-    const fieldMap = TaxGroupsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findDetailsForTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, TaxGroupsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(taxGroups.countryCode), asc(taxGroups.name)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxGroupDto.from), count };
-  }
-
-  // Returns tax-group options for select dropdowns, only one country's when `country` is given
-  findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey || 'code',
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      where: options?.country ? { countryCode: options.country } : undefined,
-    });
-  }
-
-  // Returns a tax group with its rate and class counts
-  async findById(id: string): Promise<TaxGroupDto> {
-    return TaxGroupDto.from(await this.repository.findDetailOrThrow(id));
-  }
-
   // Creates a tax group for one country; its code is unique within that country
   async create(data: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupDto>> {
     await this.repository.assertCodeFree(data.countryCode, data.code);
@@ -108,6 +71,43 @@ export class TaxGroupsDomainService {
       `${isActive ? 'Activated' : 'Deactivated'} tax group: ${existing.countryCode} ${existing.code} (${id})`,
     );
     return { success: true, message: `Tax group "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
+  }
+
+  // Returns a tax group with its rate and class counts
+  async findById(id: string): Promise<TaxGroupDto> {
+    return TaxGroupDto.from(await this.repository.findDetailOrThrow(id));
+  }
+
+  // Returns paginated tax groups with their rate and class counts, filtered by the table's panel and context
+  async findForTable(state: TableState): Promise<{ result: TaxGroupDto[]; count: number }> {
+    const fieldMap = TaxGroupsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findDetailsForTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxGroupsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(taxGroups.countryCode), asc(taxGroups.name)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxGroupDto.from), count };
+  }
+
+  // Returns tax-group options for select dropdowns, only one country's when `country` is given
+  findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey || 'code',
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      where: options?.country ? { countryCode: options.country } : undefined,
+    });
   }
 
   // Deletes a tax group and its rates unless tax classes are mapped to it

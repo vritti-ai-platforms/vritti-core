@@ -80,22 +80,47 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.createFromDelivery(dto);
   }
 
-  // Returns the goods receipts of the legal entity's sites for the data table
-  @Get('table')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiFindForTable()
-  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LeGoodsReceiptTableResponseDto> {
-    this.logger.log('GET /commerce-api/le/goods-receipts/table');
-    return this.service.findForTable(userId, orgId);
+  // Adds a lot to a goods receipt item
+  @Post(':id/items/:itemId/lots')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiAddLot()
+  addLot(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: LeAddGoodsReceiptLotDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
+    return this.service.addLot(goodsReceiptId, itemId, dto);
   }
 
-  // Returns one goods receipt
-  @Get(':id')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiFindById()
-  findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LeGoodsReceiptResponseDto> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${id}`);
-    return this.service.findById(id, orgId);
+  // Adds a line to a goods receipt item
+  @Post(':id/items/:itemId/lines')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiAddLine()
+  addLine(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: AddGoodsReceiptLineDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines`);
+    return this.service.addLine(goodsReceiptId, itemId, dto);
+  }
+
+  // Registers a serial on a goods receipt line
+  @Post(':id/items/:itemId/lines/:lineId/items')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiAddLineItem()
+  addLineItem(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: AddGoodsReceiptLineItemDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
+    return this.service.addLineItem(goodsReceiptId, itemId, lineId, dto);
   }
 
   // Changes a draft goods receipt's notes
@@ -107,13 +132,45 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.update(id, dto);
   }
 
-  // Returns a goods receipt's items with their lots and lines as a tree
-  @Get(':id/tree')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiTree()
-  tree(@Param('id') id: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${id}/tree`);
-    return this.service.findTree(id);
+  // Changes the received or rejected quantity of a goods receipt item
+  @Patch(':id/items/:itemId')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @ApiUpdateItem()
+  updateItem(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateGoodsReceiptItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}`);
+    return this.service.updateItem(goodsReceiptId, itemId, dto);
+  }
+
+  // Changes a lot of a goods receipt item
+  @Patch(':id/items/:itemId/lots/:lotId')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @ApiUpdateLot()
+  updateLot(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lotId') lotId: string,
+    @Body() dto: LeUpdateGoodsReceiptLotDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
+    return this.service.updateLot(goodsReceiptId, itemId, lotId, dto);
+  }
+
+  // Changes a line of a goods receipt item
+  @Patch(':id/items/:itemId/lines/:lineId')
+  @RequirePermission(LE_GOODS_RECEIPTS.edit)
+  @ApiUpdateLine()
+  updateLine(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: UpdateGoodsReceiptLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    return this.service.updateLine(goodsReceiptId, itemId, lineId, dto);
   }
 
   // Posts a goods receipt, landing its stock at its site
@@ -125,22 +182,35 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.post(id);
   }
 
-  // Deletes a draft goods receipt
-  @Delete(':id')
-  @RequirePermission(LE_GOODS_RECEIPTS.delete)
-  @ApiDelete()
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/goods-receipts/${id}`);
-    return this.service.delete(id);
+  // Returns one goods receipt
+  @Get(':id')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiFindById()
+  findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LeGoodsReceiptResponseDto> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${id}`);
+    return this.service.findById(id, orgId);
   }
 
-  // Returns the inventory items counted on a goods receipt
-  @Get(':id/items/inventory-item-ids')
+  // Returns one line of a goods receipt item
+  @Get(':id/items/:itemId/lines/:lineId')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiInventoryItemIds()
-  inventoryItemIds(@Param('id') goodsReceiptId: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/inventory-item-ids`);
-    return this.service.findInventoryItemIds(goodsReceiptId);
+  @ApiLineById()
+  lineById(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+  ): Promise<GoodsReceiptLineResponseDto> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    return this.service.findLineById(goodsReceiptId, itemId, lineId);
+  }
+
+  // Returns the goods receipts of the legal entity's sites for the data table
+  @Get('table')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiFindForTable()
+  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LeGoodsReceiptTableResponseDto> {
+    this.logger.log('GET /commerce-api/le/goods-receipts/table');
+    return this.service.findForTable(userId, orgId);
   }
 
   // Returns a goods receipt's items for the data table
@@ -150,6 +220,67 @@ export class LeGoodsReceiptsGatewayController {
   itemsTable(@Param('id') goodsReceiptId: string, @UserId() userId: string): Promise<GoodsReceiptItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/table`);
     return this.service.findItemsTable(goodsReceiptId, userId);
+  }
+
+  // Returns a goods receipt item's lines for the data table
+  @Get(':id/items/:itemId/lines/table')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiLinesTable()
+  linesTable(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/table`);
+    return this.service.findLinesTable(goodsReceiptId, itemId, userId);
+  }
+
+  // Returns the lines one lot of a goods receipt item is distributed to, for the data table
+  @Get(':id/items/:itemId/lots/:lotId/lines/table')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiLinesByLotTable()
+  linesByLotTable(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lotId') lotId: string,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}/lines/table`);
+    return this.service.findLinesByLotTable(goodsReceiptId, itemId, lotId, userId);
+  }
+
+  // Returns the serials registered on a goods receipt line, for the data table
+  @Get(':id/items/:itemId/lines/:lineId/items/table')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiLineItemsTable()
+  lineItemsTable(
+    @Param('id') goodsReceiptId: string,
+    @Param('itemId') itemId: string,
+    @Param('lineId') lineId: string,
+    @UserId() userId: string,
+  ): Promise<GoodsReceiptLineItemTableResponseDto> {
+    this.logger.log(
+      `GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/table`,
+    );
+    return this.service.findLineItemsTable(goodsReceiptId, itemId, lineId, userId);
+  }
+
+  // Returns a goods receipt's items with their lots and lines as a tree
+  @Get(':id/tree')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiTree()
+  tree(@Param('id') id: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${id}/tree`);
+    return this.service.findTree(id);
+  }
+
+  // Returns the inventory items counted on a goods receipt
+  @Get(':id/items/inventory-item-ids')
+  @RequirePermission(LE_GOODS_RECEIPTS.view)
+  @ApiInventoryItemIds()
+  inventoryItemIds(@Param('id') goodsReceiptId: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/inventory-item-ids`);
+    return this.service.findInventoryItemIds(goodsReceiptId);
   }
 
   // Returns the provisional cost of a goods receipt's items
@@ -185,28 +316,6 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.findItemById(goodsReceiptId, itemId);
   }
 
-  // Changes the received or rejected quantity of a goods receipt item
-  @Patch(':id/items/:itemId')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @ApiUpdateItem()
-  updateItem(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: UpdateGoodsReceiptItemDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}`);
-    return this.service.updateItem(goodsReceiptId, itemId, dto);
-  }
-
-  // Removes an item from a goods receipt
-  @Delete(':id/items/:itemId')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @ApiRemoveItem()
-  removeItem(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}`);
-    return this.service.removeItem(goodsReceiptId, itemId);
-  }
-
   // Returns the lots of a goods receipt item
   @Get(':id/items/:itemId/lots')
   @RequirePermission(LE_GOODS_RECEIPTS.view)
@@ -216,32 +325,22 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.findLots(goodsReceiptId, itemId);
   }
 
-  // Adds a lot to a goods receipt item
-  @Post(':id/items/:itemId/lots')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddLot()
-  addLot(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: LeAddGoodsReceiptLotDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
-    return this.service.addLot(goodsReceiptId, itemId, dto);
+  // Deletes a draft goods receipt
+  @Delete(':id')
+  @RequirePermission(LE_GOODS_RECEIPTS.delete)
+  @ApiDelete()
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/goods-receipts/${id}`);
+    return this.service.delete(id);
   }
 
-  // Changes a lot of a goods receipt item
-  @Patch(':id/items/:itemId/lots/:lotId')
+  // Removes an item from a goods receipt
+  @Delete(':id/items/:itemId')
   @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @ApiUpdateLot()
-  updateLot(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lotId') lotId: string,
-    @Body() dto: LeUpdateGoodsReceiptLotDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
-    return this.service.updateLot(goodsReceiptId, itemId, lotId, dto);
+  @ApiRemoveItem()
+  removeItem(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}`);
+    return this.service.removeItem(goodsReceiptId, itemId);
   }
 
   // Removes a lot from a goods receipt item
@@ -257,74 +356,6 @@ export class LeGoodsReceiptsGatewayController {
     return this.service.removeLot(goodsReceiptId, itemId, lotId);
   }
 
-  // Returns a goods receipt item's lines for the data table
-  @Get(':id/items/:itemId/lines/table')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiLinesTable()
-  linesTable(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @UserId() userId: string,
-  ): Promise<GoodsReceiptLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/table`);
-    return this.service.findLinesTable(goodsReceiptId, itemId, userId);
-  }
-
-  // Returns the lines one lot of a goods receipt item is distributed to, for the data table
-  @Get(':id/items/:itemId/lots/:lotId/lines/table')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiLinesByLotTable()
-  linesByLotTable(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lotId') lotId: string,
-    @UserId() userId: string,
-  ): Promise<GoodsReceiptLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}/lines/table`);
-    return this.service.findLinesByLotTable(goodsReceiptId, itemId, lotId, userId);
-  }
-
-  // Returns one line of a goods receipt item
-  @Get(':id/items/:itemId/lines/:lineId')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiLineById()
-  lineById(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lineId') lineId: string,
-  ): Promise<GoodsReceiptLineResponseDto> {
-    this.logger.log(`GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
-    return this.service.findLineById(goodsReceiptId, itemId, lineId);
-  }
-
-  // Adds a line to a goods receipt item
-  @Post(':id/items/:itemId/lines')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddLine()
-  addLine(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: AddGoodsReceiptLineDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines`);
-    return this.service.addLine(goodsReceiptId, itemId, dto);
-  }
-
-  // Changes a line of a goods receipt item
-  @Patch(':id/items/:itemId/lines/:lineId')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @ApiUpdateLine()
-  updateLine(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lineId') lineId: string,
-    @Body() dto: UpdateGoodsReceiptLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
-    return this.service.updateLine(goodsReceiptId, itemId, lineId, dto);
-  }
-
   // Removes a line from a goods receipt item
   @Delete(':id/items/:itemId/lines/:lineId')
   @RequirePermission(LE_GOODS_RECEIPTS.edit)
@@ -336,37 +367,6 @@ export class LeGoodsReceiptsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
     return this.service.removeLine(goodsReceiptId, itemId, lineId);
-  }
-
-  // Returns the serials registered on a goods receipt line, for the data table
-  @Get(':id/items/:itemId/lines/:lineId/items/table')
-  @RequirePermission(LE_GOODS_RECEIPTS.view)
-  @ApiLineItemsTable()
-  lineItemsTable(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lineId') lineId: string,
-    @UserId() userId: string,
-  ): Promise<GoodsReceiptLineItemTableResponseDto> {
-    this.logger.log(
-      `GET /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/table`,
-    );
-    return this.service.findLineItemsTable(goodsReceiptId, itemId, lineId, userId);
-  }
-
-  // Registers a serial on a goods receipt line
-  @Post(':id/items/:itemId/lines/:lineId/items')
-  @RequirePermission(LE_GOODS_RECEIPTS.edit)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddLineItem()
-  addLineItem(
-    @Param('id') goodsReceiptId: string,
-    @Param('itemId') itemId: string,
-    @Param('lineId') lineId: string,
-    @Body() dto: AddGoodsReceiptLineItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLineItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
-    return this.service.addLineItem(goodsReceiptId, itemId, lineId, dto);
   }
 
   // Removes a serial from a goods receipt line

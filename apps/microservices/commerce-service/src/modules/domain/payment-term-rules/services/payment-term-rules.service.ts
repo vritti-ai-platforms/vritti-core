@@ -18,10 +18,6 @@ export type PaymentTermContext = Pick<PaymentTerm, 'id' | 'baseline'>;
 export class PaymentTermRulesDomainService {
   constructor(private readonly repository: PaymentTermRulesDomainRepository) {}
 
-  async findByTerm(paymentTermId: string): Promise<PaymentTermRulesDto> {
-    return PaymentTermRulesDto.from(await this.repository.findByTerm(paymentTermId));
-  }
-
   async add(term: PaymentTermContext, data: PaymentTermRuleFieldsDto): Promise<SuccessResponseDto> {
     this.repository.assertValid(data);
     await this.repository.assertDueDayFree(term.id, data.dueDays);
@@ -36,9 +32,8 @@ export class PaymentTermRulesDomainService {
     return { success: true, message: 'Rule updated.' };
   }
 
-  async delete(term: PaymentTermContext, id: string): Promise<SuccessResponseDto> {
-    await this.repository.deleteOrThrow(term.id, id);
-    return { success: true, message: 'Rule deleted.' };
+  async findByTerm(paymentTermId: string): Promise<PaymentTermRulesDto> {
+    return PaymentTermRulesDto.from(await this.repository.findByTerm(paymentTermId));
   }
 
   // Returns the date a number of days after the term's baseline for a document dated `date` (YYYY-MM-DD): the date
@@ -132,5 +127,10 @@ export class PaymentTermRulesDomainService {
       maxSavings: money(savingsMinor),
       instalments,
     };
+  }
+
+  async delete(term: PaymentTermContext, id: string): Promise<SuccessResponseDto> {
+    await this.repository.deleteOrThrow(term.id, id);
+    return { success: true, message: 'Rule deleted.' };
   }
 }

@@ -19,20 +19,6 @@ export class InboundDeliveriesRootController {
     private readonly service: InboundDeliveriesService,
   ) {}
 
-  // Returns one page of the site's inbound deliveries
-  @MessagePattern({ cmd: 'site.inboundDeliveries.table' })
-  table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
-    this.logger.log('site.inboundDeliveries.table');
-    return this.deliveriesService.findForTable(state);
-  }
-
-  // Returns one inbound delivery
-  @MessagePattern({ cmd: 'site.inboundDeliveries.findById' })
-  findById(@Payload() data: { id: string }): Promise<InboundDeliveryDto> {
-    this.logger.log(`site.inboundDeliveries.findById — id: ${data.id}`);
-    return this.deliveriesService.findById(data.id);
-  }
-
   // Creates a planned inbound delivery of a supplier at the site
   @MessagePattern({ cmd: 'site.inboundDeliveries.create' })
   create(
@@ -55,6 +41,20 @@ export class InboundDeliveriesRootController {
   setStatus(@Payload() dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.inboundDeliveries.setStatus — id: ${dto.id}, status: ${dto.status}`);
     return this.service.setStatus(dto);
+  }
+
+  // Returns one inbound delivery
+  @MessagePattern({ cmd: 'site.inboundDeliveries.findById' })
+  findById(@Payload() data: { id: string }): Promise<InboundDeliveryDto> {
+    this.logger.log(`site.inboundDeliveries.findById — id: ${data.id}`);
+    return this.deliveriesService.findById(data.id);
+  }
+
+  // Returns one page of the site's inbound deliveries
+  @MessagePattern({ cmd: 'site.inboundDeliveries.table' })
+  table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
+    this.logger.log('site.inboundDeliveries.table');
+    return this.deliveriesService.findForTable(state);
   }
 
   // Deletes a planned inbound delivery without lines

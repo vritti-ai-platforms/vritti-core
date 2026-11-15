@@ -21,15 +21,6 @@ export class LeInboundDeliveriesGatewayController {
 
   constructor(private readonly service: LeInboundDeliveriesGatewayService) {}
 
-  // Returns the inbound deliveries of the legal entity's sites for the data table
-  @Get('table')
-  @RequirePermission(LE_INBOUND_DELIVERIES.view)
-  @ApiFindForTable()
-  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LeInboundDeliveryTableResponseDto> {
-    this.logger.log('GET /commerce-api/le/inbound-deliveries/table');
-    return this.service.findForTable(userId, orgId);
-  }
-
   // Returns one inbound delivery of the legal entity's sites
   @Get(':id')
   @RequirePermission(LE_INBOUND_DELIVERIES.view)
@@ -37,6 +28,15 @@ export class LeInboundDeliveriesGatewayController {
   findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LeInboundDeliveryResponseDto> {
     this.logger.log(`GET /commerce-api/le/inbound-deliveries/${id}`);
     return this.service.findById(id, orgId);
+  }
+
+  // Returns the inbound deliveries of the legal entity's sites for the data table
+  @Get('table')
+  @RequirePermission(LE_INBOUND_DELIVERIES.view)
+  @ApiFindForTable()
+  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LeInboundDeliveryTableResponseDto> {
+    this.logger.log('GET /commerce-api/le/inbound-deliveries/table');
+    return this.service.findForTable(userId, orgId);
   }
 
   // Returns an inbound delivery's lines for the data table

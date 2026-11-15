@@ -63,14 +63,6 @@ export class SiteSuppliersGatewayController {
 
   constructor(private readonly siteSuppliersGatewayService: SiteSuppliersGatewayService) {}
 
-  // Returns every supplier of the legal entity with its enrollment at the session site, with server-stored state
-  @Get('table')
-  @RequirePermission(SITE_SUPPLIERS.view)
-  getSupplierTable(@UserId() userId: string, @OrgId() orgId: string): Promise<SupplierEnrollmentTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/suppliers/table');
-    return this.siteSuppliersGatewayService.findForTable(userId, orgId);
-  }
-
   // Enrolls a supplier at the session site
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -81,108 +73,6 @@ export class SiteSuppliersGatewayController {
   ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
     this.logger.log('POST /commerce-api/site/suppliers');
     return this.siteSuppliersGatewayService.create(dto, siteId);
-  }
-
-  // Returns a supplier's enrollment at the session site with its commercial identity, enrolled or not
-  @Get(':id')
-  @RequirePermission(SITE_SUPPLIERS.view)
-  findById(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierEnrollmentDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}`);
-    return this.siteSuppliersGatewayService.findById(supplierId, orgId);
-  }
-
-  // Updates a supplier's enrollment picks and flags at the session site
-  @Patch(':id')
-  @RequirePermission(SITE_SUPPLIERS.editEnroll)
-  update(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @Body() dto: UpdateSupplierEnrollmentDto,
-    @SiteId() siteId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}`);
-    return this.siteSuppliersGatewayService.update(supplierId, dto, siteId);
-  }
-
-  // Activates or deactivates a supplier's own enrollment at the session site
-  @Patch(':id/active')
-  @RequirePermission(SITE_SUPPLIERS.editEnroll)
-  setActive(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @Body() dto: SetSupplierEnrollmentActiveDto,
-    @SiteId() siteId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/active`);
-    return this.siteSuppliersGatewayService.setActive(supplierId, dto.isActive, siteId);
-  }
-
-  // Removes a supplier's enrollment at the session site
-  @Delete(':id')
-  @RequirePermission(SITE_SUPPLIERS.unenroll)
-  delete(@Param('id', new ParseUUIDPipe()) supplierId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/suppliers/${supplierId}`);
-    return this.siteSuppliersGatewayService.delete(supplierId);
-  }
-
-  // Returns an enrolled supplier's site items at this site for the data table
-  @Get(':id/site-items/table')
-  @RequirePermission(SITE_SUPPLIERS.siteItems.view)
-  getSiteItemsTable(
-    @Param('id') supplierId: string,
-    @UserId() userId: string,
-  ): Promise<SupplierSiteItemRowTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/table`);
-    return this.siteSuppliersGatewayService.findSiteItemsTable(supplierId, userId);
-  }
-
-  // Returns a supplier item's detail with this site's terms and price in force
-  @Get(':id/site-items/:itemId')
-  @RequirePermission(SITE_SUPPLIERS.siteItems.view)
-  findSiteItemById(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-  ): Promise<SupplierSiteItemRowResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}`);
-    return this.siteSuppliersGatewayService.findSiteItemById(itemId);
-  }
-
-  // Updates this site's terms for a supplier item; the site item must belong to this site (RLS)
-  @Patch(':id/site-items/:siteItemId')
-  @RequirePermission(SITE_SUPPLIERS.siteItems.terms.edit)
-  updateSiteItem(
-    @Param('id') supplierId: string,
-    @Param('siteItemId') supplierSiteItemId: string,
-    @Body() dto: UpdateSupplierSiteItemDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/site-items/${supplierSiteItemId}`);
-    return this.siteSuppliersGatewayService.updateSiteItem(supplierSiteItemId, dto);
-  }
-
-  // Returns the supplier's invoices at this site for the data table
-  @Get(':id/invoices/table')
-  @RequirePermission(SITE_SUPPLIERS.invoices.view)
-  @ApiFindForTableSiteSupplierInvoices()
-  getInvoicesTable(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @UserId() userId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierInvoiceTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/table`);
-    return this.siteSuppliersGatewayService.findInvoicesTable(supplierId, userId, orgId);
-  }
-
-  // Returns the supplier's posted receipt lots at this site still to invoice, for an invoice's line picker
-  @Get(':id/invoices/invoiceable-goods-receipts')
-  @RequirePermission(SITE_SUPPLIERS.invoices.view)
-  @ApiFindSiteSupplierInvoiceableGoodsReceipts()
-  getInvoiceableGoodsReceipts(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @Query() query: InvoiceableGoodsReceiptsQueryDto,
-  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/invoiceable-goods-receipts`);
-    return this.siteSuppliersGatewayService.findInvoiceableGoodsReceipts(supplierId, query);
   }
 
   // Records a draft invoice of the supplier at this site
@@ -198,17 +88,42 @@ export class SiteSuppliersGatewayController {
     return this.siteSuppliersGatewayService.createInvoice(supplierId, dto);
   }
 
-  // Returns one of the supplier's invoices with its lines and holds
-  @Get(':id/invoices/:invoiceId')
-  @RequirePermission(SITE_SUPPLIERS.invoices.view)
-  @ApiFindSiteSupplierInvoiceById()
-  findInvoiceById(
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
+  @Post(':id/invoices/:invoiceId/lines')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(SITE_SUPPLIERS.invoices.edit)
+  @ApiCreateSiteSupplierInvoiceLine()
+  createInvoiceLine(
     @Param('id', new ParseUUIDPipe()) supplierId: string,
     @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierInvoiceDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}`);
-    return this.siteSuppliersGatewayService.findInvoiceById(supplierId, invoiceId, orgId);
+    @Body() dto: SupplierInvoiceLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/lines`);
+    return this.siteSuppliersGatewayService.createInvoiceLine(invoiceId, dto);
+  }
+
+  // Updates a supplier's enrollment picks and flags at the session site
+  @Patch(':id')
+  @RequirePermission(SITE_SUPPLIERS.editEnroll)
+  update(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Body() dto: UpdateSupplierEnrollmentDto,
+    @SiteId() siteId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}`);
+    return this.siteSuppliersGatewayService.update(supplierId, dto, siteId);
+  }
+
+  // Updates this site's terms for a supplier item; the site item must belong to this site (RLS)
+  @Patch(':id/site-items/:siteItemId')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.terms.edit)
+  updateSiteItem(
+    @Param('id') supplierId: string,
+    @Param('siteItemId') supplierSiteItemId: string,
+    @Body() dto: UpdateSupplierSiteItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/site-items/${supplierSiteItemId}`);
+    return this.siteSuppliersGatewayService.updateSiteItem(supplierSiteItemId, dto);
   }
 
   // Updates an invoice's header
@@ -222,6 +137,32 @@ export class SiteSuppliersGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}`);
     return this.siteSuppliersGatewayService.updateInvoice(invoiceId, dto);
+  }
+
+  // Updates a line of an invoice
+  @Patch(':id/invoices/:invoiceId/lines/:lineId')
+  @RequirePermission(SITE_SUPPLIERS.invoices.edit)
+  @ApiUpdateSiteSupplierInvoiceLine()
+  updateInvoiceLine(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
+    @Param('lineId', new ParseUUIDPipe()) lineId: string,
+    @Body() dto: SupplierInvoiceLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/lines/${lineId}`);
+    return this.siteSuppliersGatewayService.updateInvoiceLine(invoiceId, lineId, dto);
+  }
+
+  // Activates or deactivates a supplier's own enrollment at the session site
+  @Patch(':id/active')
+  @RequirePermission(SITE_SUPPLIERS.editEnroll)
+  setActive(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Body() dto: SetSupplierEnrollmentActiveDto,
+    @SiteId() siteId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/active`);
+    return this.siteSuppliersGatewayService.setActive(supplierId, dto.isActive, siteId);
   }
 
   // Posts a draft invoice, setting the final cost of the stock it invoices
@@ -252,32 +193,91 @@ export class SiteSuppliersGatewayController {
     return this.siteSuppliersGatewayService.releaseInvoiceHold(invoiceId, holdId, dto);
   }
 
-  // Adds an item line invoicing a received lot, or a charge line, to an invoice
-  @Post(':id/invoices/:invoiceId/lines')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(SITE_SUPPLIERS.invoices.edit)
-  @ApiCreateSiteSupplierInvoiceLine()
-  createInvoiceLine(
+  // Returns a supplier's enrollment at the session site with its commercial identity, enrolled or not
+  @Get(':id')
+  @RequirePermission(SITE_SUPPLIERS.view)
+  findById(
     @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
-    @Body() dto: SupplierInvoiceLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/lines`);
-    return this.siteSuppliersGatewayService.createInvoiceLine(invoiceId, dto);
+    @OrgId() orgId: string,
+  ): Promise<SupplierEnrollmentDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}`);
+    return this.siteSuppliersGatewayService.findById(supplierId, orgId);
   }
 
-  // Updates a line of an invoice
-  @Patch(':id/invoices/:invoiceId/lines/:lineId')
-  @RequirePermission(SITE_SUPPLIERS.invoices.edit)
-  @ApiUpdateSiteSupplierInvoiceLine()
-  updateInvoiceLine(
+  // Returns a supplier item's detail with this site's terms and price in force
+  @Get(':id/site-items/:itemId')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.view)
+  findSiteItemById(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<SupplierSiteItemRowResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}`);
+    return this.siteSuppliersGatewayService.findSiteItemById(itemId);
+  }
+
+  // Returns one of the supplier's invoices with its lines and holds
+  @Get(':id/invoices/:invoiceId')
+  @RequirePermission(SITE_SUPPLIERS.invoices.view)
+  @ApiFindSiteSupplierInvoiceById()
+  findInvoiceById(
     @Param('id', new ParseUUIDPipe()) supplierId: string,
     @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
-    @Param('lineId', new ParseUUIDPipe()) lineId: string,
-    @Body() dto: SupplierInvoiceLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/lines/${lineId}`);
-    return this.siteSuppliersGatewayService.updateInvoiceLine(invoiceId, lineId, dto);
+    @OrgId() orgId: string,
+  ): Promise<SupplierInvoiceDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}`);
+    return this.siteSuppliersGatewayService.findInvoiceById(supplierId, invoiceId, orgId);
+  }
+
+  // Returns every supplier of the legal entity with its enrollment at the session site, with server-stored state
+  @Get('table')
+  @RequirePermission(SITE_SUPPLIERS.view)
+  getSupplierTable(@UserId() userId: string, @OrgId() orgId: string): Promise<SupplierEnrollmentTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/suppliers/table');
+    return this.siteSuppliersGatewayService.findForTable(userId, orgId);
+  }
+
+  // Returns an enrolled supplier's site items at this site for the data table
+  @Get(':id/site-items/table')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.view)
+  getSiteItemsTable(
+    @Param('id') supplierId: string,
+    @UserId() userId: string,
+  ): Promise<SupplierSiteItemRowTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/table`);
+    return this.siteSuppliersGatewayService.findSiteItemsTable(supplierId, userId);
+  }
+
+  // Returns the supplier's invoices at this site for the data table
+  @Get(':id/invoices/table')
+  @RequirePermission(SITE_SUPPLIERS.invoices.view)
+  @ApiFindForTableSiteSupplierInvoices()
+  getInvoicesTable(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @UserId() userId: string,
+    @OrgId() orgId: string,
+  ): Promise<SupplierInvoiceTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/table`);
+    return this.siteSuppliersGatewayService.findInvoicesTable(supplierId, userId, orgId);
+  }
+
+  // Returns the supplier's posted receipt lots at this site still to invoice, for an invoice's line picker
+  @Get(':id/invoices/invoiceable-goods-receipts')
+  @RequirePermission(SITE_SUPPLIERS.invoices.view)
+  @ApiFindSiteSupplierInvoiceableGoodsReceipts()
+  getInvoiceableGoodsReceipts(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Query() query: InvoiceableGoodsReceiptsQueryDto,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/invoiceable-goods-receipts`);
+    return this.siteSuppliersGatewayService.findInvoiceableGoodsReceipts(supplierId, query);
+  }
+
+  // Removes a supplier's enrollment at the session site
+  @Delete(':id')
+  @RequirePermission(SITE_SUPPLIERS.unenroll)
+  delete(@Param('id', new ParseUUIDPipe()) supplierId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/suppliers/${supplierId}`);
+    return this.siteSuppliersGatewayService.delete(supplierId);
   }
 
   // Removes a line from an invoice

@@ -27,26 +27,6 @@ export class StockAdjustmentLotsDomainService {
 
   constructor(private readonly repository: StockAdjustmentLotsDomainRepository) {}
 
-  // Lists all lots for an adjustment — existence check is the app-layer's responsibility
-  async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {
-    const rows = await this.repository.findByAdjustmentId(adjustmentId);
-    return rows.map(StockAdjustmentLotDto.from);
-  }
-
-  // Returns a single lot's detail (stats + already-used location ids + line ids).
-  async getLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailDto> {
-    const row = await this.repository.findLotDetail(lotId);
-    if (!row || row.stockAdjustmentId !== adjustmentId) {
-      throw new NotFoundException('Stock adjustment lot not found.');
-    }
-    return StockAdjustmentLotDetailDto.from(row);
-  }
-
-  // Returns lots with their lines as nested children — for the OPENING+serial tree UI.
-  async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
-    return this.repository.findTreeNodesByAdjustmentId(adjustmentId);
-  }
-
   async addLot(
     adjustment: AdjustmentContext,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
@@ -142,6 +122,26 @@ export class StockAdjustmentLotsDomainService {
     const refreshed = rowsWithStats.find((r) => r.id === lotId);
     if (!refreshed) throw new NotFoundException('Lot not found after update.');
     return StockAdjustmentLotDto.from(refreshed);
+  }
+
+  // Lists all lots for an adjustment — existence check is the app-layer's responsibility
+  async listByAdjustment(adjustmentId: string): Promise<StockAdjustmentLotDto[]> {
+    const rows = await this.repository.findByAdjustmentId(adjustmentId);
+    return rows.map(StockAdjustmentLotDto.from);
+  }
+
+  // Returns a single lot's detail (stats + already-used location ids + line ids).
+  async getLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailDto> {
+    const row = await this.repository.findLotDetail(lotId);
+    if (!row || row.stockAdjustmentId !== adjustmentId) {
+      throw new NotFoundException('Stock adjustment lot not found.');
+    }
+    return StockAdjustmentLotDetailDto.from(row);
+  }
+
+  // Returns lots with their lines as nested children — for the OPENING+serial tree UI.
+  async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
+    return this.repository.findTreeNodesByAdjustmentId(adjustmentId);
   }
 
   async removeLot(

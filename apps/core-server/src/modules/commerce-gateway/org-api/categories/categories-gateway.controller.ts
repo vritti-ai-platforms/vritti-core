@@ -45,20 +45,40 @@ export class CategoriesGatewayController {
 
   constructor(private readonly categoriesGatewayService: CategoriesGatewayService) {}
 
-  // Returns total category count
-  @Get('count')
-  @RequirePermission(ORG_CATEGORIES.view)
-  async count(): Promise<CategoryCountResponseDto> {
-    this.logger.log('GET /commerce-api/org/categories/count');
-    return this.categoriesGatewayService.count();
+  // Creates a new category
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_CATEGORIES.add)
+  @ApiCreateCategory()
+  async create(@Body() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
+    return this.categoriesGatewayService.create(dto);
   }
 
-  // Returns categories as a tree hierarchy for TreeView
-  @Get('tree')
+  // Updates a category by ID
+  @Patch(':id')
+  @RequirePermission(ORG_CATEGORIES.edit)
+  @ApiUpdateCategory()
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateCategoryDto,
+  ): Promise<CategoryResponseDto> {
+    return this.categoriesGatewayService.update(id, dto);
+  }
+
+  // Reorders siblings under a parent category
+  @Post('reorder')
+  @RequirePermission(ORG_CATEGORIES.edit)
+  reorder(@Body() dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
+    this.logger.log('POST /commerce-api/org/categories/reorder');
+    return this.categoriesGatewayService.reorder(dto);
+  }
+
+  // Returns a single category by ID
+  @Get(':id')
   @RequirePermission(ORG_CATEGORIES.view)
-  async findTree(@Query('search') search?: string): Promise<CategoryTreeResponseDto[]> {
-    this.logger.log('GET /commerce-api/org/categories/tree');
-    return this.categoriesGatewayService.findTree(search);
+  @ApiGetCategory()
+  async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CategoryResponseDto> {
+    return this.categoriesGatewayService.findById(id);
   }
 
   // Returns paginated child categories for a given parent category
@@ -84,40 +104,20 @@ export class CategoriesGatewayController {
     return this.categoriesGatewayService.findItemsForTable(userId, id);
   }
 
-  // Reorders siblings under a parent category
-  @Post('reorder')
-  @RequirePermission(ORG_CATEGORIES.edit)
-  reorder(@Body() dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
-    this.logger.log('POST /commerce-api/org/categories/reorder');
-    return this.categoriesGatewayService.reorder(dto);
-  }
-
-  // Creates a new category
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_CATEGORIES.add)
-  @ApiCreateCategory()
-  async create(@Body() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
-    return this.categoriesGatewayService.create(dto);
-  }
-
-  // Returns a single category by ID
-  @Get(':id')
+  // Returns total category count
+  @Get('count')
   @RequirePermission(ORG_CATEGORIES.view)
-  @ApiGetCategory()
-  async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CategoryResponseDto> {
-    return this.categoriesGatewayService.findById(id);
+  async count(): Promise<CategoryCountResponseDto> {
+    this.logger.log('GET /commerce-api/org/categories/count');
+    return this.categoriesGatewayService.count();
   }
 
-  // Updates a category by ID
-  @Patch(':id')
-  @RequirePermission(ORG_CATEGORIES.edit)
-  @ApiUpdateCategory()
-  async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: UpdateCategoryDto,
-  ): Promise<CategoryResponseDto> {
-    return this.categoriesGatewayService.update(id, dto);
+  // Returns categories as a tree hierarchy for TreeView
+  @Get('tree')
+  @RequirePermission(ORG_CATEGORIES.view)
+  async findTree(@Query('search') search?: string): Promise<CategoryTreeResponseDto[]> {
+    this.logger.log('GET /commerce-api/org/categories/tree');
+    return this.categoriesGatewayService.findTree(search);
   }
 
   // Deletes a category by ID

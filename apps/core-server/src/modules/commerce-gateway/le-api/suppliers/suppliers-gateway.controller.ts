@@ -65,14 +65,6 @@ export class SuppliersGatewayController {
     private readonly quotationsGatewayService: SupplierQuotationsGatewayService,
   ) {}
 
-  // Returns paginated suppliers for the data table with server-stored state
-  @Get('table')
-  @RequirePermission(LE_SUPPLIERS.view)
-  getSupplierTable(@UserId() userId: string): Promise<SupplierTableResponseDto> {
-    this.logger.log('GET /commerce-api/le/suppliers/table');
-    return this.suppliersGatewayService.findForTable(userId);
-  }
-
   // Creates a new supplier
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -82,23 +74,45 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.create(dto);
   }
 
-  // Returns linked items for a supplier table
-  @Get(':id/items/table')
-  @RequirePermission(LE_SUPPLIERS.items.view)
-  getSupplierItemsTable(
+  // Enrolls the supplier at one of the LE's sites
+  @Post(':id/enrollments')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIERS.sites.enroll)
+  createEnrollment(
     @Param('id') supplierId: string,
-    @UserId() userId: string,
-  ): Promise<SupplierItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/table`);
-    return this.suppliersGatewayService.findItemsTable(supplierId, userId);
+    @Body() dto: CreateSupplierEnrollmentDto,
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/enrollments`);
+    return this.suppliersGatewayService.createEnrollment(supplierId, dto, orgId, legalEntityId);
   }
 
-  // Returns a single supplier by ID
-  @Get(':id')
-  @RequirePermission(LE_SUPPLIERS.view)
-  findById(@Param('id') id: string): Promise<SupplierResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${id}`);
-    return this.suppliersGatewayService.findById(id);
+  // Adds an inventory item to a supplier
+  @Post(':id/items')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIERS.items.add)
+  addItem(
+    @Param('id') supplierId: string,
+    @Body() dto: AddSupplierItemDto,
+  ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items`);
+    return this.suppliersGatewayService.addItem(supplierId, dto);
+  }
+
+  // Sets a supplier item up at one of the LE's sites
+  @Post(':id/items/:itemId/site-items')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIERS.siteItems.add)
+  createSiteItem(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: AddSupplierSiteItemDto,
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<SupplierSiteItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items/${itemId}/site-items`);
+    return this.suppliersGatewayService.createSiteItem(itemId, dto, orgId, legalEntityId);
   }
 
   // Updates a supplier by ID
@@ -107,6 +121,55 @@ export class SuppliersGatewayController {
   update(@Param('id') id: string, @Body() dto: UpdateSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/${id}`);
     return this.suppliersGatewayService.update(id, dto);
+  }
+
+  // Updates the supplier's enrollment picks and flags at one of the LE's sites
+  @Patch(':id/enrollments/:siteId')
+  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
+  updateEnrollment(
+    @Param('id') supplierId: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: UpdateSupplierEnrollmentDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
+    return this.suppliersGatewayService.updateEnrollment(supplierId, siteId, dto);
+  }
+
+  // Updates the supplier's purchasing settings at one of the LE's sites
+  @Patch(':id/enrollments/:siteId/purchasing')
+  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
+  updateEnrollmentPurchasing(
+    @Param('id') supplierId: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: UpdateEnrollmentPurchasingDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/purchasing`);
+    return this.suppliersGatewayService.updateEnrollmentPurchasing(supplierId, siteId, dto);
+  }
+
+  // Updates a supplier item link
+  @Patch(':id/items/:itemId')
+  @RequirePermission(LE_SUPPLIERS.items.edit)
+  updateItem(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateSupplierItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
+    return this.suppliersGatewayService.updateItem(supplierId, itemId, dto);
+  }
+
+  // Updates a supplier item's settings at one site
+  @Patch(':id/items/:itemId/site-items/:siteItemId')
+  @RequirePermission(LE_SUPPLIERS.siteItems.edit)
+  updateSiteItem(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Param('siteItemId') supplierSiteItemId: string,
+    @Body() dto: UpdateSupplierSiteItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}/site-items/${supplierSiteItemId}`);
+    return this.suppliersGatewayService.updateSiteItem(supplierSiteItemId, dto);
   }
 
   // Bulk-activates or deactivates suppliers
@@ -166,14 +229,6 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.setPaymentBlocked(id, dto.paymentBlocked);
   }
 
-  // Deletes a supplier by ID
-  @Delete(':id')
-  @RequirePermission(LE_SUPPLIERS.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/${id}`);
-    return this.suppliersGatewayService.delete(id);
-  }
-
   // Sets the currencies a supplier trades in and its default; prices are never converted
   @Post(':id/change-currency')
   @HttpCode(HttpStatus.OK)
@@ -181,6 +236,86 @@ export class SuppliersGatewayController {
   changeCurrency(@Param('id') id: string, @Body() dto: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/le/suppliers/${id}/change-currency`);
     return this.suppliersGatewayService.changeCurrency(id, dto);
+  }
+
+  // Activates or deactivates the supplier's own enrollment at one of the LE's sites
+  @Patch(':id/enrollments/:siteId/active')
+  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
+  setEnrollmentActive(
+    @Param('id') supplierId: string,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Body() dto: SetSupplierEnrollmentActiveDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/active`);
+    return this.suppliersGatewayService.setEnrollmentActive(supplierId, siteId, dto.isActive);
+  }
+
+  // Bulk-sets the minimum order of supplier items; declared before :itemId so "min-order" is not captured as an item id
+  @Patch(':id/items/min-order')
+  @RequirePermission(LE_SUPPLIERS.items.edit)
+  bulkSetItemMinOrder(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkSetSupplierItemMinOrderDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/min-order`);
+    return this.suppliersGatewayService.bulkSetItemMinOrder(supplierId, dto);
+  }
+
+  // Bulk-sets the default lead time of supplier items; declared before :itemId so "default-lead-time" is not captured as an item id
+  @Patch(':id/items/default-lead-time')
+  @RequirePermission(LE_SUPPLIERS.items.edit)
+  bulkSetItemDefaultLeadTime(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkSetSupplierItemDefaultLeadTimeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/default-lead-time`);
+    return this.suppliersGatewayService.bulkSetItemDefaultLeadTime(supplierId, dto);
+  }
+
+  // Bulk-marks supplier items as preferred at chosen sites
+  @Patch(':id/site-items/preferred')
+  @RequirePermission(LE_SUPPLIERS.siteItems.edit)
+  bulkSetSiteItemsPreferred(
+    @Param('id') supplierId: string,
+    @Body() dto: BulkSetSupplierSiteItemPreferredDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/site-items/preferred`);
+    return this.suppliersGatewayService.bulkSetSiteItemsPreferred(supplierId, dto);
+  }
+
+  // Returns a single supplier by ID
+  @Get(':id')
+  @RequirePermission(LE_SUPPLIERS.view)
+  findById(@Param('id') id: string): Promise<SupplierResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${id}`);
+    return this.suppliersGatewayService.findById(id);
+  }
+
+  // Returns a single supplier item by ID
+  @Get(':id/items/:itemId')
+  @RequirePermission(LE_SUPPLIERS.items.view)
+  findItemById(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SupplierItemResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
+    return this.suppliersGatewayService.findItemById(itemId);
+  }
+
+  // Returns paginated suppliers for the data table with server-stored state
+  @Get('table')
+  @RequirePermission(LE_SUPPLIERS.view)
+  getSupplierTable(@UserId() userId: string): Promise<SupplierTableResponseDto> {
+    this.logger.log('GET /commerce-api/le/suppliers/table');
+    return this.suppliersGatewayService.findForTable(userId);
+  }
+
+  // Returns linked items for a supplier table
+  @Get(':id/items/table')
+  @RequirePermission(LE_SUPPLIERS.items.view)
+  getSupplierItemsTable(
+    @Param('id') supplierId: string,
+    @UserId() userId: string,
+  ): Promise<SupplierItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/table`);
+    return this.suppliersGatewayService.findItemsTable(supplierId, userId);
   }
 
   // Returns every site of the legal entity with the supplier's enrollment there
@@ -194,18 +329,6 @@ export class SuppliersGatewayController {
   ): Promise<SupplierEnrollmentTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/table`);
     return this.suppliersGatewayService.findEnrollmentsTable(supplierId, userId, orgId, legalEntityId);
-  }
-
-  // Returns the supplier's enrollment at one of the LE's sites with its commercial identity, enrolled or not
-  @Get(':id/enrollments/:siteId')
-  @RequirePermission(LE_SUPPLIERS.sites.view)
-  findEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierEnrollmentDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
-    return this.suppliersGatewayService.findEnrollment(supplierId, siteId, orgId);
   }
 
   // Returns a supplier's site items at one of the LE's sites for the table
@@ -232,140 +355,6 @@ export class SuppliersGatewayController {
     return this.quotationsGatewayService.findEnrollmentQuotationsTable(supplierId, siteId, userId);
   }
 
-  // Enrolls the supplier at one of the LE's sites
-  @Post(':id/enrollments')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_SUPPLIERS.sites.enroll)
-  createEnrollment(
-    @Param('id') supplierId: string,
-    @Body() dto: CreateSupplierEnrollmentDto,
-    @OrgId() orgId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/enrollments`);
-    return this.suppliersGatewayService.createEnrollment(supplierId, dto, orgId, legalEntityId);
-  }
-
-  // Updates the supplier's enrollment picks and flags at one of the LE's sites
-  @Patch(':id/enrollments/:siteId')
-  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
-  updateEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Body() dto: UpdateSupplierEnrollmentDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
-    return this.suppliersGatewayService.updateEnrollment(supplierId, siteId, dto);
-  }
-
-  // Updates the supplier's purchasing settings at one of the LE's sites
-  @Patch(':id/enrollments/:siteId/purchasing')
-  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
-  updateEnrollmentPurchasing(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Body() dto: UpdateEnrollmentPurchasingDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/purchasing`);
-    return this.suppliersGatewayService.updateEnrollmentPurchasing(supplierId, siteId, dto);
-  }
-
-  // Activates or deactivates the supplier's own enrollment at one of the LE's sites
-  @Patch(':id/enrollments/:siteId/active')
-  @RequirePermission(LE_SUPPLIERS.sites.editEnroll)
-  setEnrollmentActive(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Body() dto: SetSupplierEnrollmentActiveDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/active`);
-    return this.suppliersGatewayService.setEnrollmentActive(supplierId, siteId, dto.isActive);
-  }
-
-  // Removes the supplier's enrollment at one of the LE's sites
-  @Delete(':id/enrollments/:siteId')
-  @RequirePermission(LE_SUPPLIERS.sites.unenroll)
-  deleteEnrollment(
-    @Param('id') supplierId: string,
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
-    return this.suppliersGatewayService.deleteEnrollment(supplierId, siteId);
-  }
-
-  // Adds an inventory item to a supplier
-  @Post(':id/items')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_SUPPLIERS.items.add)
-  addItem(
-    @Param('id') supplierId: string,
-    @Body() dto: AddSupplierItemDto,
-  ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items`);
-    return this.suppliersGatewayService.addItem(supplierId, dto);
-  }
-
-  // Bulk-sets the minimum order of supplier items; declared before :itemId so "min-order" is not captured as an item id
-  @Patch(':id/items/min-order')
-  @RequirePermission(LE_SUPPLIERS.items.edit)
-  bulkSetItemMinOrder(
-    @Param('id') supplierId: string,
-    @Body() dto: BulkSetSupplierItemMinOrderDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/min-order`);
-    return this.suppliersGatewayService.bulkSetItemMinOrder(supplierId, dto);
-  }
-
-  // Bulk-sets the default lead time of supplier items; declared before :itemId so "default-lead-time" is not captured as an item id
-  @Patch(':id/items/default-lead-time')
-  @RequirePermission(LE_SUPPLIERS.items.edit)
-  bulkSetItemDefaultLeadTime(
-    @Param('id') supplierId: string,
-    @Body() dto: BulkSetSupplierItemDefaultLeadTimeDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/default-lead-time`);
-    return this.suppliersGatewayService.bulkSetItemDefaultLeadTime(supplierId, dto);
-  }
-
-  // Returns a single supplier item by ID
-  @Get(':id/items/:itemId')
-  @RequirePermission(LE_SUPPLIERS.items.view)
-  findItemById(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SupplierItemResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
-    return this.suppliersGatewayService.findItemById(itemId);
-  }
-
-  // Updates a supplier item link
-  @Patch(':id/items/:itemId')
-  @RequirePermission(LE_SUPPLIERS.items.edit)
-  updateItem(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: UpdateSupplierItemDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
-    return this.suppliersGatewayService.updateItem(supplierId, itemId, dto);
-  }
-
-  // Unlinks an inventory item from a supplier
-  @Delete(':id/items/:itemId')
-  @RequirePermission(LE_SUPPLIERS.items.delete)
-  unlinkItem(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
-    return this.suppliersGatewayService.unlinkItem(supplierId, itemId);
-  }
-
-  // Bulk-marks supplier items as preferred at chosen sites
-  @Patch(':id/site-items/preferred')
-  @RequirePermission(LE_SUPPLIERS.siteItems.edit)
-  bulkSetSiteItemsPreferred(
-    @Param('id') supplierId: string,
-    @Body() dto: BulkSetSupplierSiteItemPreferredDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/site-items/preferred`);
-    return this.suppliersGatewayService.bulkSetSiteItemsPreferred(supplierId, dto);
-  }
-
   // Returns the site items of a supplier item for the table
   @Get(':id/items/:itemId/site-items/table')
   @RequirePermission(LE_SUPPLIERS.siteItems.view)
@@ -379,32 +368,43 @@ export class SuppliersGatewayController {
     return this.suppliersGatewayService.findSiteItemsTable(itemId, userId, orgId);
   }
 
-  // Sets a supplier item up at one of the LE's sites
-  @Post(':id/items/:itemId/site-items')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_SUPPLIERS.siteItems.add)
-  createSiteItem(
+  // Returns the supplier's enrollment at one of the LE's sites with its commercial identity, enrolled or not
+  @Get(':id/enrollments/:siteId')
+  @RequirePermission(LE_SUPPLIERS.sites.view)
+  findEnrollment(
     @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: AddSupplierSiteItemDto,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
     @OrgId() orgId: string,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<SupplierSiteItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items/${itemId}/site-items`);
-    return this.suppliersGatewayService.createSiteItem(itemId, dto, orgId, legalEntityId);
+  ): Promise<SupplierEnrollmentDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
+    return this.suppliersGatewayService.findEnrollment(supplierId, siteId, orgId);
   }
 
-  // Updates a supplier item's settings at one site
-  @Patch(':id/items/:itemId/site-items/:siteItemId')
-  @RequirePermission(LE_SUPPLIERS.siteItems.edit)
-  updateSiteItem(
+  // Deletes a supplier by ID
+  @Delete(':id')
+  @RequirePermission(LE_SUPPLIERS.delete)
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/suppliers/${id}`);
+    return this.suppliersGatewayService.delete(id);
+  }
+
+  // Removes the supplier's enrollment at one of the LE's sites
+  @Delete(':id/enrollments/:siteId')
+  @RequirePermission(LE_SUPPLIERS.sites.unenroll)
+  deleteEnrollment(
     @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @Param('siteItemId') supplierSiteItemId: string,
-    @Body() dto: UpdateSupplierSiteItemDto,
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}/site-items/${supplierSiteItemId}`);
-    return this.suppliersGatewayService.updateSiteItem(supplierSiteItemId, dto);
+    this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
+    return this.suppliersGatewayService.deleteEnrollment(supplierId, siteId);
+  }
+
+  // Unlinks an inventory item from a supplier
+  @Delete(':id/items/:itemId')
+  @RequirePermission(LE_SUPPLIERS.items.delete)
+  unlinkItem(@Param('id') supplierId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/suppliers/${supplierId}/items/${itemId}`);
+    return this.suppliersGatewayService.unlinkItem(supplierId, itemId);
   }
 
   // Removes a supplier item from one site

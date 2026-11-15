@@ -103,6 +103,7 @@ See `.claude/rules/` for detailed pattern documentation:
 - `auth-architecture.md` — Auth system facts, session types, `@RequireSession`
 - `backend-controller.md` — Controller thin layer rules
 - `backend-service.md` — Service business logic rules
+- `method-order.md` — Controller/service method order: create → update → update-related → findById → table → other finds → delete
 - `backend-repository.md` — Repository data access rules
 - `backend-dto.md` — DTO organization (request/response/entity)
 - `db-schema.md` — Drizzle schema + RLS policy conventions (workspace-scope helpers, no hardcoded table/column names, migration rules)

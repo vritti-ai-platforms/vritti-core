@@ -31,39 +31,6 @@ export class SupplierInvoicesGatewayService {
     private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
-  // Returns the invoices of the legal entity's sites with server-stored state and site names
-  async findForTable(userId: string, orgId: string): Promise<SupplierInvoiceTableResponseDto> {
-    this.logger.log('le.supplierInvoices.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-supplier-invoices');
-    const { result, count } = await this.nats.send<{ result: CommerceSupplierInvoice[]; count: number }>(
-      'commerce',
-      'le.supplierInvoices.table',
-      state,
-    );
-    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
-  }
-
-  // Returns an invoice with its lines and holds, its site named
-  async findById(id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
-    this.logger.log(`le.supplierInvoices.findById — id: ${id}`);
-    const invoice = await this.nats.send<CommerceSupplierInvoiceDetail>('commerce', 'le.supplierInvoices.findById', {
-      id,
-    });
-    const [named] = await this.ownerNames.withSiteNames(orgId, [invoice]);
-    return named;
-  }
-
-  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, oldest receipt first
-  async findInvoiceableGoodsReceipts(
-    siteId: string,
-    query: LeInvoiceableGoodsReceiptsQueryDto,
-    legalEntityId: string | undefined,
-  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
-    this.logger.log(`le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${siteId}`);
-    await this.validateSiteOfLegalEntity(siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.supplierInvoices.invoiceableGoodsReceipts', { ...query, siteId });
-  }
-
   // Records a draft invoice of a supplier at one of the legal entity's sites
   async create(
     dto: LeCreateSupplierInvoiceDto,
@@ -74,10 +41,22 @@ export class SupplierInvoicesGatewayService {
     return this.nats.send('commerce', 'le.supplierInvoices.create', dto);
   }
 
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
+  createLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.lines.create — invoiceId: ${supplierInvoiceId}`);
+    return this.nats.send('commerce', 'le.supplierInvoices.lines.create', { ...dto, supplierInvoiceId });
+  }
+
   // Updates an invoice's header; a posted invoice is re-costed in the legal entity's currency
   update(id: string, dto: UpdateSupplierInvoiceDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.update — id: ${id}`);
     return this.nats.send('commerce', 'le.supplierInvoices.update', { ...dto, id });
+  }
+
+  // Updates a line of an invoice
+  updateLine(supplierInvoiceId: string, id: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.lines.update — id: ${id}`);
+    return this.nats.send('commerce', 'le.supplierInvoices.lines.update', { ...dto, id, supplierInvoiceId });
   }
 
   // Posts a draft invoice, setting the final cost of the stock it invoices
@@ -92,28 +71,49 @@ export class SupplierInvoicesGatewayService {
     return this.nats.send('commerce', 'le.supplierInvoices.cancel', { id });
   }
 
-  // Deletes a draft invoice
-  delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.supplierInvoices.delete — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.delete', { id });
-  }
-
   // Releases an open hold of an invoice with a reason
   releaseHold(supplierInvoiceId: string, id: string, dto: ReleaseSupplierInvoiceHoldDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.holds.release — invoiceId: ${supplierInvoiceId}, hold: ${id}`);
     return this.nats.send('commerce', 'le.supplierInvoices.holds.release', { ...dto, supplierInvoiceId, id });
   }
 
-  // Adds an item line invoicing a received lot, or a charge line, to an invoice
-  createLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.supplierInvoices.lines.create — invoiceId: ${supplierInvoiceId}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.lines.create', { ...dto, supplierInvoiceId });
+  // Returns an invoice with its lines and holds, its site named
+  async findById(id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
+    this.logger.log(`le.supplierInvoices.findById — id: ${id}`);
+    const invoice = await this.nats.send<CommerceSupplierInvoiceDetail>('commerce', 'le.supplierInvoices.findById', {
+      id,
+    });
+    const [named] = await this.ownerNames.withSiteNames(orgId, [invoice]);
+    return named;
   }
 
-  // Updates a line of an invoice
-  updateLine(supplierInvoiceId: string, id: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.supplierInvoices.lines.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.supplierInvoices.lines.update', { ...dto, id, supplierInvoiceId });
+  // Returns the invoices of the legal entity's sites with server-stored state and site names
+  async findForTable(userId: string, orgId: string): Promise<SupplierInvoiceTableResponseDto> {
+    this.logger.log('le.supplierInvoices.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-supplier-invoices');
+    const { result, count } = await this.nats.send<{ result: CommerceSupplierInvoice[]; count: number }>(
+      'commerce',
+      'le.supplierInvoices.table',
+      state,
+    );
+    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
+  }
+
+  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, oldest receipt first
+  async findInvoiceableGoodsReceipts(
+    siteId: string,
+    query: LeInvoiceableGoodsReceiptsQueryDto,
+    legalEntityId: string | undefined,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
+    this.logger.log(`le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${siteId}`);
+    await this.validateSiteOfLegalEntity(siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.supplierInvoices.invoiceableGoodsReceipts', { ...query, siteId });
+  }
+
+  // Deletes a draft invoice
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.supplierInvoices.delete — id: ${id}`);
+    return this.nats.send('commerce', 'le.supplierInvoices.delete', { id });
   }
 
   // Removes a line from an invoice

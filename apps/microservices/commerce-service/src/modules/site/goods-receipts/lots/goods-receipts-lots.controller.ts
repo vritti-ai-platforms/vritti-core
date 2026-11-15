@@ -17,16 +17,6 @@ export class GoodsReceiptsLotsController {
     private readonly service: GoodsReceiptsLotsService,
   ) {}
 
-  // Returns the lots of a goods receipt item
-  @MessagePattern({ cmd: 'site.goodsReceipts.lots' })
-  lots(
-    @Payload() data: { goodsReceiptId: string; itemId: string },
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<GoodsReceiptLotDto[]> {
-    this.logger.log(`site.goodsReceipts.lots — item: ${data.itemId}`);
-    return this.lotsService.findByItem(data.itemId, leCurrencyCode);
-  }
-
   // Adds a lot to a goods receipt item
   @MessagePattern({ cmd: 'site.goodsReceipts.addLot' })
   addLot(
@@ -45,6 +35,16 @@ export class GoodsReceiptsLotsController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.goodsReceipts.updateLot — lot: ${dto.lotId}`);
     return this.service.updateLot(dto, leCurrencyCode);
+  }
+
+  // Returns the lots of a goods receipt item
+  @MessagePattern({ cmd: 'site.goodsReceipts.lots' })
+  lots(
+    @Payload() data: { goodsReceiptId: string; itemId: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<GoodsReceiptLotDto[]> {
+    this.logger.log(`site.goodsReceipts.lots — item: ${data.itemId}`);
+    return this.lotsService.findByItem(data.itemId, leCurrencyCode);
   }
 
   // Removes a lot from a goods receipt item

@@ -66,23 +66,6 @@ export class PurchasesService {
     };
   }
 
-  // Returns a purchase's header with its item, quotation and supplier counts, its progress and the actions it offers
-  // the caller, from counts rather than its legs
-  async findHeader(id: string, headers: NatsHeaders): Promise<PurchaseHeaderDto> {
-    const purchase = await this.purchasesService.findHeaderOrThrow(id);
-    const quotations = await this.purchaseQuotationsService.countForPurchase(purchase, headers);
-    return PurchaseHeaderDto.fromHeader(purchase, {
-      quotationCount: quotations.quotationCount,
-      availableActions: this.purchasesService.availableActions(purchase, {
-        postedSupplierCount: quotations.postedSupplierCount,
-        hasSourcingLeg: purchase.hasSourcingLeg,
-        hasQuotations: quotations.quotationCount > 0,
-        hasAllocations: purchase.hasAllocations,
-        hasLegs: purchase.supplierCount > 0,
-      }),
-    });
-  }
-
   // Changes a purchase's header while it is in REQUESTING
   async update(dto: UpdatePurchaseDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
@@ -114,27 +97,6 @@ export class PurchasesService {
     });
     this.logger.log(`purchases.cancel — ${purchase.purchaseNumber}, legs cancelled: ${cancelledLegCount}`);
     return { success: true, message: `Purchase "${purchase.purchaseNumber}" cancelled.` };
-  }
-
-  // Deletes a purchase nothing exists behind yet, re-checking its quotations, allocations and legs in the legal entity's
-  // workspace so draft quotations count too
-  async delete(id: string, headers: NatsHeaders): Promise<SuccessResponseDto> {
-    const purchase = await this.purchasesService.findDetailOrThrow(id);
-    await this.purchaseQuotationsService.inLegalEntityWorkspace(headers, () =>
-      this.database.runInTransaction(async () => {
-        const current = await this.purchasesService.findDetailOrThrow(purchase.id);
-        const hasQuotations = await this.supplierQuotationsService.hasForPurchase(purchase.id);
-        const allocations = await this.allocationsService.findByPurchaseId(purchase.id);
-        const legs = await this.legsService.findByPurchaseId(purchase.id);
-        await this.purchasesService.delete(current, {
-          hasQuotations,
-          hasAllocations: allocations.length > 0,
-          hasLegs: legs.length > 0,
-        });
-      }),
-    );
-    this.logger.log(`purchases.delete — ${purchase.purchaseNumber}`);
-    return { success: true, message: `Purchase "${purchase.purchaseNumber}" deleted.` };
   }
 
   // Submits a purchase's items, moving it to quoting or sourcing
@@ -184,5 +146,43 @@ export class PurchasesService {
       success: true,
       message: `Purchase "${purchase.purchaseNumber}" submitted; ${pluralize('supplier', legs.length, true)} started, ${awaitingApprovalCount} waiting for approval.`,
     };
+  }
+
+  // Returns a purchase's header with its item, quotation and supplier counts, its progress and the actions it offers
+  // the caller, from counts rather than its legs
+  async findHeader(id: string, headers: NatsHeaders): Promise<PurchaseHeaderDto> {
+    const purchase = await this.purchasesService.findHeaderOrThrow(id);
+    const quotations = await this.purchaseQuotationsService.countForPurchase(purchase, headers);
+    return PurchaseHeaderDto.fromHeader(purchase, {
+      quotationCount: quotations.quotationCount,
+      availableActions: this.purchasesService.availableActions(purchase, {
+        postedSupplierCount: quotations.postedSupplierCount,
+        hasSourcingLeg: purchase.hasSourcingLeg,
+        hasQuotations: quotations.quotationCount > 0,
+        hasAllocations: purchase.hasAllocations,
+        hasLegs: purchase.supplierCount > 0,
+      }),
+    });
+  }
+
+  // Deletes a purchase nothing exists behind yet, re-checking its quotations, allocations and legs in the legal entity's
+  // workspace so draft quotations count too
+  async delete(id: string, headers: NatsHeaders): Promise<SuccessResponseDto> {
+    const purchase = await this.purchasesService.findDetailOrThrow(id);
+    await this.purchaseQuotationsService.inLegalEntityWorkspace(headers, () =>
+      this.database.runInTransaction(async () => {
+        const current = await this.purchasesService.findDetailOrThrow(purchase.id);
+        const hasQuotations = await this.supplierQuotationsService.hasForPurchase(purchase.id);
+        const allocations = await this.allocationsService.findByPurchaseId(purchase.id);
+        const legs = await this.legsService.findByPurchaseId(purchase.id);
+        await this.purchasesService.delete(current, {
+          hasQuotations,
+          hasAllocations: allocations.length > 0,
+          hasLegs: legs.length > 0,
+        });
+      }),
+    );
+    this.logger.log(`purchases.delete — ${purchase.purchaseNumber}`);
+    return { success: true, message: `Purchase "${purchase.purchaseNumber}" deleted.` };
   }
 }

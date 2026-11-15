@@ -14,15 +14,11 @@ export class SiteSupplierSiteItemsController {
 
   constructor(private readonly service: SupplierItemsDomainService) {}
 
-  // Returns a supplier's site items at the caller's site
-  @MessagePattern({ cmd: 'site.suppliers.siteItems.table' })
-  table(
-    @Payload() data: { supplierId: string } & TableState,
-    @RpcSiteId() siteId: string,
-  ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
-    const { supplierId, ...state } = data;
-    this.logger.log(`site.suppliers.siteItems.table — supplierId: ${supplierId}`);
-    return this.service.findSiteItemsAtSiteForTable(supplierId, siteId, state);
+  // Updates the caller site's terms for a supplier item; RLS limits the row to this site
+  @MessagePattern({ cmd: 'site.suppliers.siteItems.update' })
+  update(@Payload() dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.siteItems.update — id: ${dto.id}`);
+    return this.service.updateSiteItem(dto);
   }
 
   // Returns a supplier item's detail with the caller site's terms and price in force
@@ -35,10 +31,14 @@ export class SiteSupplierSiteItemsController {
     return this.service.findSiteItemDetail(data.supplierItemId, siteId);
   }
 
-  // Updates the caller site's terms for a supplier item; RLS limits the row to this site
-  @MessagePattern({ cmd: 'site.suppliers.siteItems.update' })
-  update(@Payload() dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.siteItems.update — id: ${dto.id}`);
-    return this.service.updateSiteItem(dto);
+  // Returns a supplier's site items at the caller's site
+  @MessagePattern({ cmd: 'site.suppliers.siteItems.table' })
+  table(
+    @Payload() data: { supplierId: string } & TableState,
+    @RpcSiteId() siteId: string,
+  ): Promise<{ result: SupplierSiteItemRowDto[]; count: number }> {
+    const { supplierId, ...state } = data;
+    this.logger.log(`site.suppliers.siteItems.table — supplierId: ${supplierId}`);
+    return this.service.findSiteItemsAtSiteForTable(supplierId, siteId, state);
   }
 }

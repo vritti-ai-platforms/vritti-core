@@ -19,6 +19,46 @@ export class InventoryItemLocationsDomainService {
 
   constructor(private readonly repository: InventoryItemLocationsDomainRepository) {}
 
+  // Creates a new config for an item at a location
+  async create(
+    inventoryItemId: string,
+    data: { locationId: string; isBlocked?: boolean },
+  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
+    const existing = await this.repository.findByCompositeKey(inventoryItemId, data.locationId);
+    if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
+
+    const entity = await this.repository.create({
+      inventoryItemId: inventoryItemId,
+      locationId: data.locationId,
+      isBlocked: data.isBlocked ?? false,
+    });
+
+    const row = await this.repository.findByIdWithLocation(entity.id);
+    this.logger.log(`Created item-location config for item ${inventoryItemId} at location ${data.locationId}`);
+    return {
+      success: true,
+      message: 'Item location configuration created successfully.',
+      data: InventoryItemLocationDto.from(row ?? { ...entity, locationName: null }),
+    };
+  }
+
+  // Blocks or unblocks new putaway of the item into this fixed location
+  async update(id: string, data: { isBlocked: boolean }): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findByIdWithLocation(id);
+    if (!existing) throw new NotFoundException('Item location configuration not found.');
+
+    await this.repository.update(id, { isBlocked: data.isBlocked });
+    this.logger.log(`Updated item-location config ${id} — isBlocked: ${data.isBlocked}`);
+
+    const locationLabel = existing.locationName ?? existing.locationId;
+    return {
+      success: true,
+      message: data.isBlocked
+        ? `"${locationLabel}" is now blocked for this item.`
+        : `"${locationLabel}" is now unblocked for this item.`,
+    };
+  }
+
   // Returns paginated, filtered, and sorted configs for an inventory item
   async findForTable(
     inventoryItemId: string,
@@ -65,46 +105,6 @@ export class InventoryItemLocationsDomainService {
     return {
       edges,
       pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
-    };
-  }
-
-  // Creates a new config for an item at a location
-  async create(
-    inventoryItemId: string,
-    data: { locationId: string; isBlocked?: boolean },
-  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    const existing = await this.repository.findByCompositeKey(inventoryItemId, data.locationId);
-    if (existing) throw new ConflictException('A configuration already exists for this item at this location.');
-
-    const entity = await this.repository.create({
-      inventoryItemId: inventoryItemId,
-      locationId: data.locationId,
-      isBlocked: data.isBlocked ?? false,
-    });
-
-    const row = await this.repository.findByIdWithLocation(entity.id);
-    this.logger.log(`Created item-location config for item ${inventoryItemId} at location ${data.locationId}`);
-    return {
-      success: true,
-      message: 'Item location configuration created successfully.',
-      data: InventoryItemLocationDto.from(row ?? { ...entity, locationName: null }),
-    };
-  }
-
-  // Blocks or unblocks new putaway of the item into this fixed location
-  async update(id: string, data: { isBlocked: boolean }): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findByIdWithLocation(id);
-    if (!existing) throw new NotFoundException('Item location configuration not found.');
-
-    await this.repository.update(id, { isBlocked: data.isBlocked });
-    this.logger.log(`Updated item-location config ${id} — isBlocked: ${data.isBlocked}`);
-
-    const locationLabel = existing.locationName ?? existing.locationId;
-    return {
-      success: true,
-      message: data.isBlocked
-        ? `"${locationLabel}" is now blocked for this item.`
-        : `"${locationLabel}" is now unblocked for this item.`,
     };
   }
 

@@ -24,19 +24,18 @@ export class OrgOfferingBomController {
     return this.orgService.createInventoryItem(dto);
   }
 
-  // The components, plus the inventory item already carrying this variant's code — read on its own because only the
-  // bill-of-materials view needs either
-  @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.list' })
-  findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
-    this.logger.log(`offerings.variants.bom.lines.list — variantId: ${data.variantId}`);
-    return this.bom.findByVariant(data.variantId);
-  }
-
   // One component at a time, so concurrent edits to the same variant cannot clobber each other
   @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.add' })
   addBomLine(@Payload() dto: AddBomLineDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.add — variantId: ${dto.variantId}`);
     return this.bom.addLine(dto);
+  }
+
+  // Links the item already carrying this variant's code, without the caller naming it
+  @MessagePattern({ cmd: 'org.offerings.variants.bom.addSuggested' })
+  addSuggestedComponent(@Payload() data: { variantId: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.bom.addSuggested — variantId: ${data.variantId}`);
+    return this.bom.addSuggested(data.variantId);
   }
 
   @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.update' })
@@ -45,16 +44,17 @@ export class OrgOfferingBomController {
     return this.bom.updateLine(dto);
   }
 
+  // The components, plus the inventory item already carrying this variant's code — read on its own because only the
+  // bill-of-materials view needs either
+  @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.list' })
+  findBom(@Payload() data: { variantId: string }): Promise<VariantBomDto> {
+    this.logger.log(`offerings.variants.bom.lines.list — variantId: ${data.variantId}`);
+    return this.bom.findByVariant(data.variantId);
+  }
+
   @MessagePattern({ cmd: 'org.offerings.variants.bom.lines.delete' })
   deleteBomLine(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.bom.lines.delete — id: ${data.id}`);
     return this.bom.deleteLine(data.id);
-  }
-
-  // Links the item already carrying this variant's code, without the caller naming it
-  @MessagePattern({ cmd: 'org.offerings.variants.bom.addSuggested' })
-  addSuggestedComponent(@Payload() data: { variantId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`offerings.variants.bom.addSuggested — variantId: ${data.variantId}`);
-    return this.bom.addSuggested(data.variantId);
   }
 }

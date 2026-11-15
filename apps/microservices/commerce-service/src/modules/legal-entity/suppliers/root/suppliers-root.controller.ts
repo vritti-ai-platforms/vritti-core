@@ -24,22 +24,10 @@ export class SuppliersRootController {
     private readonly suppliersService: SuppliersService,
   ) {}
 
-  @MessagePattern({ cmd: 'le.suppliers.table' })
-  async table(@Payload() state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
-    this.logger.log('suppliers.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'le.suppliers.create' })
   async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     this.logger.log(`suppliers.create — partyId: ${dto.partyId}`);
     return this.suppliersService.create(dto);
-  }
-
-  @MessagePattern({ cmd: 'le.suppliers.findById' })
-  async findById(@Payload() data: { id: string }): Promise<SupplierDetailDto> {
-    this.logger.log('suppliers.findById');
-    return this.service.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.update' })
@@ -87,16 +75,28 @@ export class SuppliersRootController {
     return this.service.setPaymentBlocked(dto.id, dto.paymentBlocked);
   }
 
-  @MessagePattern({ cmd: 'le.suppliers.delete' })
-  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log('suppliers.delete');
-    return this.service.delete(data.id);
-  }
-
   @MessagePattern({ cmd: 'le.suppliers.changeCurrency' })
   async changeCurrency(@Payload() data: ChangeSupplierCurrencyDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     this.logger.log(`suppliers.changeCurrency — id: ${id}, currency: ${dto.currencyCode}`);
     return this.suppliersService.changeCurrency(id, dto);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.findById' })
+  async findById(@Payload() data: { id: string }): Promise<SupplierDetailDto> {
+    this.logger.log('suppliers.findById');
+    return this.service.findById(data.id);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.table' })
+  async table(@Payload() state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
+    this.logger.log('suppliers.table');
+    return this.service.findForTable(state);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.delete' })
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.delete');
+    return this.service.delete(data.id);
   }
 }

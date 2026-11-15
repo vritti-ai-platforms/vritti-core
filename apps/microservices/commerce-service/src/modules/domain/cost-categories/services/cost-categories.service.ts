@@ -26,6 +26,72 @@ export class CostCategoriesDomainService {
 
   constructor(private readonly repository: CostCategoriesDomainRepository) {}
 
+  async create(data: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {
+    if (data.kind === CostCategoryKindValues.ITEM) {
+      const existing = await this.repository.findByKind(CostCategoryKindValues.ITEM);
+      if (existing) {
+        throw new ConflictException({
+          label: 'ITEM category already exists',
+          detail: `Only one ITEM-kind cost category is allowed per organization. "${existing.name}" already serves that role — edit or deactivate it first.`,
+        });
+      }
+    }
+
+    const entity = await this.repository.create({
+      code: data.code,
+      name: data.name,
+      kind: data.kind,
+      isActive: true,
+      isSystem: false,
+    });
+
+    this.logger.log(`Created cost category: ${entity.code} (${entity.kind})`);
+    return {
+      success: true,
+      message: `Cost category "${entity.name}" created.`,
+      data: CostCategoryDto.from(entity, true),
+    };
+  }
+
+  async update(id: string, data: Omit<UpdateCostCategoryDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Cost category not found.');
+
+    await this.repository.update(id, data);
+
+    this.logger.log(`Updated cost category: ${existing.code} (${id})`);
+    return { success: true, message: `Cost category "${data.name ?? existing.name}" updated successfully.` };
+  }
+
+  async deactivate(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Cost category not found.');
+    if (!existing.isActive) {
+      return { success: true, message: `Cost category "${existing.name}" is already inactive.` };
+    }
+    await this.repository.setActive(id, false);
+    this.logger.log(`Deactivated cost category: ${existing.code} (${id})`);
+    return { success: true, message: `Cost category "${existing.name}" deactivated.` };
+  }
+
+  async activate(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Cost category not found.');
+    if (existing.isActive) {
+      return { success: true, message: `Cost category "${existing.name}" is already active.` };
+    }
+    await this.repository.setActive(id, true);
+    this.logger.log(`Activated cost category: ${existing.code} (${id})`);
+    return { success: true, message: `Cost category "${existing.name}" activated.` };
+  }
+
+  async findById(id: string): Promise<CostCategoryDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Cost category not found.');
+    const refs = await this.repository.countReferences(id);
+    return CostCategoryDto.from(entity, refs.costRows === 0 && !entity.isSystem);
+  }
+
   async findForTable(state: TableState): Promise<{ result: CostCategoryDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CostCategoriesDomainService.FIELD_MAP);
     const searchWhere = FilterProcessor.buildSearch(state.search, CostCategoriesDomainService.FIELD_MAP);
@@ -75,72 +141,6 @@ export class CostCategoriesDomainService {
       },
       options,
     );
-  }
-
-  async create(data: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {
-    if (data.kind === CostCategoryKindValues.ITEM) {
-      const existing = await this.repository.findByKind(CostCategoryKindValues.ITEM);
-      if (existing) {
-        throw new ConflictException({
-          label: 'ITEM category already exists',
-          detail: `Only one ITEM-kind cost category is allowed per organization. "${existing.name}" already serves that role — edit or deactivate it first.`,
-        });
-      }
-    }
-
-    const entity = await this.repository.create({
-      code: data.code,
-      name: data.name,
-      kind: data.kind,
-      isActive: true,
-      isSystem: false,
-    });
-
-    this.logger.log(`Created cost category: ${entity.code} (${entity.kind})`);
-    return {
-      success: true,
-      message: `Cost category "${entity.name}" created.`,
-      data: CostCategoryDto.from(entity, true),
-    };
-  }
-
-  async findById(id: string): Promise<CostCategoryDto> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('Cost category not found.');
-    const refs = await this.repository.countReferences(id);
-    return CostCategoryDto.from(entity, refs.costRows === 0 && !entity.isSystem);
-  }
-
-  async update(id: string, data: Omit<UpdateCostCategoryDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Cost category not found.');
-
-    await this.repository.update(id, data);
-
-    this.logger.log(`Updated cost category: ${existing.code} (${id})`);
-    return { success: true, message: `Cost category "${data.name ?? existing.name}" updated successfully.` };
-  }
-
-  async deactivate(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Cost category not found.');
-    if (!existing.isActive) {
-      return { success: true, message: `Cost category "${existing.name}" is already inactive.` };
-    }
-    await this.repository.setActive(id, false);
-    this.logger.log(`Deactivated cost category: ${existing.code} (${id})`);
-    return { success: true, message: `Cost category "${existing.name}" deactivated.` };
-  }
-
-  async activate(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Cost category not found.');
-    if (existing.isActive) {
-      return { success: true, message: `Cost category "${existing.name}" is already active.` };
-    }
-    await this.repository.setActive(id, true);
-    this.logger.log(`Activated cost category: ${existing.code} (${id})`);
-    return { success: true, message: `Cost category "${existing.name}" activated.` };
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {

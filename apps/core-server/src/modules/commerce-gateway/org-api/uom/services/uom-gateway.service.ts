@@ -20,13 +20,28 @@ export class UomGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Keyset/cursor Relay connection of a dimension's units for the mobile infinite feed (GraphQL-only).
-  async findForFeed(query: { dimensionId: string; limit?: number; cursor?: string }): Promise<{
-    edges: { cursor: string; node: UomResponseDto }[];
-    pageInfo: { hasNextPage: boolean; endCursor: string | null };
-  }> {
-    this.logger.log(`uom.feed — dimensionId: ${query.dimensionId}`);
-    return this.nats.send('commerce', 'org.uom.feed', query);
+  // Creates a new UOM
+  async create(dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
+    this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
+    return this.nats.send('commerce', 'org.uom.create', dto);
+  }
+
+  // Creates a new dimension
+  async createDimension(dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
+    this.logger.log(`uom.dimensions.create — code: ${dto.code}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.create', dto);
+  }
+
+  // Updates a UOM by ID
+  async update(id: string, dto: UpdateUomDto): Promise<SuccessResponseDto> {
+    this.logger.log(`uom.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.update', { id, ...dto });
+  }
+
+  // Updates a dimension by ID
+  async updateDimension(id: string, dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
+    this.logger.log(`uom.dimensions.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.update', { id, ...dto });
   }
 
   // Returns a single UOM by ID
@@ -35,16 +50,10 @@ export class UomGatewayService {
     return this.nats.send('commerce', 'org.uom.findById', { id });
   }
 
-  // Returns base units, optionally filtered by search
-  async findBaseUnits(search?: string): Promise<UomResponseDto[]> {
-    this.logger.log('uom.base');
-    return this.nats.send('commerce', 'org.uom.base', { search });
-  }
-
-  // Returns derived units for a given base unit
-  async findDerivedUnits(baseUnitId: string): Promise<UomResponseDto[]> {
-    this.logger.log(`uom.derived — baseUnitId: ${baseUnitId}`);
-    return this.nats.send('commerce', 'org.uom.derived', { baseUnitId });
+  // Returns a dimension by ID
+  async findDimensionById(id: string): Promise<UomDimensionResponseDto> {
+    this.logger.log(`uom.dimensions.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.dimensions.findById', { id });
   }
 
   // Returns paginated UOMs for the data table, scoped to a dimension
@@ -61,22 +70,25 @@ export class UomGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a new UOM
-  async create(dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
-    this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
-    return this.nats.send('commerce', 'org.uom.create', dto);
+  // Keyset/cursor Relay connection of a dimension's units for the mobile infinite feed (GraphQL-only).
+  async findForFeed(query: { dimensionId: string; limit?: number; cursor?: string }): Promise<{
+    edges: { cursor: string; node: UomResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`uom.feed — dimensionId: ${query.dimensionId}`);
+    return this.nats.send('commerce', 'org.uom.feed', query);
   }
 
-  // Updates a UOM by ID
-  async update(id: string, dto: UpdateUomDto): Promise<SuccessResponseDto> {
-    this.logger.log(`uom.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.uom.update', { id, ...dto });
+  // Returns base units, optionally filtered by search
+  async findBaseUnits(search?: string): Promise<UomResponseDto[]> {
+    this.logger.log('uom.base');
+    return this.nats.send('commerce', 'org.uom.base', { search });
   }
 
-  // Deletes a UOM by ID
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`uom.delete — id: ${id}`);
-    return this.nats.send('commerce', 'org.uom.delete', { id });
+  // Returns derived units for a given base unit
+  async findDerivedUnits(baseUnitId: string): Promise<UomResponseDto[]> {
+    this.logger.log(`uom.derived — baseUnitId: ${baseUnitId}`);
+    return this.nats.send('commerce', 'org.uom.derived', { baseUnitId });
   }
 
   // Returns dimensions, optionally filtered by search
@@ -91,22 +103,10 @@ export class UomGatewayService {
     return this.nats.send('commerce', 'org.uom.dimensions.count', {});
   }
 
-  // Returns a dimension by ID
-  async findDimensionById(id: string): Promise<UomDimensionResponseDto> {
-    this.logger.log(`uom.dimensions.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.uom.dimensions.findById', { id });
-  }
-
-  // Creates a new dimension
-  async createDimension(dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
-    this.logger.log(`uom.dimensions.create — code: ${dto.code}`);
-    return this.nats.send('commerce', 'org.uom.dimensions.create', dto);
-  }
-
-  // Updates a dimension by ID
-  async updateDimension(id: string, dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
-    this.logger.log(`uom.dimensions.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.uom.dimensions.update', { id, ...dto });
+  // Deletes a UOM by ID
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`uom.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.uom.delete', { id });
   }
 
   // Deletes a dimension by ID

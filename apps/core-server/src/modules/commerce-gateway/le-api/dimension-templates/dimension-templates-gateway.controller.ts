@@ -45,15 +45,6 @@ export class LeDimensionTemplatesGatewayController {
 
   constructor(private readonly service: LeDimensionTemplatesGatewayService) {}
 
-  // Returns every dimension template this workspace can reach
-  @Get()
-  @RequirePermission(LE_DIMENSION_TEMPLATES.view)
-  @ApiListDimensionTemplates()
-  list(@OrgId() orgId: string, @Query() query: DimensionTemplatesQueryDto): Promise<DimensionTemplateResponseDto[]> {
-    this.logger.log('GET /commerce-api/le/dimension-templates');
-    return this.service.list(orgId, query.search);
-  }
-
   // Creates a dimension template owned by this workspace
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -73,6 +64,15 @@ export class LeDimensionTemplatesGatewayController {
     return this.service.update(id, dto);
   }
 
+  // Replaces a template's values with the set supplied
+  @Put(':id/values')
+  @RequirePermission(LE_DIMENSION_TEMPLATES.values.upsert)
+  @ApiUpsertDimensionTemplateValues()
+  upsertValues(@Param('id') id: string, @Body() dto: UpsertDimensionTemplateValuesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/le/dimension-templates/${id}/values`);
+    return this.service.upsertValues(id, dto.values);
+  }
+
   // Activates or deactivates a dimension template
   @Patch(':id/active')
   @RequirePermission(LE_DIMENSION_TEMPLATES.toggle)
@@ -82,6 +82,15 @@ export class LeDimensionTemplatesGatewayController {
     return this.service.setActive(id, dto.isActive);
   }
 
+  // Returns every dimension template this workspace can reach
+  @Get()
+  @RequirePermission(LE_DIMENSION_TEMPLATES.view)
+  @ApiListDimensionTemplates()
+  list(@OrgId() orgId: string, @Query() query: DimensionTemplatesQueryDto): Promise<DimensionTemplateResponseDto[]> {
+    this.logger.log('GET /commerce-api/le/dimension-templates');
+    return this.service.list(orgId, query.search);
+  }
+
   // Deletes a dimension template by ID
   @Delete(':id')
   @RequirePermission(LE_DIMENSION_TEMPLATES.delete)
@@ -89,14 +98,5 @@ export class LeDimensionTemplatesGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/le/dimension-templates/${id}`);
     return this.service.delete(id);
-  }
-
-  // Replaces a template's values with the set supplied
-  @Put(':id/values')
-  @RequirePermission(LE_DIMENSION_TEMPLATES.values.upsert)
-  @ApiUpsertDimensionTemplateValues()
-  upsertValues(@Param('id') id: string, @Body() dto: UpsertDimensionTemplateValuesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/le/dimension-templates/${id}/values`);
-    return this.service.upsertValues(id, dto.values);
   }
 }

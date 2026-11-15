@@ -108,55 +108,50 @@ export class OfferingVariantsDomainService {
 
   constructor(private readonly repository: OfferingVariantsDomainRepository) {}
 
-  // A POS channel's targets are tills; every other type's are apps. So the kind never has to be sent — the
-  // channel already says it, and a caller cannot get it wrong.
-  private static targetKindOf(type: CatalogChannelType): ChannelExclusionTarget['kind'] {
-    return type === CatalogChannelTypeValues.POS ? 'TERMINAL' : 'APP';
+  // One combination, added by hand rather than generated from the matrix
+  async create(data: CreateVariantDto): Promise<CreateResponseDto<OfferingVariantDto>> {
+    const { created } = await this.runGenerate({
+      offeringId: data.offeringId,
+      salesUomId: data.salesUomId,
+      combinations: [{ valueIds: data.valueIds }],
+    });
+    if (created.length === 0) {
+      throw new ConflictException({
+        label: 'Variant Exists',
+        detail: 'A variant with this combination already exists.',
+      });
+    }
+    if (data.externalSku) await this.repository.update(created[0].id, { externalSku: data.externalSku });
+    // Re-read rather than decorating the insert's own rows: `returning()` carries no joined names
+    return { success: true, message: `"${created[0].code}" created.`, data: await this.findById(created[0].id) };
   }
 
-  // Returns paginated, filtered, sorted variants of one offering for the data table.
-  // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
-  // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
-  // listed in, and whether the calling workspace set the channel and so may change what it offers.
-  async findForTable(
-    offeringId: string,
-    state: TableState,
-    channelType?: CatalogChannelType,
-    targetId?: string,
-  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
-    await this.requireReachableOffering(offeringId);
+  // Creates every selected combination that does not exist yet.
+  async generate(data: GenerateVariantsDto): Promise<SuccessResponseDto> {
+    const { message } = await this.runGenerate(data);
+    return { success: true, message };
+  }
 
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingVariantsDomainService.SEARCH_FIELD_MAP);
-    const where = and(eq(offeringVariants.offeringId, offeringId), filterWhere, searchWhere) as SQL;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...OfferingVariantsDomainService.SEARCH_FIELD_MAP,
-      ...OfferingVariantsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
+  // The one variant an offering without dimensions sells as: it names no values, so its Code is the offering's own
+  async createStandalone(offeringId: string, salesUomId: string): Promise<OfferingVariant> {
+    const { created } = await this.runGenerate(
+      { offeringId, salesUomId, combinations: [{ valueIds: [] }] },
+      { standalone: true },
+    );
+    if (created.length === 0) {
+      throw new ConflictException({
+        label: 'Variant Exists',
+        detail: 'This offering already has its variant.',
+      });
+    }
+    return created[0];
+  }
 
-    const channel =
-      channelType && targetId ? await this.repository.findChannelForTarget(channelType, targetId) : undefined;
-    const target =
-      channel && targetId
-        ? { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) }
-        : undefined;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
-      limit,
-      offset,
-      channelId: channel?.id,
-      target,
-    });
-
-    return {
-      result: rows.map((row) => this.toTableRow(row)),
-      count,
-      catalogName: channel?.catalogName ?? '',
-      isOwn: channel?.isOwn ?? false,
-    };
+  async update(id: string, data: Omit<UpdateVariantDto, 'id'>): Promise<SuccessResponseDto> {
+    const { variant } = await this.requireOwnedVariant(id);
+    if (data.isActive) await this.assertBomSatisfied(variant);
+    await this.repository.update(id, data);
+    return { success: true, message: `"${variant.code}" updated.` };
   }
 
   // Sets whether one variant is available on one target — one app, one till. The exclusion names that target,
@@ -199,238 +194,6 @@ export class OfferingVariantsDomainService {
       success: true,
       message: availableHere ? `"${code}" is now available on "${name}".` : `"${code}" is now excluded from "${name}".`,
     };
-  }
-
-  // The subset of these codes that name a variant of this offering
-  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
-    await this.requireReachableOffering(offeringId);
-    return this.repository.findCodesInOffering(offeringId, codes);
-  }
-
-  // Variant options for a storefront's own picker — which variant a product page is about
-  async findOptions(query: {
-    search?: string;
-    excludeIds?: string[];
-    limit?: number;
-    offset?: number;
-  }): Promise<{ items: VariantOptionRow[]; total: number }> {
-    const { options, totalCount } = await this.repository.findOptions({
-      search: query.search,
-      excludeIds: query.excludeIds,
-      limit: Math.min(query.limit ?? 50, 200),
-      offset: query.offset ?? 0,
-    });
-    return {
-      items: options.map((option) => ({ id: String(option.value), code: option.label })),
-      total: totalCount ?? 0,
-    };
-  }
-
-  // Returns paginated active variant options for the select component — one offering's when offeringId is given
-  async findForSelect(
-    query: SelectOptionsQueryDto & { offeringId?: string; catalogId?: string },
-  ): Promise<SelectQueryResult> {
-    if (query.offeringId) await this.requireReachableOffering(query.offeringId);
-    return this.repository.findVariantsForSelect(
-      {
-        ...selectPageOptions(query),
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'name',
-        description: query.descriptionKey,
-        additionalKeys: query.additionalKeys,
-        // Read off the cached column rather than re-joining the junctions, which is what that column is for
-        additionalExpressions: {
-          facets: sql`(
-            select string_agg(entry->>'value', ' \u00b7 ')
-            from jsonb_array_elements(${offeringVariants.dimensions}) facet,
-                 jsonb_array_elements(facet->'values') entry
-          )`,
-        },
-        orderByKey: query.orderByKey || 'code',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      { offeringId: query.offeringId, catalogId: query.catalogId },
-    );
-  }
-
-  // Flat rows for the file export, scoped to one offering.
-  async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
-    await this.requireReachableOffering(offeringId);
-    const rows = await this.repository.findForExport(offeringId, page);
-    return rows.map((row) => ({
-      Code: row.code,
-      'External Code': row.externalSku ?? '',
-      Combination: row.values.map((value) => value.value).join(' \u00b7 '),
-      'Sold in': row.salesUomName ?? '',
-      'Tax Class': row.taxClassName ?? '',
-      'Tax Class Overridden': row.isTaxClassOverridden ? 'Yes' : 'No',
-      Fulfilment: row.fulfilmentType,
-      'Fulfilment Overridden': row.isFulfilmentOverridden ? 'Yes' : 'No',
-      Components: row.bomLineCount,
-      Status: row.isActive && row.isOfferingActive ? 'Active' : 'Inactive',
-    }));
-  }
-
-  async findById(id: string): Promise<OfferingVariantDto> {
-    const variant = await this.repository.findByIdWithNames(id);
-    if (!variant) throw new NotFoundException('Variant not found.');
-    await this.requireReachableOffering(variant.offeringId);
-    return this.toDto(variant);
-  }
-
-  async previewCombinations(data: PreviewCombinationsDto): Promise<VariantCombinationsDto> {
-    const offering = await this.requireReachableOffering(data.offeringId);
-    const valueRows = await this.repository.findDimensionValues(data.offeringId);
-    const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
-
-    const axes = data.axes
-      .map((axis) => axis.valueIds.map((id) => this.requireValueOnDimension(id, axis.dimensionId, byValueId)))
-      .filter((axis) => axis.length > 0)
-      .sort((a, b) => a[0].dimensionSortOrder - b[0].dimensionSortOrder);
-
-    if (axes.length === 0) return { combinations: [], total: 0, existingCount: 0 };
-
-    const product = axes.reduce<DimensionValueRow[][]>(
-      (acc, axis) => acc.flatMap((row) => axis.map((value) => [...row, value])),
-      [[]],
-    );
-
-    const existing = await this.existingCombinationKeys(data.offeringId);
-    const combinations = product.map((ordered) => ({
-      valueIds: ordered.map((row) => row.valueId),
-      code: this.deriveCode(offering.code, ordered),
-      labels: ordered.map((row) => row.value).join(' \u00b7 '),
-      exists: existing.has(this.combinationKey(ordered.map((row) => row.valueId))),
-    }));
-
-    return {
-      combinations,
-      total: combinations.length,
-      existingCount: combinations.filter((combination) => combination.exists).length,
-    };
-  }
-
-  // Creates every selected combination that does not exist yet.
-  async generate(data: GenerateVariantsDto): Promise<SuccessResponseDto> {
-    const { message } = await this.runGenerate(data);
-    return { success: true, message };
-  }
-
-  // The one variant an offering without dimensions sells as: it names no values, so its Code is the offering's own
-  async createStandalone(offeringId: string, salesUomId: string): Promise<OfferingVariant> {
-    const { created } = await this.runGenerate(
-      { offeringId, salesUomId, combinations: [{ valueIds: [] }] },
-      { standalone: true },
-    );
-    if (created.length === 0) {
-      throw new ConflictException({
-        label: 'Variant Exists',
-        detail: 'This offering already has its variant.',
-      });
-    }
-    return created[0];
-  }
-
-  // Shared by generate(), create() and createStandalone(): returns the rows it inserted, so a single-variant create can
-  // report the variant it actually made rather than guessing at the end of a sorted list.
-  private async runGenerate(
-    data: GenerateVariantsDto,
-    options: { standalone?: boolean } = {},
-  ): Promise<{ created: OfferingVariant[]; message: string }> {
-    const offering = await this.requireOwnedOffering(data.offeringId);
-    const dimensionCount = await this.repository.countDimensions(data.offeringId);
-    if (dimensionCount === 0 && !options.standalone) {
-      throw new ConflictException({
-        label: 'No Dimensions',
-        detail: `"${offering.name}" has no dimensions yet. Add at least one before generating variants.`,
-      });
-    }
-    if (dimensionCount > 0 && options.standalone) {
-      throw new ConflictException({
-        label: 'Has Dimensions',
-        detail: `"${offering.name}" has dimensions, so its variants are generated from them.`,
-      });
-    }
-
-    const valueRows = await this.repository.findDimensionValues(data.offeringId);
-    const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
-    const existing = await this.existingCombinationKeys(data.offeringId);
-
-    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; code: string; key: string }[] = [];
-    const seen = new Set<string>();
-
-    for (const combination of data.combinations) {
-      const ordered = this.resolveCombination(combination.valueIds, byValueId);
-      const key = this.combinationKey(ordered.map((row) => row.valueId));
-      if (existing.has(key) || seen.has(key)) continue;
-      seen.add(key);
-      planned.push({ valueIds: combination.valueIds, ordered, code: this.deriveCode(offering.code, ordered), key });
-    }
-
-    if (planned.length === 0) {
-      return { created: [], message: 'Nothing to create — every selected combination already exists.' };
-    }
-
-    await this.assertCodesFree(planned.map((plan) => plan.code));
-
-    const created = await this.repository.transaction(async () => {
-      const inserted = await this.repository.insertVariants(
-        planned.map((plan) => ({
-          offeringId: data.offeringId,
-          code: plan.code,
-          salesUomId: data.salesUomId,
-          taxClassId: offering.taxClassId,
-          fulfilmentType: offering.fulfilmentType,
-          combinationKey: plan.key,
-          isActive: offering.fulfilmentType === FulfilmentTypeValues.SERVICE,
-        })),
-      );
-
-      await this.repository.insertVariantValues(
-        inserted.flatMap((variant, index) =>
-          planned[index].ordered.map((row) => ({
-            variantId: variant.id,
-            dimensionId: row.dimensionId,
-            valueId: row.valueId,
-          })),
-        ),
-      );
-
-      await this.repository.refreshFacets(inserted.map((variant) => variant.id));
-      return inserted;
-    });
-
-    const skipped = data.combinations.length - planned.length;
-    this.logger.log(`Generated ${planned.length} variants for ${offering.code}`);
-    return {
-      created,
-      message: `${pluralize('variant', planned.length, true)} created${skipped > 0 ? `. ${skipped} already existed` : ''}.`,
-    };
-  }
-
-  // One combination, added by hand rather than generated from the matrix
-  async create(data: CreateVariantDto): Promise<CreateResponseDto<OfferingVariantDto>> {
-    const { created } = await this.runGenerate({
-      offeringId: data.offeringId,
-      salesUomId: data.salesUomId,
-      combinations: [{ valueIds: data.valueIds }],
-    });
-    if (created.length === 0) {
-      throw new ConflictException({
-        label: 'Variant Exists',
-        detail: 'A variant with this combination already exists.',
-      });
-    }
-    if (data.externalSku) await this.repository.update(created[0].id, { externalSku: data.externalSku });
-    // Re-read rather than decorating the insert's own rows: `returning()` carries no joined names
-    return { success: true, message: `"${created[0].code}" created.`, data: await this.findById(created[0].id) };
-  }
-
-  async update(id: string, data: Omit<UpdateVariantDto, 'id'>): Promise<SuccessResponseDto> {
-    const { variant } = await this.requireOwnedVariant(id);
-    if (data.isActive) await this.assertBomSatisfied(variant);
-    await this.repository.update(id, data);
-    return { success: true, message: `"${variant.code}" updated.` };
   }
 
   // The batch form of the isActive flip.
@@ -622,6 +385,160 @@ export class OfferingVariantsDomainService {
     return { success: true, message: `"${variant.code}" now follows "${offering.name}".` };
   }
 
+  async findById(id: string): Promise<OfferingVariantDto> {
+    const variant = await this.repository.findByIdWithNames(id);
+    if (!variant) throw new NotFoundException('Variant not found.');
+    await this.requireReachableOffering(variant.offeringId);
+    return this.toDto(variant);
+  }
+
+  // Returns paginated, filtered, sorted variants of one offering for the data table.
+  // `channelId` with its `target` asks for each row's state on that target as part of the same page read, and
+  // answers with the channel facts a caller would otherwise have to resolve again: the catalog these rows are
+  // listed in, and whether the calling workspace set the channel and so may change what it offers.
+  async findForTable(
+    offeringId: string,
+    state: TableState,
+    channelType?: CatalogChannelType,
+    targetId?: string,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number; catalogName: string; isOwn: boolean }> {
+    await this.requireReachableOffering(offeringId);
+
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OfferingVariantsDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OfferingVariantsDomainService.SEARCH_FIELD_MAP);
+    const where = and(eq(offeringVariants.offeringId, offeringId), filterWhere, searchWhere) as SQL;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...OfferingVariantsDomainService.SEARCH_FIELD_MAP,
+      ...OfferingVariantsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const channel =
+      channelType && targetId ? await this.repository.findChannelForTarget(channelType, targetId) : undefined;
+    const target =
+      channel && targetId
+        ? { id: targetId, kind: OfferingVariantsDomainService.targetKindOf(channel.type) }
+        : undefined;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(offeringVariants.code)],
+      limit,
+      offset,
+      channelId: channel?.id,
+      target,
+    });
+
+    return {
+      result: rows.map((row) => this.toTableRow(row)),
+      count,
+      catalogName: channel?.catalogName ?? '',
+      isOwn: channel?.isOwn ?? false,
+    };
+  }
+
+  // The subset of these codes that name a variant of this offering
+  async findCodesInOffering(offeringId: string, codes: string[]): Promise<string[]> {
+    await this.requireReachableOffering(offeringId);
+    return this.repository.findCodesInOffering(offeringId, codes);
+  }
+
+  // Variant options for a storefront's own picker — which variant a product page is about
+  async findOptions(query: {
+    search?: string;
+    excludeIds?: string[];
+    limit?: number;
+    offset?: number;
+  }): Promise<{ items: VariantOptionRow[]; total: number }> {
+    const { options, totalCount } = await this.repository.findOptions({
+      search: query.search,
+      excludeIds: query.excludeIds,
+      limit: Math.min(query.limit ?? 50, 200),
+      offset: query.offset ?? 0,
+    });
+    return {
+      items: options.map((option) => ({ id: String(option.value), code: option.label })),
+      total: totalCount ?? 0,
+    };
+  }
+
+  // Returns paginated active variant options for the select component — one offering's when offeringId is given
+  async findForSelect(
+    query: SelectOptionsQueryDto & { offeringId?: string; catalogId?: string },
+  ): Promise<SelectQueryResult> {
+    if (query.offeringId) await this.requireReachableOffering(query.offeringId);
+    return this.repository.findVariantsForSelect(
+      {
+        ...selectPageOptions(query),
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        // Read off the cached column rather than re-joining the junctions, which is what that column is for
+        additionalExpressions: {
+          facets: sql`(
+            select string_agg(entry->>'value', ' \u00b7 ')
+            from jsonb_array_elements(${offeringVariants.dimensions}) facet,
+                 jsonb_array_elements(facet->'values') entry
+          )`,
+        },
+        orderByKey: query.orderByKey || 'code',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      { offeringId: query.offeringId, catalogId: query.catalogId },
+    );
+  }
+
+  // Flat rows for the file export, scoped to one offering.
+  async findForExport(offeringId: string, page: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    await this.requireReachableOffering(offeringId);
+    const rows = await this.repository.findForExport(offeringId, page);
+    return rows.map((row) => ({
+      Code: row.code,
+      'External Code': row.externalSku ?? '',
+      Combination: row.values.map((value) => value.value).join(' \u00b7 '),
+      'Sold in': row.salesUomName ?? '',
+      'Tax Class': row.taxClassName ?? '',
+      'Tax Class Overridden': row.isTaxClassOverridden ? 'Yes' : 'No',
+      Fulfilment: row.fulfilmentType,
+      'Fulfilment Overridden': row.isFulfilmentOverridden ? 'Yes' : 'No',
+      Components: row.bomLineCount,
+      Status: row.isActive && row.isOfferingActive ? 'Active' : 'Inactive',
+    }));
+  }
+
+  async previewCombinations(data: PreviewCombinationsDto): Promise<VariantCombinationsDto> {
+    const offering = await this.requireReachableOffering(data.offeringId);
+    const valueRows = await this.repository.findDimensionValues(data.offeringId);
+    const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
+
+    const axes = data.axes
+      .map((axis) => axis.valueIds.map((id) => this.requireValueOnDimension(id, axis.dimensionId, byValueId)))
+      .filter((axis) => axis.length > 0)
+      .sort((a, b) => a[0].dimensionSortOrder - b[0].dimensionSortOrder);
+
+    if (axes.length === 0) return { combinations: [], total: 0, existingCount: 0 };
+
+    const product = axes.reduce<DimensionValueRow[][]>(
+      (acc, axis) => acc.flatMap((row) => axis.map((value) => [...row, value])),
+      [[]],
+    );
+
+    const existing = await this.existingCombinationKeys(data.offeringId);
+    const combinations = product.map((ordered) => ({
+      valueIds: ordered.map((row) => row.valueId),
+      code: this.deriveCode(offering.code, ordered),
+      labels: ordered.map((row) => row.value).join(' \u00b7 '),
+      exists: existing.has(this.combinationKey(ordered.map((row) => row.valueId))),
+    }));
+
+    return {
+      combinations,
+      total: combinations.length,
+      existingCount: combinations.filter((combination) => combination.exists).length,
+    };
+  }
+
   async delete(id: string): Promise<SuccessResponseDto> {
     const { variant } = await this.requireOwnedVariant(id);
 
@@ -641,6 +558,89 @@ export class OfferingVariantsDomainService {
       await this.repository.delete(id);
     });
     return { success: true, message: `"${variant.code}" deleted.` };
+  }
+
+  // A POS channel's targets are tills; every other type's are apps. So the kind never has to be sent — the
+  // channel already says it, and a caller cannot get it wrong.
+  private static targetKindOf(type: CatalogChannelType): ChannelExclusionTarget['kind'] {
+    return type === CatalogChannelTypeValues.POS ? 'TERMINAL' : 'APP';
+  }
+
+  // Shared by generate(), create() and createStandalone(): returns the rows it inserted, so a single-variant create can
+  // report the variant it actually made rather than guessing at the end of a sorted list.
+  private async runGenerate(
+    data: GenerateVariantsDto,
+    options: { standalone?: boolean } = {},
+  ): Promise<{ created: OfferingVariant[]; message: string }> {
+    const offering = await this.requireOwnedOffering(data.offeringId);
+    const dimensionCount = await this.repository.countDimensions(data.offeringId);
+    if (dimensionCount === 0 && !options.standalone) {
+      throw new ConflictException({
+        label: 'No Dimensions',
+        detail: `"${offering.name}" has no dimensions yet. Add at least one before generating variants.`,
+      });
+    }
+    if (dimensionCount > 0 && options.standalone) {
+      throw new ConflictException({
+        label: 'Has Dimensions',
+        detail: `"${offering.name}" has dimensions, so its variants are generated from them.`,
+      });
+    }
+
+    const valueRows = await this.repository.findDimensionValues(data.offeringId);
+    const byValueId = new Map(valueRows.map((row) => [row.valueId, row]));
+    const existing = await this.existingCombinationKeys(data.offeringId);
+
+    const planned: { valueIds: string[]; ordered: DimensionValueRow[]; code: string; key: string }[] = [];
+    const seen = new Set<string>();
+
+    for (const combination of data.combinations) {
+      const ordered = this.resolveCombination(combination.valueIds, byValueId);
+      const key = this.combinationKey(ordered.map((row) => row.valueId));
+      if (existing.has(key) || seen.has(key)) continue;
+      seen.add(key);
+      planned.push({ valueIds: combination.valueIds, ordered, code: this.deriveCode(offering.code, ordered), key });
+    }
+
+    if (planned.length === 0) {
+      return { created: [], message: 'Nothing to create — every selected combination already exists.' };
+    }
+
+    await this.assertCodesFree(planned.map((plan) => plan.code));
+
+    const created = await this.repository.transaction(async () => {
+      const inserted = await this.repository.insertVariants(
+        planned.map((plan) => ({
+          offeringId: data.offeringId,
+          code: plan.code,
+          salesUomId: data.salesUomId,
+          taxClassId: offering.taxClassId,
+          fulfilmentType: offering.fulfilmentType,
+          combinationKey: plan.key,
+          isActive: offering.fulfilmentType === FulfilmentTypeValues.SERVICE,
+        })),
+      );
+
+      await this.repository.insertVariantValues(
+        inserted.flatMap((variant, index) =>
+          planned[index].ordered.map((row) => ({
+            variantId: variant.id,
+            dimensionId: row.dimensionId,
+            valueId: row.valueId,
+          })),
+        ),
+      );
+
+      await this.repository.refreshFacets(inserted.map((variant) => variant.id));
+      return inserted;
+    });
+
+    const skipped = data.combinations.length - planned.length;
+    this.logger.log(`Generated ${planned.length} variants for ${offering.code}`);
+    return {
+      created,
+      message: `${pluralize('variant', planned.length, true)} created${skipped > 0 ? `. ${skipped} already existed` : ''}.`,
+    };
   }
 
   // Code = offering code + one value code per dimension, in dimension order

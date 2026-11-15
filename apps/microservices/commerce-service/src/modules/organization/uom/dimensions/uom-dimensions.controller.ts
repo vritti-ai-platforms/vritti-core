@@ -12,27 +12,6 @@ export class UomDimensionsController {
 
   constructor(private readonly service: UomDimensionsDomainService) {}
 
-  // Returns total UOM dimension count
-  @MessagePattern({ cmd: 'org.uom.dimensions.count' })
-  async count(): Promise<{ count: number }> {
-    this.logger.log('uom.dimensions.count');
-    return this.service.count();
-  }
-
-  // Returns all UOM dimensions, optionally filtered by search
-  @MessagePattern({ cmd: 'org.uom.dimensions.list' })
-  async list(@Payload() data: { search?: string }): Promise<UomDimensionDto[]> {
-    this.logger.log('uom.dimensions.list');
-    return this.service.list(data.search);
-  }
-
-  // Finds a UOM dimension by ID
-  @MessagePattern({ cmd: 'org.uom.dimensions.findById' })
-  async findById(@Payload() data: { id: string }): Promise<UomDimensionDto> {
-    this.logger.log(`uom.dimensions.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
   // Creates a new UOM dimension
   @MessagePattern({ cmd: 'org.uom.dimensions.create' })
   async create(@Payload() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionDto>> {
@@ -46,6 +25,27 @@ export class UomDimensionsController {
     const { id, ...updateData } = dto;
     this.logger.log(`uom.dimensions.update — id: ${id}`);
     return this.service.update(id, updateData);
+  }
+
+  // Finds a UOM dimension by ID
+  @MessagePattern({ cmd: 'org.uom.dimensions.findById' })
+  async findById(@Payload() data: { id: string }): Promise<UomDimensionDto> {
+    this.logger.log(`uom.dimensions.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns total UOM dimension count
+  @MessagePattern({ cmd: 'org.uom.dimensions.count' })
+  async count(): Promise<{ count: number }> {
+    this.logger.log('uom.dimensions.count');
+    return this.service.count();
+  }
+
+  // Returns all UOM dimensions, optionally filtered by search
+  @MessagePattern({ cmd: 'org.uom.dimensions.list' })
+  async list(@Payload() data: { search?: string }): Promise<UomDimensionDto[]> {
+    this.logger.log('uom.dimensions.list');
+    return this.service.list(data.search);
   }
 
   // Deletes a UOM dimension by ID

@@ -23,13 +23,6 @@ export class PurchasesItemsService {
     private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
   ) {}
 
-  // Returns the items of a purchase in reach with their names, primary units and allocated quantities
-  async findByPurchase(id: string): Promise<PurchaseItemDto[]> {
-    const purchase = await this.purchasesService.findDetailOrThrow(id);
-    const items = await this.itemsService.findByPurchaseId(purchase.id);
-    return items.map(PurchaseItemDto.from);
-  }
-
   // Adds an item enabled at the purchase's site to its items, or adds the quantity to the line already requesting it
   async create(dto: CreatePurchaseItemDto, headers: NatsHeaders): Promise<CreateResponseDto<PurchaseItemDto>> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
@@ -66,6 +59,13 @@ export class PurchasesItemsService {
       });
     });
     return { success: true, message: `"${item.inventoryItemName}" updated on "${purchase.purchaseNumber}".` };
+  }
+
+  // Returns the items of a purchase in reach with their names, primary units and allocated quantities
+  async findByPurchase(id: string): Promise<PurchaseItemDto[]> {
+    const purchase = await this.purchasesService.findDetailOrThrow(id);
+    const items = await this.itemsService.findByPurchaseId(purchase.id);
+    return items.map(PurchaseItemDto.from);
   }
 
   // Removes an item from a purchase's items

@@ -13,16 +13,6 @@ export class InventoryItemsUomConversionsController {
 
   constructor(private readonly service: InventoryItemsUomConversionsService) {}
 
-  // Returns paginated UOM conversion overrides for an inventory item
-  @MessagePattern({ cmd: 'org.inventoryItems.uom.table' })
-  async table(
-    @Payload() data: { inventoryItemId: string } & TableState,
-  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
-    const { inventoryItemId, ...state } = data;
-    this.logger.log(`inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findForTable(inventoryItemId, state);
-  }
-
   // Creates a per-item UOM conversion override
   @MessagePattern({ cmd: 'org.inventoryItems.uom.create' })
   async create(
@@ -37,6 +27,16 @@ export class InventoryItemsUomConversionsController {
   async update(@Payload() data: UpdateInventoryItemUomConversionDto): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.uom.update — id: ${data.id}`);
     return this.service.update(data);
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  @MessagePattern({ cmd: 'org.inventoryItems.uom.table' })
+  async table(
+    @Payload() data: { inventoryItemId: string } & TableState,
+  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
+    const { inventoryItemId, ...state } = data;
+    this.logger.log(`inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
+    return this.service.findForTable(inventoryItemId, state);
   }
 
   // Deletes a UOM conversion override

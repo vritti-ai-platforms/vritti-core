@@ -22,24 +22,6 @@ export class PartyIdentifiersDomainService {
 
   constructor(private readonly repository: PartyIdentifiersDomainRepository) {}
 
-  // Returns paginated identifiers of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyIdentifierDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyIdentifiersDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyIdentifiersDomainService.FIELD_MAP);
-    const where = and(eq(partyIdentifiers.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyIdentifiersDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(partyIdentifiers.isPrimary), asc(partyIdentifiers.createdAt)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(PartyIdentifierDto.from), count };
-  }
-
   // Adds an identifier to a party, rejecting duplicates of the same type and value
   async add(partyId: string, data: AddPartyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
     const partyType = await this.repository.getPartyType(partyId);
@@ -69,6 +51,24 @@ export class PartyIdentifiersDomainService {
 
     this.logger.log(`Added identifier ${data.idType} to party ${partyId}`);
     return { success: true, message: 'Identifier added successfully.', data: PartyIdentifierDto.from(entity) };
+  }
+
+  // Returns paginated identifiers of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyIdentifierDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyIdentifiersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyIdentifiersDomainService.FIELD_MAP);
+    const where = and(eq(partyIdentifiers.partyId, partyId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyIdentifiersDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(partyIdentifiers.isPrimary), asc(partyIdentifiers.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(PartyIdentifierDto.from), count };
   }
 
   // Removes an identifier by ID

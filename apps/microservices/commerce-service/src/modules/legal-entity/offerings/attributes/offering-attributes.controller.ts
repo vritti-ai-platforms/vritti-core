@@ -14,13 +14,6 @@ export class LeOfferingAttributesController {
 
   constructor(private readonly service: OfferingAttributesDomainService) {}
 
-  // Returns an offering's attributes with their values
-  @MessagePattern({ cmd: 'le.offerings.attributes.list' })
-  list(@Payload() data: { offeringId: string }): Promise<OfferingAttributeDto[]> {
-    this.logger.log(`offerings.attributes.list — offeringId: ${data.offeringId}`);
-    return this.service.list(data.offeringId);
-  }
-
   // Appends an empty attribute defined inline; its values are set separately
   @MessagePattern({ cmd: 'le.offerings.attributes.create' })
   create(@Payload() dto: CreateOfferingAttributeDto): Promise<CreateResponseDto<OfferingAttributeDto>> {
@@ -37,6 +30,15 @@ export class LeOfferingAttributesController {
     return this.service.createWithValuesAndTemplate(dto);
   }
 
+  // Removes an attribute; refused while any variant uses one of its values Renames an attribute; its code is fixed
+  // because a storefront filters on it
+  @MessagePattern({ cmd: 'le.offerings.attributes.update' })
+  update(@Payload() dto: UpdateOfferingAttributeDto): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`offerings.attributes.update — id: ${id}`);
+    return this.service.update(id, data);
+  }
+
   // Replaces an attribute's value set; values already used by a variant cannot be dropped
   @MessagePattern({ cmd: 'le.offerings.attributes.values.upsert' })
   upsertValues(@Payload() dto: UpsertOfferingAttributeValuesDto): Promise<SuccessResponseDto> {
@@ -51,13 +53,11 @@ export class LeOfferingAttributesController {
     return this.service.reorder(data.offeringId, data.attributeIds);
   }
 
-  // Removes an attribute; refused while any variant uses one of its values Renames an attribute; its code is fixed
-  // because a storefront filters on it
-  @MessagePattern({ cmd: 'le.offerings.attributes.update' })
-  update(@Payload() dto: UpdateOfferingAttributeDto): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`offerings.attributes.update — id: ${id}`);
-    return this.service.update(id, data);
+  // Returns an offering's attributes with their values
+  @MessagePattern({ cmd: 'le.offerings.attributes.list' })
+  list(@Payload() data: { offeringId: string }): Promise<OfferingAttributeDto[]> {
+    this.logger.log(`offerings.attributes.list — offeringId: ${data.offeringId}`);
+    return this.service.list(data.offeringId);
   }
 
   @MessagePattern({ cmd: 'le.offerings.attributes.delete' })

@@ -127,15 +127,6 @@ export class OrgOfferingsGatewayController {
 
   constructor(private readonly service: OrgOfferingsGatewayService) {}
 
-  // Returns paginated offerings for the data table
-  @Get('table')
-  @RequirePermission(ORG_OFFERINGS.view)
-  @ApiOfferingsTable()
-  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<OfferingTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/offerings/table');
-    return this.service.findForTable(orgId, userId);
-  }
-
   // Creates an offering owned by this workspace
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -144,15 +135,6 @@ export class OrgOfferingsGatewayController {
   create(@Body() dto: CreateOfferingDto): Promise<CreateResponseDto<OfferingResponseDto>> {
     this.logger.log('POST /commerce-api/org/offerings');
     return this.service.create(dto);
-  }
-
-  // Returns an offering's dimensions, in code segment order
-  @Get(':id/dimensions')
-  @RequirePermission(ORG_OFFERINGS.dimensions.view)
-  @ApiListOfferingDimensions()
-  listDimensions(@Param('id') id: string): Promise<OfferingDimensionResponseDto[]> {
-    this.logger.log(`GET /commerce-api/org/offerings/${id}/dimensions`);
-    return this.service.listDimensions(id);
   }
 
   // Appends a dimension seeded from a template — code, name and values are copied server-side
@@ -181,56 +163,6 @@ export class OrgOfferingsGatewayController {
     return this.service.createDimensionWithValuesAndTemplate(id, dto);
   }
 
-  // Replaces a dimension's value set
-  @Put('dimensions/:dimensionId/values')
-  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
-  @ApiUpsertOfferingDimensionValues()
-  upsertDimensionValues(
-    @Param('dimensionId') dimensionId: string,
-    @Body() dto: UpsertOfferingDimensionValuesDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/org/offerings/dimensions/${dimensionId}/values`);
-    return this.service.upsertDimensionValues(dimensionId, dto);
-  }
-  // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
-  @Put(':id/dimensions/order')
-  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
-  @ApiReorderOfferingDimensions()
-  reorderDimensions(@Param('id') id: string, @Body() dto: ReorderOfferingDimensionsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/org/offerings/${id}/dimensions/order`);
-    return this.service.reorderDimensions(id, dto.dimensionIds);
-  }
-
-  // Removes a dimension; refused while variants use its values Renames a dimension; its code is fixed because every
-  // derived code carries it
-  @Patch('dimensions/:dimensionId')
-  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
-  @ApiUpdateOfferingDimension()
-  updateDimension(
-    @Param('dimensionId') dimensionId: string,
-    @Body() dto: UpdateOfferingDimensionDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/offerings/dimensions/${dimensionId}`);
-    return this.service.updateDimension(dimensionId, dto);
-  }
-
-  @Delete('dimensions/:dimensionId')
-  @RequirePermission(ORG_OFFERINGS.dimensions.delete)
-  @ApiDeleteOfferingDimension()
-  deleteDimension(@Param('dimensionId') dimensionId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/offerings/dimensions/${dimensionId}`);
-    return this.service.deleteDimension(dimensionId);
-  }
-
-  // Returns an offering's attributes
-  @Get(':id/attributes')
-  @RequirePermission(ORG_OFFERINGS.attributes.view)
-  @ApiListOfferingAttributes()
-  listAttributes(@Param('id') id: string): Promise<OfferingAttributeResponseDto[]> {
-    this.logger.log(`GET /commerce-api/org/offerings/${id}/attributes`);
-    return this.service.listAttributes(id);
-  }
-
   // Appends an attribute defined inline; its values are set separately
   @Post(':id/attributes')
   @HttpCode(HttpStatus.CREATED)
@@ -257,68 +189,6 @@ export class OrgOfferingsGatewayController {
     return this.service.createAttributeWithValuesAndTemplate(id, dto);
   }
 
-  // Replaces an attribute's value set
-  @Put('attributes/:attributeId/values')
-  @RequirePermission(ORG_OFFERINGS.attributes.edit)
-  @ApiUpsertOfferingAttributeValues()
-  upsertAttributeValues(
-    @Param('attributeId') attributeId: string,
-    @Body() dto: UpsertOfferingAttributeValuesDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/org/offerings/attributes/${attributeId}/values`);
-    return this.service.upsertAttributeValues(attributeId, dto);
-  }
-  // Reorders the groups — the order a storefront renders its filters in
-  @Put(':id/attributes/order')
-  @RequirePermission(ORG_OFFERINGS.attributes.edit)
-  @ApiReorderOfferingAttributes()
-  reorderAttributes(@Param('id') id: string, @Body() dto: ReorderOfferingAttributesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/org/offerings/${id}/attributes/order`);
-    return this.service.reorderAttributes(id, dto.attributeIds);
-  }
-
-  // Renames an attribute; its code is fixed because a storefront filters on it
-  @Patch('attributes/:attributeId')
-  @RequirePermission(ORG_OFFERINGS.attributes.edit)
-  @ApiUpdateOfferingAttribute()
-  updateAttribute(
-    @Param('attributeId') attributeId: string,
-    @Body() dto: UpdateOfferingAttributeDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/offerings/attributes/${attributeId}`);
-    return this.service.updateAttribute(attributeId, dto);
-  }
-
-  @Delete('attributes/:attributeId')
-  @RequirePermission(ORG_OFFERINGS.attributes.delete)
-  @ApiDeleteOfferingAttribute()
-  deleteAttribute(@Param('attributeId') attributeId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/offerings/attributes/${attributeId}`);
-    return this.service.deleteAttribute(attributeId);
-  }
-
-  // Returns paginated variants of one offering for the data table
-  @Get(':id/variants/table')
-  @RequirePermission(ORG_OFFERINGS.variants.view)
-  @ApiOfferingVariantsTable()
-  getVariantsTable(@Param('id') id: string, @UserId() userId: string): Promise<OfferingVariantTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/offerings/${id}/variants/table`);
-    return this.service.findVariantsForTable(userId, id);
-  }
-
-  // Every combination the selected values produce, flagged with the ones that already exist
-  @Post(':id/variants/combinations')
-  @HttpCode(HttpStatus.OK)
-  @RequirePermission(ORG_OFFERINGS.variants.add)
-  @ApiPreviewOfferingVariantCombinations()
-  previewVariantCombinations(
-    @Param('id') id: string,
-    @Body() dto: PreviewCombinationsDto,
-  ): Promise<VariantCombinationsResponseDto> {
-    this.logger.log(`POST /commerce-api/org/offerings/${id}/variants/combinations`);
-    return this.service.previewVariantCombinations(id, dto);
-  }
-
   // Creates every selected combination that does not exist yet
   @Post(':id/variants/generate')
   @RequirePermission(ORG_OFFERINGS.variants.generate)
@@ -341,15 +211,6 @@ export class OrgOfferingsGatewayController {
     return this.service.createVariant(id, dto);
   }
 
-  // Updates a variant; activation is gated on its bill of materials One variant with its values and bill of materials
-  @Get('variants/:variantId')
-  @RequirePermission(ORG_OFFERINGS.variants.view)
-  @ApiGetOfferingVariant()
-  getVariant(@Param('variantId') variantId: string): Promise<OfferingVariantResponseDto> {
-    this.logger.log(`GET /commerce-api/org/offerings/variants/${variantId}`);
-    return this.service.findVariantById(variantId);
-  }
-
   // Reaches into inventory items, so it carries its own grant rather than riding on variants.edit
   @Post('variants/:variantId/bom/inventory-item')
   @HttpCode(HttpStatus.CREATED)
@@ -363,12 +224,131 @@ export class OrgOfferingsGatewayController {
     return this.service.createInventoryItem(variantId, dto);
   }
 
+  @Post('variants/:variantId/bom/lines')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_OFFERINGS.variants.bom.add)
+  @ApiAddBomLine()
+  addBomLine(@Param('variantId') variantId: string, @Body() dto: AddBomLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/org/offerings/variants/${variantId}/bom/lines`);
+    return this.service.addBomLine(variantId, dto);
+  }
+
+  // Its own grant: the caller names no item, so this can be given to someone who may not edit the bill of materials
+  // freely
+  @Post('variants/:variantId/bom/suggested')
+  @RequirePermission(ORG_OFFERINGS.variants.bom.addFromSuggestion)
+  @ApiAddSuggestedComponent()
+  addSuggestedComponent(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/org/offerings/variants/${variantId}/bom/suggested`);
+    return this.service.addSuggestedComponent(variantId);
+  }
+
+  // Creates the missing pages on the storefront behind one target
+  @Post(':id/channels/:channelType/targets/:targetId/pages')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_OFFERINGS.channels.createPage)
+  @ApiCreateChannelPages()
+  createChannelPages(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Param('channelType') channelType: string,
+    @Param('targetId') targetId: string,
+    @Body() dto: CreateStorefrontPagesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/org/offerings/${id}/channels/${channelType}/targets/${targetId}/pages`);
+    return this.service.createChannelPages(orgId, id, channelType, targetId, dto.variantCodes);
+  }
+
+  // Updates an offering this workspace owns
+  @Patch(':id')
+  @RequirePermission(ORG_OFFERINGS.edit)
+  @ApiUpdateOffering()
+  update(@Param('id') id: string, @Body() dto: UpdateOfferingDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/${id}`);
+    return this.service.update(id, dto);
+  }
+
+  // Replaces a dimension's value set
+  @Put('dimensions/:dimensionId/values')
+  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
+  @ApiUpsertOfferingDimensionValues()
+  upsertDimensionValues(
+    @Param('dimensionId') dimensionId: string,
+    @Body() dto: UpsertOfferingDimensionValuesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/org/offerings/dimensions/${dimensionId}/values`);
+    return this.service.upsertDimensionValues(dimensionId, dto);
+  }
+
+  // Removes a dimension; refused while variants use its values Renames a dimension; its code is fixed because every
+  // derived code carries it
+  @Patch('dimensions/:dimensionId')
+  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
+  @ApiUpdateOfferingDimension()
+  updateDimension(
+    @Param('dimensionId') dimensionId: string,
+    @Body() dto: UpdateOfferingDimensionDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/dimensions/${dimensionId}`);
+    return this.service.updateDimension(dimensionId, dto);
+  }
+
+  // Replaces an attribute's value set
+  @Put('attributes/:attributeId/values')
+  @RequirePermission(ORG_OFFERINGS.attributes.edit)
+  @ApiUpsertOfferingAttributeValues()
+  upsertAttributeValues(
+    @Param('attributeId') attributeId: string,
+    @Body() dto: UpsertOfferingAttributeValuesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/org/offerings/attributes/${attributeId}/values`);
+    return this.service.upsertAttributeValues(attributeId, dto);
+  }
+
+  // Renames an attribute; its code is fixed because a storefront filters on it
+  @Patch('attributes/:attributeId')
+  @RequirePermission(ORG_OFFERINGS.attributes.edit)
+  @ApiUpdateOfferingAttribute()
+  updateAttribute(
+    @Param('attributeId') attributeId: string,
+    @Body() dto: UpdateOfferingAttributeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/attributes/${attributeId}`);
+    return this.service.updateAttribute(attributeId, dto);
+  }
+
   @Patch('variants/:variantId')
   @RequirePermission(ORG_OFFERINGS.variants.edit)
   @ApiUpdateOfferingVariant()
   updateVariant(@Param('variantId') variantId: string, @Body() dto: UpdateVariantDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/offerings/variants/${variantId}`);
     return this.service.updateVariant(variantId, dto);
+  }
+
+  @Patch('variants/:variantId/bom/lines/:lineId')
+  @RequirePermission(ORG_OFFERINGS.variants.bom.edit)
+  @ApiUpdateBomLine()
+  updateBomLine(@Param('lineId') lineId: string, @Body() dto: UpdateBomLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/variants/bom/lines/${lineId}`);
+    return this.service.updateBomLine(lineId, dto);
+  }
+
+  // Reorders the axes. Stored SKUs are never recomputed, so this only affects variants created after it
+  @Put(':id/dimensions/order')
+  @RequirePermission(ORG_OFFERINGS.dimensions.edit)
+  @ApiReorderOfferingDimensions()
+  reorderDimensions(@Param('id') id: string, @Body() dto: ReorderOfferingDimensionsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/org/offerings/${id}/dimensions/order`);
+    return this.service.reorderDimensions(id, dto.dimensionIds);
+  }
+
+  // Reorders the groups — the order a storefront renders its filters in
+  @Put(':id/attributes/order')
+  @RequirePermission(ORG_OFFERINGS.attributes.edit)
+  @ApiReorderOfferingAttributes()
+  reorderAttributes(@Param('id') id: string, @Body() dto: ReorderOfferingAttributesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/org/offerings/${id}/attributes/order`);
+    return this.service.reorderAttributes(id, dto.attributeIds);
   }
 
   // Replaces a variant's bill of materials as a set Its own route rather than a field on update: setting it cascades to
@@ -435,58 +415,6 @@ export class OrgOfferingsGatewayController {
     return this.service.clearVariantTaxClass(variantId);
   }
 
-  @Get('variants/:variantId/bom/lines')
-  @RequirePermission(ORG_OFFERINGS.variants.bom.view)
-  @ApiVariantBom()
-  findVariantBom(@Param('variantId') variantId: string): Promise<VariantBomResponseDto> {
-    this.logger.log(`GET /commerce-api/org/offerings/variants/${variantId}/bom/lines`);
-    return this.service.findVariantBom(variantId);
-  }
-
-  @Post('variants/:variantId/bom/lines')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_OFFERINGS.variants.bom.add)
-  @ApiAddBomLine()
-  addBomLine(@Param('variantId') variantId: string, @Body() dto: AddBomLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/org/offerings/variants/${variantId}/bom/lines`);
-    return this.service.addBomLine(variantId, dto);
-  }
-
-  @Patch('variants/:variantId/bom/lines/:lineId')
-  @RequirePermission(ORG_OFFERINGS.variants.bom.edit)
-  @ApiUpdateBomLine()
-  updateBomLine(@Param('lineId') lineId: string, @Body() dto: UpdateBomLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/offerings/variants/bom/lines/${lineId}`);
-    return this.service.updateBomLine(lineId, dto);
-  }
-
-  @Delete('variants/:variantId/bom/lines/:lineId')
-  @RequirePermission(ORG_OFFERINGS.variants.bom.delete)
-  @ApiDeleteBomLine()
-  deleteBomLine(@Param('lineId') lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/offerings/variants/bom/lines/${lineId}`);
-    return this.service.deleteBomLine(lineId);
-  }
-
-  // Its own grant: the caller names no item, so this can be given to someone who may not edit the bill of materials
-  // freely
-  @Post('variants/:variantId/bom/suggested')
-  @RequirePermission(ORG_OFFERINGS.variants.bom.addFromSuggestion)
-  @ApiAddSuggestedComponent()
-  addSuggestedComponent(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/org/offerings/variants/${variantId}/bom/suggested`);
-    return this.service.addSuggestedComponent(variantId);
-  }
-
-  // Deletes a variant
-  @Delete('variants/:variantId')
-  @RequirePermission(ORG_OFFERINGS.variants.delete)
-  @ApiDeleteOfferingVariant()
-  deleteVariant(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/offerings/variants/${variantId}`);
-    return this.service.deleteVariant(variantId);
-  }
-
   // Bulk-activates or deactivates offerings; declared before :id so "active" is not captured as an offering id
   @Patch('status')
   @RequirePermission(ORG_OFFERINGS.toggle)
@@ -494,30 +422,6 @@ export class OrgOfferingsGatewayController {
   bulkSetStatus(@Body() dto: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/offerings/status — ${dto.ids.length} selected`);
     return this.service.bulkSetStatus(dto);
-  }
-
-  // Streams every reachable offering as a file
-  @Get('export/:format')
-  @RequirePermission(ORG_OFFERINGS.export)
-  @ApiExportOfferings()
-  async exportOfferings(@Param('format') format: ExportFormat, @Res() reply: FastifyReply): Promise<void> {
-    this.logger.log(`GET /commerce-api/org/offerings/export/${format}`);
-    const rows = await this.service.exportOfferingRows();
-    this.sendExport(reply, rows, format, 'offerings');
-  }
-
-  // Streams one offering's variants as a file
-  @Get(':id/variants/export/:format')
-  @RequirePermission(ORG_OFFERINGS.variants.export)
-  @ApiExportOfferingVariants()
-  async exportOfferingVariants(
-    @Param('id') id: string,
-    @Param('format') format: ExportFormat,
-    @Res() reply: FastifyReply,
-  ): Promise<void> {
-    this.logger.log(`GET /commerce-api/org/offerings/${id}/variants/export/${format}`);
-    const rows = await this.service.exportVariantRows(id);
-    this.sendExport(reply, rows, format, 'offering-variants');
   }
 
   // Drops the tax class override on many variants of one offering
@@ -565,24 +469,6 @@ export class OrgOfferingsGatewayController {
     return this.service.bulkSetVariantsStatus(id, dto);
   }
 
-  // Returns one offering with its dimension and variant counts
-  @Get(':id')
-  @RequirePermission(ORG_OFFERINGS.view)
-  @ApiGetOffering()
-  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<OfferingResponseDto> {
-    this.logger.log(`GET /commerce-api/org/offerings/${id}`);
-    return this.service.findById(orgId, id);
-  }
-
-  // Updates an offering this workspace owns
-  @Patch(':id')
-  @RequirePermission(ORG_OFFERINGS.edit)
-  @ApiUpdateOffering()
-  update(@Param('id') id: string, @Body() dto: UpdateOfferingDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/offerings/${id}`);
-    return this.service.update(id, dto);
-  }
-
   // Activates or deactivates an offering
   @Patch(':id/status')
   @RequirePermission(ORG_OFFERINGS.toggle)
@@ -592,13 +478,119 @@ export class OrgOfferingsGatewayController {
     return this.service.setStatus(id, dto.isActive);
   }
 
-  // Deletes an offering; refused while it has variants
-  @Delete(':id')
-  @RequirePermission(ORG_OFFERINGS.delete)
-  @ApiDeleteOffering()
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/offerings/${id}`);
-    return this.service.delete(id);
+  // Sets whether one variant is available on one app or till
+  @Patch(':id/channels/:channelType/targets/:targetId/variants/:variantId/availability')
+  @RequirePermission(ORG_OFFERINGS.channels.setAvailability)
+  @ApiSetTargetAvailability()
+  setTargetAvailability(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @Param('channelType') channelType: string,
+    @Param('targetId') targetId: string,
+    @Param('variantId') variantId: string,
+    @Body() dto: SetTargetAvailabilityDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/offerings/${id}/channels/${channelType}/targets/${targetId}`);
+    return this.service.setTargetAvailability(orgId, channelType, targetId, variantId, dto.availableHere);
+  }
+
+  // Returns one offering with its dimension and variant counts
+  @Get(':id')
+  @RequirePermission(ORG_OFFERINGS.view)
+  @ApiGetOffering()
+  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<OfferingResponseDto> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}`);
+    return this.service.findById(orgId, id);
+  }
+
+  // Returns paginated offerings for the data table
+  @Get('table')
+  @RequirePermission(ORG_OFFERINGS.view)
+  @ApiOfferingsTable()
+  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<OfferingTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/offerings/table');
+    return this.service.findForTable(orgId, userId);
+  }
+
+  // Returns paginated variants of one offering for the data table
+  @Get(':id/variants/table')
+  @RequirePermission(ORG_OFFERINGS.variants.view)
+  @ApiOfferingVariantsTable()
+  getVariantsTable(@Param('id') id: string, @UserId() userId: string): Promise<OfferingVariantTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/variants/table`);
+    return this.service.findVariantsForTable(userId, id);
+  }
+
+  // Returns an offering's dimensions, in code segment order
+  @Get(':id/dimensions')
+  @RequirePermission(ORG_OFFERINGS.dimensions.view)
+  @ApiListOfferingDimensions()
+  listDimensions(@Param('id') id: string): Promise<OfferingDimensionResponseDto[]> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/dimensions`);
+    return this.service.listDimensions(id);
+  }
+
+  // Returns an offering's attributes
+  @Get(':id/attributes')
+  @RequirePermission(ORG_OFFERINGS.attributes.view)
+  @ApiListOfferingAttributes()
+  listAttributes(@Param('id') id: string): Promise<OfferingAttributeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/attributes`);
+    return this.service.listAttributes(id);
+  }
+
+  // Every combination the selected values produce, flagged with the ones that already exist
+  @Post(':id/variants/combinations')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission(ORG_OFFERINGS.variants.add)
+  @ApiPreviewOfferingVariantCombinations()
+  previewVariantCombinations(
+    @Param('id') id: string,
+    @Body() dto: PreviewCombinationsDto,
+  ): Promise<VariantCombinationsResponseDto> {
+    this.logger.log(`POST /commerce-api/org/offerings/${id}/variants/combinations`);
+    return this.service.previewVariantCombinations(id, dto);
+  }
+
+  // Updates a variant; activation is gated on its bill of materials One variant with its values and bill of materials
+  @Get('variants/:variantId')
+  @RequirePermission(ORG_OFFERINGS.variants.view)
+  @ApiGetOfferingVariant()
+  getVariant(@Param('variantId') variantId: string): Promise<OfferingVariantResponseDto> {
+    this.logger.log(`GET /commerce-api/org/offerings/variants/${variantId}`);
+    return this.service.findVariantById(variantId);
+  }
+
+  @Get('variants/:variantId/bom/lines')
+  @RequirePermission(ORG_OFFERINGS.variants.bom.view)
+  @ApiVariantBom()
+  findVariantBom(@Param('variantId') variantId: string): Promise<VariantBomResponseDto> {
+    this.logger.log(`GET /commerce-api/org/offerings/variants/${variantId}/bom/lines`);
+    return this.service.findVariantBom(variantId);
+  }
+
+  // Streams every reachable offering as a file
+  @Get('export/:format')
+  @RequirePermission(ORG_OFFERINGS.export)
+  @ApiExportOfferings()
+  async exportOfferings(@Param('format') format: ExportFormat, @Res() reply: FastifyReply): Promise<void> {
+    this.logger.log(`GET /commerce-api/org/offerings/export/${format}`);
+    const rows = await this.service.exportOfferingRows();
+    this.sendExport(reply, rows, format, 'offerings');
+  }
+
+  // Streams one offering's variants as a file
+  @Get(':id/variants/export/:format')
+  @RequirePermission(ORG_OFFERINGS.variants.export)
+  @ApiExportOfferingVariants()
+  async exportOfferingVariants(
+    @Param('id') id: string,
+    @Param('format') format: ExportFormat,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    this.logger.log(`GET /commerce-api/org/offerings/${id}/variants/export/${format}`);
+    const rows = await this.service.exportVariantRows(id);
+    this.sendExport(reply, rows, format, 'offering-variants');
   }
 
   // Where this offering sells, a row per app or till
@@ -625,36 +617,46 @@ export class OrgOfferingsGatewayController {
     return this.service.channelVariantPages(orgId, userId, id, channelType, targetId);
   }
 
-  // Sets whether one variant is available on one app or till
-  @Patch(':id/channels/:channelType/targets/:targetId/variants/:variantId/availability')
-  @RequirePermission(ORG_OFFERINGS.channels.setAvailability)
-  @ApiSetTargetAvailability()
-  setTargetAvailability(
-    @OrgId() orgId: string,
-    @Param('id') id: string,
-    @Param('channelType') channelType: string,
-    @Param('targetId') targetId: string,
-    @Param('variantId') variantId: string,
-    @Body() dto: SetTargetAvailabilityDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/offerings/${id}/channels/${channelType}/targets/${targetId}`);
-    return this.service.setTargetAvailability(orgId, channelType, targetId, variantId, dto.availableHere);
+  // Deletes an offering; refused while it has variants
+  @Delete(':id')
+  @RequirePermission(ORG_OFFERINGS.delete)
+  @ApiDeleteOffering()
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/${id}`);
+    return this.service.delete(id);
   }
 
-  // Creates the missing pages on the storefront behind one target
-  @Post(':id/channels/:channelType/targets/:targetId/pages')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_OFFERINGS.channels.createPage)
-  @ApiCreateChannelPages()
-  createChannelPages(
-    @OrgId() orgId: string,
-    @Param('id') id: string,
-    @Param('channelType') channelType: string,
-    @Param('targetId') targetId: string,
-    @Body() dto: CreateStorefrontPagesDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/org/offerings/${id}/channels/${channelType}/targets/${targetId}/pages`);
-    return this.service.createChannelPages(orgId, id, channelType, targetId, dto.variantCodes);
+  @Delete('dimensions/:dimensionId')
+  @RequirePermission(ORG_OFFERINGS.dimensions.delete)
+  @ApiDeleteOfferingDimension()
+  deleteDimension(@Param('dimensionId') dimensionId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/dimensions/${dimensionId}`);
+    return this.service.deleteDimension(dimensionId);
+  }
+
+  @Delete('attributes/:attributeId')
+  @RequirePermission(ORG_OFFERINGS.attributes.delete)
+  @ApiDeleteOfferingAttribute()
+  deleteAttribute(@Param('attributeId') attributeId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/attributes/${attributeId}`);
+    return this.service.deleteAttribute(attributeId);
+  }
+
+  @Delete('variants/:variantId/bom/lines/:lineId')
+  @RequirePermission(ORG_OFFERINGS.variants.bom.delete)
+  @ApiDeleteBomLine()
+  deleteBomLine(@Param('lineId') lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/variants/bom/lines/${lineId}`);
+    return this.service.deleteBomLine(lineId);
+  }
+
+  // Deletes a variant
+  @Delete('variants/:variantId')
+  @RequirePermission(ORG_OFFERINGS.variants.delete)
+  @ApiDeleteOfferingVariant()
+  deleteVariant(@Param('variantId') variantId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/offerings/variants/${variantId}`);
+    return this.service.deleteVariant(variantId);
   }
 
   // Builds the workbook and streams it — shared by both export routes

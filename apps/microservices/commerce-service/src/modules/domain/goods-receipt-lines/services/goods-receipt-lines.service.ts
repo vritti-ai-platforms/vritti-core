@@ -45,45 +45,6 @@ export class GoodsReceiptLinesDomainService {
 
   constructor(private readonly repository: GoodsReceiptLinesDomainRepository) {}
 
-  // Returns one page of a receipt item's lines, narrowed to one of its lots when given
-  async findForTable(
-    itemId: string,
-    state: TableState,
-    lotId?: string,
-  ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLinesDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable(itemId, {
-      where: and(
-        FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesDomainService.FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, GoodsReceiptLinesDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(goodsReceiptLines.createdAt)],
-      limit,
-      offset,
-      lotId,
-    });
-    return { result: result.map(GoodsReceiptLineDto.from), count };
-  }
-
-  // Returns one line of a receipt item with its location and lot
-  async findById(itemId: string, lineId: string): Promise<GoodsReceiptLineDto> {
-    return GoodsReceiptLineDto.from(await this.findOnItemOrThrow(itemId, lineId));
-  }
-
-  // Loads a line of the given receipt item, throwing when it is not on it
-  async findOnItemOrThrow(itemId: string, lineId: string): Promise<GoodsReceiptLineRow> {
-    const line = await this.repository.findOnItem(itemId, lineId);
-    if (!line) throw new NotFoundException('Goods receipt line not found.');
-    return line;
-  }
-
-  // Returns every line of a receipt item with its location and lot, for landing them in stock
-  findLinesOfItem(itemId: string): Promise<GoodsReceiptLineRow[]> {
-    return this.repository.findByItemId(itemId);
-  }
-
   // Puts part of a draft item's accepted quantity at a location, in one of its lots when it is lot-tracked
   async addLine(
     item: DistributedReceiptItem,
@@ -136,14 +97,6 @@ export class GoodsReceiptLinesDomainService {
     return { success: true, message: 'Line updated successfully.' };
   }
 
-  // Removes a line, with its serials, from a draft receipt item
-  async removeLine(item: DistributedReceiptItem, lineId: string): Promise<SuccessResponseDto> {
-    const line = await this.findOnItemOrThrow(item.id, lineId);
-    await this.repository.delete(line.id);
-    this.logger.log(`Removed line ${line.id} from goods receipt item ${item.id}`);
-    return { success: true, message: 'Line removed successfully.' };
-  }
-
   // Marks a line balanced: always when it carries no serials, otherwise once its serial count matches its quantity
   async refreshIsBalanced(lineId: string, tracking: InventoryTracking): Promise<void> {
     if (GoodsReceiptLinesDomainService.SERIAL_TRACKINGS.includes(tracking)) {
@@ -156,6 +109,53 @@ export class GoodsReceiptLinesDomainService {
   // Records the quant a line landed in, in the caller's transaction
   async linkQuant(lineId: string, quantId: string): Promise<void> {
     await this.repository.update(lineId, { resolvedQuantId: quantId });
+  }
+
+  // Returns one line of a receipt item with its location and lot
+  async findById(itemId: string, lineId: string): Promise<GoodsReceiptLineDto> {
+    return GoodsReceiptLineDto.from(await this.findOnItemOrThrow(itemId, lineId));
+  }
+
+  // Returns one page of a receipt item's lines, narrowed to one of its lots when given
+  async findForTable(
+    itemId: string,
+    state: TableState,
+    lotId?: string,
+  ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLinesDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable(itemId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, GoodsReceiptLinesDomainService.FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, GoodsReceiptLinesDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(goodsReceiptLines.createdAt)],
+      limit,
+      offset,
+      lotId,
+    });
+    return { result: result.map(GoodsReceiptLineDto.from), count };
+  }
+
+  // Loads a line of the given receipt item, throwing when it is not on it
+  async findOnItemOrThrow(itemId: string, lineId: string): Promise<GoodsReceiptLineRow> {
+    const line = await this.repository.findOnItem(itemId, lineId);
+    if (!line) throw new NotFoundException('Goods receipt line not found.');
+    return line;
+  }
+
+  // Returns every line of a receipt item with its location and lot, for landing them in stock
+  findLinesOfItem(itemId: string): Promise<GoodsReceiptLineRow[]> {
+    return this.repository.findByItemId(itemId);
+  }
+
+  // Removes a line, with its serials, from a draft receipt item
+  async removeLine(item: DistributedReceiptItem, lineId: string): Promise<SuccessResponseDto> {
+    const line = await this.findOnItemOrThrow(item.id, lineId);
+    await this.repository.delete(line.id);
+    this.logger.log(`Removed line ${line.id} from goods receipt item ${item.id}`);
+    return { success: true, message: 'Line removed successfully.' };
   }
 
   // Rejects a lot that does not suit the item: lot-tracked items need one of their own lots, the others take none

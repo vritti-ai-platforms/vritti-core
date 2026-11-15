@@ -181,6 +181,28 @@ export class ReceiveWithInvoiceDocumentsService {
     }
   }
 
+  // Deletes a direct purchase leg's confirmed POs that no delivery, receipt or invoice line names any more, freeing their
+  // allocations, in the caller's transaction
+  async removeEmptyOrders(leg: Pick<PurchaseSupplier, 'type' | 'purchaseId' | 'supplierId'>): Promise<void> {
+    if (leg.type !== PurchaseTypeValues.DIRECT_PURCHASE) return;
+    const orders = (await this.purchaseOrdersService.findForPurchase(leg.purchaseId)).filter(
+      (po) => po.supplierId === leg.supplierId && po.status === PurchaseOrderStatusValues.CONFIRMED,
+    );
+    if (orders.length === 0) return;
+    const deliveries = await this.deliveriesService.findForPurchase(leg.purchaseId);
+    const invoices = await this.invoicesService.findForPurchase(leg.purchaseId);
+    for (const po of orders) {
+      const isNamed =
+        po.hasPostedGoodsReceipt ||
+        deliveries.some((delivery) => delivery.poNumbers.includes(po.poNumber)) ||
+        invoices.some((invoice) => invoice.poNumbers.includes(po.poNumber));
+      if (isNamed) continue;
+      const lines = await this.purchaseOrderItemsService.findRowsByPurchaseOrderIds([po.id]);
+      await this.allocationsService.unlinkOrderLines(lines.map((line) => line.id));
+      await this.purchaseOrdersService.deleteForPurchase(po);
+    }
+  }
+
   // Returns the PO line an allocation became; the invoice ordered every allocation it receives before it is read here
   private orderLineOf(allocation: AllocationWithLegRow): string {
     if (allocation.purchaseOrderItemId) return allocation.purchaseOrderItemId;
@@ -282,27 +304,5 @@ export class ReceiveWithInvoiceDocumentsService {
       label: 'Receipt Posted',
       detail: `Goods receipt "${posted.grNumber}" of this invoice is posted, so the invoice can no longer change.`,
     });
-  }
-
-  // Deletes a direct purchase leg's confirmed POs that no delivery, receipt or invoice line names any more, freeing their
-  // allocations, in the caller's transaction
-  async removeEmptyOrders(leg: Pick<PurchaseSupplier, 'type' | 'purchaseId' | 'supplierId'>): Promise<void> {
-    if (leg.type !== PurchaseTypeValues.DIRECT_PURCHASE) return;
-    const orders = (await this.purchaseOrdersService.findForPurchase(leg.purchaseId)).filter(
-      (po) => po.supplierId === leg.supplierId && po.status === PurchaseOrderStatusValues.CONFIRMED,
-    );
-    if (orders.length === 0) return;
-    const deliveries = await this.deliveriesService.findForPurchase(leg.purchaseId);
-    const invoices = await this.invoicesService.findForPurchase(leg.purchaseId);
-    for (const po of orders) {
-      const isNamed =
-        po.hasPostedGoodsReceipt ||
-        deliveries.some((delivery) => delivery.poNumbers.includes(po.poNumber)) ||
-        invoices.some((invoice) => invoice.poNumbers.includes(po.poNumber));
-      if (isNamed) continue;
-      const lines = await this.purchaseOrderItemsService.findRowsByPurchaseOrderIds([po.id]);
-      await this.allocationsService.unlinkOrderLines(lines.map((line) => line.id));
-      await this.purchaseOrdersService.deleteForPurchase(po);
-    }
   }
 }

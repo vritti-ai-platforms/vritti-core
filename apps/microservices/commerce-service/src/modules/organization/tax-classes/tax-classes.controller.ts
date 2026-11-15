@@ -15,22 +15,10 @@ export class TaxClassesController {
 
   constructor(private readonly service: TaxClassesDomainService) {}
 
-  @MessagePattern({ cmd: 'org.taxClasses.table' })
-  async table(@Payload() state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
-    this.logger.log('taxClasses.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'org.taxClasses.create' })
   async create(@Payload() dto: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassDto>> {
     this.logger.log(`taxClasses.create — code: ${dto.code}`);
     return this.service.create(dto);
-  }
-
-  @MessagePattern({ cmd: 'org.taxClasses.findById' })
-  async findById(@Payload() data: { id: string }): Promise<TaxClassDto> {
-    this.logger.log(`taxClasses.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'org.taxClasses.update' })
@@ -44,6 +32,18 @@ export class TaxClassesController {
   async setActive(@Payload() dto: SetTaxClassActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`taxClasses.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
     return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  @MessagePattern({ cmd: 'org.taxClasses.findById' })
+  async findById(@Payload() data: { id: string }): Promise<TaxClassDto> {
+    this.logger.log(`taxClasses.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  @MessagePattern({ cmd: 'org.taxClasses.table' })
+  async table(@Payload() state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
+    this.logger.log('taxClasses.table');
+    return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'org.taxClasses.delete' })

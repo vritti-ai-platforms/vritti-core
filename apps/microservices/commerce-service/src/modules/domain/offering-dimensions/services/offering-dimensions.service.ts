@@ -20,13 +20,6 @@ export class OfferingDimensionsDomainService {
 
   constructor(private readonly repository: OfferingDimensionsDomainRepository) {}
 
-  // Lists an offering's axes with their values.
-  async list(offeringId: string): Promise<OfferingDimensionDto[]> {
-    if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
-    const dimensions = await this.repository.findByOfferingWithValues(offeringId);
-    return dimensions.map((d) => OfferingDimensionDto.from(d, d.values));
-  }
-
   // Adds an empty axis to an offering.
   async create(data: CreateOfferingDimensionDto): Promise<CreateResponseDto<OfferingDimensionDto>> {
     const offering = await this.requireOwnedOffering(data.offeringId);
@@ -87,6 +80,14 @@ export class OfferingDimensionsDomainService {
         result.values.map((value) => ({ ...value, canDelete: true })),
       ),
     };
+  }
+
+  // Renames the axis.
+  async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
+    const dimension = await this.requireOwnedDimension(id);
+    await this.repository.update(id, { name: data.name, description: data.description });
+    await this.repository.refreshVariantDimensions(dimension.offeringId);
+    return { success: true, message: `"${data.name}" updated.` };
   }
 
   // Replaces the dimension's value set.
@@ -186,12 +187,11 @@ export class OfferingDimensionsDomainService {
     return { success: true, message: 'Dimension order updated.' };
   }
 
-  // Renames the axis.
-  async update(id: string, data: Omit<UpdateOfferingDimensionDto, 'id'>): Promise<SuccessResponseDto> {
-    const dimension = await this.requireOwnedDimension(id);
-    await this.repository.update(id, { name: data.name, description: data.description });
-    await this.repository.refreshVariantDimensions(dimension.offeringId);
-    return { success: true, message: `"${data.name}" updated.` };
+  // Lists an offering's axes with their values.
+  async list(offeringId: string): Promise<OfferingDimensionDto[]> {
+    if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
+    const dimensions = await this.repository.findByOfferingWithValues(offeringId);
+    return dimensions.map((d) => OfferingDimensionDto.from(d, d.values));
   }
 
   // Blocked while any variant carries a value on this axis — removing it would leave those variants with SKUs

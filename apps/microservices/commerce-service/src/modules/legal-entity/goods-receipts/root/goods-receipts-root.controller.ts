@@ -34,11 +34,11 @@ export class LeGoodsReceiptsRootController {
     return this.service.update(dto);
   }
 
-  // Returns one page of the goods receipts of the legal entity's sites
-  @MessagePattern({ cmd: 'le.goodsReceipts.table' })
-  table(@Payload() state: TableState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
-    this.logger.log('le.goodsReceipts.table');
-    return this.goodsReceiptsService.findForTable(state);
+  // Posts a goods receipt, landing its stock at its site
+  @MessagePattern({ cmd: 'le.goodsReceipts.post' })
+  post(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<GoodsReceiptDto> {
+    this.logger.log(`le.goodsReceipts.post — id: ${data.id}`);
+    return this.postService.post(data.id, headers.leCurrencyCode, headers);
   }
 
   // Returns one goods receipt
@@ -48,11 +48,11 @@ export class LeGoodsReceiptsRootController {
     return this.goodsReceiptsService.findById(data.id);
   }
 
-  // Posts a goods receipt, landing its stock at its site
-  @MessagePattern({ cmd: 'le.goodsReceipts.post' })
-  post(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<GoodsReceiptDto> {
-    this.logger.log(`le.goodsReceipts.post — id: ${data.id}`);
-    return this.postService.post(data.id, headers.leCurrencyCode, headers);
+  // Returns one page of the goods receipts of the legal entity's sites
+  @MessagePattern({ cmd: 'le.goodsReceipts.table' })
+  table(@Payload() state: TableState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
+    this.logger.log('le.goodsReceipts.table');
+    return this.goodsReceiptsService.findForTable(state);
   }
 
   // Deletes a draft goods receipt

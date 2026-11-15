@@ -50,6 +50,68 @@ export class CatalogChannelsGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`org.appCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'org.appCatalogChannels.upsert', dto);
+  }
+
+  async upsertPos(dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`org.posCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'org.posCatalogChannels.upsert', dto);
+  }
+
+  async upsertB2b(dto: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
+    this.logger.log(`org.b2bCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
+    return this.nats.send('commerce', 'org.b2bCatalogChannels.upsert', dto);
+  }
+
+  async setItemVisibility(
+    channelId: string,
+    listingId: string,
+    availableHere: boolean,
+    currencyCode?: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `org.catalogChannels.setItemVisibility — listingId: ${listingId}, currency: ${currencyCode ?? 'all'}`,
+    );
+    return this.nats.send('commerce', 'org.catalogChannels.setItemVisibility', {
+      channelId,
+      listingId,
+      availableHere,
+      currencyCode: currencyCode ?? null,
+    });
+  }
+
+  async findItemsForTable(userId: string, channelId: string): Promise<ChannelItemTableResponseDto> {
+    this.logger.log(`org.catalogChannels.items — channelId: ${channelId}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, ITEMS_TABLE_SLUG(channelId));
+    const { result, count } = await this.nats.send<{ result: ChannelItemResponseDto[]; count: number }>(
+      'commerce',
+      'org.catalogChannels.items',
+      { channelId, state },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // One currency's prices for this channel. Shares one saved view across currencies — same columns.
+  async findPricesForTable(
+    orgId: string,
+    userId: string,
+    channelId: string,
+    currencyCode: string,
+  ): Promise<ChannelPriceTableResponseDto> {
+    this.logger.log(`org.catalogChannels.prices — channelId: ${channelId}, currency: ${currencyCode}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, PRICES_TABLE_SLUG(channelId));
+    const { result, count } = await this.nats.send<{ result: ChannelPriceResponseDto[]; count: number }>(
+      'commerce',
+      'org.catalogChannels.prices',
+      { channelId, currencyCode, state },
+    );
+    // commerce stores only the owning ids; the names live in core
+    return { result: await this.namePriceOwners(orgId, result), count, state, activeViewId };
+  }
+
   // The whole channels list in one read
   async list(orgId: string): Promise<ChannelEntryResponseDto[]> {
     this.logger.log('org.catalogChannels.list');
@@ -123,77 +185,15 @@ export class CatalogChannelsGatewayService {
     });
   }
 
-  async upsertApp(dto: UpsertAppChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`org.appCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'org.appCatalogChannels.upsert', dto);
-  }
-
-  async upsertPos(dto: UpsertPosChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`org.posCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'org.posCatalogChannels.upsert', dto);
-  }
-
-  async upsertB2b(dto: UpsertB2bChannelDto): Promise<CreateResponseDto<CatalogChannelResponseDto>> {
-    this.logger.log(`org.b2bCatalogChannels.upsert — catalogId: ${dto.catalogId}`);
-    return this.nats.send('commerce', 'org.b2bCatalogChannels.upsert', dto);
+  async findCurrencies(channelId: string): Promise<string[]> {
+    this.logger.log(`org.catalogChannels.currencies — channelId: ${channelId}`);
+    return this.nats.send('commerce', 'org.catalogChannels.currencies', { channelId });
   }
 
   // Everything below keys on channelId and is type-neutral — only creation differs per type
   async remove(channelId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.catalogChannels.delete — channelId: ${channelId}`);
     return this.nats.send('commerce', 'org.catalogChannels.delete', { channelId });
-  }
-
-  async findItemsForTable(userId: string, channelId: string): Promise<ChannelItemTableResponseDto> {
-    this.logger.log(`org.catalogChannels.items — channelId: ${channelId}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, ITEMS_TABLE_SLUG(channelId));
-    const { result, count } = await this.nats.send<{ result: ChannelItemResponseDto[]; count: number }>(
-      'commerce',
-      'org.catalogChannels.items',
-      { channelId, state },
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
-  async findCurrencies(channelId: string): Promise<string[]> {
-    this.logger.log(`org.catalogChannels.currencies — channelId: ${channelId}`);
-    return this.nats.send('commerce', 'org.catalogChannels.currencies', { channelId });
-  }
-
-  // One currency's prices for this channel. Shares one saved view across currencies — same columns.
-  async findPricesForTable(
-    orgId: string,
-    userId: string,
-    channelId: string,
-    currencyCode: string,
-  ): Promise<ChannelPriceTableResponseDto> {
-    this.logger.log(`org.catalogChannels.prices — channelId: ${channelId}, currency: ${currencyCode}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, PRICES_TABLE_SLUG(channelId));
-    const { result, count } = await this.nats.send<{ result: ChannelPriceResponseDto[]; count: number }>(
-      'commerce',
-      'org.catalogChannels.prices',
-      { channelId, currencyCode, state },
-    );
-    // commerce stores only the owning ids; the names live in core
-    return { result: await this.namePriceOwners(orgId, result), count, state, activeViewId };
-  }
-
-  async setItemVisibility(
-    channelId: string,
-    listingId: string,
-    availableHere: boolean,
-    currencyCode?: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `org.catalogChannels.setItemVisibility — listingId: ${listingId}, currency: ${currencyCode ?? 'all'}`,
-    );
-    return this.nats.send('commerce', 'org.catalogChannels.setItemVisibility', {
-      channelId,
-      listingId,
-      availableHere,
-      currencyCode: currencyCode ?? null,
-    });
   }
 
   // A price carries the workspace that set it, so an inherited one can say whose it is

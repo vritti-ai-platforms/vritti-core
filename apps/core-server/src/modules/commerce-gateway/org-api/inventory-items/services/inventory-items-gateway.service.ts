@@ -30,6 +30,85 @@ export class InventoryItemsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new org inventory item
+  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
+    return this.nats.send('commerce', 'org.inventoryItems.create', dto);
+  }
+
+  // Creates a per-item UOM conversion override
+  async createUomConversion(
+    inventoryItemId: string,
+    dto: CreateInventoryItemUomConversionDto,
+  ): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
+    this.logger.log(`org.inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.uom.create', { inventoryItemId, ...dto });
+  }
+
+  // Adds a manual MRP for an inventory item
+  async addMrp(inventoryItemId: string, dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.add — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.add', { inventoryItemId, ...dto });
+  }
+
+  // Allows an inventory item in a storage type with a maximum per location
+  createStorageType(
+    inventoryItemId: string,
+    dto: CreateInventoryItemStorageTypeDto,
+  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+    this.logger.log(
+      `org.inventoryItems.storageTypes.create — inventoryItemId: ${inventoryItemId}, storageTypeId: ${dto.storageTypeId}`,
+    );
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.create', { inventoryItemId, ...dto });
+  }
+
+  // Updates an inventory item
+  async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
+  }
+
+  // Updates a per-item UOM conversion override
+  async updateUomConversion(
+    conversionId: string,
+    dto: UpdateInventoryItemUomConversionDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.uom.update — id: ${conversionId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.uom.update', { id: conversionId, ...dto });
+  }
+
+  // Updates a manual MRP for an inventory item
+  async updateMrp(
+    inventoryItemId: string,
+    mrpId: string,
+    dto: UpdateInventoryItemMrpDto,
+  ): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.update — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.update', { inventoryItemId, id: mrpId, ...dto });
+  }
+
+  // Updates an item × storage type row
+  updateStorageType(
+    inventoryItemId: string,
+    id: string,
+    dto: UpdateInventoryItemStorageTypeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.storageTypes.update — inventoryItemId: ${inventoryItemId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.update', { inventoryItemId, id, ...dto });
+  }
+
+  // Promotes one recorded MRP to the current one shown on listings
+  async setMrpCurrent(inventoryItemId: string, mrpId: string): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.setCurrent — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.setCurrent', { id: mrpId });
+  }
+
+  // Returns a single inventory item by ID
+  async findById(id: string): Promise<InventoryItemResponseDto> {
+    this.logger.log(`org.inventoryItems.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.findById', { id });
+  }
+
   // Returns paginated org-wide inventory items for the data table
   async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('org.inventoryItems.table');
@@ -42,30 +121,6 @@ export class InventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a new org inventory item
-  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
-    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
-    return this.nats.send('commerce', 'org.inventoryItems.create', dto);
-  }
-
-  // Returns a single inventory item by ID
-  async findById(id: string): Promise<InventoryItemResponseDto> {
-    this.logger.log(`org.inventoryItems.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.findById', { id });
-  }
-
-  // Updates an inventory item
-  async update(id: string, dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
-  }
-
-  // Deletes an inventory item
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.delete — id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.delete', { id });
   }
 
   // Returns paginated UOM conversion overrides for an inventory item
@@ -85,30 +140,6 @@ export class InventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a per-item UOM conversion override
-  async createUomConversion(
-    inventoryItemId: string,
-    dto: CreateInventoryItemUomConversionDto,
-  ): Promise<CreateResponseDto<InventoryItemUomConversionResponseDto>> {
-    this.logger.log(`org.inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.uom.create', { inventoryItemId, ...dto });
-  }
-
-  // Updates a per-item UOM conversion override
-  async updateUomConversion(
-    conversionId: string,
-    dto: UpdateInventoryItemUomConversionDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.uom.update — id: ${conversionId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.uom.update', { id: conversionId, ...dto });
-  }
-
-  // Deletes a per-item UOM conversion override
-  async deleteUomConversion(conversionId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.uom.delete — id: ${conversionId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.uom.delete', { id: conversionId });
-  }
-
   // Returns an inventory item's MRPs, table-shaped
   async findMrpTable(inventoryItemId: string, userId: string): Promise<InventoryItemMrpTableResponseDto> {
     this.logger.log(`org.inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
@@ -124,34 +155,6 @@ export class InventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Adds a manual MRP for an inventory item
-  async addMrp(inventoryItemId: string, dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
-    this.logger.log(`org.inventoryItems.mrp.add — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.mrp.add', { inventoryItemId, ...dto });
-  }
-
-  // Updates a manual MRP for an inventory item
-  async updateMrp(
-    inventoryItemId: string,
-    mrpId: string,
-    dto: UpdateInventoryItemMrpDto,
-  ): Promise<InventoryItemMrpResponseDto> {
-    this.logger.log(`org.inventoryItems.mrp.update — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.mrp.update', { inventoryItemId, id: mrpId, ...dto });
-  }
-
-  // Promotes one recorded MRP to the current one shown on listings
-  async setMrpCurrent(inventoryItemId: string, mrpId: string): Promise<InventoryItemMrpResponseDto> {
-    this.logger.log(`org.inventoryItems.mrp.setCurrent — inventoryItemId: ${inventoryItemId}, id: ${mrpId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.mrp.setCurrent', { id: mrpId });
-  }
-
-  // Deletes a manual MRP for an inventory item
-  async deleteMrp(mrpId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.mrp.delete — id: ${mrpId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.mrp.delete', { id: mrpId });
   }
 
   // Returns supplier links for a given inventory item, table-shaped
@@ -177,25 +180,22 @@ export class InventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.storageTypes.findAll', { inventoryItemId });
   }
 
-  // Allows an inventory item in a storage type with a maximum per location
-  createStorageType(
-    inventoryItemId: string,
-    dto: CreateInventoryItemStorageTypeDto,
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
-    this.logger.log(
-      `org.inventoryItems.storageTypes.create — inventoryItemId: ${inventoryItemId}, storageTypeId: ${dto.storageTypeId}`,
-    );
-    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.create', { inventoryItemId, ...dto });
+  // Deletes an inventory item
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.delete', { id });
   }
 
-  // Updates an item × storage type row
-  updateStorageType(
-    inventoryItemId: string,
-    id: string,
-    dto: UpdateInventoryItemStorageTypeDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.storageTypes.update — inventoryItemId: ${inventoryItemId}, id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.storageTypes.update', { inventoryItemId, id, ...dto });
+  // Deletes a per-item UOM conversion override
+  async deleteUomConversion(conversionId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.uom.delete — id: ${conversionId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.uom.delete', { id: conversionId });
+  }
+
+  // Deletes a manual MRP for an inventory item
+  async deleteMrp(mrpId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.mrp.delete — id: ${mrpId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.mrp.delete', { id: mrpId });
   }
 
   // Stops allowing an inventory item in a storage type

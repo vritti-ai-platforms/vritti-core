@@ -20,17 +20,6 @@ export class SiteSupplierQuotationsGatewayController {
 
   constructor(private readonly service: SiteSupplierQuotationsGatewayService) {}
 
-  // Returns the supplier's quotations posted to the session site for the data table
-  @Get('table')
-  @RequirePermission(SITE_SUPPLIERS.quotations.view)
-  getTable(
-    @Param('id', new ParseUUIDPipe()) supplierId: string,
-    @UserId() userId: string,
-  ): Promise<SupplierQuotationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/quotations/table`);
-    return this.service.findForTable(supplierId, userId);
-  }
-
   // Returns a quotation posted to the session site, with its lines and posted sites
   @Get(':quotationId')
   @RequirePermission(SITE_SUPPLIERS.quotations.view)
@@ -41,5 +30,16 @@ export class SiteSupplierQuotationsGatewayController {
   ): Promise<SupplierQuotationDetailResponseDto> {
     this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/quotations/${quotationId}`);
     return this.service.findById(supplierId, quotationId, orgId);
+  }
+
+  // Returns the supplier's quotations posted to the session site for the data table
+  @Get('table')
+  @RequirePermission(SITE_SUPPLIERS.quotations.view)
+  getTable(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @UserId() userId: string,
+  ): Promise<SupplierQuotationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/quotations/table`);
+    return this.service.findForTable(supplierId, userId);
   }
 }

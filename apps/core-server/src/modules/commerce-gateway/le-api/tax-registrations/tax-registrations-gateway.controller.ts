@@ -28,6 +28,28 @@ import { TaxRegistrationsGatewayService } from './services/tax-registrations-gat
 export class TaxRegistrationsGatewayController {
   constructor(private readonly service: TaxRegistrationsGatewayService) {}
 
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_TAX_REGISTRATIONS.add)
+  @ApiCreateTaxRegistration()
+  create(@Body() dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationResponseDto>> {
+    return this.service.create(dto);
+  }
+
+  @Patch(':id')
+  @RequirePermission(LE_TAX_REGISTRATIONS.edit)
+  @ApiUpdateTaxRegistration()
+  update(@Param('id') id: string, @Body() dto: UpdateTaxRegistrationDto): Promise<SuccessResponseDto> {
+    return this.service.update(id, dto);
+  }
+
+  @Get(':id')
+  @RequirePermission(LE_TAX_REGISTRATIONS.view)
+  @ApiGetTaxRegistration()
+  findById(@Param('id') id: string): Promise<TaxRegistrationResponseDto> {
+    return this.service.findById(id);
+  }
+
   @Get('table')
   @RequirePermission(LE_TAX_REGISTRATIONS.view)
   @ApiFindForTableTaxRegistrations()
@@ -40,28 +62,6 @@ export class TaxRegistrationsGatewayController {
   @ApiListTaxRegistrations()
   list(@LegalEntityId() legalEntityId: string | undefined): Promise<TaxRegistrationResponseDto[]> {
     return this.service.listByLegalEntity(legalEntityId);
-  }
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_TAX_REGISTRATIONS.add)
-  @ApiCreateTaxRegistration()
-  create(@Body() dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationResponseDto>> {
-    return this.service.create(dto);
-  }
-
-  @Get(':id')
-  @RequirePermission(LE_TAX_REGISTRATIONS.view)
-  @ApiGetTaxRegistration()
-  findById(@Param('id') id: string): Promise<TaxRegistrationResponseDto> {
-    return this.service.findById(id);
-  }
-
-  @Patch(':id')
-  @RequirePermission(LE_TAX_REGISTRATIONS.edit)
-  @ApiUpdateTaxRegistration()
-  update(@Param('id') id: string, @Body() dto: UpdateTaxRegistrationDto): Promise<SuccessResponseDto> {
-    return this.service.update(id, dto);
   }
 
   @Delete(':id')

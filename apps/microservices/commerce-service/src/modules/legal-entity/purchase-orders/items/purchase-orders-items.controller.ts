@@ -18,28 +18,6 @@ export class LePurchaseOrdersItemsController {
     private readonly service: PurchaseOrdersItemsService,
   ) {}
 
-  // Returns every line of a purchase order
-  @MessagePattern({ cmd: 'le.purchaseOrders.items' })
-  items(@Payload() data: { id: string }): Promise<PurchaseOrderItemDto[]> {
-    this.logger.log(`le.purchaseOrders.items — id: ${data.id}`);
-    return this.itemsService.findByPurchaseOrderId(data.id);
-  }
-
-  // Returns the inventory items ordered on a purchase order
-  @MessagePattern({ cmd: 'le.purchaseOrders.itemIds' })
-  itemIds(@Payload() data: { id: string }): Promise<string[]> {
-    this.logger.log(`le.purchaseOrders.itemIds — id: ${data.id}`);
-    return this.itemsService.findInventoryItemIds(data.id);
-  }
-
-  // Returns one page of a purchase order's lines
-  @MessagePattern({ cmd: 'le.purchaseOrders.itemsTable' })
-  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    this.logger.log(`le.purchaseOrders.itemsTable — id: ${data.id}`);
-    const { id, ...state } = data;
-    return this.itemsService.findForTable(id, state);
-  }
-
   // Adds a line to a purchase order
   @MessagePattern({ cmd: 'le.purchaseOrders.addItem' })
   addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
@@ -52,6 +30,28 @@ export class LePurchaseOrdersItemsController {
   updateItem(@Payload() dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.updateItem — id: ${dto.purchaseOrderId}, item: ${dto.itemId}`);
     return this.service.updateItem(dto);
+  }
+
+  // Returns one page of a purchase order's lines
+  @MessagePattern({ cmd: 'le.purchaseOrders.itemsTable' })
+  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+    this.logger.log(`le.purchaseOrders.itemsTable — id: ${data.id}`);
+    const { id, ...state } = data;
+    return this.itemsService.findForTable(id, state);
+  }
+
+  // Returns every line of a purchase order
+  @MessagePattern({ cmd: 'le.purchaseOrders.items' })
+  items(@Payload() data: { id: string }): Promise<PurchaseOrderItemDto[]> {
+    this.logger.log(`le.purchaseOrders.items — id: ${data.id}`);
+    return this.itemsService.findByPurchaseOrderId(data.id);
+  }
+
+  // Returns the inventory items ordered on a purchase order
+  @MessagePattern({ cmd: 'le.purchaseOrders.itemIds' })
+  itemIds(@Payload() data: { id: string }): Promise<string[]> {
+    this.logger.log(`le.purchaseOrders.itemIds — id: ${data.id}`);
+    return this.itemsService.findInventoryItemIds(data.id);
   }
 
   // Removes a line from a purchase order

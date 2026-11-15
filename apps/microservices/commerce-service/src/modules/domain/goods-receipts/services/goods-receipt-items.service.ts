@@ -42,6 +42,35 @@ export class GoodsReceiptItemsDomainService {
 
   constructor(private readonly itemsRepository: GoodsReceiptItemsDomainRepository) {}
 
+  // Changes the received or rejected quantity of an item on a draft receipt, in primary units too by its PO line's ratio
+  async updateItem(
+    receipt: GoodsReceiptRow,
+    item: GoodsReceiptItemRow,
+    dto: UpdateGoodsReceiptItemDto,
+  ): Promise<SuccessResponseDto> {
+    const receivedQty = dto.receivedQty ?? item.receivedQty;
+    const rejectedQuantity = dto.rejectedQuantity ?? item.rejectedQuantity;
+    this.assertRejectedWithinReceived(receivedQty, rejectedQuantity);
+    const primaryPerOrderUnit = new Decimal(item.poPrimaryUomQty).dividedBy(item.orderedQty);
+
+    await this.itemsRepository.update(item.id, {
+      receivedQty,
+      rejectedQuantity,
+      receivedPrimaryQty: primaryPerOrderUnit.times(receivedQty).toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber(),
+      rejectedPrimaryQty: primaryPerOrderUnit
+        .times(rejectedQuantity)
+        .toDecimalPlaces(3, Decimal.ROUND_HALF_UP)
+        .toNumber(),
+    });
+    this.logger.log(`Updated item ${item.id} on goods receipt ${receipt.grNumber}`);
+    return { success: true, message: `"${item.inventoryItemName}" updated on goods receipt "${receipt.grNumber}".` };
+  }
+
+  // Returns one item of a receipt with its purchase order context and flags
+  async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {
+    return GoodsReceiptItemDto.from(await this.findOnReceiptOrThrow(goodsReceiptId, itemId));
+  }
+
   // Returns one page of a receipt's items with their purchase order context and flags
   async findForTable(
     goodsReceiptId: string,
@@ -60,11 +89,6 @@ export class GoodsReceiptItemsDomainService {
       offset,
     });
     return { result: result.map(GoodsReceiptItemDto.from), count };
-  }
-
-  // Returns one item of a receipt with its purchase order context and flags
-  async findById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemDto> {
-    return GoodsReceiptItemDto.from(await this.findOnReceiptOrThrow(goodsReceiptId, itemId));
   }
 
   // Loads an item of the given receipt, throwing when it is not on it
@@ -134,30 +158,6 @@ export class GoodsReceiptItemsDomainService {
       await this.findProvisionalCosts(goodsReceiptId, leCurrencyCode),
       leCurrencyCode,
     );
-  }
-
-  // Changes the received or rejected quantity of an item on a draft receipt, in primary units too by its PO line's ratio
-  async updateItem(
-    receipt: GoodsReceiptRow,
-    item: GoodsReceiptItemRow,
-    dto: UpdateGoodsReceiptItemDto,
-  ): Promise<SuccessResponseDto> {
-    const receivedQty = dto.receivedQty ?? item.receivedQty;
-    const rejectedQuantity = dto.rejectedQuantity ?? item.rejectedQuantity;
-    this.assertRejectedWithinReceived(receivedQty, rejectedQuantity);
-    const primaryPerOrderUnit = new Decimal(item.poPrimaryUomQty).dividedBy(item.orderedQty);
-
-    await this.itemsRepository.update(item.id, {
-      receivedQty,
-      rejectedQuantity,
-      receivedPrimaryQty: primaryPerOrderUnit.times(receivedQty).toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber(),
-      rejectedPrimaryQty: primaryPerOrderUnit
-        .times(rejectedQuantity)
-        .toDecimalPlaces(3, Decimal.ROUND_HALF_UP)
-        .toNumber(),
-    });
-    this.logger.log(`Updated item ${item.id} on goods receipt ${receipt.grNumber}`);
-    return { success: true, message: `"${item.inventoryItemName}" updated on goods receipt "${receipt.grNumber}".` };
   }
 
   // Removes an item, with its lots and lines, from a draft receipt

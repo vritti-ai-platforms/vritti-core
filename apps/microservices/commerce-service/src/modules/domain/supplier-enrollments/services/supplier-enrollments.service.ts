@@ -59,43 +59,6 @@ export class SupplierEnrollmentsDomainService {
     private readonly siteSuppliersRepository: SiteSuppliersDomainRepository,
   ) {}
 
-  // Returns the legal entity's suppliers with their enrollment at the site: every active one, plus inactive ones already
-  // enrolled here so their enrollment stays visible
-  async findForSiteTable(
-    legalEntityId: string,
-    siteId: string,
-    state: TableState,
-  ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP,
-      ...SupplierEnrollmentsDomainService.FILTER_FIELD_MAP,
-    });
-    const { result, count } = await this.siteSuppliersRepository.findForSiteTable(legalEntityId, siteId, {
-      where: and(
-        or(eq(suppliers.isActive, true), isNotNull(supplierEnrollments.id)),
-        FilterProcessor.buildWhere(state.filters, SupplierEnrollmentsDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [isNull(supplierEnrollments.id), asc(parties.displayName)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => SupplierEnrollmentRowDto.from(row, siteId)), count };
-  }
-
-  // Returns a supplier's enrollment at a site with its commercial identity, enrolled or not
-  async findDetail(legalEntityId: string, siteId: string, supplierId: string): Promise<SupplierEnrollmentDetailDto> {
-    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
-    return SupplierEnrollmentDetailDto.fromDetail(row, siteId);
-  }
-
-  // Returns every enrollment of a supplier; the gateway merges them into the legal entity's site list
-  async findAllForSupplier(supplierId: string): Promise<SupplierEnrollmentDto[]> {
-    await this.findSupplierOrThrow(supplierId);
-    return (await this.repository.findAllForSupplier(supplierId)).map(SupplierEnrollmentDto.from);
-  }
-
   // Enrolls a supplier at a site, optionally under one of its GSTIN/VAT registrations, validating every pick
   async create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
     const { supplierId, siteId, ...picks } = dto;
@@ -134,58 +97,6 @@ export class SupplierEnrollmentsDomainService {
     }
     this.logger.log(`Updated enrollment of supplier ${supplierId} at site ${siteId}`);
     return { success: true, message: 'Enrollment updated successfully.' };
-  }
-
-  // Activates or deactivates the supplier's own enrollment at a site; the supplier-wide flag is untouched
-  async setActive(dto: SetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
-    const enrollment = await this.findBySupplierAndSiteOrThrow(dto.supplierId, dto.siteId);
-    await this.repository.update(enrollment.id, { isActive: dto.isActive });
-    this.logger.log(`Set supplier ${dto.supplierId} active=${dto.isActive} at site ${dto.siteId}`);
-    return { success: true, message: `Enrollment ${dto.isActive ? 'activated' : 'deactivated'} at this site.` };
-  }
-
-  // Removes the supplier's enrollment at a site and its site picks
-  async delete(supplierId: string, siteId: string): Promise<SuccessResponseDto> {
-    const enrollment = await this.findBySupplierAndSiteOrThrow(supplierId, siteId);
-    await this.repository.delete(enrollment.id);
-    this.logger.log(`Unenrolled supplier ${supplierId} from site ${siteId}`);
-    return { success: true, message: 'Supplier unenrolled from this site.' };
-  }
-
-  // Returns true when the supplier is enrolled for the site
-  isEnrolled(supplierId: string, siteId: string): Promise<boolean> {
-    return this.repository.isEnrolled(supplierId, siteId);
-  }
-
-  // Returns supplier options for a site picker with each supplier's enrollment status at the site
-  findSuppliersForSelect(
-    legalEntityId: string,
-    siteId: string,
-    query: SupplierEnrollmentSelectQueryDto,
-  ): Promise<SelectQueryResult> {
-    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, siteId, query);
-  }
-
-  // Returns the sites a supplier (or any supplier of an inventory item) is enrolled at, only the active enrollments with
-  // isActive; core-api's site select limits its options to them
-  findEnrolledSiteIds({ supplierId, inventoryItemId, isActive }: SupplierEnrolledSitesQueryDto): Promise<string[]> {
-    return this.repository.findEnrolledSiteIds({ supplierId, inventoryItemId }, isActive);
-  }
-
-  // Returns a supplier's enrollment at a site with its purchasing settings, amounts in the legal entity's currency
-  async findDetailWithPurchasing(
-    legalEntityId: string,
-    siteId: string,
-    supplierId: string,
-    leCurrencyCode: string,
-  ): Promise<SupplierEnrollmentPurchasingDetailDto> {
-    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
-    const purchasing = row.id ? await this.repository.findPurchasing(row.id) : undefined;
-    return SupplierEnrollmentPurchasingDetailDto.fromPurchasing(
-      row,
-      siteId,
-      purchasing ? EnrollmentPurchasingDto.from(purchasing, leCurrencyCode) : null,
-    );
   }
 
   // Sets how purchases from the supplier run at the site, its amounts in the legal entity's currency; the caller has
@@ -231,6 +142,87 @@ export class SupplierEnrollmentsDomainService {
     return { success: true, message: 'Purchasing settings updated.' };
   }
 
+  // Activates or deactivates the supplier's own enrollment at a site; the supplier-wide flag is untouched
+  async setActive(dto: SetSupplierEnrollmentActiveDto): Promise<SuccessResponseDto> {
+    const enrollment = await this.findBySupplierAndSiteOrThrow(dto.supplierId, dto.siteId);
+    await this.repository.update(enrollment.id, { isActive: dto.isActive });
+    this.logger.log(`Set supplier ${dto.supplierId} active=${dto.isActive} at site ${dto.siteId}`);
+    return { success: true, message: `Enrollment ${dto.isActive ? 'activated' : 'deactivated'} at this site.` };
+  }
+
+  // Returns the legal entity's suppliers with their enrollment at the site: every active one, plus inactive ones already
+  // enrolled here so their enrollment stays visible
+  async findForSiteTable(
+    legalEntityId: string,
+    siteId: string,
+    state: TableState,
+  ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP,
+      ...SupplierEnrollmentsDomainService.FILTER_FIELD_MAP,
+    });
+    const { result, count } = await this.siteSuppliersRepository.findForSiteTable(legalEntityId, siteId, {
+      where: and(
+        or(eq(suppliers.isActive, true), isNotNull(supplierEnrollments.id)),
+        FilterProcessor.buildWhere(state.filters, SupplierEnrollmentsDomainService.FILTER_FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, SupplierEnrollmentsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [isNull(supplierEnrollments.id), asc(parties.displayName)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => SupplierEnrollmentRowDto.from(row, siteId)), count };
+  }
+
+  // Returns a supplier's enrollment at a site with its commercial identity, enrolled or not
+  async findDetail(legalEntityId: string, siteId: string, supplierId: string): Promise<SupplierEnrollmentDetailDto> {
+    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
+    return SupplierEnrollmentDetailDto.fromDetail(row, siteId);
+  }
+
+  // Returns every enrollment of a supplier; the gateway merges them into the legal entity's site list
+  async findAllForSupplier(supplierId: string): Promise<SupplierEnrollmentDto[]> {
+    await this.findSupplierOrThrow(supplierId);
+    return (await this.repository.findAllForSupplier(supplierId)).map(SupplierEnrollmentDto.from);
+  }
+
+  // Returns true when the supplier is enrolled for the site
+  isEnrolled(supplierId: string, siteId: string): Promise<boolean> {
+    return this.repository.isEnrolled(supplierId, siteId);
+  }
+
+  // Returns supplier options for a site picker with each supplier's enrollment status at the site
+  findSuppliersForSelect(
+    legalEntityId: string,
+    siteId: string,
+    query: SupplierEnrollmentSelectQueryDto,
+  ): Promise<SelectQueryResult> {
+    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, siteId, query);
+  }
+
+  // Returns the sites a supplier (or any supplier of an inventory item) is enrolled at, only the active enrollments with
+  // isActive; core-api's site select limits its options to them
+  findEnrolledSiteIds({ supplierId, inventoryItemId, isActive }: SupplierEnrolledSitesQueryDto): Promise<string[]> {
+    return this.repository.findEnrolledSiteIds({ supplierId, inventoryItemId }, isActive);
+  }
+
+  // Returns a supplier's enrollment at a site with its purchasing settings, amounts in the legal entity's currency
+  async findDetailWithPurchasing(
+    legalEntityId: string,
+    siteId: string,
+    supplierId: string,
+    leCurrencyCode: string,
+  ): Promise<SupplierEnrollmentPurchasingDetailDto> {
+    const row = await this.siteSuppliersRepository.findDetailOrThrow(legalEntityId, siteId, supplierId);
+    const purchasing = row.id ? await this.repository.findPurchasing(row.id) : undefined;
+    return SupplierEnrollmentPurchasingDetailDto.fromPurchasing(
+      row,
+      siteId,
+      purchasing ? EnrollmentPurchasingDto.from(purchasing, leCurrencyCode) : null,
+    );
+  }
+
   // Returns the settings a purchase leg copies from the supplier's enrollment at the site, or undefined when not enrolled
   async findPurchasingSnapshot(
     supplierId: string,
@@ -245,6 +237,44 @@ export class SupplierEnrollmentsDomainService {
     if (enrollmentIds.length === 0) return new Map();
     const rows = await this.repository.findApprovers([...new Set(enrollmentIds)]);
     return new Map(rows.map((row) => [row.id, row.approverUserIds]));
+  }
+
+  // Loads the supplier's enrollment at a site, throwing when the supplier is not enrolled there
+  async findBySupplierAndSiteOrThrow(supplierId: string, siteId: string): Promise<SupplierEnrollment> {
+    const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
+    if (!enrollment) throw new NotFoundException('Supplier is not enrolled for this site.');
+    return enrollment;
+  }
+
+  // Rejects buying from a supplier that is not enrolled, not active or purchasing-blocked at the site
+  async assertPurchasable(supplierId: string, siteId: string): Promise<void> {
+    const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
+    if (!enrollment) {
+      throw new BadRequestException({
+        label: 'Not Enrolled',
+        detail: 'This supplier is not enrolled for this site. Enroll it here before creating this document.',
+      });
+    }
+    if (!enrollment.isSupplierActive || !enrollment.isActive) {
+      const detail = enrollment.isSupplierActive
+        ? "This supplier's enrollment at this site is inactive. Activate it at this site before purchasing."
+        : 'This supplier is inactive. Activate the supplier before purchasing from it.';
+      throw new BadRequestException({ label: 'Supplier Inactive', detail });
+    }
+    const supplier = await this.findSupplierOrThrow(supplierId);
+    if (!supplier.purchasingBlocked) return;
+    throw new BadRequestException({
+      label: 'Supplier Blocked',
+      detail: 'Purchasing is blocked for this supplier. Lift the block on the supplier before purchasing from it.',
+    });
+  }
+
+  // Removes the supplier's enrollment at a site and its site picks
+  async delete(supplierId: string, siteId: string): Promise<SuccessResponseDto> {
+    const enrollment = await this.findBySupplierAndSiteOrThrow(supplierId, siteId);
+    await this.repository.delete(enrollment.id);
+    this.logger.log(`Unenrolled supplier ${supplierId} from site ${siteId}`);
+    return { success: true, message: 'Supplier unenrolled from this site.' };
   }
 
   // Rejects turning approval on without anyone to approve
@@ -294,36 +324,6 @@ export class SupplierEnrollmentsDomainService {
       });
     }
     return majorToMinor(amount.value, amount.currency, field);
-  }
-
-  // Loads the supplier's enrollment at a site, throwing when the supplier is not enrolled there
-  async findBySupplierAndSiteOrThrow(supplierId: string, siteId: string): Promise<SupplierEnrollment> {
-    const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
-    if (!enrollment) throw new NotFoundException('Supplier is not enrolled for this site.');
-    return enrollment;
-  }
-
-  // Rejects buying from a supplier that is not enrolled, not active or purchasing-blocked at the site
-  async assertPurchasable(supplierId: string, siteId: string): Promise<void> {
-    const enrollment = await this.repository.findBySupplierAndSite(supplierId, siteId);
-    if (!enrollment) {
-      throw new BadRequestException({
-        label: 'Not Enrolled',
-        detail: 'This supplier is not enrolled for this site. Enroll it here before creating this document.',
-      });
-    }
-    if (!enrollment.isSupplierActive || !enrollment.isActive) {
-      const detail = enrollment.isSupplierActive
-        ? "This supplier's enrollment at this site is inactive. Activate it at this site before purchasing."
-        : 'This supplier is inactive. Activate the supplier before purchasing from it.';
-      throw new BadRequestException({ label: 'Supplier Inactive', detail });
-    }
-    const supplier = await this.findSupplierOrThrow(supplierId);
-    if (!supplier.purchasingBlocked) return;
-    throw new BadRequestException({
-      label: 'Supplier Blocked',
-      detail: 'Purchasing is blocked for this supplier. Lift the block on the supplier before purchasing from it.',
-    });
   }
 
   // Loads a supplier row for enrollment validation, throwing when it does not exist

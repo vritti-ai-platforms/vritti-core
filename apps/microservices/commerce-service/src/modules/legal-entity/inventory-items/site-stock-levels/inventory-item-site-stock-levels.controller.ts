@@ -16,24 +16,6 @@ export class LeInventoryItemSiteStockLevelsController {
 
   constructor(private readonly service: InventoryItemSiteStockLevelsDomainService) {}
 
-  // The item's stock levels at the legal entity's sites that have them, with the stock each holds by location and
-  // whether each passes the table's status filter; core pages the sites and attaches these rows
-  @MessagePattern({ cmd: 'le.inventoryItems.siteStockLevels.bySite' })
-  bySite(
-    @Payload() data: { inventoryItemId: string; filters: TableFilters },
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<ItemStockBySiteDto> {
-    this.logger.log(`le.inventoryItems.siteStockLevels.bySite — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findStockBySite(data.inventoryItemId, data.filters, leCurrencyCode as CurrencyCode);
-  }
-
-  // The legal entity's sites the item already has stock levels at
-  @MessagePattern({ cmd: 'le.inventoryItems.siteStockLevels.siteIds' })
-  siteIds(@Payload() data: { inventoryItemId: string }): Promise<string[]> {
-    this.logger.log(`le.inventoryItems.siteStockLevels.siteIds — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findSiteIdsForItem(data.inventoryItemId);
-  }
-
   // Sets the item's stock levels at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.inventoryItems.siteStockLevels.create' })
   create(
@@ -52,6 +34,24 @@ export class LeInventoryItemSiteStockLevelsController {
       `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${dto.inventoryItemId}, siteId: ${dto.siteId}`,
     );
     return this.service.update(dto);
+  }
+
+  // The item's stock levels at the legal entity's sites that have them, with the stock each holds by location and
+  // whether each passes the table's status filter; core pages the sites and attaches these rows
+  @MessagePattern({ cmd: 'le.inventoryItems.siteStockLevels.bySite' })
+  bySite(
+    @Payload() data: { inventoryItemId: string; filters: TableFilters },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<ItemStockBySiteDto> {
+    this.logger.log(`le.inventoryItems.siteStockLevels.bySite — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findStockBySite(data.inventoryItemId, data.filters, leCurrencyCode as CurrencyCode);
+  }
+
+  // The legal entity's sites the item already has stock levels at
+  @MessagePattern({ cmd: 'le.inventoryItems.siteStockLevels.siteIds' })
+  siteIds(@Payload() data: { inventoryItemId: string }): Promise<string[]> {
+    this.logger.log(`le.inventoryItems.siteStockLevels.siteIds — inventoryItemId: ${data.inventoryItemId}`);
+    return this.service.findSiteIdsForItem(data.inventoryItemId);
   }
 
   // Removes the item's stock levels at one of the legal entity's sites

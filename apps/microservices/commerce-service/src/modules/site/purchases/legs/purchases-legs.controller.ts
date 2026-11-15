@@ -16,27 +16,6 @@ export class PurchasesLegsController {
 
   constructor(private readonly service: PurchasesLegsService) {}
 
-  // Starts one leg still in sourcing
-  @MessagePattern({ cmd: 'site.purchases.legs.submitSupplier' })
-  submitSupplier(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchases.legs.submitSupplier — id: ${data.id}, leg: ${data.legId}`);
-    return this.service.submitSupplier(data, headers, headers.leCurrencyCode);
-  }
-
-  // Approves a leg waiting for approval
-  @MessagePattern({ cmd: 'site.purchases.legs.approve' })
-  approve(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchases.legs.approve — id: ${data.id}, leg: ${data.legId}`);
-    return this.service.approve(data, headers);
-  }
-
-  // Rejects a leg waiting for approval, returning only that leg to sourcing
-  @MessagePattern({ cmd: 'site.purchases.legs.reject' })
-  reject(@Payload() dto: RejectPurchaseLegDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchases.legs.reject — id: ${dto.id}, leg: ${dto.legId}`);
-    return this.service.reject(dto, headers);
-  }
-
   // Creates a leg's purchase orders: one sent purchase order per currency of its allocations
   @MessagePattern({ cmd: 'site.purchases.legs.createPurchaseOrder' })
   createPurchaseOrder(
@@ -50,18 +29,6 @@ export class PurchasesLegsController {
       timezone: headers.siteTimezone,
       leCurrencyCode: headers.leCurrencyCode,
     });
-  }
-
-  // Confirms a sent purchase order of a leg
-  @MessagePattern({ cmd: 'site.purchases.legs.confirmPurchaseOrder' })
-  confirmPurchaseOrder(
-    @Payload() dto: ConfirmLegPurchaseOrderDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `site.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
-    );
-    return this.service.confirmPurchaseOrder(dto, headers);
   }
 
   // Creates an inbound delivery of a leg's confirmed purchase order lines
@@ -89,6 +56,39 @@ export class PurchasesLegsController {
       timezone: headers.siteTimezone,
       leCurrencyCode: headers.leCurrencyCode,
     });
+  }
+
+  // Starts one leg still in sourcing
+  @MessagePattern({ cmd: 'site.purchases.legs.submitSupplier' })
+  submitSupplier(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchases.legs.submitSupplier — id: ${data.id}, leg: ${data.legId}`);
+    return this.service.submitSupplier(data, headers, headers.leCurrencyCode);
+  }
+
+  // Approves a leg waiting for approval
+  @MessagePattern({ cmd: 'site.purchases.legs.approve' })
+  approve(@Payload() data: PurchaseLegRef, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchases.legs.approve — id: ${data.id}, leg: ${data.legId}`);
+    return this.service.approve(data, headers);
+  }
+
+  // Rejects a leg waiting for approval, returning only that leg to sourcing
+  @MessagePattern({ cmd: 'site.purchases.legs.reject' })
+  reject(@Payload() dto: RejectPurchaseLegDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchases.legs.reject — id: ${dto.id}, leg: ${dto.legId}`);
+    return this.service.reject(dto, headers);
+  }
+
+  // Confirms a sent purchase order of a leg
+  @MessagePattern({ cmd: 'site.purchases.legs.confirmPurchaseOrder' })
+  confirmPurchaseOrder(
+    @Payload() dto: ConfirmLegPurchaseOrderDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `site.purchases.legs.confirmPurchaseOrder — id: ${dto.id}, leg: ${dto.legId}, PO: ${dto.purchaseOrderId}`,
+    );
+    return this.service.confirmPurchaseOrder(dto, headers);
   }
 
   // Closes a leg, completing delivery of its open purchase orders

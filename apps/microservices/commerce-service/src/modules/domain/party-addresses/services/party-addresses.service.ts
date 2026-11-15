@@ -36,34 +36,6 @@ export class PartyAddressesDomainService {
     private readonly functionsService: PartyFunctionsDomainService,
   ) {}
 
-  // Returns paginated addresses of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyAddressDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyAddressesDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyAddressesDomainService.FIELD_MAP);
-    const where = and(eq(partyAddresses.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyAddressesDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(partyAddresses.createdAt)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(PartyAddressDto.from), count };
-  }
-
-  // Every address a party holds, oldest first
-  async findForParty(partyId: string): Promise<PartyAddressDto[]> {
-    const { result } = await this.repository.findForTable({
-      where: eq(partyAddresses.partyId, partyId),
-      orderBy: [asc(partyAddresses.createdAt)],
-      limit: 100,
-    });
-    return result.map(PartyAddressDto.from);
-  }
-
   // Adds an address to a party.
   async add(partyId: string, data: AddPartyAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
     const { functions, ...address } = data;
@@ -126,6 +98,34 @@ export class PartyAddressesDomainService {
     }
     const created = await this.add(partyId, data);
     return created.data;
+  }
+
+  // Returns paginated addresses of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyAddressDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyAddressesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyAddressesDomainService.FIELD_MAP);
+    const where = and(eq(partyAddresses.partyId, partyId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyAddressesDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(partyAddresses.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(PartyAddressDto.from), count };
+  }
+
+  // Every address a party holds, oldest first
+  async findForParty(partyId: string): Promise<PartyAddressDto[]> {
+    const { result } = await this.repository.findForTable({
+      where: eq(partyAddresses.partyId, partyId),
+      orderBy: [asc(partyAddresses.createdAt)],
+      limit: 100,
+    });
+    return result.map(PartyAddressDto.from);
   }
 
   // Removes an address by ID

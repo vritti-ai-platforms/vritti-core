@@ -55,14 +55,6 @@ export class StockAdjustmentsService {
     private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
   ) {}
 
-  table(state: TableState, leCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    return this.adjustmentsService.findForTable(state, leCurrencyCode);
-  }
-
-  findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.findById(id, leCurrencyCode);
-  }
-
   // Creates an adjustment for an item that has stock levels set at the site
   async create(
     siteId: string,
@@ -75,10 +67,6 @@ export class StockAdjustmentsService {
   ): Promise<CreateResponseDto<StockAdjustmentDto>> {
     await this.siteStockLevelsService.ensureStockLevels(siteId, [data.inventoryItemId], 'inventoryItemId');
     return this.adjustmentsService.create(data);
-  }
-
-  delete(id: string): Promise<SuccessResponseDto> {
-    return this.adjustmentsService.delete(id);
   }
 
   update(
@@ -176,6 +164,18 @@ export class StockAdjustmentsService {
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
     return this.adjustmentsService.findById(id, leCurrencyCode);
+  }
+
+  findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
+    return this.adjustmentsService.findById(id, leCurrencyCode);
+  }
+
+  table(state: TableState, leCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    return this.adjustmentsService.findForTable(state, leCurrencyCode);
+  }
+
+  delete(id: string): Promise<SuccessResponseDto> {
+    return this.adjustmentsService.delete(id);
   }
 
   // OPENING_STOCK: line carries (locationId, lot draft FK if not QUANTITY, quantity, [serials]).

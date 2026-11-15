@@ -16,41 +16,11 @@ export class CategoriesRootController {
 
   constructor(private readonly categoriesService: CategoriesDomainService) {}
 
-  // Returns total categories count
-  @MessagePattern({ cmd: 'org.categories.count' })
-  async count(): Promise<CategoryCountDto> {
-    this.logger.log('categories.count');
-    return this.categoriesService.count();
-  }
-
-  // Returns categories as a tree hierarchy for TreeView
-  @MessagePattern({ cmd: 'org.categories.tree' })
-  async tree(@Payload() data?: { search?: string }): Promise<CategoryTreeDto[]> {
-    this.logger.log('categories.tree');
-    return this.categoriesService.findTree(data?.search);
-  }
-
-  // Returns paginated child categories for a given parent ID
-  @MessagePattern({ cmd: 'org.categories.childrenTable' })
-  async childrenTable(
-    @Payload() data: { parentId: string } & TableState,
-  ): Promise<{ result: CategoryDto[]; count: number }> {
-    this.logger.log(`categories.childrenTable — parentId: ${data.parentId}`);
-    return this.categoriesService.findChildrenForTable(data.parentId, data);
-  }
-
   // Creates a new category (org_id/bu_id auto-filled by DB defaults from session vars)
   @MessagePattern({ cmd: 'org.categories.create' })
   async create(@Payload() dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
     this.logger.log(`categories.create — name: ${dto.name}`);
     return this.categoriesService.create(dto);
-  }
-
-  // Finds a category by ID (RLS scopes visibility)
-  @MessagePattern({ cmd: 'org.categories.findById' })
-  async findById(@Payload() data: { id: string }): Promise<CategoryDto> {
-    this.logger.log(`categories.findById — id: ${data.id}`);
-    return this.categoriesService.findById(data.id);
   }
 
   // Updates a category by ID
@@ -66,6 +36,36 @@ export class CategoriesRootController {
   async reorder(@Payload() data: ReorderCategoriesDto): Promise<SuccessResponseDto> {
     this.logger.log('categories.reorder');
     return this.categoriesService.reorderSiblings(data.parentId ?? null, data.orderedIds);
+  }
+
+  // Finds a category by ID (RLS scopes visibility)
+  @MessagePattern({ cmd: 'org.categories.findById' })
+  async findById(@Payload() data: { id: string }): Promise<CategoryDto> {
+    this.logger.log(`categories.findById — id: ${data.id}`);
+    return this.categoriesService.findById(data.id);
+  }
+
+  // Returns paginated child categories for a given parent ID
+  @MessagePattern({ cmd: 'org.categories.childrenTable' })
+  async childrenTable(
+    @Payload() data: { parentId: string } & TableState,
+  ): Promise<{ result: CategoryDto[]; count: number }> {
+    this.logger.log(`categories.childrenTable — parentId: ${data.parentId}`);
+    return this.categoriesService.findChildrenForTable(data.parentId, data);
+  }
+
+  // Returns total categories count
+  @MessagePattern({ cmd: 'org.categories.count' })
+  async count(): Promise<CategoryCountDto> {
+    this.logger.log('categories.count');
+    return this.categoriesService.count();
+  }
+
+  // Returns categories as a tree hierarchy for TreeView
+  @MessagePattern({ cmd: 'org.categories.tree' })
+  async tree(@Payload() data?: { search?: string }): Promise<CategoryTreeDto[]> {
+    this.logger.log('categories.tree');
+    return this.categoriesService.findTree(data?.search);
   }
 
   // Deletes a category by ID

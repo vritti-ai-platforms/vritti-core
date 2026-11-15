@@ -16,6 +16,24 @@ export class CustomersGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new customer
+  async create(dto: CreateCustomerDto): Promise<CustomerResponseDto> {
+    this.logger.log(`customers.create — name: ${dto.name}`);
+    return this.nats.send('commerce', 'site.customers.create', dto);
+  }
+
+  // Updates a customer by ID and returns the full updated entity
+  async update(id: string, dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
+    this.logger.log(`customers.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.customers.update', { id, ...dto });
+  }
+
+  // Finds a customer by ID
+  async findById(id: string): Promise<CustomerResponseDto> {
+    this.logger.log(`customers.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.customers.findById', { id });
+  }
+
   // Returns paginated, filtered, and sorted customers for the data table
   async findForTable(userId: string): Promise<CustomerTableResponseDto> {
     this.logger.log('site.customers.table');
@@ -28,24 +46,6 @@ export class CustomersGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a new customer
-  async create(dto: CreateCustomerDto): Promise<CustomerResponseDto> {
-    this.logger.log(`customers.create — name: ${dto.name}`);
-    return this.nats.send('commerce', 'site.customers.create', dto);
-  }
-
-  // Finds a customer by ID
-  async findById(id: string): Promise<CustomerResponseDto> {
-    this.logger.log(`customers.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.customers.findById', { id });
-  }
-
-  // Updates a customer by ID and returns the full updated entity
-  async update(id: string, dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
-    this.logger.log(`customers.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.customers.update', { id, ...dto });
   }
 
   // Deletes a customer by ID

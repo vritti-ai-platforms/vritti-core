@@ -11,11 +11,30 @@ export class LeCartsController {
 
   constructor(private readonly service: CartsDomainService) {}
 
-  // Returns paginated carts open at this workspace, for the data table
-  @MessagePattern({ cmd: 'le.carts.table' })
-  table(@Payload() state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
-    this.logger.log('le.carts.table');
-    return this.service.findForTable(state);
+  // Opens a cart for a shopper, or hands back the one they already have here
+  @MessagePattern({ cmd: 'le.carts.create' })
+  create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
+    this.logger.log(`le.carts.create — party: ${data.partyId}`);
+    return this.service.create(data);
+  }
+
+  // Staff add a product to a named cart
+  @MessagePattern({ cmd: 'le.carts.items.addForCart' })
+  addItemForCart(
+    @Payload()
+    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
+  ): Promise<StaffCartItemDto[]> {
+    this.logger.log(`le.carts.items.addForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
+    return this.service.addItemForCart(data);
+  }
+
+  @MessagePattern({ cmd: 'le.carts.items.updateForCart' })
+  updateItemForCart(
+    @Payload()
+    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
+  ): Promise<StaffCartItemDto[]> {
+    this.logger.log(`le.carts.items.updateForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
+    return this.service.updateItemForCart(data);
   }
 
   // Returns a single cart by ID
@@ -23,6 +42,13 @@ export class LeCartsController {
   findById(@Payload() data: { id: string }): Promise<CartDetailDto> {
     this.logger.log(`le.carts.findById — id: ${data.id}`);
     return this.service.findById(data.id);
+  }
+
+  // Returns paginated carts open at this workspace, for the data table
+  @MessagePattern({ cmd: 'le.carts.table' })
+  table(@Payload() state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
+    this.logger.log('le.carts.table');
+    return this.service.findForTable(state);
   }
 
   // Returns one cart's lines, priced by the caller's catalogue Returns paginated, filtered and sorted items of one
@@ -43,37 +69,11 @@ export class LeCartsController {
     return this.service.findItemsById(data.id, data.currencyCode, data.appId);
   }
 
-  // Opens a cart for a shopper, or hands back the one they already have here
-  @MessagePattern({ cmd: 'le.carts.create' })
-  create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
-    this.logger.log(`le.carts.create — party: ${data.partyId}`);
-    return this.service.create(data);
-  }
-
   // Closes a cart outright — the lines go with it
   @MessagePattern({ cmd: 'le.carts.delete' })
   deleteCart(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`le.carts.delete — id: ${data.id}`);
     return this.service.delete(data.id);
-  }
-
-  // Staff add a product to a named cart
-  @MessagePattern({ cmd: 'le.carts.items.addForCart' })
-  addItemForCart(
-    @Payload()
-    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
-  ): Promise<StaffCartItemDto[]> {
-    this.logger.log(`le.carts.items.addForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
-    return this.service.addItemForCart(data);
-  }
-
-  @MessagePattern({ cmd: 'le.carts.items.updateForCart' })
-  updateItemForCart(
-    @Payload()
-    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
-  ): Promise<StaffCartItemDto[]> {
-    this.logger.log(`le.carts.items.updateForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
-    return this.service.updateItemForCart(data);
   }
 
   @MessagePattern({ cmd: 'le.carts.items.removeForCart' })

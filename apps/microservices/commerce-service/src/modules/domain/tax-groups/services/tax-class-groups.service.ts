@@ -47,50 +47,6 @@ export class TaxClassGroupsDomainService {
     private readonly repository: TaxClassGroupsDomainRepository,
   ) {}
 
-  // Returns the paginated class mappings of a group, latest period first
-  async findForTable(taxGroupId: string, state: TableState): Promise<{ result: TaxClassGroupDto[]; count: number }> {
-    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
-    const fieldMap = TaxClassGroupsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findDetailsForTable({
-      where: and(
-        eq(taxClassGroups.taxGroupId, group.id),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, TaxClassGroupsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(taxClasses.name), desc(taxClassGroups.validFrom)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxClassGroupDto.from), count };
-  }
-
-  // Returns the paginated group mappings of a class in the context's country, latest period first — no country, no rows
-  async findForClassTable(
-    taxClassId: string,
-    state: TableState,
-  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
-    const taxClass = await this.repository.findParentClassOrThrow(taxClassId);
-    const country = state.filters.context.find((condition) => condition.field === 'country');
-    if (country?.operator !== 'equals' || typeof country.value !== 'string') return { result: [], count: 0 };
-    const fieldMap = TaxClassGroupsDomainService.CLASS_FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findDetailsForTable({
-      where: and(
-        eq(taxClassGroups.taxClassId, taxClass.id),
-        eq(taxClassGroups.countryCode, country.value),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, TaxClassGroupsDomainService.CLASS_SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(taxClassGroups.validFrom), asc(taxGroups.name)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxClassGroupDto.from), count };
-  }
-
   // Maps a tax class to a group in the group's country for a period, optionally only up to a unit price; it overlaps
   // no other mapping of the same class and price limit in that country — except an open-ended mapping that started
   // earlier, which the new mapping takes over from the day it starts
@@ -156,14 +112,6 @@ export class TaxClassGroupsDomainService {
     return { success: true, message: `Mapping of "${taxClass.name}" to "${group.name}" updated.` };
   }
 
-  // Removes a class mapping from a group
-  async delete(taxGroupId: string, id: string): Promise<SuccessResponseDto> {
-    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
-    await this.repository.deleteOrThrow(group.id, id);
-    this.logger.log(`Deleted tax class mapping ${id} from tax group ${group.code}`);
-    return { success: true, message: `Class mapping removed from "${group.name}".` };
-  }
-
   // Updates a mapping of a class through its group; neither the class nor the group changes
   async updateOnClass(data: UpdateTaxClassGroupOnClassDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findOnClassOrThrow(data.taxClassId, data.id);
@@ -174,6 +122,58 @@ export class TaxClassGroupsDomainService {
       validFrom: data.validFrom,
       validTo: data.validTo,
     });
+  }
+
+  // Returns the paginated class mappings of a group, latest period first
+  async findForTable(taxGroupId: string, state: TableState): Promise<{ result: TaxClassGroupDto[]; count: number }> {
+    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
+    const fieldMap = TaxClassGroupsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findDetailsForTable({
+      where: and(
+        eq(taxClassGroups.taxGroupId, group.id),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxClassGroupsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(taxClasses.name), desc(taxClassGroups.validFrom)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxClassGroupDto.from), count };
+  }
+
+  // Returns the paginated group mappings of a class in the context's country, latest period first — no country, no rows
+  async findForClassTable(
+    taxClassId: string,
+    state: TableState,
+  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
+    const taxClass = await this.repository.findParentClassOrThrow(taxClassId);
+    const country = state.filters.context.find((condition) => condition.field === 'country');
+    if (country?.operator !== 'equals' || typeof country.value !== 'string') return { result: [], count: 0 };
+    const fieldMap = TaxClassGroupsDomainService.CLASS_FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findDetailsForTable({
+      where: and(
+        eq(taxClassGroups.taxClassId, taxClass.id),
+        eq(taxClassGroups.countryCode, country.value),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxClassGroupsDomainService.CLASS_SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(taxClassGroups.validFrom), asc(taxGroups.name)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxClassGroupDto.from), count };
+  }
+
+  // Removes a class mapping from a group
+  async delete(taxGroupId: string, id: string): Promise<SuccessResponseDto> {
+    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
+    await this.repository.deleteOrThrow(group.id, id);
+    this.logger.log(`Deleted tax class mapping ${id} from tax group ${group.code}`);
+    return { success: true, message: `Class mapping removed from "${group.name}".` };
   }
 
   // Removes a mapping of a class from its group

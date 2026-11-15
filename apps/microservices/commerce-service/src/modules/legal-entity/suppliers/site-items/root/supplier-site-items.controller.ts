@@ -14,16 +14,6 @@ export class SupplierSiteItemsController {
 
   constructor(private readonly service: SupplierItemsDomainService) {}
 
-  // Returns the paginated site items of a supplier item
-  @MessagePattern({ cmd: 'le.suppliers.siteItems.table' })
-  table(
-    @Payload() data: { supplierItemId: string } & TableState,
-  ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
-    const { supplierItemId, ...state } = data;
-    this.logger.log(`le.suppliers.siteItems.table — supplierItemId: ${supplierItemId}`);
-    return this.service.findSiteItemsForTable(supplierItemId, state);
-  }
-
   // Sets a supplier item up at a site
   @MessagePattern({ cmd: 'le.suppliers.siteItems.create' })
   create(@Payload() dto: AddSupplierSiteItemDto): Promise<CreateResponseDto<SupplierSiteItemDto>> {
@@ -38,17 +28,27 @@ export class SupplierSiteItemsController {
     return this.service.updateSiteItem(dto);
   }
 
-  // Removes a supplier item from a site
-  @MessagePattern({ cmd: 'le.suppliers.siteItems.delete' })
-  delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`le.suppliers.siteItems.delete — id: ${data.id}`);
-    return this.service.deleteSiteItem(data.id);
-  }
-
   // Marks supplier items preferred (or not) at the chosen sites
   @MessagePattern({ cmd: 'le.suppliers.siteItems.bulkSetPreferred' })
   bulkSetPreferred(@Payload() dto: BulkSetSupplierSiteItemPreferredDto): Promise<SuccessResponseDto> {
     this.logger.log('le.suppliers.siteItems.bulkSetPreferred');
     return this.service.bulkSetSiteItemsPreferred(dto);
+  }
+
+  // Returns the paginated site items of a supplier item
+  @MessagePattern({ cmd: 'le.suppliers.siteItems.table' })
+  table(
+    @Payload() data: { supplierItemId: string } & TableState,
+  ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
+    const { supplierItemId, ...state } = data;
+    this.logger.log(`le.suppliers.siteItems.table — supplierItemId: ${supplierItemId}`);
+    return this.service.findSiteItemsForTable(supplierItemId, state);
+  }
+
+  // Removes a supplier item from a site
+  @MessagePattern({ cmd: 'le.suppliers.siteItems.delete' })
+  delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.siteItems.delete — id: ${data.id}`);
+    return this.service.deleteSiteItem(data.id);
   }
 }

@@ -27,6 +27,30 @@ export class InventoryItemLedgerDomainService {
     return entry;
   }
 
+  // Returns paginated ledger entries for one item's data table (web).
+  async findForTable(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLedgerDomainService.FIELD_MAP);
+    const where = and(eq(inventoryItemLedger.inventoryItemId, inventoryItemId), filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLedgerDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findAllForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : undefined,
+      limit,
+      offset,
+    });
+
+    return {
+      result: result.map((r) => InventoryItemLedgerDto.from(r, r.inventoryItemName)),
+      count,
+    };
+  }
+
   // Keyset ledger feed for one item (mobile Relay, read-only).
   async findFeed(
     inventoryItemId: string,
@@ -52,30 +76,6 @@ export class InventoryItemLedgerDomainService {
     return {
       edges,
       pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
-    };
-  }
-
-  // Returns paginated ledger entries for one item's data table (web).
-  async findForTable(
-    inventoryItemId: string,
-    state: TableState,
-  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemLedgerDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemLedgerDomainService.FIELD_MAP);
-    const where = and(eq(inventoryItemLedger.inventoryItemId, inventoryItemId), filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemLedgerDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findAllForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : undefined,
-      limit,
-      offset,
-    });
-
-    return {
-      result: result.map((r) => InventoryItemLedgerDto.from(r, r.inventoryItemName)),
-      count,
     };
   }
 }

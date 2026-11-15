@@ -13,6 +13,22 @@ export class InventoryItemsLocationsController {
 
   constructor(private readonly service: InventoryItemsLocationsService) {}
 
+  @MessagePattern({ cmd: 'site.inventoryItems.addLocation' })
+  async createLocation(
+    @Payload() dto: AddInventoryItemLocationDto,
+  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
+    const { inventoryItemId, ...rest } = dto;
+    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
+    return this.service.create(inventoryItemId, rest);
+  }
+
+  @MessagePattern({ cmd: 'site.inventoryItems.updateLocation' })
+  async updateLocation(@Payload() dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
+    const { id, isBlocked } = dto;
+    this.logger.log(`inventoryItems.updateLocation — id: ${id}, isBlocked: ${isBlocked}`);
+    return this.service.update(id, { isBlocked });
+  }
+
   @MessagePattern({ cmd: 'site.inventoryItems.locationsTable' })
   async locationsTable(
     @Payload() data: { inventoryItemId: string } & TableState,
@@ -28,22 +44,6 @@ export class InventoryItemsLocationsController {
   }> {
     this.logger.log(`inventoryItems.locationsFeed — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findLocationsFeed(data.inventoryItemId, data.limit, data.cursor);
-  }
-
-  @MessagePattern({ cmd: 'site.inventoryItems.addLocation' })
-  async createLocation(
-    @Payload() dto: AddInventoryItemLocationDto,
-  ): Promise<CreateResponseDto<InventoryItemLocationDto>> {
-    const { inventoryItemId, ...rest } = dto;
-    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
-    return this.service.create(inventoryItemId, rest);
-  }
-
-  @MessagePattern({ cmd: 'site.inventoryItems.updateLocation' })
-  async updateLocation(@Payload() dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
-    const { id, isBlocked } = dto;
-    this.logger.log(`inventoryItems.updateLocation — id: ${id}, isBlocked: ${isBlocked}`);
-    return this.service.update(id, { isBlocked });
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.removeLocation' })

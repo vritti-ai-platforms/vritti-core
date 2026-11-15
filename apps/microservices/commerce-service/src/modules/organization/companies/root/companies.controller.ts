@@ -13,18 +13,18 @@ export class CompaniesController {
 
   constructor(private readonly service: CompaniesService) {}
 
-  // Returns paginated COMPANY parties for the companies table
-  @MessagePattern({ cmd: 'org.companies.table' })
-  async table(@Payload() state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
-    this.logger.log('companies.table');
-    return this.service.findForTable(state);
-  }
-
   // Creates a COMPANY party, optionally with a primary address
   @MessagePattern({ cmd: 'org.companies.create' })
   async create(@Payload() dto: CreateCompanyDto): Promise<CreateResponseDto<CompanyDto>> {
     this.logger.log(`companies.create — displayName: ${dto.displayName}`);
     return this.service.create(dto);
+  }
+
+  // Updates a company by ID, upserting its primary address when address fields are supplied
+  @MessagePattern({ cmd: 'org.companies.update' })
+  async update(@Payload() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`companies.update — id: ${dto.id}`);
+    return this.service.update(dto);
   }
 
   // Finds a company by ID
@@ -34,11 +34,11 @@ export class CompaniesController {
     return this.service.findById(data.id);
   }
 
-  // Updates a company by ID, upserting its primary address when address fields are supplied
-  @MessagePattern({ cmd: 'org.companies.update' })
-  async update(@Payload() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`companies.update — id: ${dto.id}`);
-    return this.service.update(dto);
+  // Returns paginated COMPANY parties for the companies table
+  @MessagePattern({ cmd: 'org.companies.table' })
+  async table(@Payload() state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
+    this.logger.log('companies.table');
+    return this.service.findForTable(state);
   }
 
   // Deletes a company by ID

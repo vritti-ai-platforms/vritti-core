@@ -46,47 +46,12 @@ export class LeCartsGatewayController {
 
   constructor(private readonly service: LeCartsGatewayService) {}
 
-  // Returns paginated carts for the data table with server-stored state
-  @Get('table')
-  @RequirePermission(LE_CARTS.view)
-  findForTable(@UserId() userId: string): Promise<CartTableResponse> {
-    this.logger.log('GET /commerce-api/le/carts/table');
-    return this.service.findForTable(userId);
-  }
-
-  // Returns paginated items of one cart for the data table with server-stored state
-  @Get(':id/items/table')
-  @RequirePermission(LE_CARTS.view)
-  findItemsForTable(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Query() query: CartsQueryDto,
-    @UserId() userId: string,
-  ): Promise<CartItemsTableResponse> {
-    this.logger.log(`GET /commerce-api/le/carts/${id}/items/table`);
-    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
-  }
-
   // Opens a cart for a party, or hands back the one they already have here
   @Post()
   @RequirePermission(LE_CARTS.add)
   open(@Body() dto: OpenCartDto): Promise<CreateResponseDto<CartRow>> {
     this.logger.log('POST /commerce-api/le/carts');
     return this.service.create({ partyId: dto.partyId });
-  }
-
-  @Get(':id')
-  @RequirePermission(LE_CARTS.view)
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CartRow> {
-    this.logger.log(`GET /commerce-api/le/carts/${id}`);
-    return this.service.findById(id);
-  }
-
-  // Returns the cart's lines, priced through this outlet's channel
-  @Get(':id/items')
-  @RequirePermission(LE_CARTS.view)
-  findItems(@Param('id', new ParseUUIDPipe()) id: string, @Query() query: CartsQueryDto): Promise<CartLinesResponse> {
-    this.logger.log(`GET /commerce-api/le/carts/${id}/items`);
-    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
   // Adds a product to the cart
@@ -118,6 +83,49 @@ export class LeCartsGatewayController {
     });
   }
 
+  // Closes the cart outright — the lines go with it
+  @Delete(':id')
+  @RequirePermission(LE_CARTS.delete)
+  close(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/carts/${id}`);
+    return this.service.delete(id);
+  }
+
+  @Get(':id')
+  @RequirePermission(LE_CARTS.view)
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CartRow> {
+    this.logger.log(`GET /commerce-api/le/carts/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated carts for the data table with server-stored state
+  @Get('table')
+  @RequirePermission(LE_CARTS.view)
+  findForTable(@UserId() userId: string): Promise<CartTableResponse> {
+    this.logger.log('GET /commerce-api/le/carts/table');
+    return this.service.findForTable(userId);
+  }
+
+  // Returns paginated items of one cart for the data table with server-stored state
+  @Get(':id/items/table')
+  @RequirePermission(LE_CARTS.view)
+  findItemsForTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: CartsQueryDto,
+    @UserId() userId: string,
+  ): Promise<CartItemsTableResponse> {
+    this.logger.log(`GET /commerce-api/le/carts/${id}/items/table`);
+    return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
+  }
+
+  // Returns the cart's lines, priced through this outlet's channel
+  @Get(':id/items')
+  @RequirePermission(LE_CARTS.view)
+  findItems(@Param('id', new ParseUUIDPipe()) id: string, @Query() query: CartsQueryDto): Promise<CartLinesResponse> {
+    this.logger.log(`GET /commerce-api/le/carts/${id}/items`);
+    return this.service.findItems(id, query.currencyCode ?? DEFAULT_CURRENCY);
+  }
+
   @Delete(':id/items/:offeringVariantId')
   @RequirePermission(LE_CARTS.delete)
   removeItem(
@@ -130,13 +138,5 @@ export class LeCartsGatewayController {
       partyId: query.partyId,
       currencyCode: query.currencyCode ?? DEFAULT_CURRENCY,
     });
-  }
-
-  // Closes the cart outright — the lines go with it
-  @Delete(':id')
-  @RequirePermission(LE_CARTS.delete)
-  close(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/carts/${id}`);
-    return this.service.delete(id);
   }
 }

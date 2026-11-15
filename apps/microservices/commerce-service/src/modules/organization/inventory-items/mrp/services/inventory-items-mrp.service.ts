@@ -15,12 +15,6 @@ export class InventoryItemsMrpService {
 
   constructor(private readonly mrpsService: InventoryItemMrpsDomainService) {}
 
-  // Returns one item's MRPs for the data table
-  findForTable(inventoryItemId: string, state: TableState): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
-    this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
-    return this.mrpsService.findForTable(inventoryItemId, state);
-  }
-
   // Adds a new suggested MRP for an (item, uom, currency); rejects duplicates and out-of-family units
   async add(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpDto> {
     this.logger.log(
@@ -55,6 +49,12 @@ export class InventoryItemsMrpService {
       throw new NotFoundException({ label: 'MRP Not Found', detail: 'MRP not found.' });
     }
     return InventoryItemMrpDto.from(row);
+  }
+
+  // Returns one item's MRPs for the data table
+  findForTable(inventoryItemId: string, state: TableState): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
+    this.logger.log(`findForTable — inventoryItemId=${inventoryItemId}`);
+    return this.mrpsService.findForTable(inventoryItemId, state);
   }
 
   // Deletes an MRP row by id

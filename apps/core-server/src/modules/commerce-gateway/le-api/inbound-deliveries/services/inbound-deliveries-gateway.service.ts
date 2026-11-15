@@ -18,6 +18,16 @@ export class LeInboundDeliveriesGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  // Returns one inbound delivery with its site named
+  async findById(id: string, orgId: string): Promise<LeInboundDeliveryResponseDto> {
+    this.logger.log(`le.inboundDeliveries.findById — id: ${id}`);
+    const delivery = await this.nats.send<InboundDeliveryResponseDto>('commerce', 'le.inboundDeliveries.findById', {
+      id,
+    });
+    const [named] = await this.ownerNames.withSiteNames(orgId, [delivery]);
+    return named;
+  }
+
   // Returns the inbound deliveries of the legal entity's sites with site names
   async findForTable(userId: string, orgId: string): Promise<LeInboundDeliveryTableResponseDto> {
     this.logger.log('le.inboundDeliveries.table');
@@ -31,16 +41,6 @@ export class LeInboundDeliveriesGatewayService {
       state,
     );
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
-  }
-
-  // Returns one inbound delivery with its site named
-  async findById(id: string, orgId: string): Promise<LeInboundDeliveryResponseDto> {
-    this.logger.log(`le.inboundDeliveries.findById — id: ${id}`);
-    const delivery = await this.nats.send<InboundDeliveryResponseDto>('commerce', 'le.inboundDeliveries.findById', {
-      id,
-    });
-    const [named] = await this.ownerNames.withSiteNames(orgId, [delivery]);
-    return named;
   }
 
   // Returns an inbound delivery's lines for the data table with server-stored state

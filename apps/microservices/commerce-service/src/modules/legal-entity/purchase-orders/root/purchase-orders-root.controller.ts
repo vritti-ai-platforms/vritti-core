@@ -24,27 +24,6 @@ export class LePurchaseOrdersRootController {
     private readonly service: PurchaseOrdersService,
   ) {}
 
-  // Returns one page of the purchase orders of the legal entity's sites
-  @MessagePattern({ cmd: 'le.purchaseOrders.table' })
-  table(@Payload() state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
-    this.logger.log('le.purchaseOrders.table');
-    return this.purchaseOrdersService.findForTable(state);
-  }
-
-  // Returns one purchase order
-  @MessagePattern({ cmd: 'le.purchaseOrders.findById' })
-  findById(@Payload() data: { id: string }): Promise<PurchaseOrderDto> {
-    this.logger.log(`le.purchaseOrders.findById — id: ${data.id}`);
-    return this.purchaseOrdersService.findById(data.id);
-  }
-
-  // Returns the flags raised on a purchase order's receipts and the open holds on its invoices, grouped by order line
-  @MessagePattern({ cmd: 'le.purchaseOrders.problems' })
-  problems(@Payload() data: { id: string }): Promise<PurchaseOrderProblemsDto> {
-    this.logger.log(`le.purchaseOrders.problems — id: ${data.id}`);
-    return this.service.findProblems(data.id);
-  }
-
   // Creates a purchase order at one of the legal entity's sites, in that site's timezone
   @MessagePattern({ cmd: 'le.purchaseOrders.create' })
   create(
@@ -68,6 +47,16 @@ export class LePurchaseOrdersRootController {
   updateTaxDate(@Payload() dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchaseOrders.updateTaxDate — id: ${dto.id}, date: ${dto.taxDate}`);
     return this.service.updateTaxDate(dto);
+  }
+
+  // Moves a purchase order along its manual workflow: send, confirm or cancel
+  @MessagePattern({ cmd: 'le.purchaseOrders.updateStatus' })
+  updateStatus(
+    @Payload() dto: UpdatePurchaseOrderStatusDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
+    return this.service.updateStatus(dto, headers.userId || null);
   }
 
   // Moves a draft purchase order to another supplier
@@ -104,14 +93,25 @@ export class LePurchaseOrdersRootController {
     return this.service.completeDelivery(data.id);
   }
 
-  // Moves a purchase order along its manual workflow: send, confirm or cancel
-  @MessagePattern({ cmd: 'le.purchaseOrders.updateStatus' })
-  updateStatus(
-    @Payload() dto: UpdatePurchaseOrderStatusDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchaseOrders.updateStatus — id: ${dto.id}, status: ${dto.status}`);
-    return this.service.updateStatus(dto, headers.userId || null);
+  // Returns one purchase order
+  @MessagePattern({ cmd: 'le.purchaseOrders.findById' })
+  findById(@Payload() data: { id: string }): Promise<PurchaseOrderDto> {
+    this.logger.log(`le.purchaseOrders.findById — id: ${data.id}`);
+    return this.purchaseOrdersService.findById(data.id);
+  }
+
+  // Returns one page of the purchase orders of the legal entity's sites
+  @MessagePattern({ cmd: 'le.purchaseOrders.table' })
+  table(@Payload() state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+    this.logger.log('le.purchaseOrders.table');
+    return this.purchaseOrdersService.findForTable(state);
+  }
+
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoices, grouped by order line
+  @MessagePattern({ cmd: 'le.purchaseOrders.problems' })
+  problems(@Payload() data: { id: string }): Promise<PurchaseOrderProblemsDto> {
+    this.logger.log(`le.purchaseOrders.problems — id: ${data.id}`);
+    return this.service.findProblems(data.id);
   }
 
   // Deletes a draft purchase order

@@ -34,20 +34,6 @@ export class SiteSuppliersGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
-  // Returns the legal entity's suppliers with their enrollment at this site for the data table, named by core
-  async findForTable(userId: string, orgId: string): Promise<SupplierEnrollmentTableResponseDto> {
-    this.logger.log('site.suppliers.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-suppliers');
-
-    const { result, count } = await this.nats.send<{ result: SupplierEnrollmentRowResponseDto[]; count: number }>(
-      'commerce',
-      'site.suppliers.table',
-      state,
-    );
-
-    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
-  }
-
   // Enrolls a supplier at the session site
   async create(
     dto: CreateSupplierEnrollmentDto,
@@ -57,14 +43,19 @@ export class SiteSuppliersGatewayService {
     return this.nats.send('commerce', 'site.suppliers.create', { ...dto, siteId });
   }
 
-  // Returns a supplier's enrollment at the session site, enrolled or not, with the site's name
-  async findById(supplierId: string, orgId: string): Promise<SupplierEnrollmentDetailResponseDto> {
-    this.logger.log(`site.suppliers.findById — supplierId: ${supplierId}`);
-    const row = await this.nats.send<SupplierEnrollmentDetailResponseDto>('commerce', 'site.suppliers.findById', {
-      supplierId,
-    });
-    const [enriched] = await this.ownerNames.withSiteNames(orgId, [row]);
-    return enriched;
+  // Records a draft invoice of the supplier at this site; payment term and due date come from its enrollment
+  createInvoice(
+    supplierId: string,
+    dto: CreateSupplierInvoiceDto,
+  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
+    this.logger.log(`site.suppliers.invoices.create — supplierId: ${supplierId}, number: ${dto.invoiceNumber}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.create', { ...dto, supplierId });
+  }
+
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
+  createInvoiceLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.lines.create — invoiceId: ${supplierInvoiceId}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.lines.create', { ...dto, supplierInvoiceId });
   }
 
   // Updates a supplier's enrollment picks and flags at the session site
@@ -77,16 +68,86 @@ export class SiteSuppliersGatewayService {
     return this.nats.send('commerce', 'site.suppliers.update', { ...dto, supplierId, siteId });
   }
 
+  // Updates this site's terms for a supplier item (preferred, lead time)
+  async updateSiteItem(supplierSiteItemId: string, dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.siteItems.update — id: ${supplierSiteItemId}`);
+    return this.nats.send('commerce', 'site.suppliers.siteItems.update', { id: supplierSiteItemId, ...dto });
+  }
+
+  // Updates an invoice's header
+  updateInvoice(id: string, dto: UpdateSupplierInvoiceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.update', { ...dto, id });
+  }
+
+  // Updates a line of an invoice
+  updateInvoiceLine(supplierInvoiceId: string, id: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.lines.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.lines.update', { ...dto, id, supplierInvoiceId });
+  }
+
   // Activates or deactivates a supplier's own enrollment at the session site
   async setActive(supplierId: string, isActive: boolean, siteId: string | undefined): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.setActive — supplierId: ${supplierId}, isActive: ${isActive}`);
     return this.nats.send('commerce', 'site.suppliers.setActive', { supplierId, siteId, isActive });
   }
 
-  // Removes a supplier's enrollment at the session site
-  async delete(supplierId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.delete — supplierId: ${supplierId}`);
-    return this.nats.send('commerce', 'site.suppliers.delete', { supplierId });
+  // Posts a draft invoice, setting the final cost of the stock it invoices
+  postInvoice(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.post — id: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.post', { id });
+  }
+
+  // Releases an open hold of an invoice with a reason
+  releaseInvoiceHold(
+    supplierInvoiceId: string,
+    id: string,
+    dto: ReleaseSupplierInvoiceHoldDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.invoices.holds.release — invoiceId: ${supplierInvoiceId}, hold: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.holds.release', { ...dto, supplierInvoiceId, id });
+  }
+
+  // Returns a supplier's enrollment at the session site, enrolled or not, with the site's name
+  async findById(supplierId: string, orgId: string): Promise<SupplierEnrollmentDetailResponseDto> {
+    this.logger.log(`site.suppliers.findById — supplierId: ${supplierId}`);
+    const row = await this.nats.send<SupplierEnrollmentDetailResponseDto>('commerce', 'site.suppliers.findById', {
+      supplierId,
+    });
+    const [enriched] = await this.ownerNames.withSiteNames(orgId, [row]);
+    return enriched;
+  }
+
+  // Returns a supplier item's detail with this site's terms and price in force
+  async findSiteItemById(supplierItemId: string): Promise<SupplierSiteItemRowResponseDto> {
+    this.logger.log(`site.suppliers.siteItems.findById — supplierItemId: ${supplierItemId}`);
+    return this.nats.send('commerce', 'site.suppliers.siteItems.findById', { supplierItemId });
+  }
+
+  // Returns one of the supplier's invoices with its lines and holds
+  async findInvoiceById(supplierId: string, id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
+    this.logger.log(`site.suppliers.invoices.findById — supplierId: ${supplierId}, id: ${id}`);
+    const invoice = await this.nats.send<Omit<SupplierInvoiceDetailResponseDto, 'siteName' | 'siteCode'>>(
+      'commerce',
+      'site.suppliers.invoices.findById',
+      { supplierId, id },
+    );
+    const [named] = await this.ownerNames.withSiteNames(orgId, [invoice]);
+    return named;
+  }
+
+  // Returns the legal entity's suppliers with their enrollment at this site for the data table, named by core
+  async findForTable(userId: string, orgId: string): Promise<SupplierEnrollmentTableResponseDto> {
+    this.logger.log('site.suppliers.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-suppliers');
+
+    const { result, count } = await this.nats.send<{ result: SupplierEnrollmentRowResponseDto[]; count: number }>(
+      'commerce',
+      'site.suppliers.table',
+      state,
+    );
+
+    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
   // Returns an enrolled supplier's site items at this site for the data table
@@ -106,18 +167,6 @@ export class SiteSuppliersGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns a supplier item's detail with this site's terms and price in force
-  async findSiteItemById(supplierItemId: string): Promise<SupplierSiteItemRowResponseDto> {
-    this.logger.log(`site.suppliers.siteItems.findById — supplierItemId: ${supplierItemId}`);
-    return this.nats.send('commerce', 'site.suppliers.siteItems.findById', { supplierItemId });
-  }
-
-  // Updates this site's terms for a supplier item (preferred, lead time)
-  async updateSiteItem(supplierSiteItemId: string, dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.siteItems.update — id: ${supplierSiteItemId}`);
-    return this.nats.send('commerce', 'site.suppliers.siteItems.update', { id: supplierSiteItemId, ...dto });
-  }
-
   // Returns the supplier's invoices at this site for the data table
   async findInvoicesTable(supplierId: string, userId: string, orgId: string): Promise<SupplierInvoiceTableResponseDto> {
     this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
@@ -132,18 +181,6 @@ export class SiteSuppliersGatewayService {
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
-  // Returns one of the supplier's invoices with its lines and holds
-  async findInvoiceById(supplierId: string, id: string, orgId: string): Promise<SupplierInvoiceDetailResponseDto> {
-    this.logger.log(`site.suppliers.invoices.findById — supplierId: ${supplierId}, id: ${id}`);
-    const invoice = await this.nats.send<Omit<SupplierInvoiceDetailResponseDto, 'siteName' | 'siteCode'>>(
-      'commerce',
-      'site.suppliers.invoices.findById',
-      { supplierId, id },
-    );
-    const [named] = await this.ownerNames.withSiteNames(orgId, [invoice]);
-    return named;
-  }
-
   // Returns the supplier's posted receipt lots at this site still to invoice, oldest receipt first
   findInvoiceableGoodsReceipts(
     supplierId: string,
@@ -155,47 +192,10 @@ export class SiteSuppliersGatewayService {
     return this.nats.send('commerce', 'site.suppliers.invoices.invoiceableGoodsReceipts', { ...query, supplierId });
   }
 
-  // Records a draft invoice of the supplier at this site; payment term and due date come from its enrollment
-  createInvoice(
-    supplierId: string,
-    dto: CreateSupplierInvoiceDto,
-  ): Promise<CreateResponseDto<SupplierInvoiceResponseDto>> {
-    this.logger.log(`site.suppliers.invoices.create — supplierId: ${supplierId}, number: ${dto.invoiceNumber}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.create', { ...dto, supplierId });
-  }
-
-  // Updates an invoice's header
-  updateInvoice(id: string, dto: UpdateSupplierInvoiceDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.update', { ...dto, id });
-  }
-
-  // Posts a draft invoice, setting the final cost of the stock it invoices
-  postInvoice(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.post — id: ${id}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.post', { id });
-  }
-
-  // Releases an open hold of an invoice with a reason
-  releaseInvoiceHold(
-    supplierInvoiceId: string,
-    id: string,
-    dto: ReleaseSupplierInvoiceHoldDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.holds.release — invoiceId: ${supplierInvoiceId}, hold: ${id}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.holds.release', { ...dto, supplierInvoiceId, id });
-  }
-
-  // Adds an item line invoicing a received lot, or a charge line, to an invoice
-  createInvoiceLine(supplierInvoiceId: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.lines.create — invoiceId: ${supplierInvoiceId}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.lines.create', { ...dto, supplierInvoiceId });
-  }
-
-  // Updates a line of an invoice
-  updateInvoiceLine(supplierInvoiceId: string, id: string, dto: SupplierInvoiceLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.invoices.lines.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.suppliers.invoices.lines.update', { ...dto, id, supplierInvoiceId });
+  // Removes a supplier's enrollment at the session site
+  async delete(supplierId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.delete — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'site.suppliers.delete', { supplierId });
   }
 
   // Removes a line from an invoice

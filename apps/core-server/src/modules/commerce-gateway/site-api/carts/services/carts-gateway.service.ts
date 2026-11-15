@@ -106,6 +106,77 @@ export class CartsGatewayService {
     private readonly payoutChannelService: PayoutChannelDomainService,
   ) {}
 
+  // Opens a cart for a party, or hands back the one they already have here
+  async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
+    this.logger.log(`site.carts.create — party: ${input.partyId}`);
+    return this.nats.send('commerce', 'site.carts.create', { partyId: input.partyId });
+  }
+
+  async addItem(
+    cartId: string,
+    input: {
+      partyId: string;
+      offeringVariantId: string;
+      quantity: number;
+      currencyCode: string;
+    },
+  ): Promise<CartLinesResponse> {
+    this.logger.log(`site.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
+    await this.nats.send('commerce', 'site.carts.items.addForCart', { cartId, appId: null, ...input });
+    return this.findItems(cartId, input.currencyCode);
+  }
+
+  // Each edit is made at the store in context, then the whole cart is read back so the storefront redraws from one shape
+
+  async addShopperItem(input: {
+    orgId: string;
+    appId: string;
+    partyId: string;
+    code: string;
+    quantity: number;
+    currencyCode: string;
+  }): Promise<CartPayload> {
+    const { orgId, appId, ...cart } = input;
+    this.logger.log(`site.carts.items.add — party: ${input.partyId}, code: ${input.code}`);
+    await this.nats.send('commerce', 'site.carts.items.add', { ...cart, appId });
+    return this.findPartyCart(orgId, appId, input.partyId, input.currencyCode);
+  }
+
+  async updateItem(
+    cartId: string,
+    offeringVariantId: string,
+    input: { partyId: string; quantity: number; currencyCode: string },
+  ): Promise<CartLinesResponse> {
+    this.logger.log(`site.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
+    await this.nats.send('commerce', 'site.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
+    return this.findItems(cartId, input.currencyCode);
+  }
+
+  async updateShopperItem(input: {
+    orgId: string;
+    appId: string;
+    partyId: string;
+    code: string;
+    quantity: number;
+    currencyCode: string;
+  }): Promise<CartPayload> {
+    const { orgId, appId, ...cart } = input;
+    this.logger.log(`site.carts.items.update — party: ${input.partyId}, code: ${input.code}`);
+    await this.nats.send('commerce', 'site.carts.items.update', { ...cart, appId });
+    return this.findPartyCart(orgId, appId, input.partyId, input.currencyCode);
+  }
+
+  clearShopperCart(partyId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.carts.clear — party: ${partyId}`);
+    return this.nats.send('commerce', 'site.carts.clear', { partyId });
+  }
+
+  // Returns a single cart by ID
+  async findById(id: string): Promise<CartRow> {
+    this.logger.log(`site.carts.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.carts.findById', { id });
+  }
+
   // Returns paginated, filtered, and sorted carts for the data table
   async findForTable(userId: string): Promise<CartTableResponse> {
     this.logger.log('site.carts.table');
@@ -118,18 +189,6 @@ export class CartsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Returns a single cart by ID
-  async findById(id: string): Promise<CartRow> {
-    this.logger.log(`site.carts.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.carts.findById', { id });
-  }
-
-  // Returns a cart's lines, priced through this site's channel
-  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
-    this.logger.log(`site.carts.findItemsById — id: ${id}`);
-    return this.nats.send('commerce', 'site.carts.findItemsById', { id, currencyCode, appId: null });
   }
 
   // Returns paginated, filtered and sorted items of one cart for the data table
@@ -149,50 +208,10 @@ export class CartsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Opens a cart for a party, or hands back the one they already have here
-  async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
-    this.logger.log(`site.carts.create — party: ${input.partyId}`);
-    return this.nats.send('commerce', 'site.carts.create', { partyId: input.partyId });
-  }
-
-  // Closes a cart outright — the lines go with it
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.carts.delete — id: ${id}`);
-    return this.nats.send('commerce', 'site.carts.delete', { id });
-  }
-
-  async addItem(
-    cartId: string,
-    input: {
-      partyId: string;
-      offeringVariantId: string;
-      quantity: number;
-      currencyCode: string;
-    },
-  ): Promise<CartLinesResponse> {
-    this.logger.log(`site.carts.items.addForCart — cart: ${cartId}, variant: ${input.offeringVariantId}`);
-    await this.nats.send('commerce', 'site.carts.items.addForCart', { cartId, appId: null, ...input });
-    return this.findItems(cartId, input.currencyCode);
-  }
-
-  async updateItem(
-    cartId: string,
-    offeringVariantId: string,
-    input: { partyId: string; quantity: number; currencyCode: string },
-  ): Promise<CartLinesResponse> {
-    this.logger.log(`site.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
-    await this.nats.send('commerce', 'site.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode);
-  }
-
-  async removeItem(
-    cartId: string,
-    offeringVariantId: string,
-    input: { partyId: string; currencyCode: string },
-  ): Promise<CartLinesResponse> {
-    this.logger.log(`site.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
-    await this.nats.send('commerce', 'site.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
-    return this.findItems(cartId, input.currencyCode);
+  // Returns a cart's lines, priced through this site's channel
+  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
+    this.logger.log(`site.carts.findItemsById — id: ${id}`);
+    return this.nats.send('commerce', 'site.carts.findItemsById', { id, currencyCode, appId: null });
   }
 
   // ── The party's own cart, for a storefront acting for one signed-in party ── The catalogue comes from the calling
@@ -241,34 +260,26 @@ export class CartsGatewayService {
     };
   }
 
-  // Each edit is made at the store in context, then the whole cart is read back so the storefront redraws from one shape
-
-  async addShopperItem(input: {
-    orgId: string;
-    appId: string;
-    partyId: string;
-    code: string;
-    quantity: number;
-    currencyCode: string;
-  }): Promise<CartPayload> {
-    const { orgId, appId, ...cart } = input;
-    this.logger.log(`site.carts.items.add — party: ${input.partyId}, code: ${input.code}`);
-    await this.nats.send('commerce', 'site.carts.items.add', { ...cart, appId });
-    return this.findPartyCart(orgId, appId, input.partyId, input.currencyCode);
+  // How many of each product the party holds in their cart here — a count, no catalogue, no price
+  findShopperQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
+    this.logger.log(`site.carts.quantities — party: ${partyId}`);
+    return this.nats.send('commerce', 'site.carts.quantities', { partyId });
   }
 
-  async updateShopperItem(input: {
-    orgId: string;
-    appId: string;
-    partyId: string;
-    code: string;
-    quantity: number;
-    currencyCode: string;
-  }): Promise<CartPayload> {
-    const { orgId, appId, ...cart } = input;
-    this.logger.log(`site.carts.items.update — party: ${input.partyId}, code: ${input.code}`);
-    await this.nats.send('commerce', 'site.carts.items.update', { ...cart, appId });
-    return this.findPartyCart(orgId, appId, input.partyId, input.currencyCode);
+  // Closes a cart outright — the lines go with it
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.carts.delete — id: ${id}`);
+    return this.nats.send('commerce', 'site.carts.delete', { id });
+  }
+
+  async removeItem(
+    cartId: string,
+    offeringVariantId: string,
+    input: { partyId: string; currencyCode: string },
+  ): Promise<CartLinesResponse> {
+    this.logger.log(`site.carts.items.removeForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
+    await this.nats.send('commerce', 'site.carts.items.removeForCart', { cartId, offeringVariantId, ...input });
+    return this.findItems(cartId, input.currencyCode);
   }
 
   async removeShopperItem(input: {
@@ -282,17 +293,6 @@ export class CartsGatewayService {
     this.logger.log(`site.carts.items.remove — party: ${input.partyId}, code: ${input.code}`);
     await this.nats.send('commerce', 'site.carts.items.remove', { ...cart, appId });
     return this.findPartyCart(orgId, appId, input.partyId, input.currencyCode);
-  }
-
-  // How many of each product the party holds in their cart here — a count, no catalogue, no price
-  findShopperQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
-    this.logger.log(`site.carts.quantities — party: ${partyId}`);
-    return this.nats.send('commerce', 'site.carts.quantities', { partyId });
-  }
-
-  clearShopperCart(partyId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.carts.clear — party: ${partyId}`);
-    return this.nats.send('commerce', 'site.carts.clear', { partyId });
   }
 }
 

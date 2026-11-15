@@ -13,16 +13,6 @@ export class PeopleRegistrationsController {
 
   constructor(private readonly service: PartiesDomainService) {}
 
-  // Returns the paginated tax registrations of a person
-  @MessagePattern({ cmd: 'org.people.registrations.table' })
-  async table(
-    @Payload() data: { personId: string } & TableState,
-  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
-    const { personId, ...state } = data;
-    this.logger.log(`people.registrations.table — personId: ${personId}`);
-    return this.service.findRegistrationsForTable(personId, state);
-  }
-
   // Creates a tax registration for a person
   @MessagePattern({ cmd: 'org.people.registrations.create' })
   async create(@Payload() dto: CreatePersonRegistrationDto): Promise<CreateResponseDto<PartyTaxRegistrationDto>> {
@@ -44,6 +34,16 @@ export class PeopleRegistrationsController {
   async setActive(@Payload() data: { id: string; isActive: boolean }): Promise<SuccessResponseDto> {
     this.logger.log(`people.registrations.setActive — id: ${data.id}, isActive: ${data.isActive}`);
     return this.service.setRegistrationActive(data.id, data.isActive);
+  }
+
+  // Returns the paginated tax registrations of a person
+  @MessagePattern({ cmd: 'org.people.registrations.table' })
+  async table(
+    @Payload() data: { personId: string } & TableState,
+  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
+    const { personId, ...state } = data;
+    this.logger.log(`people.registrations.table — personId: ${personId}`);
+    return this.service.findRegistrationsForTable(personId, state);
   }
 
   // Deletes a tax registration by ID

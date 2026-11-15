@@ -28,6 +28,59 @@ export class InventoryItemMrpsDomainService {
 
   constructor(private readonly repository: InventoryItemMrpsDomainRepository) {}
 
+  // Inserts a new suggested MRP for an (item, uom, currency); refuses an amount already recorded for it
+  async create(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrp> {
+    const currencyCode = dto.amount.currency;
+    const amount = majorToMinor(dto.amount.value, currencyCode, 'amount');
+    await this.repository.assertAmountFree(dto.inventoryItemId, dto.uomId, currencyCode, amount);
+    const row = await this.repository.createMrp(dto.inventoryItemId, dto.uomId, currencyCode, amount);
+    const total = await this.repository.countForTriple(dto.inventoryItemId, dto.uomId, currencyCode);
+    if (total === 1) return (await this.repository.setCurrent(row.id)) ?? row;
+    return row;
+  }
+
+  // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is posted.
+  upsert(
+    inventoryItemId: string,
+    uomId: string,
+    currencyCode: string,
+    amount: bigint,
+    sourceLotId: string | null,
+  ): Promise<InventoryItemMrp> {
+    return this.repository.upsert(inventoryItemId, uomId, currencyCode, amount, sourceLotId);
+  }
+
+  // Updates an existing MRP row's amount by id; resolves undefined when no row matched
+  updateAmount(dto: UpdateInventoryItemMrpDto): Promise<InventoryItemMrp | undefined> {
+    const amount = majorToMinor(dto.amount.value, dto.amount.currency, 'amount');
+    return this.repository.updateAmount(dto.id, amount);
+  }
+
+  // Promotes one recorded MRP to the current one for its triple; resolves undefined when none matched
+  setCurrent(id: string): Promise<InventoryItemMrp | undefined> {
+    return this.repository.setCurrent(id);
+  }
+
+  // Returns one item's MRPs for the data table, by unit and currency unless the table sorts them
+  async findForTable(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
+    const fieldMap = InventoryItemMrpsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findForTable(inventoryItemId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, InventoryItemMrpsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(uom.symbol), asc(inventoryItemMrps.currencyCode)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => InventoryItemMrpDto.from(row)), count };
+  }
+
   // The options the Add Listings form offers for one variant, labelled the way a pack is read
   async findForSelect(
     query: SelectOptionsQueryDto & {
@@ -70,17 +123,6 @@ export class InventoryItemMrpsDomainService {
     };
   }
 
-  // Records the latest suggested MRP for an (item, uom, currency); called when a goods receipt is posted.
-  upsert(
-    inventoryItemId: string,
-    uomId: string,
-    currencyCode: string,
-    amount: bigint,
-    sourceLotId: string | null,
-  ): Promise<InventoryItemMrp> {
-    return this.repository.upsert(inventoryItemId, uomId, currencyCode, amount, sourceLotId);
-  }
-
   // Returns the MRP a supplier quoted for an (item, uom, currency) — reusing an equal amount, recording a new one —
   // without changing which MRP is current
   findOrRecord(
@@ -92,55 +134,13 @@ export class InventoryItemMrpsDomainService {
     return this.repository.findOrInsert(inventoryItemId, uomId, currencyCode, amount);
   }
 
-  // Inserts a new suggested MRP for an (item, uom, currency); refuses an amount already recorded for it
-  async create(dto: AddInventoryItemMrpDto): Promise<InventoryItemMrp> {
-    const currencyCode = dto.amount.currency;
-    const amount = majorToMinor(dto.amount.value, currencyCode, 'amount');
-    await this.repository.assertAmountFree(dto.inventoryItemId, dto.uomId, currencyCode, amount);
-    const row = await this.repository.createMrp(dto.inventoryItemId, dto.uomId, currencyCode, amount);
-    const total = await this.repository.countForTriple(dto.inventoryItemId, dto.uomId, currencyCode);
-    if (total === 1) return (await this.repository.setCurrent(row.id)) ?? row;
-    return row;
-  }
-
-  // Promotes one recorded MRP to the current one for its triple; resolves undefined when none matched
-  setCurrent(id: string): Promise<InventoryItemMrp | undefined> {
-    return this.repository.setCurrent(id);
-  }
-
-  // Updates an existing MRP row's amount by id; resolves undefined when no row matched
-  updateAmount(dto: UpdateInventoryItemMrpDto): Promise<InventoryItemMrp | undefined> {
-    const amount = majorToMinor(dto.amount.value, dto.amount.currency, 'amount');
-    return this.repository.updateAmount(dto.id, amount);
+  // Returns true when the uom shares the item's primary-uom family
+  isUomInItemFamily(inventoryItemId: string, uomId: string): Promise<boolean> {
+    return this.repository.isUomInItemFamily(inventoryItemId, uomId);
   }
 
   // Deletes an MRP row by id; resolves the deleted row or undefined when none matched
   delete(id: string): Promise<InventoryItemMrp | undefined> {
     return this.repository.deleteOne(id);
-  }
-
-  // Returns one item's MRPs for the data table, by unit and currency unless the table sorts them
-  async findForTable(
-    inventoryItemId: string,
-    state: TableState,
-  ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
-    const fieldMap = InventoryItemMrpsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findForTable(inventoryItemId, {
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, InventoryItemMrpsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(uom.symbol), asc(inventoryItemMrps.currencyCode)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => InventoryItemMrpDto.from(row)), count };
-  }
-
-  // Returns true when the uom shares the item's primary-uom family
-  isUomInItemFamily(inventoryItemId: string, uomId: string): Promise<boolean> {
-    return this.repository.isUomInItemFamily(inventoryItemId, uomId);
   }
 }

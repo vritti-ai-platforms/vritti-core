@@ -176,6 +176,114 @@ export class PurchaseSuppliersDomainService {
 
   constructor(private readonly repository: PurchaseSuppliersDomainRepository) {}
 
+  // Opens the leg of a supplier on a purchase in sourcing, with a snapshot of its active enrollment at the site
+  async open(
+    purchase: LegPurchase,
+    supplierId: string,
+    snapshot: LegEnrollmentSnapshot | undefined,
+  ): Promise<PurchaseSupplier> {
+    this.assertSourcingOpen(purchase);
+    const enrollment = this.requireActiveEnrollment(snapshot);
+    const leg = await this.repository.create({
+      purchaseId: purchase.id,
+      supplierId,
+      supplierEnrollmentId: enrollment.enrollmentId,
+      type: enrollment.purchaseType,
+      approvalEnabled: enrollment.approvalEnabled,
+      approvalThreshold: enrollment.approvalThreshold,
+      qualityCheckEnabled: enrollment.qualityCheckEnabled,
+    });
+    this.logger.log(`Opened leg ${leg.id} for supplier ${supplierId} on purchase ${purchase.purchaseNumber}`);
+    return leg;
+  }
+
+  // Starts a leg in sourcing: copies its enrollment again, then sends it to APPROVAL when its approval applies and to
+  // its type's first fulfilment step otherwise; returns the step it reached
+  async start(leg: Leg, start: LegStart): Promise<PurchaseLegStep> {
+    this.assertInSourcing(leg, 'Cannot Submit Supplier');
+    const enrollment = this.requireActiveEnrollment(start.snapshot);
+    if (start.sourcing.unpricedCount > 0 && !this.allowsUnpriced(enrollment.purchaseType)) {
+      throw new BadRequestException({
+        label: 'Prices Missing',
+        detail: `Enter a unit price on every allocation of this supplier; only direct purchases are priced by their supplier invoice.`,
+      });
+    }
+    const step = this.requiresApproval(enrollment, start.sourcing, start.leCurrencyCode)
+      ? PurchaseLegStepValues.APPROVAL
+      : PurchaseSuppliersDomainService.FIRST_FULFILMENT_STEP[enrollment.purchaseType];
+    await this.repository.update(leg.id, {
+      supplierEnrollmentId: enrollment.enrollmentId,
+      type: enrollment.purchaseType,
+      approvalEnabled: enrollment.approvalEnabled,
+      approvalThreshold: enrollment.approvalThreshold,
+      qualityCheckEnabled: enrollment.qualityCheckEnabled,
+      step,
+      approvedBy: null,
+      approvedAt: null,
+    });
+    this.logger.log(`Started leg ${leg.id} → ${step}`);
+    return step;
+  }
+
+  // Approves a leg waiting for approval, moving it to its type's first fulfilment step; returns that step
+  async approve(leg: Leg, approvers: LegApprovers): Promise<PurchaseLegStep> {
+    this.assertAwaitingApproval(leg, 'Cannot Approve');
+    if (!this.mayApprove(approvers)) {
+      throw new ForbiddenException({
+        label: 'Cannot Approve',
+        detail: this.isApprover(approvers)
+          ? 'You submitted this supplier, so another approver has to approve it.'
+          : "Only the approvers on the supplier's enrollment at this site can approve it.",
+      });
+    }
+    const step = PurchaseSuppliersDomainService.FIRST_FULFILMENT_STEP[leg.type];
+    await this.repository.update(leg.id, { step, approvedBy: approvers.userId, approvedAt: new Date() });
+    this.logger.log(`Approved leg ${leg.id} → ${step}`);
+    return step;
+  }
+
+  // Sends a leg waiting for approval back to sourcing, leaving the purchase's other legs as they are
+  async reject(leg: Leg, approvers: LegApprovers): Promise<void> {
+    this.assertAwaitingApproval(leg, 'Cannot Reject');
+    if (!this.isApprover(approvers)) {
+      throw new ForbiddenException({
+        label: 'Cannot Reject',
+        detail: "Only the approvers on the supplier's enrollment at this site can reject it.",
+      });
+    }
+    await this.repository.update(leg.id, { step: PurchaseLegStepValues.SOURCING });
+    this.logger.log(`Rejected leg ${leg.id} → SOURCING`);
+  }
+
+  // Cancels every open leg of a cancelled purchase
+  async cancelOpen(purchaseId: string): Promise<number> {
+    return this.repository.cancelOpen(purchaseId);
+  }
+
+  // Re-derives a fulfilling leg's step from its documents, closing it once its due quantity is received and invoiced;
+  // returns the step it was in and the one it reached
+  async advance(leg: Leg, facts: LegFulfilmentFacts): Promise<LegAdvance> {
+    const unchanged = { stepBefore: leg.step, stepAfter: leg.step, isClosed: false };
+    if (!this.isFulfilling(leg) || !PurchaseSuppliersDomainService.FULFILLED_TYPES.includes(leg.type)) {
+      return unchanged;
+    }
+    const step = this.deriveStep(leg, facts);
+    if (step === PurchaseLegStepValues.CLOSED) {
+      await this.markClosed(leg);
+      return { stepBefore: leg.step, stepAfter: step, isClosed: true };
+    }
+    if (step === leg.step) return unchanged;
+    await this.repository.update(leg.id, { step });
+    this.logger.log(`Leg ${leg.id} ${leg.step} → ${step}`);
+    return { stepBefore: leg.step, stepAfter: step, isClosed: false };
+  }
+
+  // Closes a fulfilling leg without a draft receipt or invoice; the caller has completed delivery of its open POs
+  async close(leg: Leg & { supplierName: string }, purchase: LegPurchase, facts: LegFulfilmentFacts): Promise<void> {
+    this.assertActionAvailable(leg, purchase, facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
+    await this.markClosed(leg);
+  }
+
   // Returns the legs of a purchase with their suppliers' names
   findByPurchaseId(purchaseId: string): Promise<PurchaseSupplierRow[]> {
     return this.repository.findByPurchaseId(purchaseId);
@@ -244,35 +352,6 @@ export class PurchaseSuppliersDomainService {
     return snapshot;
   }
 
-  // Opens the leg of a supplier on a purchase in sourcing, with a snapshot of its active enrollment at the site
-  async open(
-    purchase: LegPurchase,
-    supplierId: string,
-    snapshot: LegEnrollmentSnapshot | undefined,
-  ): Promise<PurchaseSupplier> {
-    this.assertSourcingOpen(purchase);
-    const enrollment = this.requireActiveEnrollment(snapshot);
-    const leg = await this.repository.create({
-      purchaseId: purchase.id,
-      supplierId,
-      supplierEnrollmentId: enrollment.enrollmentId,
-      type: enrollment.purchaseType,
-      approvalEnabled: enrollment.approvalEnabled,
-      approvalThreshold: enrollment.approvalThreshold,
-      qualityCheckEnabled: enrollment.qualityCheckEnabled,
-    });
-    this.logger.log(`Opened leg ${leg.id} for supplier ${supplierId} on purchase ${purchase.purchaseNumber}`);
-    return leg;
-  }
-
-  // Deletes a leg still in sourcing once its last allocation is gone, returning whether it was deleted
-  async removeIfUnallocated(leg: Leg, remainingAllocationCount: number): Promise<boolean> {
-    if (remainingAllocationCount > 0 || leg.step !== PurchaseLegStepValues.SOURCING) return false;
-    await this.repository.delete(leg.id);
-    this.logger.log(`Removed leg ${leg.id} with its last allocation`);
-    return true;
-  }
-
   // Rejects starting a single leg until the purchase itself is submitted; before that the purchase submit starts them all
   assertStartableAlone(purchase: LegPurchase): void {
     if (purchase.status === PurchaseStatusValues.OPEN && purchase.step === PurchaseStepValues.PROCURING) return;
@@ -280,69 +359,6 @@ export class PurchaseSuppliersDomainService {
       label: 'Cannot Submit Supplier',
       detail: `Submit "${purchase.purchaseNumber}" to start its suppliers; a single supplier is submitted on its own only after that.`,
     });
-  }
-
-  // Starts a leg in sourcing: copies its enrollment again, then sends it to APPROVAL when its approval applies and to
-  // its type's first fulfilment step otherwise; returns the step it reached
-  async start(leg: Leg, start: LegStart): Promise<PurchaseLegStep> {
-    this.assertInSourcing(leg, 'Cannot Submit Supplier');
-    const enrollment = this.requireActiveEnrollment(start.snapshot);
-    if (start.sourcing.unpricedCount > 0 && !this.allowsUnpriced(enrollment.purchaseType)) {
-      throw new BadRequestException({
-        label: 'Prices Missing',
-        detail: `Enter a unit price on every allocation of this supplier; only direct purchases are priced by their supplier invoice.`,
-      });
-    }
-    const step = this.requiresApproval(enrollment, start.sourcing, start.leCurrencyCode)
-      ? PurchaseLegStepValues.APPROVAL
-      : PurchaseSuppliersDomainService.FIRST_FULFILMENT_STEP[enrollment.purchaseType];
-    await this.repository.update(leg.id, {
-      supplierEnrollmentId: enrollment.enrollmentId,
-      type: enrollment.purchaseType,
-      approvalEnabled: enrollment.approvalEnabled,
-      approvalThreshold: enrollment.approvalThreshold,
-      qualityCheckEnabled: enrollment.qualityCheckEnabled,
-      step,
-      approvedBy: null,
-      approvedAt: null,
-    });
-    this.logger.log(`Started leg ${leg.id} → ${step}`);
-    return step;
-  }
-
-  // Approves a leg waiting for approval, moving it to its type's first fulfilment step; returns that step
-  async approve(leg: Leg, approvers: LegApprovers): Promise<PurchaseLegStep> {
-    this.assertAwaitingApproval(leg, 'Cannot Approve');
-    if (!this.mayApprove(approvers)) {
-      throw new ForbiddenException({
-        label: 'Cannot Approve',
-        detail: this.isApprover(approvers)
-          ? 'You submitted this supplier, so another approver has to approve it.'
-          : "Only the approvers on the supplier's enrollment at this site can approve it.",
-      });
-    }
-    const step = PurchaseSuppliersDomainService.FIRST_FULFILMENT_STEP[leg.type];
-    await this.repository.update(leg.id, { step, approvedBy: approvers.userId, approvedAt: new Date() });
-    this.logger.log(`Approved leg ${leg.id} → ${step}`);
-    return step;
-  }
-
-  // Sends a leg waiting for approval back to sourcing, leaving the purchase's other legs as they are
-  async reject(leg: Leg, approvers: LegApprovers): Promise<void> {
-    this.assertAwaitingApproval(leg, 'Cannot Reject');
-    if (!this.isApprover(approvers)) {
-      throw new ForbiddenException({
-        label: 'Cannot Reject',
-        detail: "Only the approvers on the supplier's enrollment at this site can reject it.",
-      });
-    }
-    await this.repository.update(leg.id, { step: PurchaseLegStepValues.SOURCING });
-    this.logger.log(`Rejected leg ${leg.id} → SOURCING`);
-  }
-
-  // Cancels every open leg of a cancelled purchase
-  async cancelOpen(purchaseId: string): Promise<number> {
-    return this.repository.cancelOpen(purchaseId);
   }
 
   // Whether the user is one of the leg's current approvers and did not submit it
@@ -463,33 +479,17 @@ export class PurchaseSuppliersDomainService {
     });
   }
 
-  // Re-derives a fulfilling leg's step from its documents, closing it once its due quantity is received and invoiced;
-  // returns the step it was in and the one it reached
-  async advance(leg: Leg, facts: LegFulfilmentFacts): Promise<LegAdvance> {
-    const unchanged = { stepBefore: leg.step, stepAfter: leg.step, isClosed: false };
-    if (!this.isFulfilling(leg) || !PurchaseSuppliersDomainService.FULFILLED_TYPES.includes(leg.type)) {
-      return unchanged;
-    }
-    const step = this.deriveStep(leg, facts);
-    if (step === PurchaseLegStepValues.CLOSED) {
-      await this.markClosed(leg);
-      return { stepBefore: leg.step, stepAfter: step, isClosed: true };
-    }
-    if (step === leg.step) return unchanged;
-    await this.repository.update(leg.id, { step });
-    this.logger.log(`Leg ${leg.id} ${leg.step} → ${step}`);
-    return { stepBefore: leg.step, stepAfter: step, isClosed: false };
-  }
-
-  // Closes a fulfilling leg without a draft receipt or invoice; the caller has completed delivery of its open POs
-  async close(leg: Leg & { supplierName: string }, purchase: LegPurchase, facts: LegFulfilmentFacts): Promise<void> {
-    this.assertActionAvailable(leg, purchase, facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
-    await this.markClosed(leg);
-  }
-
   // Whether every leg of a purchase is closed, so the purchase completes
   allClosed(legs: Pick<PurchaseSupplier, 'status'>[]): boolean {
     return legs.length > 0 && legs.every((leg) => leg.status === PurchaseLegStatusValues.CLOSED);
+  }
+
+  // Deletes a leg still in sourcing once its last allocation is gone, returning whether it was deleted
+  async removeIfUnallocated(leg: Leg, remainingAllocationCount: number): Promise<boolean> {
+    if (remainingAllocationCount > 0 || leg.step !== PurchaseLegStepValues.SOURCING) return false;
+    await this.repository.delete(leg.id);
+    this.logger.log(`Removed leg ${leg.id} with its last allocation`);
+    return true;
   }
 
   // Marks a leg closed in its last step

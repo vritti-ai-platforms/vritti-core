@@ -22,16 +22,28 @@ export class LocationsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns total storage location count
-  async count(): Promise<LocationCountResponseDto> {
-    this.logger.log('locations.count');
-    return this.nats.send('commerce', 'site.locations.count', {});
+  // Creates a new storage location
+  async create(dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
+    this.logger.log(`locations.create — name: ${dto.name}, code: ${dto.code}`);
+    return this.nats.send('commerce', 'site.locations.create', dto);
   }
 
-  // Returns storage locations as a tree hierarchy
-  async findTree(search?: string): Promise<LocationTreeResponseDto[]> {
-    this.logger.log('locations.tree');
-    return this.nats.send('commerce', 'site.locations.tree', { search });
+  // Updates an storage location by ID
+  async update(id: string, dto: UpdateLocationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`locations.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.locations.update', { id, ...dto });
+  }
+
+  // Reorders sibling locations under a parent
+  async reorder(dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
+    this.logger.log('locations.reorder');
+    return this.nats.send('commerce', 'site.locations.reorder', dto);
+  }
+
+  // Returns a single storage location by ID
+  async findById(id: string): Promise<LocationResponseDto> {
+    this.logger.log(`locations.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.locations.findById', { id });
   }
 
   // Returns paginated child locations for a given parent ID
@@ -59,34 +71,22 @@ export class LocationsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Returns total storage location count
+  async count(): Promise<LocationCountResponseDto> {
+    this.logger.log('locations.count');
+    return this.nats.send('commerce', 'site.locations.count', {});
+  }
+
+  // Returns storage locations as a tree hierarchy
+  async findTree(search?: string): Promise<LocationTreeResponseDto[]> {
+    this.logger.log('locations.tree');
+    return this.nats.send('commerce', 'site.locations.tree', { search });
+  }
+
   // Returns the per-quant breakdown for a single item within a location
   async findItemQuants(locationId: string, itemId: string): Promise<LocationItemQuantResponseDto[]> {
     this.logger.log(`locations.itemQuants — locationId: ${locationId}, itemId: ${itemId}`);
     return this.nats.send('commerce', 'site.locations.itemQuants', { locationId, itemId });
-  }
-
-  // Returns a single storage location by ID
-  async findById(id: string): Promise<LocationResponseDto> {
-    this.logger.log(`locations.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.locations.findById', { id });
-  }
-
-  // Reorders sibling locations under a parent
-  async reorder(dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
-    this.logger.log('locations.reorder');
-    return this.nats.send('commerce', 'site.locations.reorder', dto);
-  }
-
-  // Creates a new storage location
-  async create(dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
-    this.logger.log(`locations.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.nats.send('commerce', 'site.locations.create', dto);
-  }
-
-  // Updates an storage location by ID
-  async update(id: string, dto: UpdateLocationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`locations.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.locations.update', { id, ...dto });
   }
 
   // Deletes an storage location by ID

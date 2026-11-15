@@ -35,27 +35,6 @@ export class StockAdjustmentLineItemsDomainService {
 
   constructor(private readonly repository: StockAdjustmentLineItemsDomainRepository) {}
 
-  async findForTable(
-    lineId: string,
-    state: TableState,
-  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsDomainService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const { limit = 20, offset = 0 } = state.pagination;
-    const { result, count } = await this.repository.findForTable(lineId, {
-      where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLineItemsDomainService.FIELD_MAP),
-      limit,
-      offset,
-    });
-    return { result: result.map(StockAdjustmentLineItemDto.from), count };
-  }
-
-  async countByLineId(lineId: string): Promise<number> {
-    return this.repository.countByLineId(lineId);
-  }
-
   // For tracking='SERIAL' lines: - OPENING_STOCK: register a NEW serial — must not exist in inventory_item_serials for
   // this item - Deduct types: consume an EXISTING serial — must be AVAILABLE on the line's quant
   async addLineItem(
@@ -156,6 +135,27 @@ export class StockAdjustmentLineItemsDomainService {
     // 23505 race fallback handled globally by api-sdk's pg-error filter.
     const updated = await this.repository.update(itemId, { serialNumber: trimmed });
     return { success: true, message: `Serial "${updated.serialNumber}" updated successfully.` };
+  }
+
+  async findForTable(
+    lineId: string,
+    state: TableState,
+  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLineItemsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLineItemsDomainService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const { limit = 20, offset = 0 } = state.pagination;
+    const { result, count } = await this.repository.findForTable(lineId, {
+      where,
+      orderBy: FilterProcessor.buildOrderBy(state.sort, StockAdjustmentLineItemsDomainService.FIELD_MAP),
+      limit,
+      offset,
+    });
+    return { result: result.map(StockAdjustmentLineItemDto.from), count };
+  }
+
+  async countByLineId(lineId: string): Promise<number> {
+    return this.repository.countByLineId(lineId);
   }
 
   async removeLineItem(adjustment: AdjustmentContext, itemId: string): Promise<{ serialNumber: string }> {

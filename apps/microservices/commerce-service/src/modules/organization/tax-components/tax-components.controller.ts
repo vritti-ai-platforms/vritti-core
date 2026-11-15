@@ -14,25 +14,11 @@ export class TaxComponentsController {
 
   constructor(private readonly service: TaxComponentsDomainService) {}
 
-  // Returns paginated tax components for the data table, narrowed to the country in the table context if any
-  @MessagePattern({ cmd: 'org.taxComponents.table' })
-  async table(@Payload() state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
-    this.logger.log('taxComponents.table');
-    return this.service.findForTable(state);
-  }
-
   // Creates a tax component for one country
   @MessagePattern({ cmd: 'org.taxComponents.create' })
   async create(@Payload() dto: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentDto>> {
     this.logger.log(`taxComponents.create — country: ${dto.countryCode}, code: ${dto.code}`);
     return this.service.create(dto);
-  }
-
-  // Returns a tax component by ID
-  @MessagePattern({ cmd: 'org.taxComponents.findById' })
-  async findById(@Payload() data: { id: string }): Promise<TaxComponentDto> {
-    this.logger.log(`taxComponents.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
   }
 
   // Updates a tax component by ID
@@ -48,6 +34,20 @@ export class TaxComponentsController {
   async setActive(@Payload() dto: SetTaxComponentActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`taxComponents.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
     return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  // Returns a tax component by ID
+  @MessagePattern({ cmd: 'org.taxComponents.findById' })
+  async findById(@Payload() data: { id: string }): Promise<TaxComponentDto> {
+    this.logger.log(`taxComponents.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated tax components for the data table, narrowed to the country in the table context if any
+  @MessagePattern({ cmd: 'org.taxComponents.table' })
+  async table(@Payload() state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
+    this.logger.log('taxComponents.table');
+    return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'org.taxComponents.delete' })

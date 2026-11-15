@@ -13,16 +13,6 @@ export class CompanyAddressesController {
 
   constructor(private readonly service: PartyAddressesDomainService) {}
 
-  // Returns the paginated addresses of a company
-  @MessagePattern({ cmd: 'org.companies.addresses.table' })
-  async table(
-    @Payload() data: { companyId: string } & TableState,
-  ): Promise<{ result: PartyAddressDto[]; count: number }> {
-    const { companyId, ...state } = data;
-    this.logger.log(`companies.addresses.table — companyId: ${companyId}`);
-    return this.service.findForTable(companyId, state);
-  }
-
   // Adds an address to a company
   @MessagePattern({ cmd: 'org.companies.addresses.add' })
   async add(@Payload() dto: AddCompanyAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
@@ -37,6 +27,16 @@ export class CompanyAddressesController {
     const { id, ...data } = dto;
     this.logger.log(`companies.addresses.update — id: ${id}`);
     return this.service.update(id, data);
+  }
+
+  // Returns the paginated addresses of a company
+  @MessagePattern({ cmd: 'org.companies.addresses.table' })
+  async table(
+    @Payload() data: { companyId: string } & TableState,
+  ): Promise<{ result: PartyAddressDto[]; count: number }> {
+    const { companyId, ...state } = data;
+    this.logger.log(`companies.addresses.table — companyId: ${companyId}`);
+    return this.service.findForTable(companyId, state);
   }
 
   // Removes an address by ID

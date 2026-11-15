@@ -13,6 +13,25 @@ export class TaxRegistrationsController {
 
   constructor(private readonly service: TaxRegistrationsDomainService) {}
 
+  @MessagePattern({ cmd: 'le.taxRegistrations.create' })
+  create(@Payload() dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationDto>> {
+    this.logger.log(`taxRegistrations.create — number: ${dto.registrationNumber}`);
+    return this.service.create(dto);
+  }
+
+  @MessagePattern({ cmd: 'le.taxRegistrations.update' })
+  update(@Payload() dto: UpdateTaxRegistrationDto & { id: string }): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`taxRegistrations.update — id: ${id}`);
+    return this.service.update(id, data);
+  }
+
+  @MessagePattern({ cmd: 'le.taxRegistrations.findById' })
+  findById(@Payload() data: { id: string }): Promise<TaxRegistrationDto> {
+    this.logger.log(`taxRegistrations.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
   // The VAP path sends no legal entity; cloud names the one it is viewing
   @MessagePattern({ cmd: 'le.taxRegistrations.table' })
   table(
@@ -34,25 +53,6 @@ export class TaxRegistrationsController {
   listAll(): Promise<TaxRegistrationDto[]> {
     this.logger.log('taxRegistrations.listAll');
     return this.service.listAll();
-  }
-
-  @MessagePattern({ cmd: 'le.taxRegistrations.findById' })
-  findById(@Payload() data: { id: string }): Promise<TaxRegistrationDto> {
-    this.logger.log(`taxRegistrations.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  @MessagePattern({ cmd: 'le.taxRegistrations.create' })
-  create(@Payload() dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationDto>> {
-    this.logger.log(`taxRegistrations.create — number: ${dto.registrationNumber}`);
-    return this.service.create(dto);
-  }
-
-  @MessagePattern({ cmd: 'le.taxRegistrations.update' })
-  update(@Payload() dto: UpdateTaxRegistrationDto & { id: string }): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`taxRegistrations.update — id: ${id}`);
-    return this.service.update(id, data);
   }
 
   @MessagePattern({ cmd: 'le.taxRegistrations.delete' })

@@ -18,39 +18,6 @@ export class UomDimensionsDomainService {
     private readonly repository: UomDimensionsDomainRepository,
   ) {}
 
-  // Returns total UOM dimension count
-  async count(): Promise<{ count: number }> {
-    return { count: await this.repository.count() };
-  }
-
-  // Returns all dimensions, optionally filtered by name or code
-  async list(search?: string): Promise<UomDimensionDto[]> {
-    const rows = await this.repository.findAllOrSearch(search);
-    return rows.map((r) => UomDimensionDto.from(r));
-  }
-
-  // Returns paginated dimension options for the select component
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
-  }
-
-  // Finds a dimension by ID or throws NotFoundException
-  async findById(id: string): Promise<UomDimensionDto> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('UOM dimension not found.');
-    const refs = await this.repository.countReferences(id);
-    return UomDimensionDto.from(entity, refs.inventoryItems === 0 && refs.supplierItems === 0);
-  }
-
   // Creates a new UOM dimension
   async create(data: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionDto>> {
     const existing = await this.repository.findByCode(data.code);
@@ -81,6 +48,39 @@ export class UomDimensionsDomainService {
     const updated = await this.repository.update(id, data);
     this.logger.log(`Updated UOM dimension: ${updated.name} (${updated.code})`);
     return { success: true, message: `Dimension "${updated.name}" updated successfully.` };
+  }
+
+  // Finds a dimension by ID or throws NotFoundException
+  async findById(id: string): Promise<UomDimensionDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('UOM dimension not found.');
+    const refs = await this.repository.countReferences(id);
+    return UomDimensionDto.from(entity, refs.inventoryItems === 0 && refs.supplierItems === 0);
+  }
+
+  // Returns total UOM dimension count
+  async count(): Promise<{ count: number }> {
+    return { count: await this.repository.count() };
+  }
+
+  // Returns all dimensions, optionally filtered by name or code
+  async list(search?: string): Promise<UomDimensionDto[]> {
+    const rows = await this.repository.findAllOrSearch(search);
+    return rows.map((r) => UomDimensionDto.from(r));
+  }
+
+  // Returns paginated dimension options for the select component
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
   }
 
   // Deletes a UOM dimension; cascades all UOMs in it.

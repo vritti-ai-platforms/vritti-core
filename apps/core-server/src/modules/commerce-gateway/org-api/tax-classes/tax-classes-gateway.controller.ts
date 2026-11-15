@@ -45,15 +45,6 @@ export class TaxClassesGatewayController {
 
   constructor(private readonly service: TaxClassesGatewayService) {}
 
-  // Returns paginated tax classes with the tax groups they map to in the saved table context's country and on its day
-  @Get('table')
-  @RequirePermission(ORG_TAX_CLASSES.view)
-  @ApiFindForTableTaxClasses()
-  getTable(@UserId() userId: string): Promise<TaxClassTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/tax-classes/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a new tax class
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -61,50 +52,6 @@ export class TaxClassesGatewayController {
   create(@Body() dto: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassResponseDto>> {
     this.logger.log('POST /commerce-api/org/tax-classes');
     return this.service.create(dto);
-  }
-
-  // Returns a tax class by ID
-  @Get(':id')
-  @RequirePermission(ORG_TAX_CLASSES.view)
-  findById(@Param('id') id: string): Promise<TaxClassResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-classes/${id}`);
-    return this.service.findById(id);
-  }
-
-  // Updates a tax class by ID
-  @Patch(':id')
-  @RequirePermission(ORG_TAX_CLASSES.edit)
-  update(@Param('id') id: string, @Body() dto: UpdateTaxClassDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}`);
-    return this.service.update(id, dto);
-  }
-
-  // Activates or deactivates a tax class
-  @Patch(':id/active')
-  @RequirePermission(ORG_TAX_CLASSES.toggle)
-  setActive(@Param('id') id: string, @Body() dto: SetTaxClassActiveDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}/active`);
-    return this.service.setActive(id, dto.isActive);
-  }
-
-  // Deletes a tax class by ID
-  @Delete(':id')
-  @RequirePermission(ORG_TAX_CLASSES.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/tax-classes/${id}`);
-    return this.service.delete(id);
-  }
-
-  // Returns a class's paginated group mappings, narrowed to the country in the saved table context
-  @Get(':taxClassId/groups/table')
-  @RequirePermission(ORG_TAX_CLASSES.groups.view)
-  @ApiFindForTableTaxClassGroups()
-  findGroupsForTable(
-    @UserId() userId: string,
-    @Param('taxClassId', new ParseUUIDPipe()) taxClassId: string,
-  ): Promise<TaxClassGroupTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-classes/${taxClassId}/groups/table`);
-    return this.service.findGroupsForTable(userId, taxClassId);
   }
 
   // Maps a class to a tax group in the group's country
@@ -120,6 +67,14 @@ export class TaxClassesGatewayController {
     return this.service.createGroup(taxClassId, dto);
   }
 
+  // Updates a tax class by ID
+  @Patch(':id')
+  @RequirePermission(ORG_TAX_CLASSES.edit)
+  update(@Param('id') id: string, @Body() dto: UpdateTaxClassDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}`);
+    return this.service.update(id, dto);
+  }
+
   // Updates a group mapping of a class
   @Patch(':taxClassId/groups/:mappingId')
   @RequirePermission(ORG_TAX_CLASSES.groups.edit)
@@ -131,6 +86,51 @@ export class TaxClassesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/tax-classes/${taxClassId}/groups/${mappingId}`);
     return this.service.updateGroup(taxClassId, mappingId, dto);
+  }
+
+  // Activates or deactivates a tax class
+  @Patch(':id/active')
+  @RequirePermission(ORG_TAX_CLASSES.toggle)
+  setActive(@Param('id') id: string, @Body() dto: SetTaxClassActiveDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}/active`);
+    return this.service.setActive(id, dto.isActive);
+  }
+
+  // Returns a tax class by ID
+  @Get(':id')
+  @RequirePermission(ORG_TAX_CLASSES.view)
+  findById(@Param('id') id: string): Promise<TaxClassResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-classes/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated tax classes with the tax groups they map to in the saved table context's country and on its day
+  @Get('table')
+  @RequirePermission(ORG_TAX_CLASSES.view)
+  @ApiFindForTableTaxClasses()
+  getTable(@UserId() userId: string): Promise<TaxClassTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/tax-classes/table');
+    return this.service.findForTable(userId);
+  }
+
+  // Returns a class's paginated group mappings, narrowed to the country in the saved table context
+  @Get(':taxClassId/groups/table')
+  @RequirePermission(ORG_TAX_CLASSES.groups.view)
+  @ApiFindForTableTaxClassGroups()
+  findGroupsForTable(
+    @UserId() userId: string,
+    @Param('taxClassId', new ParseUUIDPipe()) taxClassId: string,
+  ): Promise<TaxClassGroupTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-classes/${taxClassId}/groups/table`);
+    return this.service.findGroupsForTable(userId, taxClassId);
+  }
+
+  // Deletes a tax class by ID
+  @Delete(':id')
+  @RequirePermission(ORG_TAX_CLASSES.delete)
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/tax-classes/${id}`);
+    return this.service.delete(id);
   }
 
   // Removes a group mapping of a class

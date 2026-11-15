@@ -23,40 +23,6 @@ export class DimensionTemplatesDomainService {
 
   constructor(private readonly repository: DimensionTemplatesDomainRepository) {}
 
-  // Returns every template this workspace can reach, each with its values, for the card grid
-  async list(search?: string): Promise<DimensionTemplateDto[]> {
-    const where = search
-      ? or(ilike(dimensionTemplates.name, `%${search}%`), ilike(dimensionTemplates.description, `%${search}%`))
-      : undefined;
-
-    const templates = await this.repository.findAll(where);
-    const valuesByTemplate = await this.repository.findValuesByTemplateIds(templates.map((t) => t.id));
-    return templates.map((t) => DimensionTemplateDto.from(t, valuesByTemplate.get(t.id) ?? [], t.isOwned));
-  }
-
-  // Returns template options for select dropdowns, restricted to active templates
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      conditions: [eq(dimensionTemplates.isActive, true)],
-      additionalExpressions: {
-        code: sql`${dimensionTemplates.code}`,
-        description: sql`${dimensionTemplates.description}`,
-        values: sql`(
-          SELECT COALESCE(json_agg(json_build_object('code', v.code, 'value', v.value) ORDER BY v.sort_order), '[]'::json)
-          FROM ${dimensionTemplateValues} v
-          WHERE v.template_id = ${dimensionTemplates}.id
-        )`,
-      },
-    });
-  }
-
   // Creates a template owned by the calling workspace; the database stamps the owner from its GUCs
   async create(data: CreateDimensionTemplateDto): Promise<CreateResponseDto<DimensionTemplateDto>> {
     const { nameTaken, codeTaken } = await this.repository.findConflicts(data.name, data.code);
@@ -126,6 +92,40 @@ export class DimensionTemplatesDomainService {
       success: true,
       message: `Template "${updated.name}" ${isActive ? 'activated' : 'deactivated'} successfully.`,
     };
+  }
+
+  // Returns every template this workspace can reach, each with its values, for the card grid
+  async list(search?: string): Promise<DimensionTemplateDto[]> {
+    const where = search
+      ? or(ilike(dimensionTemplates.name, `%${search}%`), ilike(dimensionTemplates.description, `%${search}%`))
+      : undefined;
+
+    const templates = await this.repository.findAll(where);
+    const valuesByTemplate = await this.repository.findValuesByTemplateIds(templates.map((t) => t.id));
+    return templates.map((t) => DimensionTemplateDto.from(t, valuesByTemplate.get(t.id) ?? [], t.isOwned));
+  }
+
+  // Returns template options for select dropdowns, restricted to active templates
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      conditions: [eq(dimensionTemplates.isActive, true)],
+      additionalExpressions: {
+        code: sql`${dimensionTemplates.code}`,
+        description: sql`${dimensionTemplates.description}`,
+        values: sql`(
+          SELECT COALESCE(json_agg(json_build_object('code', v.code, 'value', v.value) ORDER BY v.sort_order), '[]'::json)
+          FROM ${dimensionTemplateValues} v
+          WHERE v.template_id = ${dimensionTemplates}.id
+        )`,
+      },
+    });
   }
 
   // Deletes a template the workspace owns

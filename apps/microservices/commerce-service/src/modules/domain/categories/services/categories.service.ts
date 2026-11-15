@@ -31,89 +31,6 @@ export class CategoriesDomainService {
     private readonly categoriesRepository: CategoriesDomainRepository,
   ) {}
 
-  // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only
-  // links Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce
-  // leaf-only links
-  async assertIsLeaf(categoryId: string): Promise<void> {
-    const category = await this.requireById(categoryId);
-    if (category.categoryRole !== CategoryRoleValues.CATEGORY) {
-      throw new BadRequestException({
-        label: 'Not a Leaf Category',
-        detail: 'Items can only be linked to leaf categories. Choose a category (not a group) instead.',
-      });
-    }
-  }
-
-  // Returns paginated category options for the select component (role- and status-filtered; RLS scopes results)
-  findForSelect(query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
-    return this.categoriesRepository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey || 'path',
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      conditions: [
-        eq(categories.categoryRole, query.role ?? CategoryRoleValues.CATEGORY),
-        eq(categories.isActive, (query.status ?? 'active') === 'active'),
-      ],
-    });
-  }
-
-  // Returns total category count
-  async count(): Promise<CategoryCountDto> {
-    const count = await this.categoriesRepository.countAll();
-    return { count };
-  }
-
-  // Returns categories as a TreeView-compatible hierarchy.
-  async findTree(search?: string): Promise<CategoryTreeDto[]> {
-    const rows = await this.categoriesRepository.findHierarchyRows(search?.trim());
-
-    const nodesById = new Map<string, CategoryTreeDto>();
-    const roots: CategoryTreeDto[] = [];
-
-    for (const row of rows) {
-      const node: CategoryTreeDto = { id: row.id, name: row.name, categoryRole: row.categoryRole as CategoryRole };
-      nodesById.set(row.id, node);
-
-      if (row.parentId === null) {
-        roots.push(node);
-        continue;
-      }
-
-      const parent = nodesById.get(row.parentId);
-      if (!parent) {
-        roots.push(node);
-        continue;
-      }
-      if (!parent.children) parent.children = [];
-      parent.children.push(node);
-    }
-
-    return roots;
-  }
-
-  // Returns paginated child categories for a given parent ID
-  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: CategoryDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesDomainService.FIELD_MAP);
-    const where = and(eq(categories.parentId, parentId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.categoriesRepository.findAllWithCounts({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(categories.sortOrder), asc(categories.name)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map((row) => this.toDto(row)), count };
-  }
-
   // Creates a new category, computing its path label and full ltree path; blocks adding under a leaf category
   async create(data: CreateCategoryDto): Promise<CreateResponseDto<CategoryDto>> {
     const parent = data.parentId ? await this.loadParent(data.parentId) : null;
@@ -146,11 +63,6 @@ export class CategoriesDomainService {
       message: `Category "${entity.name}" created successfully.`,
       data: CategoryDto.from(entity, true),
     };
-  }
-
-  // Finds a category by ID or throws NotFoundException
-  async findById(id: string): Promise<CategoryDto> {
-    return this.toDto(await this.requireByIdWithCounts(id));
   }
 
   // Updates a category, recomputing path on rename/move and rewriting the affected subtree
@@ -228,6 +140,94 @@ export class CategoriesDomainService {
 
     this.logger.log(`Reordered ${orderedIds.length} categories under parent ${parentId ?? 'ROOT'}`);
     return { success: true, message: 'Categories reordered successfully.' };
+  }
+
+  // Finds a category by ID or throws NotFoundException
+  async findById(id: string): Promise<CategoryDto> {
+    return this.toDto(await this.requireByIdWithCounts(id));
+  }
+
+  // Returns paginated child categories for a given parent ID
+  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: CategoryDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, CategoriesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, CategoriesDomainService.FIELD_MAP);
+    const where = and(eq(categories.parentId, parentId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, CategoriesDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.categoriesRepository.findAllWithCounts({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(categories.sortOrder), asc(categories.name)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map((row) => this.toDto(row)), count };
+  }
+
+  // Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce leaf-only
+  // links Throws unless the category is a leaf (role CATEGORY) — used by inventory-items / offerings to enforce
+  // leaf-only links
+  async assertIsLeaf(categoryId: string): Promise<void> {
+    const category = await this.requireById(categoryId);
+    if (category.categoryRole !== CategoryRoleValues.CATEGORY) {
+      throw new BadRequestException({
+        label: 'Not a Leaf Category',
+        detail: 'Items can only be linked to leaf categories. Choose a category (not a group) instead.',
+      });
+    }
+  }
+
+  // Returns paginated category options for the select component (role- and status-filtered; RLS scopes results)
+  findForSelect(query: CategoriesSelectQueryDto): Promise<SelectQueryResult> {
+    return this.categoriesRepository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey || 'path',
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      conditions: [
+        eq(categories.categoryRole, query.role ?? CategoryRoleValues.CATEGORY),
+        eq(categories.isActive, (query.status ?? 'active') === 'active'),
+      ],
+    });
+  }
+
+  // Returns total category count
+  async count(): Promise<CategoryCountDto> {
+    const count = await this.categoriesRepository.countAll();
+    return { count };
+  }
+
+  // Returns categories as a TreeView-compatible hierarchy.
+  async findTree(search?: string): Promise<CategoryTreeDto[]> {
+    const rows = await this.categoriesRepository.findHierarchyRows(search?.trim());
+
+    const nodesById = new Map<string, CategoryTreeDto>();
+    const roots: CategoryTreeDto[] = [];
+
+    for (const row of rows) {
+      const node: CategoryTreeDto = { id: row.id, name: row.name, categoryRole: row.categoryRole as CategoryRole };
+      nodesById.set(row.id, node);
+
+      if (row.parentId === null) {
+        roots.push(node);
+        continue;
+      }
+
+      const parent = nodesById.get(row.parentId);
+      if (!parent) {
+        roots.push(node);
+        continue;
+      }
+      if (!parent.children) parent.children = [];
+      parent.children.push(node);
+    }
+
+    return roots;
   }
 
   // Deletes a category by ID; refuses if anything still references it

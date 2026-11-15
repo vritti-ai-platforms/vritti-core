@@ -31,29 +31,6 @@ export class PartyBankAccountsDomainService {
     private readonly repository: PartyBankAccountsDomainRepository,
   ) {}
 
-  // Returns paginated bank accounts of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyBankAccountDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyBankAccountsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyBankAccountsDomainService.FIELD_MAP);
-    const where = and(eq(partyBankAccounts.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyBankAccountsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(partyBankAccounts.isPrimary), asc(partyBankAccounts.createdAt)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(PartyBankAccountDto.from), count };
-  }
-
-  // Returns paginated active bank account options of a party for select dropdowns
-  findForSelect(query: SelectOptionsQueryDto, partyId: string): Promise<SelectQueryResult> {
-    return this.repository.findOptionsForSelect(partyId, query);
-  }
-
   // Creates a bank account for a party, clearing any existing primary when this one is primary
   async create(
     partyId: string,
@@ -135,6 +112,29 @@ export class PartyBankAccountsDomainService {
 
     this.logger.log(`Updated bank account: ${id}`);
     return { success: true, message: 'Bank account updated successfully.' };
+  }
+
+  // Returns paginated bank accounts of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyBankAccountDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyBankAccountsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyBankAccountsDomainService.FIELD_MAP);
+    const where = and(eq(partyBankAccounts.partyId, partyId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyBankAccountsDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(partyBankAccounts.isPrimary), asc(partyBankAccounts.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(PartyBankAccountDto.from), count };
+  }
+
+  // Returns paginated active bank account options of a party for select dropdowns
+  findForSelect(query: SelectOptionsQueryDto, partyId: string): Promise<SelectQueryResult> {
+    return this.repository.findOptionsForSelect(partyId, query);
   }
 
   // Deletes a bank account by ID

@@ -21,16 +21,22 @@ export class TaxJurisdictionsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns total tax jurisdiction count
-  async count(): Promise<TaxJurisdictionCountResponseDto> {
-    this.logger.log('org.taxJurisdictions.count');
-    return this.nats.send('commerce', 'org.taxJurisdictions.count', {});
+  // Creates a tax jurisdiction under a parent of the same country one level up
+  async create(dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
+    this.logger.log(`org.taxJurisdictions.create — name: ${dto.name}`);
+    return this.nats.send('commerce', 'org.taxJurisdictions.create', dto);
   }
 
-  // Returns tax jurisdictions as tree hierarchy, states at the top grouped by country, optionally for one country
-  async findTree(query: TaxJurisdictionTreeQueryDto): Promise<TaxJurisdictionTreeResponseDto[]> {
-    this.logger.log(`org.taxJurisdictions.tree — country: ${query.country ?? 'all'}`);
-    return this.nats.send('commerce', 'org.taxJurisdictions.tree', { search: query.search, country: query.country });
+  // Updates a tax jurisdiction by ID
+  async update(id: string, dto: UpdateTaxJurisdictionDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxJurisdictions.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxJurisdictions.update', { id, ...dto });
+  }
+
+  // Finds a tax jurisdiction by ID
+  async findById(id: string): Promise<TaxJurisdictionResponseDto> {
+    this.logger.log(`org.taxJurisdictions.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxJurisdictions.findById', { id });
   }
 
   // Returns paginated child jurisdictions for a given parent ID
@@ -47,29 +53,23 @@ export class TaxJurisdictionsGatewayService {
     return { result, count, state, activeViewId };
   }
 
+  // Returns total tax jurisdiction count
+  async count(): Promise<TaxJurisdictionCountResponseDto> {
+    this.logger.log('org.taxJurisdictions.count');
+    return this.nats.send('commerce', 'org.taxJurisdictions.count', {});
+  }
+
+  // Returns tax jurisdictions as tree hierarchy, states at the top grouped by country, optionally for one country
+  async findTree(query: TaxJurisdictionTreeQueryDto): Promise<TaxJurisdictionTreeResponseDto[]> {
+    this.logger.log(`org.taxJurisdictions.tree — country: ${query.country ?? 'all'}`);
+    return this.nats.send('commerce', 'org.taxJurisdictions.tree', { search: query.search, country: query.country });
+  }
+
   // Options for a jurisdiction picker, optionally of one country — the same select the session surface exposes,
   // reachable by cloud
   async findForSelect(query: TaxJurisdictionSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log(`select.taxJurisdictions — country: ${query.country ?? 'all'}`);
     return this.nats.send('commerce', 'select.taxJurisdictions', query);
-  }
-
-  // Creates a tax jurisdiction under a parent of the same country one level up
-  async create(dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
-    this.logger.log(`org.taxJurisdictions.create — name: ${dto.name}`);
-    return this.nats.send('commerce', 'org.taxJurisdictions.create', dto);
-  }
-
-  // Finds a tax jurisdiction by ID
-  async findById(id: string): Promise<TaxJurisdictionResponseDto> {
-    this.logger.log(`org.taxJurisdictions.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxJurisdictions.findById', { id });
-  }
-
-  // Updates a tax jurisdiction by ID
-  async update(id: string, dto: UpdateTaxJurisdictionDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxJurisdictions.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxJurisdictions.update', { id, ...dto });
   }
 
   // Deletes a tax jurisdiction by ID

@@ -24,6 +24,51 @@ export class StockAdjustmentsDomainService {
 
   constructor(private readonly repository: StockAdjustmentsDomainRepository) {}
 
+  // Creates a new DRAFT stock adjustment with an auto-generated code.
+  async create(data: {
+    inventoryItemId: string;
+    type: StockAdjustmentType;
+    reason: string;
+    unitCost?: bigint | null;
+  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
+    const entity = await this.repository.create({
+      inventoryItemId: data.inventoryItemId,
+      type: data.type,
+      reason: data.reason,
+      unitCost: data.unitCost ?? null,
+    });
+
+    this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);
+    return {
+      success: true,
+      message: `Stock adjustment "${entity.code}" created successfully.`,
+      data: StockAdjustmentDto.fromEntity(entity),
+    };
+  }
+
+  async updateAdjustment(
+    id: string,
+    data: { reason?: string; unitCost?: bigint | null },
+    leCurrencyCode?: string,
+  ): Promise<StockAdjustmentDto> {
+    const adjustment = await this.repository.findByIdWithItem(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
+      throw new BadRequestException('Only DRAFT adjustments can be edited.');
+    }
+
+    await this.repository.update(id, data);
+    const updated = await this.repository.findByIdWithRefs(id);
+    if (!updated) throw new NotFoundException('Stock adjustment not found.');
+    return StockAdjustmentDto.from(updated, leCurrencyCode);
+  }
+
+  async findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
+    const adjustment = await this.repository.findByIdWithRefs(id);
+    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
+    return StockAdjustmentDto.from(adjustment, leCurrencyCode);
+  }
+
   // Returns paginated stock adjustments for the data table
   async findForTable(
     state: TableState,
@@ -47,34 +92,6 @@ export class StockAdjustmentsDomainService {
     return { result: rows.map((r) => StockAdjustmentDto.from(r, leCurrencyCode)), count };
   }
 
-  async findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findByIdWithRefs(id);
-    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(adjustment, leCurrencyCode);
-  }
-
-  // Creates a new DRAFT stock adjustment with an auto-generated code.
-  async create(data: {
-    inventoryItemId: string;
-    type: StockAdjustmentType;
-    reason: string;
-    unitCost?: bigint | null;
-  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
-    const entity = await this.repository.create({
-      inventoryItemId: data.inventoryItemId,
-      type: data.type,
-      reason: data.reason,
-      unitCost: data.unitCost ?? null,
-    });
-
-    this.logger.log(`Created DRAFT adjustment ${entity.code} (${data.type}) for item ${data.inventoryItemId}`);
-    return {
-      success: true,
-      message: `Stock adjustment "${entity.code}" created successfully.`,
-      data: StockAdjustmentDto.fromEntity(entity),
-    };
-  }
-
   // Deletes a DRAFT adjustment and all its lines (CASCADE)
   async delete(id: string): Promise<SuccessResponseDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
@@ -86,22 +103,5 @@ export class StockAdjustmentsDomainService {
     await this.repository.deleteById(id);
     this.logger.log(`Deleted DRAFT adjustment ${adjustment.code} (${id})`);
     return { success: true, message: `Stock adjustment "${adjustment.code}" deleted successfully.` };
-  }
-
-  async updateAdjustment(
-    id: string,
-    data: { reason?: string; unitCost?: bigint | null },
-    leCurrencyCode?: string,
-  ): Promise<StockAdjustmentDto> {
-    const adjustment = await this.repository.findByIdWithItem(id);
-    if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
-    if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
-      throw new BadRequestException('Only DRAFT adjustments can be edited.');
-    }
-
-    await this.repository.update(id, data);
-    const updated = await this.repository.findByIdWithRefs(id);
-    if (!updated) throw new NotFoundException('Stock adjustment not found.');
-    return StockAdjustmentDto.from(updated, leCurrencyCode);
   }
 }

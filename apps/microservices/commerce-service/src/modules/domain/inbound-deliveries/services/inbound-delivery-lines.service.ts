@@ -66,6 +66,98 @@ export class InboundDeliveryLinesDomainService {
     private readonly deliveriesService: InboundDeliveriesDomainService,
   ) {}
 
+  // Puts PO lines on an open delivery, each within what its order still has left to deliver in primary units
+  async addLines(
+    delivery: InboundDeliveryRow,
+    dto: AddInboundDeliveryLinesDto,
+    items: DeliverablePurchaseOrderItem[],
+  ): Promise<SuccessResponseDto> {
+    this.deliveriesService.assertEditable(delivery, 'Cannot Add Lines');
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const rows = dto.lines.map((line) => {
+      const item = itemById.get(line.purchaseOrderItemId) as DeliverablePurchaseOrderItem;
+      const primaryUomQty = new Decimal(line.quantity)
+        .times(item.primaryUomQty)
+        .div(item.uomQty)
+        .toDecimalPlaces(3, Decimal.ROUND_HALF_UP);
+      if (primaryUomQty.gt(item.remainingPrimaryQty)) {
+        throw new BadRequestException({
+          label: 'More Than Open on Order',
+          detail: `"${item.poNumber}" has only ${Decimal.max(0, item.remainingPrimaryQty).toString()} primary units of "${item.inventoryItemName}" left to deliver after its receipts and other deliveries.`,
+          errors: [{ field: 'lines', message: 'More than open on order' }],
+        });
+      }
+      return {
+        inboundDeliveryId: delivery.id,
+        purchaseOrderItemId: line.purchaseOrderItemId,
+        quantity: line.quantity,
+        primaryUomQty: primaryUomQty.toNumber(),
+      };
+    });
+
+    await this.repository.insertMany(rows);
+    this.logger.log(`Added ${rows.length} lines to inbound delivery ${delivery.deliveryNumber}`);
+    return {
+      success: true,
+      message: `${pluralize('line', rows.length, true)} added to inbound delivery "${delivery.deliveryNumber}".`,
+    };
+  }
+
+  // Puts the lines a purchase works out on a delivery it created behind a receipt or invoice, in the caller's transaction,
+  // and returns them
+  async addForPurchase(
+    delivery: Pick<InboundDelivery, 'id' | 'deliveryNumber' | 'source'>,
+    lines: PurchaseDeliveryLine[],
+  ): Promise<InboundDeliveryLine[]> {
+    if (delivery.source === InboundDeliverySourceValues.ANNOUNCED) {
+      throw new ConflictException({
+        label: 'Cannot Add Lines',
+        detail: `"${delivery.deliveryNumber}" was entered in Inbound Deliveries; its lines are added there.`,
+      });
+    }
+    const created = await this.repository.insertMany(
+      lines.map((line) => ({ ...line, inboundDeliveryId: delivery.id })),
+    );
+    this.logger.log(`Added ${lines.length} lines to inbound delivery ${delivery.deliveryNumber} of its purchase`);
+    return created;
+  }
+
+  // Changes a line's quantity, never below what is accepted against the delivery nor above what its order has left
+  async updateLine(
+    delivery: InboundDeliveryRow,
+    line: InboundDeliveryLineRow,
+    quantity: number,
+  ): Promise<SuccessResponseDto> {
+    this.deliveriesService.assertEditable(delivery, 'Cannot Edit Line');
+    const lineDto = InboundDeliveryLineDto.from(line);
+    const itemName = line.inventoryItemName ?? 'this item';
+    const primaryUomQty = new Decimal(quantity)
+      .times(line.poPrimaryUomQty)
+      .div(line.poUomQty)
+      .toDecimalPlaces(3, Decimal.ROUND_HALF_UP);
+    if (primaryUomQty.lt(line.acceptedOnDeliveryPrimaryQty)) {
+      throw new BadRequestException({
+        label: 'Below Received Quantity',
+        detail: `${lineDto.receivedOnDeliveryQty} of "${itemName}" are already received against this delivery, so the line cannot go below that.`,
+        errors: [{ field: 'quantity', message: `At least ${lineDto.receivedOnDeliveryQty}` }],
+      });
+    }
+    const maxPrimary = Decimal.max(line.primaryUomQty, line.acceptedOnDeliveryPrimaryQty).plus(
+      Decimal.max(0, line.remainingToDeliverPrimaryQty),
+    );
+    if (primaryUomQty.gt(line.primaryUomQty) && primaryUomQty.gt(maxPrimary)) {
+      throw new BadRequestException({
+        label: 'More Than Open on Order',
+        detail: `"${line.poNumber}" has only ${lineDto.maxQuantity} of "${itemName}" left to deliver after its receipts and other deliveries.`,
+        errors: [{ field: 'quantity', message: `At most ${lineDto.maxQuantity}` }],
+      });
+    }
+
+    await this.repository.update(line.id, { quantity, primaryUomQty: primaryUomQty.toNumber() });
+    this.logger.log(`Inbound delivery ${delivery.deliveryNumber} line ${line.id} quantity → ${quantity}`);
+    return { success: true, message: `Line updated on inbound delivery "${delivery.deliveryNumber}".` };
+  }
+
   // Returns one page of a delivery's lines
   async findForTable(
     inboundDeliveryId: string,
@@ -177,62 +269,6 @@ export class InboundDeliveryLinesDomainService {
     });
   }
 
-  // Puts PO lines on an open delivery, each within what its order still has left to deliver in primary units
-  async addLines(
-    delivery: InboundDeliveryRow,
-    dto: AddInboundDeliveryLinesDto,
-    items: DeliverablePurchaseOrderItem[],
-  ): Promise<SuccessResponseDto> {
-    this.deliveriesService.assertEditable(delivery, 'Cannot Add Lines');
-    const itemById = new Map(items.map((item) => [item.id, item]));
-    const rows = dto.lines.map((line) => {
-      const item = itemById.get(line.purchaseOrderItemId) as DeliverablePurchaseOrderItem;
-      const primaryUomQty = new Decimal(line.quantity)
-        .times(item.primaryUomQty)
-        .div(item.uomQty)
-        .toDecimalPlaces(3, Decimal.ROUND_HALF_UP);
-      if (primaryUomQty.gt(item.remainingPrimaryQty)) {
-        throw new BadRequestException({
-          label: 'More Than Open on Order',
-          detail: `"${item.poNumber}" has only ${Decimal.max(0, item.remainingPrimaryQty).toString()} primary units of "${item.inventoryItemName}" left to deliver after its receipts and other deliveries.`,
-          errors: [{ field: 'lines', message: 'More than open on order' }],
-        });
-      }
-      return {
-        inboundDeliveryId: delivery.id,
-        purchaseOrderItemId: line.purchaseOrderItemId,
-        quantity: line.quantity,
-        primaryUomQty: primaryUomQty.toNumber(),
-      };
-    });
-
-    await this.repository.insertMany(rows);
-    this.logger.log(`Added ${rows.length} lines to inbound delivery ${delivery.deliveryNumber}`);
-    return {
-      success: true,
-      message: `${pluralize('line', rows.length, true)} added to inbound delivery "${delivery.deliveryNumber}".`,
-    };
-  }
-
-  // Puts the lines a purchase works out on a delivery it created behind a receipt or invoice, in the caller's transaction,
-  // and returns them
-  async addForPurchase(
-    delivery: Pick<InboundDelivery, 'id' | 'deliveryNumber' | 'source'>,
-    lines: PurchaseDeliveryLine[],
-  ): Promise<InboundDeliveryLine[]> {
-    if (delivery.source === InboundDeliverySourceValues.ANNOUNCED) {
-      throw new ConflictException({
-        label: 'Cannot Add Lines',
-        detail: `"${delivery.deliveryNumber}" was entered in Inbound Deliveries; its lines are added there.`,
-      });
-    }
-    const created = await this.repository.insertMany(
-      lines.map((line) => ({ ...line, inboundDeliveryId: delivery.id })),
-    );
-    this.logger.log(`Added ${lines.length} lines to inbound delivery ${delivery.deliveryNumber} of its purchase`);
-    return created;
-  }
-
   // Returns what each of the given PO lines still has free to put on an inbound delivery or receive, in primary units, keyed by line
   async findRemainingToDeliver(purchaseOrderItemIds: string[]): Promise<Map<string, number>> {
     const rows = await this.deliverableRepository.findRemainingToDeliver(purchaseOrderItemIds);
@@ -248,42 +284,6 @@ export class InboundDeliveryLinesDomainService {
     if (purchaseOrderItemIds.length === 0) return new Map();
     const rows = await this.repository.findPendingOnSupplierInvoices(purchaseOrderItemIds, excludeDeliveryIds);
     return new Map(rows.map((row) => [row.purchaseOrderItemId, row.primaryUomQty]));
-  }
-
-  // Changes a line's quantity, never below what is accepted against the delivery nor above what its order has left
-  async updateLine(
-    delivery: InboundDeliveryRow,
-    line: InboundDeliveryLineRow,
-    quantity: number,
-  ): Promise<SuccessResponseDto> {
-    this.deliveriesService.assertEditable(delivery, 'Cannot Edit Line');
-    const lineDto = InboundDeliveryLineDto.from(line);
-    const itemName = line.inventoryItemName ?? 'this item';
-    const primaryUomQty = new Decimal(quantity)
-      .times(line.poPrimaryUomQty)
-      .div(line.poUomQty)
-      .toDecimalPlaces(3, Decimal.ROUND_HALF_UP);
-    if (primaryUomQty.lt(line.acceptedOnDeliveryPrimaryQty)) {
-      throw new BadRequestException({
-        label: 'Below Received Quantity',
-        detail: `${lineDto.receivedOnDeliveryQty} of "${itemName}" are already received against this delivery, so the line cannot go below that.`,
-        errors: [{ field: 'quantity', message: `At least ${lineDto.receivedOnDeliveryQty}` }],
-      });
-    }
-    const maxPrimary = Decimal.max(line.primaryUomQty, line.acceptedOnDeliveryPrimaryQty).plus(
-      Decimal.max(0, line.remainingToDeliverPrimaryQty),
-    );
-    if (primaryUomQty.gt(line.primaryUomQty) && primaryUomQty.gt(maxPrimary)) {
-      throw new BadRequestException({
-        label: 'More Than Open on Order',
-        detail: `"${line.poNumber}" has only ${lineDto.maxQuantity} of "${itemName}" left to deliver after its receipts and other deliveries.`,
-        errors: [{ field: 'quantity', message: `At most ${lineDto.maxQuantity}` }],
-      });
-    }
-
-    await this.repository.update(line.id, { quantity, primaryUomQty: primaryUomQty.toNumber() });
-    this.logger.log(`Inbound delivery ${delivery.deliveryNumber} line ${line.id} quantity → ${quantity}`);
-    return { success: true, message: `Line updated on inbound delivery "${delivery.deliveryNumber}".` };
   }
 
   // Removes a line no goods receipt counts

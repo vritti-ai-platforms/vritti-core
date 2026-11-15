@@ -21,14 +21,6 @@ export class PeopleAppController {
 
   constructor(private readonly service: PeopleGatewayService) {}
 
-  // Resolves who is reachable at an email or phone, oldest party first
-  @Get('by-communication')
-  @RequirePermission(ORG_PEOPLE.communications.view)
-  findByCommunication(@Query() query: FindPeopleByCommunicationQueryDto): Promise<PersonResponseDto[]> {
-    this.logger.log('GET /commerce-api/app/people/by-communication');
-    return this.service.findPeopleByCommunication(query.channel, query.value);
-  }
-
   // Creates the person plus their primary EMAIL and PHONE rows, in one transaction
   @Post()
   @RequirePermission(ORG_PEOPLE.add)
@@ -48,5 +40,13 @@ export class PeopleAppController {
   ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
     this.logger.log(`POST /commerce-api/app/people/${id}/communications`);
     return this.service.createCommunication(id, dto);
+  }
+
+  // Resolves who is reachable at an email or phone, oldest party first
+  @Get('by-communication')
+  @RequirePermission(ORG_PEOPLE.communications.view)
+  findByCommunication(@Query() query: FindPeopleByCommunicationQueryDto): Promise<PersonResponseDto[]> {
+    this.logger.log('GET /commerce-api/app/people/by-communication');
+    return this.service.findPeopleByCommunication(query.channel, query.value);
   }
 }

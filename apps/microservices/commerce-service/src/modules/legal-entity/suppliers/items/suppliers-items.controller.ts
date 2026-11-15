@@ -19,21 +19,6 @@ export class SuppliersItemsController {
     private readonly localService: SuppliersItemsService,
   ) {}
 
-  @MessagePattern({ cmd: 'le.suppliers.itemsTable' })
-  itemsTable(
-    @Payload() data: { supplierId: string } & TableState,
-  ): Promise<{ result: SupplierItemDto[]; count: number }> {
-    this.logger.log('suppliers.itemsTable');
-    const { supplierId, ...state } = data;
-    return this.domainService.findForTable(supplierId, state);
-  }
-
-  @MessagePattern({ cmd: 'le.suppliers.findItemById' })
-  findItemById(@Payload() data: { supplierItemId: string }): Promise<SupplierItemDetailDto> {
-    this.logger.log(`suppliers.findItemById — id: ${data.supplierItemId}`);
-    return this.domainService.findItemDetail(data.supplierItemId);
-  }
-
   @MessagePattern({ cmd: 'le.suppliers.addItem' })
   addItem(@Payload() data: AddSupplierItemDto): Promise<CreateResponseDto<SupplierItemDto>> {
     const { supplierId, ...itemData } = data;
@@ -48,12 +33,6 @@ export class SuppliersItemsController {
     return this.localService.updateItem(supplierId, supplierItemId, itemData);
   }
 
-  @MessagePattern({ cmd: 'le.suppliers.unlinkItem' })
-  unlinkItem(@Payload() data: { supplierId: string; supplierItemId: string }): Promise<SuccessResponseDto> {
-    this.logger.log('suppliers.unlinkItem');
-    return this.domainService.unlinkItem(data.supplierId, data.supplierItemId);
-  }
-
   @MessagePattern({ cmd: 'le.suppliers.bulkSetItemMinOrder' })
   bulkSetItemMinOrder(@Payload() dto: BulkSetSupplierItemMinOrderDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkSetItemMinOrder');
@@ -64,5 +43,26 @@ export class SuppliersItemsController {
   bulkSetItemDefaultLeadTime(@Payload() dto: BulkSetSupplierItemDefaultLeadTimeDto): Promise<SuccessResponseDto> {
     this.logger.log('suppliers.bulkSetItemDefaultLeadTime');
     return this.domainService.bulkSetDefaultLeadTime(dto);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.findItemById' })
+  findItemById(@Payload() data: { supplierItemId: string }): Promise<SupplierItemDetailDto> {
+    this.logger.log(`suppliers.findItemById — id: ${data.supplierItemId}`);
+    return this.domainService.findItemDetail(data.supplierItemId);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.itemsTable' })
+  itemsTable(
+    @Payload() data: { supplierId: string } & TableState,
+  ): Promise<{ result: SupplierItemDto[]; count: number }> {
+    this.logger.log('suppliers.itemsTable');
+    const { supplierId, ...state } = data;
+    return this.domainService.findForTable(supplierId, state);
+  }
+
+  @MessagePattern({ cmd: 'le.suppliers.unlinkItem' })
+  unlinkItem(@Payload() data: { supplierId: string; supplierItemId: string }): Promise<SuccessResponseDto> {
+    this.logger.log('suppliers.unlinkItem');
+    return this.domainService.unlinkItem(data.supplierId, data.supplierItemId);
   }
 }

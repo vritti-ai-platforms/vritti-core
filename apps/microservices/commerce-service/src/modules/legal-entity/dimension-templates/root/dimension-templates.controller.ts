@@ -13,13 +13,6 @@ export class LeDimensionTemplatesController {
 
   constructor(private readonly service: DimensionTemplatesDomainService) {}
 
-  // Returns every dimension template this workspace can reach, for the card grid
-  @MessagePattern({ cmd: 'le.dimensionTemplates.list' })
-  list(@Payload() data: { search?: string }): Promise<DimensionTemplateDto[]> {
-    this.logger.log('dimensionTemplates.list');
-    return this.service.list(data.search);
-  }
-
   // Creates a legal-entity-owned dimension template; values are added through their own endpoint
   @MessagePattern({ cmd: 'le.dimensionTemplates.create' })
   create(@Payload() dto: CreateDimensionTemplateDto): Promise<CreateResponseDto<DimensionTemplateDto>> {
@@ -40,6 +33,13 @@ export class LeDimensionTemplatesController {
   setActive(@Payload() dto: SetDimensionTemplateActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`dimensionTemplates.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
     return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  // Returns every dimension template this workspace can reach, for the card grid
+  @MessagePattern({ cmd: 'le.dimensionTemplates.list' })
+  list(@Payload() data: { search?: string }): Promise<DimensionTemplateDto[]> {
+    this.logger.log('dimensionTemplates.list');
+    return this.service.list(data.search);
   }
 
   // Deletes a dimension template this legal-entity owns

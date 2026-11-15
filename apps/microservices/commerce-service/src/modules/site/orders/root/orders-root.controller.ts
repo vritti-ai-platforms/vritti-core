@@ -13,16 +13,17 @@ export class OrdersRootController {
 
   constructor(private readonly service: OrdersDomainService) {}
 
-  @MessagePattern({ cmd: 'site.orders.table' })
-  async table(@Payload() state: TableState): Promise<{ result: OrderDto[]; count: number }> {
-    this.logger.log('orders.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'site.orders.create' })
   async create(@Payload() dto: CreateOrderDto, @RpcLeCurrencyCode() currencyCode: string): Promise<OrderDto> {
     this.logger.log(`orders.create — type: ${dto.type}, channel: ${dto.channel}`);
     return this.service.create(dto, currencyCode);
+  }
+
+  @MessagePattern({ cmd: 'site.orders.updateStatus' })
+  async updateStatus(@Payload() dto: UpdateOrderStatusDto): Promise<OrderDto> {
+    const { id, ...statusData } = dto;
+    this.logger.log(`orders.updateStatus — id: ${id}, status: ${statusData.status}`);
+    return this.service.updateStatus(id, statusData);
   }
 
   @MessagePattern({ cmd: 'site.orders.findById' })
@@ -31,10 +32,9 @@ export class OrdersRootController {
     return this.service.findById(data.id);
   }
 
-  @MessagePattern({ cmd: 'site.orders.updateStatus' })
-  async updateStatus(@Payload() dto: UpdateOrderStatusDto): Promise<OrderDto> {
-    const { id, ...statusData } = dto;
-    this.logger.log(`orders.updateStatus — id: ${id}, status: ${statusData.status}`);
-    return this.service.updateStatus(id, statusData);
+  @MessagePattern({ cmd: 'site.orders.table' })
+  async table(@Payload() state: TableState): Promise<{ result: OrderDto[]; count: number }> {
+    this.logger.log('orders.table');
+    return this.service.findForTable(state);
   }
 }

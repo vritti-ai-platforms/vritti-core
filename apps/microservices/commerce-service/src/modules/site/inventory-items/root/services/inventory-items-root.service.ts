@@ -12,6 +12,12 @@ export class SiteInventoryItemsService {
 
   constructor(private readonly stockLevelsService: InventoryItemSiteStockLevelsDomainService) {}
 
+  // Updates an item's stock levels at the current site
+  updateStockLevels(siteId: string, dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`updateStockLevels — inventoryItemId=${dto.inventoryItemId}, siteId=${siteId}`);
+    return this.stockLevelsService.update({ ...dto, siteId });
+  }
+
   // Sets a master item's stock levels at the current site
   async setStockLevels(
     siteId: string,
@@ -24,12 +30,6 @@ export class SiteInventoryItemsService {
       maxStockLevel: dto.maxStockLevel,
     });
     return { success: true, message: 'Stock levels set for this site.', data: entity };
-  }
-
-  // Updates an item's stock levels at the current site
-  updateStockLevels(siteId: string, dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`updateStockLevels — inventoryItemId=${dto.inventoryItemId}, siteId=${siteId}`);
-    return this.stockLevelsService.update({ ...dto, siteId });
   }
 
   // The item's stock levels at the current site, or null while none are set; RLS narrows the item's rows to this site

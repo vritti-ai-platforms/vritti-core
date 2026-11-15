@@ -13,20 +13,6 @@ export class StorageTypesRootController {
 
   constructor(private readonly service: StorageTypesDomainService) {}
 
-  // Returns paginated storage types with their location and item counts
-  @MessagePattern({ cmd: 'org.storageTypes.table' })
-  async table(@Payload() state: TableState): Promise<{ result: StorageTypeDto[]; count: number }> {
-    this.logger.log('storageTypes.table');
-    return this.service.findForTable(state);
-  }
-
-  // Returns a single storage type by ID
-  @MessagePattern({ cmd: 'org.storageTypes.findById' })
-  async findById(@Payload() data: { id: string }): Promise<StorageTypeDto> {
-    this.logger.log(`storageTypes.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
   // Creates a storage type
   @MessagePattern({ cmd: 'org.storageTypes.create' })
   async create(@Payload() dto: CreateStorageTypeDto): Promise<CreateResponseDto<StorageTypeDto>> {
@@ -40,6 +26,20 @@ export class StorageTypesRootController {
     const { id, ...payload } = dto;
     this.logger.log(`storageTypes.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  // Returns a single storage type by ID
+  @MessagePattern({ cmd: 'org.storageTypes.findById' })
+  async findById(@Payload() data: { id: string }): Promise<StorageTypeDto> {
+    this.logger.log(`storageTypes.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated storage types with their location and item counts
+  @MessagePattern({ cmd: 'org.storageTypes.table' })
+  async table(@Payload() state: TableState): Promise<{ result: StorageTypeDto[]; count: number }> {
+    this.logger.log('storageTypes.table');
+    return this.service.findForTable(state);
   }
 
   // Deletes a storage type no location or item references

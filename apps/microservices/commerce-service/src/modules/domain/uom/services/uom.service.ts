@@ -37,6 +37,62 @@ export class UomDomainService {
 
   constructor(private readonly uomRepository: UomDomainRepository) {}
 
+  // Creates a new UOM
+  async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
+    if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
+
+    const dup = await this.uomRepository.findBySymbol(data.symbol);
+    if (dup) {
+      throw new ConflictException({
+        label: 'Duplicate Symbol',
+        detail: `A unit with symbol "${data.symbol}" already exists.`,
+      });
+    }
+
+    const entity = await this.uomRepository.create({
+      dimensionId: data.dimensionId,
+      name: data.name,
+      symbol: data.symbol,
+      baseUnitId: data.baseUnitId ?? null,
+      baseUomQty: data.baseUomQty ?? 1,
+      uomQty: data.uomQty ?? 1,
+      allowDecimal: data.allowDecimal,
+    });
+
+    this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
+    return {
+      success: true,
+      message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
+      data: UomDto.from(entity),
+    };
+  }
+
+  // Updates a UOM
+  async update(id: string, data: Omit<UpdateUomDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.uomRepository.findById(id);
+    if (!existing) throw new NotFoundException('Unit of measure not found.');
+    if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);
+
+    if (data.symbol && data.symbol !== existing.symbol) {
+      const dup = await this.uomRepository.findBySymbol(data.symbol);
+      if (dup && dup.id !== id) {
+        throw new ConflictException({
+          label: 'Duplicate Symbol',
+          detail: `A unit with symbol "${data.symbol}" already exists.`,
+        });
+      }
+    }
+
+    const updated = await this.uomRepository.update(id, data);
+    this.logger.log(`Updated UOM: ${updated.name} (${updated.symbol})`);
+    return { success: true, message: `Unit "${updated.name}" updated successfully.` };
+  }
+
+  // Finds a UOM by ID or throws NotFoundException
+  async findById(id: string): Promise<UomDto> {
+    return this.toDto(id);
+  }
+
   // Returns paginated UOMs for the data table, scoped to a dimension; joined with base unit symbol
   async findForTable(state: TableState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, UomDomainService.FIELD_MAP);
@@ -196,86 +252,6 @@ export class UomDomainService {
     });
   }
 
-  // Validates that baseUnitId exists and is not self-referencing
-  private async validateBaseUnitId(baseUnitId: string, selfId?: string): Promise<void> {
-    if (selfId && baseUnitId === selfId) {
-      throw new BadRequestException('A unit of measure cannot reference itself as its base unit.');
-    }
-    const baseUnit = await this.uomRepository.findById(baseUnitId);
-    if (!baseUnit) throw new BadRequestException('The specified base unit does not exist.');
-  }
-
-  // Creates a new UOM
-  async create(data: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
-    if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId);
-
-    const dup = await this.uomRepository.findBySymbol(data.symbol);
-    if (dup) {
-      throw new ConflictException({
-        label: 'Duplicate Symbol',
-        detail: `A unit with symbol "${data.symbol}" already exists.`,
-      });
-    }
-
-    const entity = await this.uomRepository.create({
-      dimensionId: data.dimensionId,
-      name: data.name,
-      symbol: data.symbol,
-      baseUnitId: data.baseUnitId ?? null,
-      baseUomQty: data.baseUomQty ?? 1,
-      uomQty: data.uomQty ?? 1,
-      allowDecimal: data.allowDecimal,
-    });
-
-    this.logger.log(`Created UOM: ${entity.name} (${entity.symbol})`);
-    return {
-      success: true,
-      message: `Unit "${entity.name}" (${entity.symbol}) created successfully.`,
-      data: UomDto.from(entity),
-    };
-  }
-
-  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canDelete and baseUnitSymbol are computed
-  // identically on every read path (the by-id re-read after update/create).
-  private async toDto(id: string): Promise<UomDto> {
-    const { result } = await this.uomRepository.findForTableWithBase({
-      where: eq(uom.id, id),
-      orderBy: [asc(uom.name)],
-      limit: 1,
-      offset: 0,
-    });
-    const row = result[0];
-    if (!row) throw new NotFoundException('Unit of measure not found.');
-    const referenced = await this.uomRepository.findReferencedIds([id]);
-    return UomDto.from(row, !referenced.has(id), row.baseUnitSymbol);
-  }
-
-  // Finds a UOM by ID or throws NotFoundException
-  async findById(id: string): Promise<UomDto> {
-    return this.toDto(id);
-  }
-
-  // Updates a UOM
-  async update(id: string, data: Omit<UpdateUomDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.uomRepository.findById(id);
-    if (!existing) throw new NotFoundException('Unit of measure not found.');
-    if (data.baseUnitId) await this.validateBaseUnitId(data.baseUnitId, id);
-
-    if (data.symbol && data.symbol !== existing.symbol) {
-      const dup = await this.uomRepository.findBySymbol(data.symbol);
-      if (dup && dup.id !== id) {
-        throw new ConflictException({
-          label: 'Duplicate Symbol',
-          detail: `A unit with symbol "${data.symbol}" already exists.`,
-        });
-      }
-    }
-
-    const updated = await this.uomRepository.update(id, data);
-    this.logger.log(`Updated UOM: ${updated.name} (${updated.symbol})`);
-    return { success: true, message: `Unit "${updated.name}" updated successfully.` };
-  }
-
   // Deletes a UOM by ID; throws ConflictException if referenced
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.uomRepository.findById(id);
@@ -297,5 +273,29 @@ export class UomDomainService {
     await this.uomRepository.delete(id);
     this.logger.log(`Deleted UOM: ${existing.name} (${id})`);
     return { success: true, message: `Unit "${existing.name}" deleted successfully.` };
+  }
+
+  // Validates that baseUnitId exists and is not self-referencing
+  private async validateBaseUnitId(baseUnitId: string, selfId?: string): Promise<void> {
+    if (selfId && baseUnitId === selfId) {
+      throw new BadRequestException('A unit of measure cannot reference itself as its base unit.');
+    }
+    const baseUnit = await this.uomRepository.findById(baseUnitId);
+    if (!baseUnit) throw new BadRequestException('The specified base unit does not exist.');
+  }
+
+  // Builds a COMPLETE UomDto by id — same primitives findForFeed uses, so canDelete and baseUnitSymbol are computed
+  // identically on every read path (the by-id re-read after update/create).
+  private async toDto(id: string): Promise<UomDto> {
+    const { result } = await this.uomRepository.findForTableWithBase({
+      where: eq(uom.id, id),
+      orderBy: [asc(uom.name)],
+      limit: 1,
+      offset: 0,
+    });
+    const row = result[0];
+    if (!row) throw new NotFoundException('Unit of measure not found.');
+    const referenced = await this.uomRepository.findReferencedIds([id]);
+    return UomDto.from(row, !referenced.has(id), row.baseUnitSymbol);
   }
 }

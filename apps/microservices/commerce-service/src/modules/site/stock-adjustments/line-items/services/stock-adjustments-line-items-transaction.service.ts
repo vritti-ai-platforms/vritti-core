@@ -19,13 +19,6 @@ export class StockAdjustmentsLineItemsTransactionService {
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
   ) {}
 
-  async lineItemsTable(
-    data: { adjustmentId: string; lineId: string } & TableState,
-  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
-    await this.getLineContext(data.adjustmentId, data.lineId);
-    return this.lineItemsService.findForTable(data.lineId, data);
-  }
-
   async addLineItem(data: {
     adjustmentId: string;
     lineId: string;
@@ -71,6 +64,13 @@ export class StockAdjustmentsLineItemsTransactionService {
     });
     await this.linesRepository.refreshIsBalanced(data.lineId, adjustment.inventoryItemTracking);
     return result;
+  }
+
+  async lineItemsTable(
+    data: { adjustmentId: string; lineId: string } & TableState,
+  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
+    await this.getLineContext(data.adjustmentId, data.lineId);
+    return this.lineItemsService.findForTable(data.lineId, data);
   }
 
   async removeLineItem(data: { adjustmentId: string; lineId: string; itemId: string }): Promise<SuccessResponseDto> {

@@ -66,12 +66,6 @@ export class StockAdjustmentsLotsService {
     return this.lotsService.updateLot(adjustment, lotId, data);
   }
 
-  // Removes a lot from a DRAFT adjustment — fetches the adjustment context then delegates to domain
-  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
-    const adjustment = await this.adjustmentsService.findById(adjustmentId);
-    return this.lotsService.removeLot(adjustment, lotId);
-  }
-
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
   async resolveInventoryLot(inventoryItemId: string, lotId: string, leCurrencyCode: string): Promise<InventoryItemLot> {
     const sa = await this.lotsRepository.findById(lotId);
@@ -92,5 +86,11 @@ export class StockAdjustmentsLotsService {
       this.logger.log(`Resolved draft lot ${lotId} → inventory lot ${inserted.id}`);
       return inserted;
     });
+  }
+
+  // Removes a lot from a DRAFT adjustment — fetches the adjustment context then delegates to domain
+  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
+    return this.lotsService.removeLot(adjustment, lotId);
   }
 }

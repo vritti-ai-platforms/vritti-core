@@ -74,56 +74,6 @@ export class PurchaseLegDocumentsService {
     private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
   ) {}
 
-  // Checks a leg's allocations can be ordered and plans one PO per currency: the supplier is still purchasable at the
-  // site, its items are enabled and supplied there, every line is priced and a foreign currency has a rate; each line is
-  // expected on the given date or after the item's lead time at the site
-  async planOrders(
-    purchase: PurchaseRow,
-    leg: DocumentLeg,
-    allocations: AllocationWithLegRow[],
-    terms: PurchaseOrderTerms,
-    site: PurchaseSiteContext,
-  ): Promise<PurchaseOrdersPlan> {
-    const timezone = this.requireTimezone(site);
-    await this.supplierEnrollmentsService.assertPurchasable(leg.supplierId, purchase.siteId);
-    const enrollment = await this.supplierEnrollmentsService.findBySupplierAndSiteOrThrow(
-      leg.supplierId,
-      purchase.siteId,
-    );
-    const itemIds = _.uniq(allocations.map((allocation) => allocation.inventoryItemId));
-    await this.siteStockLevelsService.ensureStockLevels(purchase.siteId, itemIds, 'allocations');
-    await this.supplierItemsService.assertSuppliedAt(leg.supplierId, purchase.siteId, itemIds, 'allocations');
-    const leadTimes = await this.supplierItemsService.findSiteLeadTimes(leg.supplierId, purchase.siteId, allocations);
-
-    const byCurrency = _.groupBy(allocations, (allocation) => terms.currencyCode ?? allocation.currencyCode);
-    this.assertRatesGiven(Object.keys(byCurrency), terms.exchangeRates, site.leCurrencyCode);
-    const orders = Object.entries(byCurrency).map(([currencyCode, currencyAllocations]) => ({
-      currencyCode,
-      exchangeRate: this.purchaseOrdersService.resolveExchangeRateOrThrow(
-        currencyCode,
-        site.leCurrencyCode,
-        terms.exchangeRates.get(currencyCode),
-      ),
-      lines: currencyAllocations.map((allocation) => ({
-        allocationId: allocation.id,
-        inventoryItemId: allocation.inventoryItemId,
-        uomId: allocation.uomId,
-        uomQty: allocation.uomQty,
-        primaryUomQty: allocation.primaryUomQty,
-        unitPrice: terms.prices?.get(allocation.id) ?? this.allocationsService.requireUnitPrice(allocation),
-        scheme: {
-          buyQty: allocation.schemeBuyQty,
-          freeQty: allocation.schemeFreeQty,
-          hasScheme: allocation.hasScheme,
-        },
-        expectedDeliveryDate:
-          terms.expectedDeliveryDate ??
-          this.dateAfter(terms.orderDate, leadTimes.get(SupplierItemsDomainService.leadTimeKey(allocation)) ?? 0),
-      })),
-    }));
-    return { timezone, paymentTermId: enrollment.paymentTermId, orders };
-  }
-
   // Creates the planned POs with their lines and points each allocation at its line, in the caller's transaction
   async createOrders(
     purchase: PurchaseRow,
@@ -217,6 +167,56 @@ export class PurchaseLegDocumentsService {
       receivedDate,
       lines,
     });
+  }
+
+  // Checks a leg's allocations can be ordered and plans one PO per currency: the supplier is still purchasable at the
+  // site, its items are enabled and supplied there, every line is priced and a foreign currency has a rate; each line is
+  // expected on the given date or after the item's lead time at the site
+  async planOrders(
+    purchase: PurchaseRow,
+    leg: DocumentLeg,
+    allocations: AllocationWithLegRow[],
+    terms: PurchaseOrderTerms,
+    site: PurchaseSiteContext,
+  ): Promise<PurchaseOrdersPlan> {
+    const timezone = this.requireTimezone(site);
+    await this.supplierEnrollmentsService.assertPurchasable(leg.supplierId, purchase.siteId);
+    const enrollment = await this.supplierEnrollmentsService.findBySupplierAndSiteOrThrow(
+      leg.supplierId,
+      purchase.siteId,
+    );
+    const itemIds = _.uniq(allocations.map((allocation) => allocation.inventoryItemId));
+    await this.siteStockLevelsService.ensureStockLevels(purchase.siteId, itemIds, 'allocations');
+    await this.supplierItemsService.assertSuppliedAt(leg.supplierId, purchase.siteId, itemIds, 'allocations');
+    const leadTimes = await this.supplierItemsService.findSiteLeadTimes(leg.supplierId, purchase.siteId, allocations);
+
+    const byCurrency = _.groupBy(allocations, (allocation) => terms.currencyCode ?? allocation.currencyCode);
+    this.assertRatesGiven(Object.keys(byCurrency), terms.exchangeRates, site.leCurrencyCode);
+    const orders = Object.entries(byCurrency).map(([currencyCode, currencyAllocations]) => ({
+      currencyCode,
+      exchangeRate: this.purchaseOrdersService.resolveExchangeRateOrThrow(
+        currencyCode,
+        site.leCurrencyCode,
+        terms.exchangeRates.get(currencyCode),
+      ),
+      lines: currencyAllocations.map((allocation) => ({
+        allocationId: allocation.id,
+        inventoryItemId: allocation.inventoryItemId,
+        uomId: allocation.uomId,
+        uomQty: allocation.uomQty,
+        primaryUomQty: allocation.primaryUomQty,
+        unitPrice: terms.prices?.get(allocation.id) ?? this.allocationsService.requireUnitPrice(allocation),
+        scheme: {
+          buyQty: allocation.schemeBuyQty,
+          freeQty: allocation.schemeFreeQty,
+          hasScheme: allocation.hasScheme,
+        },
+        expectedDeliveryDate:
+          terms.expectedDeliveryDate ??
+          this.dateAfter(terms.orderDate, leadTimes.get(SupplierItemsDomainService.leadTimeKey(allocation)) ?? 0),
+      })),
+    }));
+    return { timezone, paymentTermId: enrollment.paymentTermId, orders };
   }
 
   // Returns the calendar date of a date-time

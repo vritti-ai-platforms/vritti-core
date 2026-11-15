@@ -25,6 +25,32 @@ export class SupplierItemPricesGatewayController {
 
   constructor(private readonly service: SupplierItemPricesGatewayService) {}
 
+  // Adds a price record to a supplier item's timeline
+  @Post(':id/items/:itemId/prices')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIERS.items.prices.add)
+  addItemPrice(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: AddSupplierItemPriceDto,
+  ): Promise<CreateResponseDto<SupplierItemPriceResponseDto[]>> {
+    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices`);
+    return this.service.addItemPrice(itemId, dto);
+  }
+
+  // Updates a supplier item price record
+  @Patch(':id/items/:itemId/prices/:priceId')
+  @RequirePermission(LE_SUPPLIERS.items.prices.edit)
+  updateItemPrice(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @Param('priceId') priceId: string,
+    @Body() dto: UpdateSupplierItemPriceDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/${priceId}`);
+    return this.service.updateItemPrice(priceId, dto);
+  }
+
   // Returns the price timeline of a supplier item at the site in the table's context
   @Get(':id/items/:itemId/prices/table')
   @RequirePermission(LE_SUPPLIERS.items.prices.view)
@@ -50,32 +76,6 @@ export class SupplierItemPricesGatewayController {
   ): Promise<SupplierItemPriceHistoryResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/${itemId}/price-history`);
     return this.service.findItemPriceHistory(itemId, userId, orgId);
-  }
-
-  // Adds a price record to a supplier item's timeline
-  @Post(':id/items/:itemId/prices')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_SUPPLIERS.items.prices.add)
-  addItemPrice(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: AddSupplierItemPriceDto,
-  ): Promise<CreateResponseDto<SupplierItemPriceResponseDto[]>> {
-    this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices`);
-    return this.service.addItemPrice(itemId, dto);
-  }
-
-  // Updates a supplier item price record
-  @Patch(':id/items/:itemId/prices/:priceId')
-  @RequirePermission(LE_SUPPLIERS.items.prices.edit)
-  updateItemPrice(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @Param('priceId') priceId: string,
-    @Body() dto: UpdateSupplierItemPriceDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/${supplierId}/items/${itemId}/prices/${priceId}`);
-    return this.service.updateItemPrice(priceId, dto);
   }
 
   // Deletes a supplier item price record

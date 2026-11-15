@@ -40,31 +40,6 @@ export class PosTerminalsGatewayController {
 
   constructor(private readonly posTerminalsGatewayService: PosTerminalsGatewayService) {}
 
-  // Returns paginated POS terminals for the data table with server-stored state
-  @Get('table')
-  @ApiTable()
-  table(@UserId() userId: string): Promise<PosTerminalTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/pos-terminals/table');
-    return this.posTerminalsGatewayService.findForTable(userId);
-  }
-
-  // Returns POS-role storage location options for select dropdowns
-  @Get('locations/select')
-  @ApiSelectLocations()
-  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
-  selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/site/pos-terminals/locations/select');
-    return this.posTerminalsGatewayService.selectPosLocations(query);
-  }
-
-  // Returns a single POS terminal by ID
-  @Get(':id')
-  @ApiFindById()
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<PosTerminalResponseDto> {
-    this.logger.log(`GET /commerce-api/site/pos-terminals/${id}`);
-    return this.posTerminalsGatewayService.findById(id);
-  }
-
   // Creates a new POS terminal
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -80,6 +55,31 @@ export class PosTerminalsGatewayController {
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/pos-terminals/${id}`);
     return this.posTerminalsGatewayService.update(id, dto);
+  }
+
+  // Returns a single POS terminal by ID
+  @Get(':id')
+  @ApiFindById()
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<PosTerminalResponseDto> {
+    this.logger.log(`GET /commerce-api/site/pos-terminals/${id}`);
+    return this.posTerminalsGatewayService.findById(id);
+  }
+
+  // Returns paginated POS terminals for the data table with server-stored state
+  @Get('table')
+  @ApiTable()
+  table(@UserId() userId: string): Promise<PosTerminalTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/pos-terminals/table');
+    return this.posTerminalsGatewayService.findForTable(userId);
+  }
+
+  // Returns POS-role storage location options for select dropdowns
+  @Get('locations/select')
+  @ApiSelectLocations()
+  @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
+  selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    this.logger.log('GET /commerce-api/site/pos-terminals/locations/select');
+    return this.posTerminalsGatewayService.selectPosLocations(query);
   }
 
   // Deletes a POS terminal

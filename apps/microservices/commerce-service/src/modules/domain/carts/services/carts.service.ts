@@ -64,6 +64,110 @@ export class CartsDomainService {
     private readonly db: PrimaryDatabaseService,
   ) {}
 
+  // Opens a cart for a shopper
+  async create(input: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
+    const { cart, opened } = await this.repository.findOrCreateForParty(input.partyId);
+    if (opened) this.logger.log(`cart ${cart.id} opened for party ${input.partyId}`);
+
+    // The one read that earns its keep: the shopper's name lives on `parties`, and the caller wants to show whose
+    // cart this is.
+    return {
+      success: true,
+      message: opened ? 'Cart opened.' : 'They already have a cart here.',
+      data: await this.findById(cart.id),
+    };
+  }
+
+  // Adds a product to the cart, opening one if this is the shopper's first line here
+  async addItem(input: {
+    partyId: string;
+    code: string;
+    quantity: number;
+    currencyCode: string;
+    appId?: string | null;
+  }): Promise<CartDto> {
+    const quantity = this.requireQuantity(input.quantity);
+
+    const { cart } = await this.repository.findOrCreateForParty(input.partyId);
+    await this.repository.upsertItem(cart.id, input.code, quantity);
+    this.logger.log(`cart ${cart.id} — party ${input.partyId} added ${input.code} x${quantity}`);
+
+    return this.find(input.partyId, input.currencyCode, input.appId);
+  }
+
+  // Adds a line to one of the person's carts, on their behalf
+  async addItemForCart(input: {
+    cartId: string;
+    partyId: string;
+    offeringVariantId: string;
+    quantity: number;
+    currencyCode: string;
+    appId?: string | null;
+  }): Promise<StaffCartItemDto[]> {
+    const quantity = this.requireQuantity(input.quantity);
+
+    await this.repository.upsertItem(input.cartId, await this.requireCode(input.offeringVariantId), quantity);
+    this.logger.log(`cart ${input.cartId} — staff added ${input.offeringVariantId} x${quantity}`);
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
+  }
+
+  // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
+  async updateItem(input: {
+    partyId: string;
+    code: string;
+    quantity: number;
+    currencyCode: string;
+    appId?: string | null;
+  }): Promise<CartDto> {
+    const quantity = this.requireQuantity(input.quantity);
+    const cart = await this.requireCart(input.partyId);
+
+    const updated = await this.repository.setItemQuantity(cart.id, input.code, quantity);
+    if (!updated) throw new NotFoundException('That item is not in your cart.');
+
+    return this.find(input.partyId, input.currencyCode, input.appId);
+  }
+
+  // Sets a line to an exact quantity on a shopper's behalf
+  async updateItemForCart(input: {
+    cartId: string;
+    partyId: string;
+    offeringVariantId: string;
+    quantity: number;
+    currencyCode: string;
+    appId?: string | null;
+  }): Promise<StaffCartItemDto[]> {
+    const quantity = this.requireQuantity(input.quantity);
+    const code = await this.requireCode(input.offeringVariantId);
+    const updated = await this.repository.setItemQuantity(input.cartId, code, quantity);
+    if (!updated) throw new NotFoundException('That item is not in their cart.');
+    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
+  }
+
+  // Takes paid-for quantities out of the shopper's cart, leaving anything added since checkout
+  async consumeOrderedLines(partyId: string, lines: { code: string; quantity: number }[]): Promise<void> {
+    const cart = await this.repository.findByParty(partyId);
+    if (!cart) return;
+    for (const line of lines) {
+      await this.repository.consumeItem(cart.id, line.code, line.quantity);
+    }
+    this.logger.log(`cart ${cart.id} — consumed ${pluralize('paid line', lines.length, true)} for party ${partyId}`);
+  }
+
+  // Empties the cart, keeping it open
+  async clear(partyId: string): Promise<SuccessResponseDto> {
+    const cart = await this.repository.findByParty(partyId);
+    if (cart) await this.repository.deleteAllItems(cart.id);
+    return { success: true, message: 'Cart emptied.' };
+  }
+
+  // One cart
+  async findById(id: string): Promise<CartDetailDto> {
+    const cart = await this.repository.findByIdWithParty(id);
+    if (!cart) throw new NotFoundException('Cart not found.');
+    return CartDetailDto.from(cart);
+  }
+
   // The carts open at this workspace
   async findForTable(state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
     const where =
@@ -82,24 +186,6 @@ export class CartsDomainService {
     });
 
     return { result: result.map((row) => CartDetailDto.from(row)), count };
-  }
-
-  // One cart
-  async findById(id: string): Promise<CartDetailDto> {
-    const cart = await this.repository.findByIdWithParty(id);
-    if (!cart) throw new NotFoundException('Cart not found.');
-    return CartDetailDto.from(cart);
-  }
-
-  // How many of each product the party holds in their cart at this workspace
-  findQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
-    return this.repository.findQuantitiesForParty(partyId);
-  }
-
-  // Its lines, priced by the catalogue the caller reads from
-  async findItemsById(id: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
-    const items = await this.itemsRepository.findByCart(id, currencyCode, appId);
-    return CartDto.from(currencyCode, items);
   }
 
   // One cart's items for the data table, priced by the reader's catalogue when they have one
@@ -125,25 +211,15 @@ export class CartsDomainService {
     return { result: result.map((row) => CartItemDto.from(row)), count };
   }
 
-  // Opens a cart for a shopper
-  async create(input: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
-    const { cart, opened } = await this.repository.findOrCreateForParty(input.partyId);
-    if (opened) this.logger.log(`cart ${cart.id} opened for party ${input.partyId}`);
-
-    // The one read that earns its keep: the shopper's name lives on `parties`, and the caller wants to show whose
-    // cart this is.
-    return {
-      success: true,
-      message: opened ? 'Cart opened.' : 'They already have a cart here.',
-      data: await this.findById(cart.id),
-    };
+  // How many of each product the party holds in their cart at this workspace
+  findQuantities(partyId: string): Promise<{ code: string; quantity: number }[]> {
+    return this.repository.findQuantitiesForParty(partyId);
   }
 
-  // Closes a cart outright — the lines go with it
-  async delete(id: string): Promise<SuccessResponseDto> {
-    await this.findById(id);
-    await this.repository.delete(id);
-    return { success: true, message: 'Cart closed.' };
+  // Its lines, priced by the catalogue the caller reads from
+  async findItemsById(id: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
+    const items = await this.itemsRepository.findByCart(id, currencyCode, appId);
+    return CartDto.from(currencyCode, items);
   }
 
   // The cart, or an empty one. Never opens a cart
@@ -206,48 +282,17 @@ export class CartsDomainService {
     return { cartId: cart.id, lines: await this.itemsRepository.findByCart(cart.id, currencyCode, appId) };
   }
 
-  // Takes paid-for quantities out of the shopper's cart, leaving anything added since checkout
-  async consumeOrderedLines(partyId: string, lines: { code: string; quantity: number }[]): Promise<void> {
-    const cart = await this.repository.findByParty(partyId);
-    if (!cart) return;
-    for (const line of lines) {
-      await this.repository.consumeItem(cart.id, line.code, line.quantity);
-    }
-    this.logger.log(`cart ${cart.id} — consumed ${pluralize('paid line', lines.length, true)} for party ${partyId}`);
+  // Every cart line a person holds, across every outlet
+  async findAllForParty(partyId: string, currencyCode: string, appId?: string | null): Promise<StaffCartItemDto[]> {
+    const rows = await this.itemsRepository.findAllForParty(partyId, currencyCode, appId);
+    return rows.map((row) => StaffCartItemDto.fromStaffRow(row));
   }
 
-  // Adds a product to the cart, opening one if this is the shopper's first line here
-  async addItem(input: {
-    partyId: string;
-    code: string;
-    quantity: number;
-    currencyCode: string;
-    appId?: string | null;
-  }): Promise<CartDto> {
-    const quantity = this.requireQuantity(input.quantity);
-
-    const { cart } = await this.repository.findOrCreateForParty(input.partyId);
-    await this.repository.upsertItem(cart.id, input.code, quantity);
-    this.logger.log(`cart ${cart.id} — party ${input.partyId} added ${input.code} x${quantity}`);
-
-    return this.find(input.partyId, input.currencyCode, input.appId);
-  }
-
-  // Sets a line to an exact quantity. Zero is not accepted — removing is its own operation
-  async updateItem(input: {
-    partyId: string;
-    code: string;
-    quantity: number;
-    currencyCode: string;
-    appId?: string | null;
-  }): Promise<CartDto> {
-    const quantity = this.requireQuantity(input.quantity);
-    const cart = await this.requireCart(input.partyId);
-
-    const updated = await this.repository.setItemQuantity(cart.id, input.code, quantity);
-    if (!updated) throw new NotFoundException('That item is not in your cart.');
-
-    return this.find(input.partyId, input.currencyCode, input.appId);
+  // Closes a cart outright — the lines go with it
+  async delete(id: string): Promise<SuccessResponseDto> {
+    await this.findById(id);
+    await this.repository.delete(id);
+    return { success: true, message: 'Cart closed.' };
   }
 
   async removeItem(partyId: string, code: string, currencyCode: string, appId?: string | null): Promise<CartDto> {
@@ -257,51 +302,6 @@ export class CartsDomainService {
     if (removed === 0) throw new NotFoundException('That item is not in your cart.');
 
     return this.find(partyId, currencyCode, appId);
-  }
-
-  // Empties the cart, keeping it open
-  async clear(partyId: string): Promise<SuccessResponseDto> {
-    const cart = await this.repository.findByParty(partyId);
-    if (cart) await this.repository.deleteAllItems(cart.id);
-    return { success: true, message: 'Cart emptied.' };
-  }
-
-  // Every cart line a person holds, across every outlet
-  async findAllForParty(partyId: string, currencyCode: string, appId?: string | null): Promise<StaffCartItemDto[]> {
-    const rows = await this.itemsRepository.findAllForParty(partyId, currencyCode, appId);
-    return rows.map((row) => StaffCartItemDto.fromStaffRow(row));
-  }
-
-  // Adds a line to one of the person's carts, on their behalf
-  async addItemForCart(input: {
-    cartId: string;
-    partyId: string;
-    offeringVariantId: string;
-    quantity: number;
-    currencyCode: string;
-    appId?: string | null;
-  }): Promise<StaffCartItemDto[]> {
-    const quantity = this.requireQuantity(input.quantity);
-
-    await this.repository.upsertItem(input.cartId, await this.requireCode(input.offeringVariantId), quantity);
-    this.logger.log(`cart ${input.cartId} — staff added ${input.offeringVariantId} x${quantity}`);
-    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
-  }
-
-  // Sets a line to an exact quantity on a shopper's behalf
-  async updateItemForCart(input: {
-    cartId: string;
-    partyId: string;
-    offeringVariantId: string;
-    quantity: number;
-    currencyCode: string;
-    appId?: string | null;
-  }): Promise<StaffCartItemDto[]> {
-    const quantity = this.requireQuantity(input.quantity);
-    const code = await this.requireCode(input.offeringVariantId);
-    const updated = await this.repository.setItemQuantity(input.cartId, code, quantity);
-    if (!updated) throw new NotFoundException('That item is not in their cart.');
-    return this.findAllForParty(input.partyId, input.currencyCode, input.appId);
   }
 
   // Removes a line on a shopper's behalf

@@ -13,16 +13,6 @@ export class CompanyCommunicationsController {
 
   constructor(private readonly service: PartyCommunicationsDomainService) {}
 
-  // Returns the paginated communications of a company
-  @MessagePattern({ cmd: 'org.companies.communications.table' })
-  table(
-    @Payload() data: { companyId: string } & TableState,
-  ): Promise<{ result: PartyCommunicationDto[]; count: number }> {
-    const { companyId, ...state } = data;
-    this.logger.log(`companies.communications.table — companyId: ${companyId}`);
-    return this.service.findForTable(companyId, state);
-  }
-
   // Creates a communication for a company
   @MessagePattern({ cmd: 'org.companies.communications.create' })
   create(@Payload() dto: CreateCompanyCommunicationDto): Promise<CreateResponseDto<PartyCommunicationDto>> {
@@ -37,6 +27,16 @@ export class CompanyCommunicationsController {
     const { id, ...payload } = dto;
     this.logger.log(`companies.communications.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  // Returns the paginated communications of a company
+  @MessagePattern({ cmd: 'org.companies.communications.table' })
+  table(
+    @Payload() data: { companyId: string } & TableState,
+  ): Promise<{ result: PartyCommunicationDto[]; count: number }> {
+    const { companyId, ...state } = data;
+    this.logger.log(`companies.communications.table — companyId: ${companyId}`);
+    return this.service.findForTable(companyId, state);
   }
 
   // Deletes a communication by ID

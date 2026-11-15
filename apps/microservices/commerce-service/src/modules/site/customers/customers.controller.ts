@@ -13,16 +13,17 @@ export class CustomersController {
 
   constructor(private readonly service: CustomersDomainService) {}
 
-  @MessagePattern({ cmd: 'site.customers.table' })
-  async table(@Payload() state: TableState): Promise<{ result: CustomerDto[]; count: number }> {
-    this.logger.log('customers.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'site.customers.create' })
   async create(@Payload() dto: CreateCustomerDto): Promise<CustomerDto> {
     this.logger.log(`customers.create — name: ${dto.name}`);
     return this.service.create(dto);
+  }
+
+  @MessagePattern({ cmd: 'site.customers.update' })
+  async update(@Payload() dto: UpdateCustomerDto): Promise<CustomerDto> {
+    const { id, ...updateData } = dto;
+    this.logger.log(`customers.update — id: ${id}`);
+    return this.service.update(id, updateData);
   }
 
   @MessagePattern({ cmd: 'site.customers.findById' })
@@ -31,11 +32,10 @@ export class CustomersController {
     return this.service.findById(data.id);
   }
 
-  @MessagePattern({ cmd: 'site.customers.update' })
-  async update(@Payload() dto: UpdateCustomerDto): Promise<CustomerDto> {
-    const { id, ...updateData } = dto;
-    this.logger.log(`customers.update — id: ${id}`);
-    return this.service.update(id, updateData);
+  @MessagePattern({ cmd: 'site.customers.table' })
+  async table(@Payload() state: TableState): Promise<{ result: CustomerDto[]; count: number }> {
+    this.logger.log('customers.table');
+    return this.service.findForTable(state);
   }
 
   @MessagePattern({ cmd: 'site.customers.delete' })

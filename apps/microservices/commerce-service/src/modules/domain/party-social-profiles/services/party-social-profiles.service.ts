@@ -21,42 +21,6 @@ export class PartySocialProfilesDomainService {
 
   constructor(private readonly repository: PartySocialProfilesDomainRepository) {}
 
-  // Returns paginated social profiles of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartySocialProfileDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartySocialProfilesDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartySocialProfilesDomainService.FIELD_MAP);
-    const where = and(eq(partySocialProfiles.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartySocialProfilesDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(partySocialProfiles.platform)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(PartySocialProfileDto.from), count };
-  }
-
-  // Sets the party's WEBSITE profile from the company form; an empty value clears it. Runs in the caller's transaction.
-  async upsertWebsite(partyId: string, url?: string | null): Promise<void> {
-    const trimmed = url?.trim() || null;
-    const existing = await this.repository.findByPartyAndPlatform(partyId, SocialPlatformValues.WEBSITE);
-
-    if (!trimmed) {
-      if (existing) await this.repository.delete(existing.id);
-      return;
-    }
-
-    if (existing) {
-      if (existing.url !== trimmed) await this.repository.update(existing.id, { url: trimmed });
-      return;
-    }
-
-    await this.repository.create({ partyId, platform: SocialPlatformValues.WEBSITE, url: trimmed });
-  }
-
   // Creates a social profile for a party
   async create(partyId: string, data: SocialProfileInputDto): Promise<CreateResponseDto<PartySocialProfileDto>> {
     const partyExists = await this.repository.partyExists(partyId);
@@ -78,6 +42,42 @@ export class PartySocialProfilesDomainService {
     if (Object.keys(data).length > 0) await this.repository.update(id, data);
     this.logger.log(`Updated social profile: ${id}`);
     return { success: true, message: 'Social profile updated successfully.' };
+  }
+
+  // Sets the party's WEBSITE profile from the company form; an empty value clears it. Runs in the caller's transaction.
+  async upsertWebsite(partyId: string, url?: string | null): Promise<void> {
+    const trimmed = url?.trim() || null;
+    const existing = await this.repository.findByPartyAndPlatform(partyId, SocialPlatformValues.WEBSITE);
+
+    if (!trimmed) {
+      if (existing) await this.repository.delete(existing.id);
+      return;
+    }
+
+    if (existing) {
+      if (existing.url !== trimmed) await this.repository.update(existing.id, { url: trimmed });
+      return;
+    }
+
+    await this.repository.create({ partyId, platform: SocialPlatformValues.WEBSITE, url: trimmed });
+  }
+
+  // Returns paginated social profiles of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartySocialProfileDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartySocialProfilesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartySocialProfilesDomainService.FIELD_MAP);
+    const where = and(eq(partySocialProfiles.partyId, partyId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartySocialProfilesDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(partySocialProfiles.platform)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(PartySocialProfileDto.from), count };
   }
 
   // Deletes a social profile by ID

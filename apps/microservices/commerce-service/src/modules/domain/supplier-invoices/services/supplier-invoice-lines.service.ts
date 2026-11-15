@@ -45,6 +45,22 @@ export class SupplierInvoiceLinesDomainService {
     private readonly invoiceableRepository: InvoiceableGoodsReceiptsRepository,
   ) {}
 
+  // Adds a prepared line and recomputes the invoice totals, in the caller's transaction
+  async create(invoice: InvoiceForLines, line: PreparedSupplierInvoiceLine): Promise<SuccessResponseDto> {
+    await this.repository.create({ ...line.values, supplierInvoiceId: invoice.id });
+    await this.invoicesRepository.syncTotals(invoice.id);
+    this.logger.log(`Added ${line.label} to supplier invoice ${invoice.invoiceNumber}`);
+    return { success: true, message: `"${line.label}" added to invoice "${invoice.invoiceNumber}".` };
+  }
+
+  // Replaces a line with a prepared one and recomputes the invoice totals, in the caller's transaction
+  async update(invoice: InvoiceForLines, id: string, line: PreparedSupplierInvoiceLine): Promise<SuccessResponseDto> {
+    await this.repository.update(id, line.values);
+    await this.invoicesRepository.syncTotals(invoice.id);
+    this.logger.log(`Updated ${line.label} on supplier invoice ${invoice.invoiceNumber}`);
+    return { success: true, message: `"${line.label}" updated on invoice "${invoice.invoiceNumber}".` };
+  }
+
   // Validates a line and works out what it stores. An item line invoices a posted receipt lot (or receipt item without
   // lots) of its PO line, on an order of the invoice's supplier, site and currency, within what live invoices have not
   // invoiced of it yet; a Receive with Invoice line may invoice the draft receipt its invoice created. A charge line books an amount
@@ -194,22 +210,6 @@ export class SupplierInvoiceLinesDomainService {
     const line = await this.repository.findOnInvoice(supplierInvoiceId, id);
     if (!line) throw new NotFoundException('Invoice line not found.');
     return line;
-  }
-
-  // Adds a prepared line and recomputes the invoice totals, in the caller's transaction
-  async create(invoice: InvoiceForLines, line: PreparedSupplierInvoiceLine): Promise<SuccessResponseDto> {
-    await this.repository.create({ ...line.values, supplierInvoiceId: invoice.id });
-    await this.invoicesRepository.syncTotals(invoice.id);
-    this.logger.log(`Added ${line.label} to supplier invoice ${invoice.invoiceNumber}`);
-    return { success: true, message: `"${line.label}" added to invoice "${invoice.invoiceNumber}".` };
-  }
-
-  // Replaces a line with a prepared one and recomputes the invoice totals, in the caller's transaction
-  async update(invoice: InvoiceForLines, id: string, line: PreparedSupplierInvoiceLine): Promise<SuccessResponseDto> {
-    await this.repository.update(id, line.values);
-    await this.invoicesRepository.syncTotals(invoice.id);
-    this.logger.log(`Updated ${line.label} on supplier invoice ${invoice.invoiceNumber}`);
-    return { success: true, message: `"${line.label}" updated on invoice "${invoice.invoiceNumber}".` };
   }
 
   // Removes a line with its holds and recomputes the invoice totals, in the caller's transaction

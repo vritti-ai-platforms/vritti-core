@@ -82,68 +82,6 @@ export class SupplierInvoicesDomainService {
     private readonly invoiceableRepository: InvoiceableGoodsReceiptsRepository,
   ) {}
 
-  // Returns one page of the invoices a view lists — the LE's sites, one supplier or those invoicing one purchase order
-  async findForTable(
-    state: TableState,
-    scope: SupplierInvoiceScope = {},
-  ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
-    const fieldMap = SupplierInvoicesDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findForTable(scope, {
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        or(
-          FilterProcessor.buildSearch(state.search, SupplierInvoicesDomainService.SEARCH_FIELD_MAP),
-          this.repository.matchesPurchaseOrderNumber(state.search),
-        ),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(supplierInvoices.invoiceDate), desc(supplierInvoices.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(SupplierInvoiceDto.from), count };
-  }
-
-  // Returns an invoice with its lines and holds; the variance and the receipt lots' MRP are in the legal entity's currency
-  async findById(
-    id: string,
-    leCurrencyCode: string,
-    scope: SupplierInvoiceScope = {},
-  ): Promise<SupplierInvoiceDetailDto> {
-    const invoice = await this.findDetailOrThrow(id, scope);
-    const lines = await this.linesRepository.findByInvoice(id);
-    const holds = (await this.holdsRepository.findByInvoice(id)).map(SupplierInvoiceHoldDto.from);
-    const holdsByLine = _.groupBy(holds, (hold) => hold.supplierInvoiceLineId ?? '');
-    return SupplierInvoiceDetailDto.fromDetail(
-      invoice,
-      lines.map((line) =>
-        SupplierInvoiceLineDto.from(line, holdsByLine[line.id] ?? [], invoice.currencyCode, leCurrencyCode),
-      ),
-      holds,
-    );
-  }
-
-  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice
-  async findInvoiceableGoodsReceipts(
-    filter: InvoiceableGoodsReceiptFilter,
-    leCurrencyCode: string,
-  ): Promise<InvoiceableGoodsReceiptDto[]> {
-    const rows = await this.invoiceableRepository.findInvoiceable(filter);
-    return rows.map((row) => InvoiceableGoodsReceiptDto.from(row, leCurrencyCode));
-  }
-
-  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice, with
-  // their PO line's units, for invoicing them in full
-  findInvoiceableGoodsReceiptRows(filter: InvoiceableGoodsReceiptFilter): Promise<InvoiceableGoodsReceiptRow[]> {
-    return this.invoiceableRepository.findInvoiceable(filter);
-  }
-
-  // Returns the invoices invoicing a purchase's POs, with their purchases and whether they are a Receive with Invoice
-  findForPurchase(purchaseId: string): Promise<SupplierInvoiceRow[]> {
-    return this.repository.findForPurchase(purchaseId);
-  }
-
   // Records a draft invoice of a supplier at a site in one of the supplier's currencies, due by its enrollment's payment term
   async create(
     dto: CreateSupplierInvoiceDto,
@@ -176,6 +114,96 @@ export class SupplierInvoicesDomainService {
     };
   }
 
+  // Updates the header of a draft or posted invoice with the due date its new date gives, in the caller's transaction
+  async update(
+    invoice: SupplierInvoiceRow,
+    data: UpdateSupplierInvoiceDto,
+    dueDate: string,
+  ): Promise<SuccessResponseDto> {
+    const { id, ...fields } = data;
+    await this.repository.update(id, { ...fields, dueDate });
+    this.logger.log(`Updated supplier invoice ${invoice.invoiceNumber} (${id})`);
+    return { success: true, message: `Invoice "${fields.invoiceNumber ?? invoice.invoiceNumber}" updated.` };
+  }
+
+  // Marks a draft posted by the given user, in the caller's transaction
+  async post(invoice: SupplierInvoiceRow, postedBy: string | null): Promise<void> {
+    await this.repository.update(invoice.id, {
+      status: SupplierInvoiceStatusValues.POSTED,
+      postedBy,
+      postedAt: new Date(),
+    });
+    this.logger.log(`Posted supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
+  }
+
+  // Marks a draft or posted invoice cancelled, in the caller's transaction
+  async cancel(invoice: SupplierInvoiceRow): Promise<void> {
+    await this.repository.update(invoice.id, { status: SupplierInvoiceStatusValues.CANCELLED });
+    this.logger.log(`Cancelled supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
+  }
+
+  // Returns an invoice with its lines and holds; the variance and the receipt lots' MRP are in the legal entity's currency
+  async findById(
+    id: string,
+    leCurrencyCode: string,
+    scope: SupplierInvoiceScope = {},
+  ): Promise<SupplierInvoiceDetailDto> {
+    const invoice = await this.findDetailOrThrow(id, scope);
+    const lines = await this.linesRepository.findByInvoice(id);
+    const holds = (await this.holdsRepository.findByInvoice(id)).map(SupplierInvoiceHoldDto.from);
+    const holdsByLine = _.groupBy(holds, (hold) => hold.supplierInvoiceLineId ?? '');
+    return SupplierInvoiceDetailDto.fromDetail(
+      invoice,
+      lines.map((line) =>
+        SupplierInvoiceLineDto.from(line, holdsByLine[line.id] ?? [], invoice.currencyCode, leCurrencyCode),
+      ),
+      holds,
+    );
+  }
+
+  // Returns one page of the invoices a view lists — the LE's sites, one supplier or those invoicing one purchase order
+  async findForTable(
+    state: TableState,
+    scope: SupplierInvoiceScope = {},
+  ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
+    const fieldMap = SupplierInvoicesDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findForTable(scope, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        or(
+          FilterProcessor.buildSearch(state.search, SupplierInvoicesDomainService.SEARCH_FIELD_MAP),
+          this.repository.matchesPurchaseOrderNumber(state.search),
+        ),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(supplierInvoices.invoiceDate), desc(supplierInvoices.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(SupplierInvoiceDto.from), count };
+  }
+
+  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice
+  async findInvoiceableGoodsReceipts(
+    filter: InvoiceableGoodsReceiptFilter,
+    leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptDto[]> {
+    const rows = await this.invoiceableRepository.findInvoiceable(filter);
+    return rows.map((row) => InvoiceableGoodsReceiptDto.from(row, leCurrencyCode));
+  }
+
+  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice, with
+  // their PO line's units, for invoicing them in full
+  findInvoiceableGoodsReceiptRows(filter: InvoiceableGoodsReceiptFilter): Promise<InvoiceableGoodsReceiptRow[]> {
+    return this.invoiceableRepository.findInvoiceable(filter);
+  }
+
+  // Returns the invoices invoicing a purchase's POs, with their purchases and whether they are a Receive with Invoice
+  findForPurchase(purchaseId: string): Promise<SupplierInvoiceRow[]> {
+    return this.repository.findForPurchase(purchaseId);
+  }
+
   // Rejects a header change that repeats another invoice number of the supplier, moves the tax date of an invoice that is
   // no longer a draft, or sets a rate that does not fit the invoice's currency
   async assertUpdatable(
@@ -192,18 +220,6 @@ export class SupplierInvoicesDomainService {
     if (data.exchangeRate !== undefined) {
       this.assertExchangeRateFits(invoice.currencyCode, leCurrencyCode, data.exchangeRate);
     }
-  }
-
-  // Updates the header of a draft or posted invoice with the due date its new date gives, in the caller's transaction
-  async update(
-    invoice: SupplierInvoiceRow,
-    data: UpdateSupplierInvoiceDto,
-    dueDate: string,
-  ): Promise<SuccessResponseDto> {
-    const { id, ...fields } = data;
-    await this.repository.update(id, { ...fields, dueDate });
-    this.logger.log(`Updated supplier invoice ${invoice.invoiceNumber} (${id})`);
-    return { success: true, message: `Invoice "${fields.invoiceNumber ?? invoice.invoiceNumber}" updated.` };
   }
 
   // Rejects posting a draft without lines, at a rate that does not fit, with a line on an unposted receipt, with a
@@ -240,29 +256,6 @@ export class SupplierInvoicesDomainService {
         detail: `${overInvoiced.lotNumber ? `Lot ${overInvoiced.lotNumber}` : `"${overInvoiced.inventoryItemName}"`} of ${overInvoiced.grNumber} is invoiced for ${overInvoiced.invoicedPrimaryQty} primary units across live invoices, but only ${overInvoiced.acceptedPrimaryQty} were accepted.`,
       });
     }
-  }
-
-  // Marks a draft posted by the given user, in the caller's transaction
-  async post(invoice: SupplierInvoiceRow, postedBy: string | null): Promise<void> {
-    await this.repository.update(invoice.id, {
-      status: SupplierInvoiceStatusValues.POSTED,
-      postedBy,
-      postedAt: new Date(),
-    });
-    this.logger.log(`Posted supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
-  }
-
-  // Marks a draft or posted invoice cancelled, in the caller's transaction
-  async cancel(invoice: SupplierInvoiceRow): Promise<void> {
-    await this.repository.update(invoice.id, { status: SupplierInvoiceStatusValues.CANCELLED });
-    this.logger.log(`Cancelled supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
-  }
-
-  // Deletes a draft invoice with its lines and holds
-  async delete(invoice: SupplierInvoiceRow): Promise<SuccessResponseDto> {
-    await this.repository.delete(invoice.id);
-    this.logger.log(`Deleted supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
-    return { success: true, message: `Invoice "${invoice.invoiceNumber}" deleted.` };
   }
 
   // Returns what an invoice invoices of each PO line (invoiced + free, in primary units) for the PO line counters
@@ -311,6 +304,13 @@ export class SupplierInvoicesDomainService {
         ? `Invoice "${invoice.invoiceNumber}" is already ${status}.`
         : `Invoice "${invoice.invoiceNumber}" is ${status}; cancel it instead of deleting it.`;
     throw new BadRequestException({ label: 'Invoice is not a draft', detail });
+  }
+
+  // Deletes a draft invoice with its lines and holds
+  async delete(invoice: SupplierInvoiceRow): Promise<SuccessResponseDto> {
+    await this.repository.delete(invoice.id);
+    this.logger.log(`Deleted supplier invoice ${invoice.invoiceNumber} (${invoice.id})`);
+    return { success: true, message: `Invoice "${invoice.invoiceNumber}" deleted.` };
   }
 
   // Rejects a tax date change on an invoice that is no longer a draft

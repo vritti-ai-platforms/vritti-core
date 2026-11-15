@@ -37,6 +37,32 @@ export class StorageTypesDomainService {
 
   constructor(private readonly repository: StorageTypesDomainRepository) {}
 
+  // Creates a storage type with a code unique in the org
+  async create(data: CreateStorageTypeDto): Promise<CreateResponseDto<StorageTypeDto>> {
+    await this.assertCodeFree(data.code);
+    const entity = await this.repository.create(data);
+    this.logger.log(`Created storage type: ${entity.name} (${entity.code})`);
+    return {
+      success: true,
+      message: `Storage type "${entity.name}" (${entity.code}) created successfully.`,
+      data: StorageTypeDto.from({ ...entity, locationCount: 0, itemCount: 0 }),
+    };
+  }
+
+  // Updates a storage type's code, name, limits or rules
+  async update(id: string, data: Omit<UpdateStorageTypeDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.findDetailOrThrow(id);
+    if (data.code !== undefined && data.code !== existing.code) await this.assertCodeFree(data.code, id);
+    const updated = await this.repository.update(id, data);
+    this.logger.log(`Updated storage type: ${updated.name} (${id})`);
+    return { success: true, message: `Storage type "${updated.name}" updated successfully.` };
+  }
+
+  // Returns a storage type with its location and item counts
+  async findById(id: string): Promise<StorageTypeDto> {
+    return StorageTypeDto.from(await this.findDetailOrThrow(id));
+  }
+
   // Returns paginated storage types for the data table
   async findForTable(state: TableState): Promise<{ result: StorageTypeDto[]; count: number }> {
     const fieldMap = StorageTypesDomainService.FIELD_MAP;
@@ -70,11 +96,6 @@ export class StorageTypesDomainService {
     });
   }
 
-  // Returns a storage type with its location and item counts
-  async findById(id: string): Promise<StorageTypeDto> {
-    return StorageTypeDto.from(await this.findDetailOrThrow(id));
-  }
-
   // Returns the name and weight/volume maxima of the given storage types, for location fill
   findLimitsByIds(ids: string[]): Promise<StorageTypeLimitDto[]> {
     return this.repository.findLimitsByIds(ids);
@@ -91,27 +112,6 @@ export class StorageTypesDomainService {
         : 'The selected storage type does not exist. Pick another storage type.',
       errors: [{ field, message: storageType ? 'Storage type inactive' : 'Storage type not found' }],
     });
-  }
-
-  // Creates a storage type with a code unique in the org
-  async create(data: CreateStorageTypeDto): Promise<CreateResponseDto<StorageTypeDto>> {
-    await this.assertCodeFree(data.code);
-    const entity = await this.repository.create(data);
-    this.logger.log(`Created storage type: ${entity.name} (${entity.code})`);
-    return {
-      success: true,
-      message: `Storage type "${entity.name}" (${entity.code}) created successfully.`,
-      data: StorageTypeDto.from({ ...entity, locationCount: 0, itemCount: 0 }),
-    };
-  }
-
-  // Updates a storage type's code, name, limits or rules
-  async update(id: string, data: Omit<UpdateStorageTypeDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.findDetailOrThrow(id);
-    if (data.code !== undefined && data.code !== existing.code) await this.assertCodeFree(data.code, id);
-    const updated = await this.repository.update(id, data);
-    this.logger.log(`Updated storage type: ${updated.name} (${id})`);
-    return { success: true, message: `Storage type "${updated.name}" updated successfully.` };
   }
 
   // Deletes a storage type no location or item × storage type row references

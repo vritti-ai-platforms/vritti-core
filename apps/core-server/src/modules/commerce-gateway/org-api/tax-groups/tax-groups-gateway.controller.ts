@@ -60,15 +60,6 @@ export class TaxGroupsGatewayController {
 
   constructor(private readonly service: TaxGroupsGatewayService) {}
 
-  // Returns paginated tax groups for the data table, narrowed to the country in the saved table context
-  @Get('table')
-  @RequirePermission(ORG_TAX_GROUPS.view)
-  @ApiFindForTableTaxGroups()
-  findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/tax-groups/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a tax group for one country
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -79,13 +70,30 @@ export class TaxGroupsGatewayController {
     return this.service.create(dto);
   }
 
-  // Returns a tax group by ID
-  @Get(':id')
-  @RequirePermission(ORG_TAX_GROUPS.view)
-  @ApiGetTaxGroup()
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxGroupResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-groups/${id}`);
-    return this.service.findById(id);
+  // Adds a dated rate to a group
+  @Post(':id/rates')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_GROUPS.rates.add)
+  @ApiCreateTaxGroupRate()
+  createRate(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateTaxGroupRateDto,
+  ): Promise<CreateResponseDto<TaxGroupRateResponseDto>> {
+    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/rates`);
+    return this.service.createRate(id, dto);
+  }
+
+  // Maps a tax class to a group in the group's country
+  @Post(':id/classes')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_TAX_GROUPS.classes.add)
+  @ApiCreateTaxGroupClass()
+  createClass(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateTaxClassGroupDto,
+  ): Promise<CreateResponseDto<TaxClassGroupResponseDto>> {
+    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/classes`);
+    return this.service.createClass(id, dto);
   }
 
   // Updates a tax group by ID; its country is fixed
@@ -95,6 +103,32 @@ export class TaxGroupsGatewayController {
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Updates a rate of a group
+  @Patch(':id/rates/:rateId')
+  @RequirePermission(ORG_TAX_GROUPS.rates.edit)
+  @ApiUpdateTaxGroupRate()
+  updateRate(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('rateId', new ParseUUIDPipe()) rateId: string,
+    @Body() dto: UpdateTaxGroupRateDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
+    return this.service.updateRate(id, rateId, dto);
+  }
+
+  // Updates a class mapping of a group
+  @Patch(':id/classes/:mappingId')
+  @RequirePermission(ORG_TAX_GROUPS.classes.edit)
+  @ApiUpdateTaxGroupClass()
+  updateClass(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('mappingId', new ParseUUIDPipe()) mappingId: string,
+    @Body() dto: UpdateTaxClassGroupDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/classes/${mappingId}`);
+    return this.service.updateClass(id, mappingId, dto);
   }
 
   // Activates or deactivates a tax group; it stays active while a class mapping in force or still to come names it
@@ -109,13 +143,22 @@ export class TaxGroupsGatewayController {
     return this.service.setActive(id, dto.isActive);
   }
 
-  // Deletes a tax group and its rates unless tax classes are mapped to it
-  @Delete(':id')
-  @RequirePermission(ORG_TAX_GROUPS.delete)
-  @ApiDeleteTaxGroup()
-  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}`);
-    return this.service.delete(id);
+  // Returns a tax group by ID
+  @Get(':id')
+  @RequirePermission(ORG_TAX_GROUPS.view)
+  @ApiGetTaxGroup()
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxGroupResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-groups/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated tax groups for the data table, narrowed to the country in the saved table context
+  @Get('table')
+  @RequirePermission(ORG_TAX_GROUPS.view)
+  @ApiFindForTableTaxGroups()
+  findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/tax-groups/table');
+    return this.service.findForTable(userId);
   }
 
   // Returns a group's paginated rates for the data table, optionally only those charged in a state on a day
@@ -133,44 +176,6 @@ export class TaxGroupsGatewayController {
     return this.service.findRatesForTable(userId, id, query);
   }
 
-  // Adds a dated rate to a group
-  @Post(':id/rates')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_TAX_GROUPS.rates.add)
-  @ApiCreateTaxGroupRate()
-  createRate(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreateTaxGroupRateDto,
-  ): Promise<CreateResponseDto<TaxGroupRateResponseDto>> {
-    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/rates`);
-    return this.service.createRate(id, dto);
-  }
-
-  // Updates a rate of a group
-  @Patch(':id/rates/:rateId')
-  @RequirePermission(ORG_TAX_GROUPS.rates.edit)
-  @ApiUpdateTaxGroupRate()
-  updateRate(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('rateId', new ParseUUIDPipe()) rateId: string,
-    @Body() dto: UpdateTaxGroupRateDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
-    return this.service.updateRate(id, rateId, dto);
-  }
-
-  // Removes a rate from a group
-  @Delete(':id/rates/:rateId')
-  @RequirePermission(ORG_TAX_GROUPS.rates.delete)
-  @ApiDeleteTaxGroupRate()
-  deleteRate(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('rateId', new ParseUUIDPipe()) rateId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
-    return this.service.deleteRate(id, rateId);
-  }
-
   // Returns a group's paginated class mappings for the data table
   @Get(':id/classes/table')
   @RequirePermission(ORG_TAX_GROUPS.classes.view)
@@ -183,30 +188,25 @@ export class TaxGroupsGatewayController {
     return this.service.findClassesForTable(userId, id);
   }
 
-  // Maps a tax class to a group in the group's country
-  @Post(':id/classes')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_TAX_GROUPS.classes.add)
-  @ApiCreateTaxGroupClass()
-  createClass(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreateTaxClassGroupDto,
-  ): Promise<CreateResponseDto<TaxClassGroupResponseDto>> {
-    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/classes`);
-    return this.service.createClass(id, dto);
+  // Deletes a tax group and its rates unless tax classes are mapped to it
+  @Delete(':id')
+  @RequirePermission(ORG_TAX_GROUPS.delete)
+  @ApiDeleteTaxGroup()
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}`);
+    return this.service.delete(id);
   }
 
-  // Updates a class mapping of a group
-  @Patch(':id/classes/:mappingId')
-  @RequirePermission(ORG_TAX_GROUPS.classes.edit)
-  @ApiUpdateTaxGroupClass()
-  updateClass(
+  // Removes a rate from a group
+  @Delete(':id/rates/:rateId')
+  @RequirePermission(ORG_TAX_GROUPS.rates.delete)
+  @ApiDeleteTaxGroupRate()
+  deleteRate(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('mappingId', new ParseUUIDPipe()) mappingId: string,
-    @Body() dto: UpdateTaxClassGroupDto,
+    @Param('rateId', new ParseUUIDPipe()) rateId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/classes/${mappingId}`);
-    return this.service.updateClass(id, mappingId, dto);
+    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
+    return this.service.deleteRate(id, rateId);
   }
 
   // Removes a class mapping from a group

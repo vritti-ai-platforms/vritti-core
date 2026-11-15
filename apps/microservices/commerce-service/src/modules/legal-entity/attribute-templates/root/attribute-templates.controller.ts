@@ -13,13 +13,6 @@ export class LeAttributeTemplatesController {
 
   constructor(private readonly service: AttributeTemplatesDomainService) {}
 
-  // Returns every attribute template this workspace can reach, for the card grid
-  @MessagePattern({ cmd: 'le.attributeTemplates.list' })
-  list(@Payload() data: { search?: string }): Promise<AttributeTemplateDto[]> {
-    this.logger.log('attributeTemplates.list');
-    return this.service.list(data.search);
-  }
-
   // Creates a legal-entity-owned attribute template; values are added through their own endpoint
   @MessagePattern({ cmd: 'le.attributeTemplates.create' })
   create(@Payload() dto: CreateAttributeTemplateDto): Promise<CreateResponseDto<AttributeTemplateDto>> {
@@ -40,6 +33,13 @@ export class LeAttributeTemplatesController {
   setActive(@Payload() dto: SetAttributeTemplateActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`attributeTemplates.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
     return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  // Returns every attribute template this workspace can reach, for the card grid
+  @MessagePattern({ cmd: 'le.attributeTemplates.list' })
+  list(@Payload() data: { search?: string }): Promise<AttributeTemplateDto[]> {
+    this.logger.log('attributeTemplates.list');
+    return this.service.list(data.search);
   }
 
   // Deletes an attribute template this legal-entity owns

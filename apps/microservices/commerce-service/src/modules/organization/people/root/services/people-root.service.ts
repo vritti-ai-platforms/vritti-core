@@ -17,11 +17,6 @@ export class PeopleService {
     private readonly addressesService: PartyAddressesDomainService,
   ) {}
 
-  // Returns paginated PERSON parties for the people table
-  findForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
-    return this.partiesService.findPeopleForTable(state);
-  }
-
   // Creates a PERSON party (display name derived from first/last) with an optional primary identifier
   async create(dto: CreatePersonDto): Promise<CreateResponseDto<PersonDto>> {
     const result = await this.partiesService.createPerson({
@@ -45,15 +40,20 @@ export class PeopleService {
     return result;
   }
 
+  // Updates a person by ID
+  update(dto: UpdatePersonDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
+    return this.partiesService.update(id, payload);
+  }
+
   // Finds a person by ID
   findById(id: string): Promise<PersonDto> {
     return this.partiesService.findPersonById(id);
   }
 
-  // Updates a person by ID
-  update(dto: UpdatePersonDto): Promise<SuccessResponseDto> {
-    const { id, ...payload } = dto;
-    return this.partiesService.update(id, payload);
+  // Returns paginated PERSON parties for the people table
+  findForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
+    return this.partiesService.findPeopleForTable(state);
   }
 
   // Deletes a person by ID

@@ -14,22 +14,10 @@ export class PaymentTermsRootController {
 
   constructor(private readonly service: PaymentTermsDomainService) {}
 
-  @MessagePattern({ cmd: 'org.paymentTerms.table' })
-  async table(@Payload() state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
-    this.logger.log('paymentTerms.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'org.paymentTerms.create' })
   async create(@Payload() dto: CreatePaymentTermDto): Promise<CreateResponseDto<PaymentTermDto>> {
     this.logger.log(`paymentTerms.create — name: ${dto.name}`);
     return this.service.create(dto);
-  }
-
-  @MessagePattern({ cmd: 'org.paymentTerms.findById' })
-  async findById(@Payload() data: { id: string }): Promise<PaymentTermDetailDto> {
-    this.logger.log(`paymentTerms.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
   }
 
   @MessagePattern({ cmd: 'org.paymentTerms.update' })
@@ -45,12 +33,6 @@ export class PaymentTermsRootController {
     return this.service.changeBaseline(dto.id, dto.baseline);
   }
 
-  @MessagePattern({ cmd: 'org.paymentTerms.delete' })
-  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`paymentTerms.delete — id: ${data.id}`);
-    return this.service.delete(data.id);
-  }
-
   @MessagePattern({ cmd: 'org.paymentTerms.publish' })
   async publish(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`paymentTerms.publish — id: ${data.id}`);
@@ -61,5 +43,23 @@ export class PaymentTermsRootController {
   async unpublish(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`paymentTerms.unpublish — id: ${data.id}`);
     return this.service.unpublish(data.id);
+  }
+
+  @MessagePattern({ cmd: 'org.paymentTerms.findById' })
+  async findById(@Payload() data: { id: string }): Promise<PaymentTermDetailDto> {
+    this.logger.log(`paymentTerms.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  @MessagePattern({ cmd: 'org.paymentTerms.table' })
+  async table(@Payload() state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
+    this.logger.log('paymentTerms.table');
+    return this.service.findForTable(state);
+  }
+
+  @MessagePattern({ cmd: 'org.paymentTerms.delete' })
+  async delete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`paymentTerms.delete — id: ${data.id}`);
+    return this.service.delete(data.id);
   }
 }

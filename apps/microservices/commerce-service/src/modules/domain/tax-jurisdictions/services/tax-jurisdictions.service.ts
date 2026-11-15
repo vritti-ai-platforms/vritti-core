@@ -32,6 +32,81 @@ export class TaxJurisdictionsDomainService {
 
   constructor(private readonly repository: TaxJurisdictionsDomainRepository) {}
 
+  // Creates a tax jurisdiction under a parent of the same country one level up, rejecting duplicate codes
+  async create(data: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionDto>> {
+    await this.repository.assertCodeFree(data.code);
+    const parent = await this.repository.findParentOrThrow({
+      level: data.level,
+      countryCode: data.countryCode,
+      parentId: data.parentId ?? null,
+    });
+
+    const entity = await this.repository.create({
+      code: data.code,
+      name: data.name,
+      level: data.level,
+      parentId: parent?.id ?? null,
+      countryCode: data.countryCode,
+      regionCode: data.regionCode ?? null,
+      taxUnion: data.taxUnion ?? null,
+      isActive: data.isActive,
+    });
+
+    this.logger.log(`Created tax jurisdiction: ${entity.code} (${entity.id})`);
+    return {
+      success: true,
+      message: `Tax jurisdiction "${entity.name}" created successfully.`,
+      data: TaxJurisdictionDto.from({
+        ...entity,
+        parentName: parent?.name ?? null,
+        hasChildren: false,
+        isReferenced: false,
+      }),
+    };
+  }
+
+  // Updates a tax jurisdiction; its level and country stay fixed once children, registrations or parties depend on it
+  async update(id: string, data: Omit<UpdateTaxJurisdictionDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findDetailOrThrow(id);
+    const placement = {
+      level: data.level ?? existing.level,
+      countryCode: data.countryCode ?? existing.countryCode,
+      parentId: data.parentId === undefined ? existing.parentId : data.parentId,
+    };
+    this.repository.assertPlacementChangeable(existing, placement);
+    await this.repository.findParentOrThrow(placement);
+
+    await this.repository.update(id, data);
+
+    this.logger.log(`Updated tax jurisdiction: ${existing.code} (${id})`);
+    return { success: true, message: `Tax jurisdiction "${data.name ?? existing.name}" updated successfully.` };
+  }
+
+  // Returns a single tax jurisdiction by ID
+  async findById(id: string): Promise<TaxJurisdictionDto> {
+    return TaxJurisdictionDto.from(await this.repository.findDetailOrThrow(id));
+  }
+
+  // Returns paginated child jurisdictions for a given parent ID
+  async findChildrenForTable(
+    parentId: string,
+    state: TableState,
+  ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxJurisdictionsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, TaxJurisdictionsDomainService.SEARCH_FIELD_MAP);
+    const where = and(eq(taxJurisdictions.parentId, parentId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxJurisdictionsDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findDetailsForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(taxJurisdictions.name)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxJurisdictionDto.from), count };
+  }
+
   // Returns total tax-jurisdiction count
   async count(): Promise<TaxJurisdictionCountDto> {
     const count = await this.repository.countAll();
@@ -72,26 +147,6 @@ export class TaxJurisdictionsDomainService {
     return roots;
   }
 
-  // Returns paginated child jurisdictions for a given parent ID
-  async findChildrenForTable(
-    parentId: string,
-    state: TableState,
-  ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, TaxJurisdictionsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, TaxJurisdictionsDomainService.SEARCH_FIELD_MAP);
-    const where = and(eq(taxJurisdictions.parentId, parentId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, TaxJurisdictionsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findDetailsForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(taxJurisdictions.name)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxJurisdictionDto.from), count };
-  }
-
   // Returns paginated tax-jurisdiction options for select dropdowns, narrowed to one country when given
   findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
     return this.repository.findForSelect({
@@ -105,61 +160,6 @@ export class TaxJurisdictionsDomainService {
       orderDirection: query.orderDirection || 'asc',
       where: options?.country ? { countryCode: options.country } : undefined,
     });
-  }
-
-  // Creates a tax jurisdiction under a parent of the same country one level up, rejecting duplicate codes
-  async create(data: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionDto>> {
-    await this.repository.assertCodeFree(data.code);
-    const parent = await this.repository.findParentOrThrow({
-      level: data.level,
-      countryCode: data.countryCode,
-      parentId: data.parentId ?? null,
-    });
-
-    const entity = await this.repository.create({
-      code: data.code,
-      name: data.name,
-      level: data.level,
-      parentId: parent?.id ?? null,
-      countryCode: data.countryCode,
-      regionCode: data.regionCode ?? null,
-      taxUnion: data.taxUnion ?? null,
-      isActive: data.isActive,
-    });
-
-    this.logger.log(`Created tax jurisdiction: ${entity.code} (${entity.id})`);
-    return {
-      success: true,
-      message: `Tax jurisdiction "${entity.name}" created successfully.`,
-      data: TaxJurisdictionDto.from({
-        ...entity,
-        parentName: parent?.name ?? null,
-        hasChildren: false,
-        isReferenced: false,
-      }),
-    };
-  }
-
-  // Returns a single tax jurisdiction by ID
-  async findById(id: string): Promise<TaxJurisdictionDto> {
-    return TaxJurisdictionDto.from(await this.repository.findDetailOrThrow(id));
-  }
-
-  // Updates a tax jurisdiction; its level and country stay fixed once children, registrations or parties depend on it
-  async update(id: string, data: Omit<UpdateTaxJurisdictionDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findDetailOrThrow(id);
-    const placement = {
-      level: data.level ?? existing.level,
-      countryCode: data.countryCode ?? existing.countryCode,
-      parentId: data.parentId === undefined ? existing.parentId : data.parentId,
-    };
-    this.repository.assertPlacementChangeable(existing, placement);
-    await this.repository.findParentOrThrow(placement);
-
-    await this.repository.update(id, data);
-
-    this.logger.log(`Updated tax jurisdiction: ${existing.code} (${id})`);
-    return { success: true, message: `Tax jurisdiction "${data.name ?? existing.name}" updated successfully.` };
   }
 
   // Deletes a tax jurisdiction unless children, registrations or parties still depend on it

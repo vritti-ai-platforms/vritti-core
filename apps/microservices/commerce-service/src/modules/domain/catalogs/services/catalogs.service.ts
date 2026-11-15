@@ -32,6 +32,49 @@ export class CatalogsDomainService {
     private readonly currencies: CatalogCurrenciesDomainRepository,
   ) {}
 
+  async create(data: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
+    await this.assertNameFree(data.name);
+    const created = await this.repository.create({
+      name: data.name,
+      taxInclusive: data.taxInclusive ?? false,
+    });
+    this.logger.log(`Created catalog ${created.name} (${created.id})`);
+    // Created here, so this workspace owns it — no need to read the ownership test back
+    return {
+      success: true,
+      message: `"${created.name}" created.`,
+      data: CatalogDto.from(created, { isOwned: true }),
+    };
+  }
+
+  // Offers a currency on this price list. Nothing is priced by it yet — the Prices tab fills that in.
+  async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    const catalog = await this.requireCatalog(catalogId);
+    await this.currencies.addForCatalog(catalogId, currencyCode);
+    this.logger.log(`Catalog ${catalog.name} now prices in ${currencyCode}`);
+    return { success: true, message: `"${catalog.name}" can now be priced in ${currencyCode}.` };
+  }
+
+  async update(id: string, data: Omit<UpdateCatalogDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.requireCatalog(id);
+    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
+    // isActive only hides a catalog from selectors, so retiring one that still lists items would leave those listings
+    // reachable with no way to reach the catalog again
+    if (data.isActive === false && existing.items > 0) {
+      throw new ConflictException({
+        label: 'Catalog In Use',
+        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them before deactivating it.`,
+      });
+    }
+    await this.repository.update(id, data);
+    return { success: true, message: `"${data.name ?? existing.name}" updated.` };
+  }
+
+  async findById(id: string): Promise<CatalogDto> {
+    const row = await this.requireCatalog(id);
+    return CatalogDto.from(row, row, await this.findCurrencies(id));
+  }
+
   // Returns paginated, filtered and sorted catalogs for the data table
   async findForTable(state: TableState): Promise<{ result: CatalogDto[]; count: number }> {
     const where = and(
@@ -72,54 +115,6 @@ export class CatalogsDomainService {
     return rows.map((row) => CatalogChannelDto.from(row));
   }
 
-  async findById(id: string): Promise<CatalogDto> {
-    const row = await this.requireCatalog(id);
-    return CatalogDto.from(row, row, await this.findCurrencies(id));
-  }
-
-  async create(data: CreateCatalogDto): Promise<CreateResponseDto<CatalogDto>> {
-    await this.assertNameFree(data.name);
-    const created = await this.repository.create({
-      name: data.name,
-      taxInclusive: data.taxInclusive ?? false,
-    });
-    this.logger.log(`Created catalog ${created.name} (${created.id})`);
-    // Created here, so this workspace owns it — no need to read the ownership test back
-    return {
-      success: true,
-      message: `"${created.name}" created.`,
-      data: CatalogDto.from(created, { isOwned: true }),
-    };
-  }
-
-  async update(id: string, data: Omit<UpdateCatalogDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.requireCatalog(id);
-    if (data.name && data.name.toLowerCase() !== existing.name.toLowerCase()) await this.assertNameFree(data.name);
-    // isActive only hides a catalog from selectors, so retiring one that still lists items would leave those listings
-    // reachable with no way to reach the catalog again
-    if (data.isActive === false && existing.items > 0) {
-      throw new ConflictException({
-        label: 'Catalog In Use',
-        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them before deactivating it.`,
-      });
-    }
-    await this.repository.update(id, data);
-    return { success: true, message: `"${data.name ?? existing.name}" updated.` };
-  }
-
-  // Deleting cascades into listings and prices, so it is refused while the catalog still has any
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.requireCatalog(id);
-    if (existing.items > 0) {
-      throw new ConflictException({
-        label: 'Catalog In Use',
-        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them first.`,
-      });
-    }
-    await this.repository.deleteById(id);
-    return { success: true, message: `"${existing.name}" deleted.` };
-  }
-
   // Which currencies this catalog may be priced in, in the order they are offered
   async findCurrencies(catalogId: string): Promise<string[]> {
     const rows = await this.currencies.findForCatalog(catalogId);
@@ -133,12 +128,17 @@ export class CatalogsDomainService {
     return rows.map((row) => CatalogCurrencyDto.from(row, catalog.items));
   }
 
-  // Offers a currency on this price list. Nothing is priced by it yet — the Prices tab fills that in.
-  async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
-    const catalog = await this.requireCatalog(catalogId);
-    await this.currencies.addForCatalog(catalogId, currencyCode);
-    this.logger.log(`Catalog ${catalog.name} now prices in ${currencyCode}`);
-    return { success: true, message: `"${catalog.name}" can now be priced in ${currencyCode}.` };
+  // Deleting cascades into listings and prices, so it is refused while the catalog still has any
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.requireCatalog(id);
+    if (existing.items > 0) {
+      throw new ConflictException({
+        label: 'Catalog In Use',
+        detail: `"${existing.name}" still lists ${pluralize('listing', existing.items, true)}. Remove them first.`,
+      });
+    }
+    await this.repository.deleteById(id);
+    return { success: true, message: `"${existing.name}" deleted.` };
   }
 
   // Withdrawing a currency makes its prices unreachable, so it is refused while any exist rather than cascading — a

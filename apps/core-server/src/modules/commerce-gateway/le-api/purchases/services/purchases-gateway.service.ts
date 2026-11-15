@@ -61,17 +61,6 @@ export class LePurchasesGatewayService {
     private readonly siteContextResolver: SiteContextResolverService,
   ) {}
 
-  // Returns the purchases of the legal entity's site chosen in the context bar, with their site named
-  async findForTable(userId: string, orgId: string): Promise<PurchaseTableResponseDto> {
-    this.logger.log('le.purchases.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-purchases');
-    const { result, count } = await this.nats.send<{
-      result: Omit<PurchaseTableRowResponseDto, 'siteName' | 'siteCode'>[];
-      count: number;
-    }>('commerce', 'le.purchases.table', state);
-    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
-  }
-
   // Creates a purchase at one of the legal entity's sites, in its timezone and against the company's currency
   async create(
     dto: LeCreatePurchaseDto,
@@ -85,11 +74,234 @@ export class LePurchasesGatewayService {
     });
   }
 
+  // Adds an item, or adds the quantity to the item already on the purchase
+  createItem(id: string, dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemResponseDto>> {
+    this.logger.log(`le.purchases.items.create — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
+    return this.nats.send('commerce', 'le.purchases.items.create', { id, ...dto });
+  }
+
+  // Creates a draft legal-entity quotation from a supplier for the purchase's items
+  requestQuotation(
+    id: string,
+    dto: RequestPurchaseQuotationDto,
+  ): Promise<CreateResponseDto<RequestedPurchaseQuotationResponseDto>> {
+    this.logger.log(`le.purchases.quotations.request — id: ${id}, supplierId: ${dto.supplierId}`);
+    return this.nats.send('commerce', 'le.purchases.quotations.request', { id, ...dto });
+  }
+
+  // Allocates part of an item to a supplier, opening its leg on the first allocation
+  createAllocation(
+    id: string,
+    dto: CreatePurchaseAllocationDto,
+  ): Promise<CreateResponseDto<PurchaseAllocationResponseDto>> {
+    this.logger.log(
+      `le.purchases.allocations.create — id: ${id}, purchaseItemId: ${dto.purchaseItemId}, supplierId: ${dto.supplierId}`,
+    );
+    return this.nats.send('commerce', 'le.purchases.allocations.create', { id, ...dto });
+  }
+
+  // Allocates items from posted quotation lines
+  createAllocationsFromQuotation(
+    id: string,
+    dto: CreatePurchaseAllocationsFromQuotationDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.purchases.allocations.createFromQuotation — id: ${id}, lines: ${dto.supplierQuotationItemIds.length}`,
+    );
+    return this.nats.send('commerce', 'le.purchases.allocations.createFromQuotation', { id, ...dto });
+  }
+
+  // Creates a leg's purchase orders, one per currency of its allocations, converted against the legal entity's currency
+  async createLegPurchaseOrder(
+    id: string,
+    legId: string,
+    dto: CreateLegPurchaseOrderDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<CreatedLegPurchaseOrdersResponseDto>> {
+    this.logger.log(`le.purchases.legs.createPurchaseOrder — id: ${id}, legId: ${legId}, orderDate: ${dto.orderDate}`);
+    const site = await this.resolvePurchaseSite(id, legalEntityId);
+    return this.nats.send('commerce', 'le.purchases.legs.createPurchaseOrder', {
+      id,
+      legId,
+      ...dto,
+      timezone: site.siteTimezone,
+    });
+  }
+
+  // Creates an inbound delivery of a leg's confirmed purchase order lines
+  createLegInboundDelivery(
+    id: string,
+    legId: string,
+    dto: CreateLegInboundDeliveryDto,
+  ): Promise<CreateResponseDto<CreatedLegInboundDeliveryResponseDto>> {
+    this.logger.log(`le.purchases.legs.createInboundDelivery — id: ${id}, legId: ${legId}, lines: ${dto.lines.length}`);
+    return this.nats.send('commerce', 'le.purchases.legs.createInboundDelivery', { id, legId, ...dto });
+  }
+
+  // Creates a draft goods receipt of a leg, from one of its inbound deliveries or its open lines
+  async createLegGoodsReceipt(
+    id: string,
+    legId: string,
+    dto: CreateLegGoodsReceiptDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<CreatedLegGoodsReceiptResponseDto>> {
+    this.logger.log(
+      `le.purchases.legs.createGoodsReceipt — id: ${id}, legId: ${legId}, inboundDeliveryId: ${dto.inboundDeliveryId ?? 'none'}`,
+    );
+    const site = await this.resolvePurchaseSite(id, legalEntityId);
+    return this.nats.send('commerce', 'le.purchases.legs.createGoodsReceipt', {
+      id,
+      legId,
+      ...dto,
+      timezone: site.siteTimezone,
+    });
+  }
+
+  // Drafts a supplier invoice for the received, uninvoiced goods of the supplier's open legs at one of the legal
+  // entity's sites
+  async createSupplierInvoice(
+    dto: LeCreatePurchaseSupplierInvoiceDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
+    this.logger.log(
+      `le.purchases.supplierInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}`,
+    );
+    await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.purchases.supplierInvoices.create', dto);
+  }
+
+  // Drafts a Receive with Invoice at one of the legal entity's sites: the inbound deliveries, goods receipts and supplier invoice it records
+  async createReceiveWithInvoice(
+    dto: LeCreateReceiveWithInvoiceDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
+    this.logger.log(
+      `le.purchases.receiveWithInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}, lines: ${dto.lines.length}`,
+    );
+    const site = await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.create', {
+      ...dto,
+      timezone: site.siteTimezone,
+    });
+  }
+
+  // Changes a purchase's header while it is Requesting
+  update(id: string, dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.update — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.update', { id, ...dto });
+  }
+
+  // Changes an item
+  updateItem(id: string, itemId: string, dto: UpdatePurchaseItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.items.update — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'le.purchases.items.update', { id, itemId, ...dto });
+  }
+
+  // Changes an allocation
+  updateAllocation(id: string, allocationId: string, dto: UpdatePurchaseAllocationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.allocations.update — id: ${id}, allocationId: ${allocationId}`);
+    return this.nats.send('commerce', 'le.purchases.allocations.update', { id, allocationId, ...dto });
+  }
+
+  // Replaces a draft Receive with Invoice, at the site it was drafted for
+  async updateReceiveWithInvoice(
+    invoiceId: string,
+    dto: LeReceiveWithInvoiceDto,
+    legalEntityId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.receiveWithInvoices.update — invoiceId: ${invoiceId}, lines: ${dto.lines.length}`);
+    const site = await this.resolveReceiveWithInvoiceSite(invoiceId, legalEntityId);
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.update', {
+      invoiceId,
+      ...dto,
+      timezone: site.siteTimezone,
+    });
+  }
+
+  // Cancels a purchase with a reason
+  cancel(id: string, dto: CancelPurchaseDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.cancel — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.cancel', { id, ...dto });
+  }
+
+  // Submits the items, moving the purchase to Quoting or Sourcing
+  submitItems(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.submitItems — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.submitItems', { id });
+  }
+
+  // Completes quotations, moving the purchase to sourcing
+  completeQuotations(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.quotations.complete — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.quotations.complete', { id });
+  }
+
+  // Starts every leg still in sourcing, routing each to approval against the legal entity's currency
+  submit(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.submit — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.submit', { id });
+  }
+
+  // Submits one supplier's leg still in sourcing, routing it to approval against the legal entity's currency
+  submitSupplier(id: string, legId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.submitSupplier — id: ${id}, legId: ${legId}`);
+    return this.nats.send('commerce', 'le.purchases.legs.submitSupplier', { id, legId });
+  }
+
+  // Approves a leg waiting for approval
+  approveLeg(id: string, legId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.approve — id: ${id}, legId: ${legId}`);
+    return this.nats.send('commerce', 'le.purchases.legs.approve', { id, legId });
+  }
+
+  // Rejects a leg waiting for approval, returning only that leg to sourcing
+  rejectLeg(id: string, legId: string, dto: RejectPurchaseLegDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.reject — id: ${id}, legId: ${legId}`);
+    return this.nats.send('commerce', 'le.purchases.legs.reject', { id, legId, ...dto });
+  }
+
+  // Confirms a sent purchase order of a leg
+  confirmLegPurchaseOrder(id: string, legId: string, purchaseOrderId: string): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.purchases.legs.confirmPurchaseOrder — id: ${id}, legId: ${legId}, purchaseOrderId: ${purchaseOrderId}`,
+    );
+    return this.nats.send('commerce', 'le.purchases.legs.confirmPurchaseOrder', { id, legId, purchaseOrderId });
+  }
+
+  // Closes a supplier's leg, marking its open purchase orders delivery completed
+  closeSupplier(id: string, legId: string, dto: CloseSupplierDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.closeSupplier — id: ${id}, legId: ${legId}`);
+    return this.nats.send('commerce', 'le.purchases.legs.closeSupplier', { id, legId, ...dto });
+  }
+
+  // Posts a draft Receive with Invoice's goods receipts and its supplier invoice in the legal entity's currency
+  postReceiveWithInvoice(invoiceId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.receiveWithInvoices.post — invoiceId: ${invoiceId}`);
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.post', { invoiceId });
+  }
+
   // Returns a purchase's header with its counts, progress and available actions, its site named
   async findById(id: string, orgId: string): Promise<PurchaseHeaderResponseDto> {
     this.logger.log(`le.purchases.findById — id: ${id}`);
     const header = await this.nats.send<UnnamedPurchaseHeader>('commerce', 'le.purchases.findById', { id });
     return this.purchaseNames.withHeaderNames(orgId, header);
+  }
+
+  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
+  findReceiveWithInvoiceById(invoiceId: string): Promise<ReceiveWithInvoiceDetailResponseDto> {
+    this.logger.log(`le.purchases.receiveWithInvoices.findById — invoiceId: ${invoiceId}`);
+    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.findById', { invoiceId });
+  }
+
+  // Returns the purchases of the legal entity's site chosen in the context bar, with their site named
+  async findForTable(userId: string, orgId: string): Promise<PurchaseTableResponseDto> {
+    this.logger.log('le.purchases.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-purchases');
+    const { result, count } = await this.nats.send<{
+      result: Omit<PurchaseTableRowResponseDto, 'siteName' | 'siteCode'>[];
+      count: number;
+    }>('commerce', 'le.purchases.table', state);
+    return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
   // Returns a purchase's items
@@ -131,194 +343,6 @@ export class LePurchasesGatewayService {
     return this.purchaseNames.withEventNames(orgId, page);
   }
 
-  // Changes a purchase's header while it is Requesting
-  update(id: string, dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.update', { id, ...dto });
-  }
-
-  // Cancels a purchase with a reason
-  cancel(id: string, dto: CancelPurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.cancel — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.cancel', { id, ...dto });
-  }
-
-  // Deletes a purchase that is still open and Requesting with nothing beyond items
-  delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.delete — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.delete', { id });
-  }
-
-  // Adds an item, or adds the quantity to the item already on the purchase
-  createItem(id: string, dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemResponseDto>> {
-    this.logger.log(`le.purchases.items.create — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
-    return this.nats.send('commerce', 'le.purchases.items.create', { id, ...dto });
-  }
-
-  // Changes an item
-  updateItem(id: string, itemId: string, dto: UpdatePurchaseItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.items.update — id: ${id}, itemId: ${itemId}`);
-    return this.nats.send('commerce', 'le.purchases.items.update', { id, itemId, ...dto });
-  }
-
-  // Removes an item
-  deleteItem(id: string, itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.items.delete — id: ${id}, itemId: ${itemId}`);
-    return this.nats.send('commerce', 'le.purchases.items.delete', { id, itemId });
-  }
-
-  // Submits the items, moving the purchase to Quoting or Sourcing
-  submitItems(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.submitItems — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.submitItems', { id });
-  }
-
-  // Creates a draft legal-entity quotation from a supplier for the purchase's items
-  requestQuotation(
-    id: string,
-    dto: RequestPurchaseQuotationDto,
-  ): Promise<CreateResponseDto<RequestedPurchaseQuotationResponseDto>> {
-    this.logger.log(`le.purchases.quotations.request — id: ${id}, supplierId: ${dto.supplierId}`);
-    return this.nats.send('commerce', 'le.purchases.quotations.request', { id, ...dto });
-  }
-
-  // Completes quotations, moving the purchase to sourcing
-  completeQuotations(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.quotations.complete — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.quotations.complete', { id });
-  }
-
-  // Allocates part of an item to a supplier, opening its leg on the first allocation
-  createAllocation(
-    id: string,
-    dto: CreatePurchaseAllocationDto,
-  ): Promise<CreateResponseDto<PurchaseAllocationResponseDto>> {
-    this.logger.log(
-      `le.purchases.allocations.create — id: ${id}, purchaseItemId: ${dto.purchaseItemId}, supplierId: ${dto.supplierId}`,
-    );
-    return this.nats.send('commerce', 'le.purchases.allocations.create', { id, ...dto });
-  }
-
-  // Allocates items from posted quotation lines
-  createAllocationsFromQuotation(
-    id: string,
-    dto: CreatePurchaseAllocationsFromQuotationDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.purchases.allocations.createFromQuotation — id: ${id}, lines: ${dto.supplierQuotationItemIds.length}`,
-    );
-    return this.nats.send('commerce', 'le.purchases.allocations.createFromQuotation', { id, ...dto });
-  }
-
-  // Changes an allocation
-  updateAllocation(id: string, allocationId: string, dto: UpdatePurchaseAllocationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.allocations.update — id: ${id}, allocationId: ${allocationId}`);
-    return this.nats.send('commerce', 'le.purchases.allocations.update', { id, allocationId, ...dto });
-  }
-
-  // Removes an allocation, closing its leg when it was the last one
-  deleteAllocation(id: string, allocationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.allocations.delete — id: ${id}, allocationId: ${allocationId}`);
-    return this.nats.send('commerce', 'le.purchases.allocations.delete', { id, allocationId });
-  }
-
-  // Starts every leg still in sourcing, routing each to approval against the legal entity's currency
-  submit(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.submit — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.submit', { id });
-  }
-
-  // Submits one supplier's leg still in sourcing, routing it to approval against the legal entity's currency
-  submitSupplier(id: string, legId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.submitSupplier — id: ${id}, legId: ${legId}`);
-    return this.nats.send('commerce', 'le.purchases.legs.submitSupplier', { id, legId });
-  }
-
-  // Approves a leg waiting for approval
-  approveLeg(id: string, legId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.approve — id: ${id}, legId: ${legId}`);
-    return this.nats.send('commerce', 'le.purchases.legs.approve', { id, legId });
-  }
-
-  // Rejects a leg waiting for approval, returning only that leg to sourcing
-  rejectLeg(id: string, legId: string, dto: RejectPurchaseLegDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.reject — id: ${id}, legId: ${legId}`);
-    return this.nats.send('commerce', 'le.purchases.legs.reject', { id, legId, ...dto });
-  }
-
-  // Creates a leg's purchase orders, one per currency of its allocations, converted against the legal entity's currency
-  async createLegPurchaseOrder(
-    id: string,
-    legId: string,
-    dto: CreateLegPurchaseOrderDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<CreatedLegPurchaseOrdersResponseDto>> {
-    this.logger.log(`le.purchases.legs.createPurchaseOrder — id: ${id}, legId: ${legId}, orderDate: ${dto.orderDate}`);
-    const site = await this.resolvePurchaseSite(id, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.legs.createPurchaseOrder', {
-      id,
-      legId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
-  }
-
-  // Confirms a sent purchase order of a leg
-  confirmLegPurchaseOrder(id: string, legId: string, purchaseOrderId: string): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.purchases.legs.confirmPurchaseOrder — id: ${id}, legId: ${legId}, purchaseOrderId: ${purchaseOrderId}`,
-    );
-    return this.nats.send('commerce', 'le.purchases.legs.confirmPurchaseOrder', { id, legId, purchaseOrderId });
-  }
-
-  // Creates an inbound delivery of a leg's confirmed purchase order lines
-  createLegInboundDelivery(
-    id: string,
-    legId: string,
-    dto: CreateLegInboundDeliveryDto,
-  ): Promise<CreateResponseDto<CreatedLegInboundDeliveryResponseDto>> {
-    this.logger.log(`le.purchases.legs.createInboundDelivery — id: ${id}, legId: ${legId}, lines: ${dto.lines.length}`);
-    return this.nats.send('commerce', 'le.purchases.legs.createInboundDelivery', { id, legId, ...dto });
-  }
-
-  // Creates a draft goods receipt of a leg, from one of its inbound deliveries or its open lines
-  async createLegGoodsReceipt(
-    id: string,
-    legId: string,
-    dto: CreateLegGoodsReceiptDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<CreatedLegGoodsReceiptResponseDto>> {
-    this.logger.log(
-      `le.purchases.legs.createGoodsReceipt — id: ${id}, legId: ${legId}, inboundDeliveryId: ${dto.inboundDeliveryId ?? 'none'}`,
-    );
-    const site = await this.resolvePurchaseSite(id, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.legs.createGoodsReceipt', {
-      id,
-      legId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
-  }
-
-  // Closes a supplier's leg, marking its open purchase orders delivery completed
-  closeSupplier(id: string, legId: string, dto: CloseSupplierDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.legs.closeSupplier — id: ${id}, legId: ${legId}`);
-    return this.nats.send('commerce', 'le.purchases.legs.closeSupplier', { id, legId, ...dto });
-  }
-
-  // Drafts a supplier invoice for the received, uninvoiced goods of the supplier's open legs at one of the legal
-  // entity's sites
-  async createSupplierInvoice(
-    dto: LeCreatePurchaseSupplierInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
-    this.logger.log(
-      `le.purchases.supplierInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}`,
-    );
-    await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.supplierInvoices.create', dto);
-  }
-
   // Returns the supplier's allocations still open to receive and invoice at once at one of the legal entity's sites
   async findReceiveWithInvoiceOpenLines(
     siteId: string,
@@ -330,46 +354,22 @@ export class LePurchasesGatewayService {
     return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.openLines', { ...query, siteId });
   }
 
-  // Drafts a Receive with Invoice at one of the legal entity's sites: the inbound deliveries, goods receipts and supplier invoice it records
-  async createReceiveWithInvoice(
-    dto: LeCreateReceiveWithInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
-    this.logger.log(
-      `le.purchases.receiveWithInvoices.create — site: ${dto.siteId}, supplierId: ${dto.supplierId}, invoice: ${dto.invoiceNumber}, lines: ${dto.lines.length}`,
-    );
-    const site = await this.resolveWorkspaceSite(dto.siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.create', {
-      ...dto,
-      timezone: site.siteTimezone,
-    });
+  // Deletes a purchase that is still open and Requesting with nothing beyond items
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.delete — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.delete', { id });
   }
 
-  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
-  findReceiveWithInvoiceById(invoiceId: string): Promise<ReceiveWithInvoiceDetailResponseDto> {
-    this.logger.log(`le.purchases.receiveWithInvoices.findById — invoiceId: ${invoiceId}`);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.findById', { invoiceId });
+  // Removes an item
+  deleteItem(id: string, itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.items.delete — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'le.purchases.items.delete', { id, itemId });
   }
 
-  // Replaces a draft Receive with Invoice, at the site it was drafted for
-  async updateReceiveWithInvoice(
-    invoiceId: string,
-    dto: LeReceiveWithInvoiceDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.receiveWithInvoices.update — invoiceId: ${invoiceId}, lines: ${dto.lines.length}`);
-    const site = await this.resolveReceiveWithInvoiceSite(invoiceId, legalEntityId);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.update', {
-      invoiceId,
-      ...dto,
-      timezone: site.siteTimezone,
-    });
-  }
-
-  // Posts a draft Receive with Invoice's goods receipts and its supplier invoice in the legal entity's currency
-  postReceiveWithInvoice(invoiceId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.receiveWithInvoices.post — invoiceId: ${invoiceId}`);
-    return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.post', { invoiceId });
+  // Removes an allocation, closing its leg when it was the last one
+  deleteAllocation(id: string, allocationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.allocations.delete — id: ${id}, allocationId: ${allocationId}`);
+    return this.nats.send('commerce', 'le.purchases.allocations.delete', { id, allocationId });
   }
 
   // Discards a draft Receive with Invoice and the documents it drafted

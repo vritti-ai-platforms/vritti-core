@@ -30,53 +30,6 @@ export class PosTerminalsDomainService {
 
   constructor(private readonly repository: PosTerminalsDomainRepository) {}
 
-  // Returns paginated, filtered, and sorted POS terminals for the data table
-  async findForTable(state: TableState): Promise<{ result: PosTerminalDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PosTerminalsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PosTerminalsDomainService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PosTerminalsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(posTerminals.name)],
-      limit,
-      offset,
-    });
-
-    return {
-      result: result.map((row) => PosTerminalDto.from(row)),
-      count,
-    };
-  }
-
-  // Returns a single POS terminal by ID
-  async findById(id: string): Promise<PosTerminalDto> {
-    const entity = await this.repository.findByIdWithLocationName(id);
-    if (!entity) throw new NotFoundException('POS terminal not found.');
-    return PosTerminalDto.from(entity);
-  }
-
-  // Returns paginated POS terminal options for select dropdowns Every active terminal in reach, for callers that list
-  // the estate rather than page through it
-  list(): Promise<{ id: string; name: string }[]> {
-    return this.repository.findAllActive();
-  }
-
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
-  }
-
   // Creates a new POS terminal. App-layer must pre-validate the location and pass it as context.
   async create(data: CreatePosTerminalDto, location: LocationContext): Promise<CreateResponseDto<PosTerminalDto>> {
     this.assertValidLocation(location);
@@ -113,6 +66,53 @@ export class PosTerminalsDomainService {
 
     this.logger.log(`Updated POS terminal: ${updated.name} (${id})`);
     return { success: true, message: `POS terminal "${updated.name}" updated successfully.` };
+  }
+
+  // Returns a single POS terminal by ID
+  async findById(id: string): Promise<PosTerminalDto> {
+    const entity = await this.repository.findByIdWithLocationName(id);
+    if (!entity) throw new NotFoundException('POS terminal not found.');
+    return PosTerminalDto.from(entity);
+  }
+
+  // Returns paginated, filtered, and sorted POS terminals for the data table
+  async findForTable(state: TableState): Promise<{ result: PosTerminalDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PosTerminalsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PosTerminalsDomainService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PosTerminalsDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(posTerminals.name)],
+      limit,
+      offset,
+    });
+
+    return {
+      result: result.map((row) => PosTerminalDto.from(row)),
+      count,
+    };
+  }
+
+  // Returns paginated POS terminal options for select dropdowns Every active terminal in reach, for callers that list
+  // the estate rather than page through it
+  list(): Promise<{ id: string; name: string }[]> {
+    return this.repository.findAllActive();
+  }
+
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
   }
 
   // Deletes a POS terminal

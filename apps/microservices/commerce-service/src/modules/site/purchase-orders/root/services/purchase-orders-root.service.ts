@@ -63,6 +63,42 @@ export class PurchaseOrdersService {
     return this.purchaseOrdersService.create(dto, { ...site, currencyCode, paymentTermId: enrollment.paymentTermId });
   }
 
+  // Moves a PO along its workflow; a purchase's PO is not cancelled here, and confirming one tells its purchase in the
+  // same transaction
+  async updateStatus(dto: UpdatePurchaseOrderStatusDto, actorId: string | null): Promise<SuccessResponseDto> {
+    const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
+    if (dto.status === PurchaseOrderStatusValues.CANCELLED) this.assertNotPartOfPurchase(po);
+    return this.database.runInTransaction(async () => {
+      const result = await this.purchaseOrdersService.changeStatus(po, dto.status);
+      if (po.purchaseId && dto.status === PurchaseOrderStatusValues.CONFIRMED) {
+        await this.purchaseProgressService.notifyDocument(
+          po.purchaseId,
+          po.supplierId,
+          {
+            action: PurchaseEventActionValues.CONFIRM_PURCHASE_ORDER,
+            documentType: PurchaseEventDocumentTypeValues.PURCHASE_ORDER,
+            documentId: po.id,
+          },
+          actorId,
+        );
+      }
+      return result;
+    });
+  }
+
+  // Sets a PO's tax date and moves every line that follows it in the same transaction
+  async updateTaxDate(dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
+    const movedCount = await this.database.runInTransaction(async () => {
+      await this.purchaseOrdersService.updateTaxDate(po, dto.taxDate);
+      return this.itemsService.followPoTaxDate(po.id, dto.taxDate);
+    });
+    return {
+      success: true,
+      message: `Tax date of purchase order "${po.poNumber}" set to ${dto.taxDate}; ${pluralize('following line', movedCount, true)} updated.`,
+    };
+  }
+
   // Moves a draft PO to another supplier its site may purchase from, on that supplier's payment term at the site
   async changeSupplier(dto: ChangePurchaseOrderSupplierDto, leCurrencyCode: string): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
@@ -115,49 +151,6 @@ export class PurchaseOrdersService {
     return this.purchaseOrdersService.changeExchangeRate(po, dto.exchangeRate, leCurrencyCode);
   }
 
-  // Moves a PO along its workflow; a purchase's PO is not cancelled here, and confirming one tells its purchase in the
-  // same transaction
-  async updateStatus(dto: UpdatePurchaseOrderStatusDto, actorId: string | null): Promise<SuccessResponseDto> {
-    const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
-    if (dto.status === PurchaseOrderStatusValues.CANCELLED) this.assertNotPartOfPurchase(po);
-    return this.database.runInTransaction(async () => {
-      const result = await this.purchaseOrdersService.changeStatus(po, dto.status);
-      if (po.purchaseId && dto.status === PurchaseOrderStatusValues.CONFIRMED) {
-        await this.purchaseProgressService.notifyDocument(
-          po.purchaseId,
-          po.supplierId,
-          {
-            action: PurchaseEventActionValues.CONFIRM_PURCHASE_ORDER,
-            documentType: PurchaseEventDocumentTypeValues.PURCHASE_ORDER,
-            documentId: po.id,
-          },
-          actorId,
-        );
-      }
-      return result;
-    });
-  }
-
-  // Deletes a draft PO that no purchase created
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const po = await this.purchaseOrdersService.findDetailOrThrow(id);
-    this.assertNotPartOfPurchase(po);
-    return this.purchaseOrdersService.delete(po);
-  }
-
-  // Sets a PO's tax date and moves every line that follows it in the same transaction
-  async updateTaxDate(dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
-    const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
-    const movedCount = await this.database.runInTransaction(async () => {
-      await this.purchaseOrdersService.updateTaxDate(po, dto.taxDate);
-      return this.itemsService.followPoTaxDate(po.id, dto.taxDate);
-    });
-    return {
-      success: true,
-      message: `Tax date of purchase order "${po.poNumber}" set to ${dto.taxDate}; ${pluralize('following line', movedCount, true)} updated.`,
-    };
-  }
-
   // Marks a confirmed PO delivery completed: its lines cancel what they still had to receive and its statuses follow, in one transaction
   async completeDelivery(id: string): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(id);
@@ -181,6 +174,13 @@ export class PurchaseOrdersService {
     const receiptItems = await this.goodsReceiptItemsService.findFlaggedForPurchaseOrder(po.id);
     const holds = await this.supplierInvoiceHoldsService.findOpenForPurchaseOrder(po.id);
     return PurchaseOrderProblemsDto.from(receiptItems, holds);
+  }
+
+  // Deletes a draft PO that no purchase created
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const po = await this.purchaseOrdersService.findDetailOrThrow(id);
+    this.assertNotPartOfPurchase(po);
+    return this.purchaseOrdersService.delete(po);
   }
 
   // Rejects a change to a PO a purchase created; it is ordered from its approved allocations (409)

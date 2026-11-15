@@ -13,16 +13,6 @@ export class CompanyPeopleController {
 
   constructor(private readonly service: PartyRelationshipsDomainService) {}
 
-  // Returns the paginated people (person relationships) of a company
-  @MessagePattern({ cmd: 'org.companies.people.table' })
-  async table(
-    @Payload() data: { companyId: string } & TableState,
-  ): Promise<{ result: PartyRelationshipDto[]; count: number }> {
-    const { companyId, ...state } = data;
-    this.logger.log(`companies.people.table — companyId: ${companyId}`);
-    return this.service.findRelationshipsForTable(companyId, state);
-  }
-
   // Links a person to a company
   @MessagePattern({ cmd: 'org.companies.people.add' })
   async add(@Payload() dto: AddCompanyPersonDto): Promise<CreateResponseDto<PartyRelationshipDto>> {
@@ -37,6 +27,16 @@ export class CompanyPeopleController {
     const { id, ...payload } = dto;
     this.logger.log(`companies.people.update — id: ${id}`);
     return this.service.updateRelationship(id, payload);
+  }
+
+  // Returns the paginated people (person relationships) of a company
+  @MessagePattern({ cmd: 'org.companies.people.table' })
+  async table(
+    @Payload() data: { companyId: string } & TableState,
+  ): Promise<{ result: PartyRelationshipDto[]; count: number }> {
+    const { companyId, ...state } = data;
+    this.logger.log(`companies.people.table — companyId: ${companyId}`);
+    return this.service.findRelationshipsForTable(companyId, state);
   }
 
   // Removes a company-person relationship

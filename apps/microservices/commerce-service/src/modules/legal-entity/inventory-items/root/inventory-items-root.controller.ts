@@ -18,18 +18,18 @@ export class LeInventoryItemsController {
     private readonly mrpsService: InventoryItemMrpsDomainService,
   ) {}
 
-  // The organization's master items, read-only from a legal entity
-  @MessagePattern({ cmd: 'le.inventoryItems.table' })
-  async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
-    this.logger.log('inventoryItems.table');
-    return this.service.findForOrgTable(state);
-  }
-
   // One master item, read-only from a legal entity
   @MessagePattern({ cmd: 'le.inventoryItems.findById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
     return this.service.findById(data.id);
+  }
+
+  // The organization's master items, read-only from a legal entity
+  @MessagePattern({ cmd: 'le.inventoryItems.table' })
+  async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    this.logger.log('inventoryItems.table');
+    return this.service.findForOrgTable(state);
   }
 
   // The legal entity's suppliers carrying the item, narrowed to one site's when the table's context picks one; the

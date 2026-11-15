@@ -15,6 +15,37 @@ export class TaxJurisdictionsController {
 
   constructor(private readonly service: TaxJurisdictionsDomainService) {}
 
+  // Creates a new tax jurisdiction (org_id auto-filled by DB defaults from session vars)
+  @MessagePattern({ cmd: 'org.taxJurisdictions.create' })
+  async create(@Payload() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionDto>> {
+    this.logger.log(`taxJurisdictions.create — code: ${dto.code}`);
+    return this.service.create(dto);
+  }
+
+  // Updates a tax jurisdiction by ID
+  @MessagePattern({ cmd: 'org.taxJurisdictions.update' })
+  async update(@Payload() dto: UpdateTaxJurisdictionDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
+    this.logger.log(`taxJurisdictions.update — id: ${id}`);
+    return this.service.update(id, payload);
+  }
+
+  // Finds a tax jurisdiction by ID (RLS scopes visibility)
+  @MessagePattern({ cmd: 'org.taxJurisdictions.findById' })
+  async findById(@Payload() data: { id: string }): Promise<TaxJurisdictionDto> {
+    this.logger.log(`taxJurisdictions.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated child jurisdictions for a given parent ID
+  @MessagePattern({ cmd: 'org.taxJurisdictions.childrenTable' })
+  async childrenTable(
+    @Payload() data: { parentId: string } & TableState,
+  ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
+    this.logger.log(`taxJurisdictions.childrenTable — parentId: ${data.parentId}`);
+    return this.service.findChildrenForTable(data.parentId, data);
+  }
+
   // Returns total tax-jurisdiction count
   @MessagePattern({ cmd: 'org.taxJurisdictions.count' })
   async count(): Promise<TaxJurisdictionCountDto> {
@@ -27,37 +58,6 @@ export class TaxJurisdictionsController {
   async tree(@Payload() data?: { search?: string; country?: string }): Promise<TaxJurisdictionTreeDto[]> {
     this.logger.log(`taxJurisdictions.tree — country: ${data?.country ?? 'all'}`);
     return this.service.tree(data?.search, data?.country);
-  }
-
-  // Returns paginated child jurisdictions for a given parent ID
-  @MessagePattern({ cmd: 'org.taxJurisdictions.childrenTable' })
-  async childrenTable(
-    @Payload() data: { parentId: string } & TableState,
-  ): Promise<{ result: TaxJurisdictionDto[]; count: number }> {
-    this.logger.log(`taxJurisdictions.childrenTable — parentId: ${data.parentId}`);
-    return this.service.findChildrenForTable(data.parentId, data);
-  }
-
-  // Creates a new tax jurisdiction (org_id auto-filled by DB defaults from session vars)
-  @MessagePattern({ cmd: 'org.taxJurisdictions.create' })
-  async create(@Payload() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionDto>> {
-    this.logger.log(`taxJurisdictions.create — code: ${dto.code}`);
-    return this.service.create(dto);
-  }
-
-  // Finds a tax jurisdiction by ID (RLS scopes visibility)
-  @MessagePattern({ cmd: 'org.taxJurisdictions.findById' })
-  async findById(@Payload() data: { id: string }): Promise<TaxJurisdictionDto> {
-    this.logger.log(`taxJurisdictions.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Updates a tax jurisdiction by ID
-  @MessagePattern({ cmd: 'org.taxJurisdictions.update' })
-  async update(@Payload() dto: UpdateTaxJurisdictionDto): Promise<SuccessResponseDto> {
-    const { id, ...payload } = dto;
-    this.logger.log(`taxJurisdictions.update — id: ${id}`);
-    return this.service.update(id, payload);
   }
 
   // Deletes a tax jurisdiction by ID

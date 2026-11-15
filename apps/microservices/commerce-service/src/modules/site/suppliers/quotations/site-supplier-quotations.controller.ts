@@ -14,6 +14,16 @@ export class SiteSupplierQuotationsController {
 
   constructor(private readonly service: SupplierQuotationsDomainService) {}
 
+  // Returns a quotation of the supplier only when it is posted to the caller's site
+  @MessagePattern({ cmd: 'site.suppliers.quotations.findById' })
+  findById(
+    @Payload() data: { supplierId: string; quotationId: string },
+    @RpcSiteId() siteId: string,
+  ): Promise<SupplierQuotationDetailDto> {
+    this.logger.log(`site.suppliers.quotations.findById — supplierId: ${data.supplierId}, id: ${data.quotationId}`);
+    return this.service.findDetailAtSite(data.supplierId, data.quotationId, siteId);
+  }
+
   // Returns the supplier's quotations posted to the caller's site
   @MessagePattern({ cmd: 'site.suppliers.quotations.table' })
   table(
@@ -23,15 +33,5 @@ export class SiteSupplierQuotationsController {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.quotations.table — supplierId: ${supplierId}`);
     return this.service.findForSupplierTable(supplierId, state, siteId);
-  }
-
-  // Returns a quotation of the supplier only when it is posted to the caller's site
-  @MessagePattern({ cmd: 'site.suppliers.quotations.findById' })
-  findById(
-    @Payload() data: { supplierId: string; quotationId: string },
-    @RpcSiteId() siteId: string,
-  ): Promise<SupplierQuotationDetailDto> {
-    this.logger.log(`site.suppliers.quotations.findById — supplierId: ${data.supplierId}, id: ${data.quotationId}`);
-    return this.service.findDetailAtSite(data.supplierId, data.quotationId, siteId);
   }
 }

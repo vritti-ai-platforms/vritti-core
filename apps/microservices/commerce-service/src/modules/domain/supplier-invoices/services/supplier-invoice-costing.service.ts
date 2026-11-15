@@ -55,6 +55,18 @@ export class SupplierInvoiceCostingDomainService {
     private readonly linesRepository: SupplierInvoiceLinesDomainRepository,
   ) {}
 
+  // Records each line's variance once its costing is applied, in the caller's transaction
+  async recordVariances(lineVariances: LineVariance[]): Promise<void> {
+    for (const { lineId, varianceAmount } of lineVariances) {
+      await this.linesRepository.update(lineId, { varianceAmount });
+    }
+  }
+
+  // Clears the variance of every line of an invoice once its costing is reversed, in the caller's transaction
+  async clearVariances(supplierInvoiceId: string): Promise<void> {
+    await this.linesRepository.clearVariance(supplierInvoiceId);
+  }
+
   // Plans moving the stock each item line invoices from its provisional receipt cost to the line's final cost; the consumed
   // share's difference is the line's variance
   async planItemCosting(
@@ -116,18 +128,6 @@ export class SupplierInvoiceCostingDomainService {
       this.planChargeLanding(plan, invoice, leCurrencyCode, charge, amount, quants, allocateByWeight(amount, weights));
     }
     return plan;
-  }
-
-  // Records each line's variance once its costing is applied, in the caller's transaction
-  async recordVariances(lineVariances: LineVariance[]): Promise<void> {
-    for (const { lineId, varianceAmount } of lineVariances) {
-      await this.linesRepository.update(lineId, { varianceAmount });
-    }
-  }
-
-  // Clears the variance of every line of an invoice once its costing is reversed, in the caller's transaction
-  async clearVariances(supplierInvoiceId: string): Promise<void> {
-    await this.linesRepository.clearVariance(supplierInvoiceId);
   }
 
   // Returns how much a line's final cost per primary unit differs from the provisional cost its receipt valued it at

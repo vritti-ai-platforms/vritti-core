@@ -25,6 +25,54 @@ export class TaxGroupsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a tax group for one country
+  create(dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupResponseDto>> {
+    this.logger.log(`org.taxGroups.create — country: ${dto.countryCode}, code: ${dto.code}`);
+    return this.nats.send('commerce', 'org.taxGroups.create', dto);
+  }
+
+  // Adds a dated rate to a group
+  createRate(taxGroupId: string, dto: CreateTaxGroupRateDto): Promise<CreateResponseDto<TaxGroupRateResponseDto>> {
+    this.logger.log(`org.taxGroups.rates.create — taxGroupId: ${taxGroupId}, component: ${dto.taxComponentId}`);
+    return this.nats.send('commerce', 'org.taxGroups.rates.create', { taxGroupId, ...dto });
+  }
+
+  // Maps a tax class to a group in the group's country
+  createClass(taxGroupId: string, dto: CreateTaxClassGroupDto): Promise<CreateResponseDto<TaxClassGroupResponseDto>> {
+    this.logger.log(`org.taxGroups.classes.create — taxGroupId: ${taxGroupId}, taxClassId: ${dto.taxClassId}`);
+    return this.nats.send('commerce', 'org.taxGroups.classes.create', { taxGroupId, ...dto });
+  }
+
+  // Updates a tax group by ID
+  update(id: string, dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.update', { id, ...dto });
+  }
+
+  // Updates a rate of a group
+  updateRate(taxGroupId: string, id: string, dto: UpdateTaxGroupRateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.rates.update — taxGroupId: ${taxGroupId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.rates.update', { taxGroupId, id, ...dto });
+  }
+
+  // Updates a class mapping of a group
+  updateClass(taxGroupId: string, id: string, dto: UpdateTaxClassGroupDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.classes.update — taxGroupId: ${taxGroupId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.classes.update', { taxGroupId, id, ...dto });
+  }
+
+  // Activates or deactivates a tax group
+  setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.setActive — id: ${id}, isActive: ${isActive}`);
+    return this.nats.send('commerce', 'org.taxGroups.setActive', { id, isActive });
+  }
+
+  // Finds a tax group by ID
+  findById(id: string): Promise<TaxGroupResponseDto> {
+    this.logger.log(`org.taxGroups.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.findById', { id });
+  }
+
   // Returns paginated tax groups for the data table; the country comes from the saved table context
   async findForTable(userId: string): Promise<TaxGroupTableResponseDto> {
     this.logger.log('org.taxGroups.table');
@@ -35,36 +83,6 @@ export class TaxGroupsGatewayService {
       state,
     );
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a tax group for one country
-  create(dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupResponseDto>> {
-    this.logger.log(`org.taxGroups.create — country: ${dto.countryCode}, code: ${dto.code}`);
-    return this.nats.send('commerce', 'org.taxGroups.create', dto);
-  }
-
-  // Finds a tax group by ID
-  findById(id: string): Promise<TaxGroupResponseDto> {
-    this.logger.log(`org.taxGroups.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.findById', { id });
-  }
-
-  // Updates a tax group by ID
-  update(id: string, dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.update', { id, ...dto });
-  }
-
-  // Activates or deactivates a tax group
-  setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.setActive — id: ${id}, isActive: ${isActive}`);
-    return this.nats.send('commerce', 'org.taxGroups.setActive', { id, isActive });
-  }
-
-  // Deletes a tax group by ID
-  delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.delete — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.delete', { id });
   }
 
   // Returns a group's paginated rates for the data table
@@ -85,24 +103,6 @@ export class TaxGroupsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Adds a dated rate to a group
-  createRate(taxGroupId: string, dto: CreateTaxGroupRateDto): Promise<CreateResponseDto<TaxGroupRateResponseDto>> {
-    this.logger.log(`org.taxGroups.rates.create — taxGroupId: ${taxGroupId}, component: ${dto.taxComponentId}`);
-    return this.nats.send('commerce', 'org.taxGroups.rates.create', { taxGroupId, ...dto });
-  }
-
-  // Updates a rate of a group
-  updateRate(taxGroupId: string, id: string, dto: UpdateTaxGroupRateDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.rates.update — taxGroupId: ${taxGroupId}, id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.rates.update', { taxGroupId, id, ...dto });
-  }
-
-  // Removes a rate from a group
-  deleteRate(taxGroupId: string, id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.rates.delete — taxGroupId: ${taxGroupId}, id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.rates.delete', { taxGroupId, id });
-  }
-
   // Returns a group's paginated class mappings for the data table
   async findClassesForTable(userId: string, taxGroupId: string): Promise<TaxClassGroupTableResponseDto> {
     this.logger.log(`org.taxGroups.classes.table — taxGroupId: ${taxGroupId}`);
@@ -118,16 +118,16 @@ export class TaxGroupsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Maps a tax class to a group in the group's country
-  createClass(taxGroupId: string, dto: CreateTaxClassGroupDto): Promise<CreateResponseDto<TaxClassGroupResponseDto>> {
-    this.logger.log(`org.taxGroups.classes.create — taxGroupId: ${taxGroupId}, taxClassId: ${dto.taxClassId}`);
-    return this.nats.send('commerce', 'org.taxGroups.classes.create', { taxGroupId, ...dto });
+  // Deletes a tax group by ID
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.delete', { id });
   }
 
-  // Updates a class mapping of a group
-  updateClass(taxGroupId: string, id: string, dto: UpdateTaxClassGroupDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.taxGroups.classes.update — taxGroupId: ${taxGroupId}, id: ${id}`);
-    return this.nats.send('commerce', 'org.taxGroups.classes.update', { taxGroupId, id, ...dto });
+  // Removes a rate from a group
+  deleteRate(taxGroupId: string, id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.taxGroups.rates.delete — taxGroupId: ${taxGroupId}, id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.rates.delete', { taxGroupId, id });
   }
 
   // Removes a class mapping from a group

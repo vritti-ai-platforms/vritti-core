@@ -56,23 +56,120 @@ export class LocationsDomainService {
     private readonly locationsRepository: LocationsDomainRepository,
   ) {}
 
-  private static toPathLabel(code: string): string {
-    const normalized = code
-      .toLowerCase()
-      .replace(/[^a-z0-9_]+/g, '_')
-      .replace(/^_+|_+$/g, '');
-    return normalized || 'loc';
+  // Creates a new storage location
+  async create(data: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
+    if (data.parentId) {
+      await this.assertNoCircularReference(null, data.parentId);
+    }
+
+    let parentPath: string | null = null;
+    let parentRole: string | null = null;
+    let parentStorageTypeId: string | null = null;
+    if (data.parentId) {
+      const parent = await this.locationsRepository.findById(data.parentId);
+      if (!parent) throw new NotFoundException('Parent storage location not found.');
+      parentPath = parent.path;
+      parentRole = parent.locationRole;
+      parentStorageTypeId = parent.storageTypeId;
+    }
+
+    const ownStorageTypeId = data.inheritStorageType ? null : (data.storageTypeId ?? null);
+    const storageTypeId = ownStorageTypeId ?? parentStorageTypeId;
+    if (data.locationRole !== LocationRoleValues.ZONE && !storageTypeId) {
+      throw LocationsDomainService.storageTypeRequired([data.name]);
+    }
+
+    if (parentRole !== null && parentRole !== LocationRoleValues.ZONE) {
+      throw new BadRequestException({
+        label: 'Invalid Parent',
+        detail: 'Only Zone locations can contain other locations. Pick a Zone as the parent.',
+        errors: [{ field: 'parentId', message: 'Parent must be a Zone' }],
+      });
+    }
+
+    const created = await this.database.runInTransaction(async () => {
+      const entity = await this.locationsRepository.create({
+        name: data.name,
+        code: data.code,
+        parentId: data.parentId ?? null,
+        path: '__pending__',
+        sortOrder: data.sortOrder ?? 1,
+        area: data.area ?? null,
+        managerId: data.managerId ?? null,
+        locationRole: data.locationRole,
+        storageTypeId,
+        isStorageTypeOverridden: ownStorageTypeId !== null,
+        isActive: data.isActive,
+      });
+
+      const path = LocationsDomainService.buildPath(parentPath, entity.code);
+      await this.locationsRepository.update(entity.id, { path });
+      const fresh = await this.locationsRepository.findDetail(entity.id);
+      if (!fresh) throw new NotFoundException('Storage location not found.');
+      return { entity, fresh };
+    });
+
+    const { entity, fresh: createdRow } = created;
+    this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
+    return {
+      success: true,
+      message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
+      data: LocationDto.from(createdRow),
+    };
   }
 
-  private static buildPath(parentPath: string | null, code: string): string {
-    const label = LocationsDomainService.toPathLabel(code);
-    return parentPath ? `${parentPath}.${label}` : label;
+  // Reorders all siblings under a parent location using the provided final ID order
+  async reorderSiblings(parentId: string | null, orderedIds: string[]): Promise<SuccessResponseDto> {
+    if (orderedIds.length === 0) {
+      throw new BadRequestException('orderedIds must contain at least one location ID.');
+    }
+
+    const uniqueOrderedIds = new Set(orderedIds);
+    if (uniqueOrderedIds.size !== orderedIds.length) {
+      throw new BadRequestException('orderedIds must not contain duplicates.');
+    }
+
+    const siblingIds = await this.locationsRepository.findChildIdsByParent(parentId);
+    if (siblingIds.length !== orderedIds.length) {
+      throw new BadRequestException('orderedIds must include all siblings for the selected parent.');
+    }
+
+    const siblingSet = new Set(siblingIds);
+    const hasOutOfScopeIds = orderedIds.some((id) => !siblingSet.has(id));
+    if (hasOutOfScopeIds) {
+      throw new BadRequestException('orderedIds contains invalid location IDs for the selected parent.');
+    }
+
+    await this.database.runInTransaction(async () => {
+      for (let index = 0; index < orderedIds.length; index += 1) {
+        await this.locationsRepository.updateSortOrder(orderedIds[index], index + 1);
+      }
+    });
+
+    this.logger.log(`Reordered ${orderedIds.length} storage locations under parent ${parentId ?? 'ROOT'}`);
+    return { success: true, message: 'Storage locations reordered successfully.' };
   }
 
-  // Returns total storage location count (independent of tree search/filter)
-  async count(): Promise<LocationCountDto> {
-    const count = await this.locationsRepository.countAll();
-    return { count };
+  // Writes a planned update: the row, its subtree's paths when it moved or was recoded, and inherited storage types
+  async applyUpdate(plan: LocationUpdatePlan): Promise<SuccessResponseDto> {
+    const { location } = plan;
+    const descendantChanges = plan.storageTypeChanges.filter((change) => change.id !== location.id);
+
+    const updated = await this.database.runInTransaction(async () => {
+      const row = await this.locationsRepository.update(location.id, plan.values);
+      if (plan.nextPath) {
+        await this.locationsRepository.rewriteSubtreePath(location.path, plan.nextPath);
+      }
+      for (const [storageTypeId, ids] of LocationsDomainService.groupByStorageType(descendantChanges)) {
+        await this.locationsRepository.setStorageType(ids, storageTypeId);
+      }
+      return row;
+    });
+
+    this.logger.log(
+      `Updated storage location: ${updated.name} (${location.id}), ${descendantChanges.length} descendant storage types changed`,
+    );
+    return { success: true, message: `Storage location "${updated.name}" updated successfully.` };
   }
 
   // Returns a single storage location by ID with canDelete computed
@@ -107,6 +204,12 @@ export class LocationsDomainService {
     };
   }
 
+  // Returns total storage location count (independent of tree search/filter)
+  async count(): Promise<LocationCountDto> {
+    const count = await this.locationsRepository.countAll();
+    return { count };
+  }
+
   // Returns storage locations as a TreeView-compatible hierarchy
   async findTree(search?: string): Promise<LocationTreeDto[]> {
     const normalizedSearch = search?.trim();
@@ -139,19 +242,6 @@ export class LocationsDomainService {
 
     return build(null, null);
   }
-
-  private static readonly LOCATION_ROLE_LABELS: Record<LocationRole, string> = {
-    STORAGE: 'Storage',
-    RESERVED_STORAGE: 'Reserved Storage',
-    ZONE: 'Zone',
-  };
-
-  // Display order for role groups in select dropdowns.
-  private static readonly LOCATION_ROLE_GROUP_ORDER: LocationRole[] = [
-    LocationRoleValues.RESERVED_STORAGE,
-    LocationRoleValues.STORAGE,
-    LocationRoleValues.ZONE,
-  ];
 
   // Returns paginated location options for select dropdowns. locationRoles is a comma-separated whitelist against
   // locations.location_role.
@@ -225,100 +315,6 @@ export class LocationsDomainService {
         : "The selected location does not exist. Pick one of this site's locations.",
       errors: [{ field, message: location ? 'Not at this site' : 'Location not found' }],
     });
-  }
-
-  // Reorders all siblings under a parent location using the provided final ID order
-  async reorderSiblings(parentId: string | null, orderedIds: string[]): Promise<SuccessResponseDto> {
-    if (orderedIds.length === 0) {
-      throw new BadRequestException('orderedIds must contain at least one location ID.');
-    }
-
-    const uniqueOrderedIds = new Set(orderedIds);
-    if (uniqueOrderedIds.size !== orderedIds.length) {
-      throw new BadRequestException('orderedIds must not contain duplicates.');
-    }
-
-    const siblingIds = await this.locationsRepository.findChildIdsByParent(parentId);
-    if (siblingIds.length !== orderedIds.length) {
-      throw new BadRequestException('orderedIds must include all siblings for the selected parent.');
-    }
-
-    const siblingSet = new Set(siblingIds);
-    const hasOutOfScopeIds = orderedIds.some((id) => !siblingSet.has(id));
-    if (hasOutOfScopeIds) {
-      throw new BadRequestException('orderedIds contains invalid location IDs for the selected parent.');
-    }
-
-    await this.database.runInTransaction(async () => {
-      for (let index = 0; index < orderedIds.length; index += 1) {
-        await this.locationsRepository.updateSortOrder(orderedIds[index], index + 1);
-      }
-    });
-
-    this.logger.log(`Reordered ${orderedIds.length} storage locations under parent ${parentId ?? 'ROOT'}`);
-    return { success: true, message: 'Storage locations reordered successfully.' };
-  }
-
-  // Creates a new storage location
-  async create(data: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
-    if (data.parentId) {
-      await this.assertNoCircularReference(null, data.parentId);
-    }
-
-    let parentPath: string | null = null;
-    let parentRole: string | null = null;
-    let parentStorageTypeId: string | null = null;
-    if (data.parentId) {
-      const parent = await this.locationsRepository.findById(data.parentId);
-      if (!parent) throw new NotFoundException('Parent storage location not found.');
-      parentPath = parent.path;
-      parentRole = parent.locationRole;
-      parentStorageTypeId = parent.storageTypeId;
-    }
-
-    const ownStorageTypeId = data.inheritStorageType ? null : (data.storageTypeId ?? null);
-    const storageTypeId = ownStorageTypeId ?? parentStorageTypeId;
-    if (data.locationRole !== LocationRoleValues.ZONE && !storageTypeId) {
-      throw LocationsDomainService.storageTypeRequired([data.name]);
-    }
-
-    if (parentRole !== null && parentRole !== LocationRoleValues.ZONE) {
-      throw new BadRequestException({
-        label: 'Invalid Parent',
-        detail: 'Only Zone locations can contain other locations. Pick a Zone as the parent.',
-        errors: [{ field: 'parentId', message: 'Parent must be a Zone' }],
-      });
-    }
-
-    const created = await this.database.runInTransaction(async () => {
-      const entity = await this.locationsRepository.create({
-        name: data.name,
-        code: data.code,
-        parentId: data.parentId ?? null,
-        path: '__pending__',
-        sortOrder: data.sortOrder ?? 1,
-        area: data.area ?? null,
-        managerId: data.managerId ?? null,
-        locationRole: data.locationRole,
-        storageTypeId,
-        isStorageTypeOverridden: ownStorageTypeId !== null,
-        isActive: data.isActive,
-      });
-
-      const path = LocationsDomainService.buildPath(parentPath, entity.code);
-      await this.locationsRepository.update(entity.id, { path });
-      const fresh = await this.locationsRepository.findDetail(entity.id);
-      if (!fresh) throw new NotFoundException('Storage location not found.');
-      return { entity, fresh };
-    });
-
-    const { entity, fresh: createdRow } = created;
-    this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
-    return {
-      success: true,
-      message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
-      data: LocationDto.from(createdRow),
-    };
   }
 
   // Validates an update and works out the row values, the new path and every storage type it changes in the subtree;
@@ -413,28 +409,6 @@ export class LocationsDomainService {
     });
   }
 
-  // Writes a planned update: the row, its subtree's paths when it moved or was recoded, and inherited storage types
-  async applyUpdate(plan: LocationUpdatePlan): Promise<SuccessResponseDto> {
-    const { location } = plan;
-    const descendantChanges = plan.storageTypeChanges.filter((change) => change.id !== location.id);
-
-    const updated = await this.database.runInTransaction(async () => {
-      const row = await this.locationsRepository.update(location.id, plan.values);
-      if (plan.nextPath) {
-        await this.locationsRepository.rewriteSubtreePath(location.path, plan.nextPath);
-      }
-      for (const [storageTypeId, ids] of LocationsDomainService.groupByStorageType(descendantChanges)) {
-        await this.locationsRepository.setStorageType(ids, storageTypeId);
-      }
-      return row;
-    });
-
-    this.logger.log(
-      `Updated storage location: ${updated.name} (${location.id}), ${descendantChanges.length} descendant storage types changed`,
-    );
-    return { success: true, message: `Storage location "${updated.name}" updated successfully.` };
-  }
-
   // Loads the members (a location itself, or a zone's storage locations) and their quants for the fill read
   async findFillInputs(locationIds: string[]): Promise<LocationFillInputs> {
     const members = await this.locationsRepository.findFillMembers(locationIds);
@@ -523,6 +497,53 @@ export class LocationsDomainService {
     }
     return fills;
   }
+
+  // Deletes an storage location by ID; throws ConflictException if referenced
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.locationsRepository.findById(id);
+    if (!existing) throw new NotFoundException('Storage location not found.');
+    const refs = await this.locationsRepository.countReferences(id);
+    const refLabels: [number, string][] = [
+      [refs.inventoryLevels, 'inventory level'],
+      [refs.childLocations, 'child location'],
+    ];
+    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
+    if (parts.length > 0) {
+      throw new ConflictException({
+        label: 'Storage Location In Use',
+        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
+      });
+    }
+    await this.locationsRepository.delete(id);
+    this.logger.log(`Deleted storage location: ${existing.name} (${id})`);
+    return { success: true, message: `Storage location "${existing.name}" deleted successfully.` };
+  }
+
+  private static toPathLabel(code: string): string {
+    const normalized = code
+      .toLowerCase()
+      .replace(/[^a-z0-9_]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+    return normalized || 'loc';
+  }
+
+  private static buildPath(parentPath: string | null, code: string): string {
+    const label = LocationsDomainService.toPathLabel(code);
+    return parentPath ? `${parentPath}.${label}` : label;
+  }
+
+  private static readonly LOCATION_ROLE_LABELS: Record<LocationRole, string> = {
+    STORAGE: 'Storage',
+    RESERVED_STORAGE: 'Reserved Storage',
+    ZONE: 'Zone',
+  };
+
+  // Display order for role groups in select dropdowns.
+  private static readonly LOCATION_ROLE_GROUP_ORDER: LocationRole[] = [
+    LocationRoleValues.RESERVED_STORAGE,
+    LocationRoleValues.STORAGE,
+    LocationRoleValues.ZONE,
+  ];
 
   // Sums one storage location's quants: each quant splits into whole packs and loose primary units; capacity counts
   // packs × usage(pack) + loose × usage(primary), weight and volume take the pack's own figure (or factor × the primary
@@ -637,27 +658,6 @@ export class LocationsDomainService {
       detail: `${names} would have no storage type. Pick a storage type, or give the parent zone one to inherit.`,
       errors: [{ field: 'storageTypeId', message: 'Storage type required' }],
     });
-  }
-
-  // Deletes an storage location by ID; throws ConflictException if referenced
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.locationsRepository.findById(id);
-    if (!existing) throw new NotFoundException('Storage location not found.');
-    const refs = await this.locationsRepository.countReferences(id);
-    const refLabels: [number, string][] = [
-      [refs.inventoryLevels, 'inventory level'],
-      [refs.childLocations, 'child location'],
-    ];
-    const parts = refLabels.filter(([n]) => n > 0).map(([n, label]) => `${n} ${pluralize(label, n)}`);
-    if (parts.length > 0) {
-      throw new ConflictException({
-        label: 'Storage Location In Use',
-        detail: `Cannot delete "${existing.name}" — it is referenced by ${parts.join(', ')}. Remove those references first.`,
-      });
-    }
-    await this.locationsRepository.delete(id);
-    this.logger.log(`Deleted storage location: ${existing.name} (${id})`);
-    return { success: true, message: `Storage location "${existing.name}" deleted successfully.` };
   }
 
   // Traverses the parent chain from ancestorId upward; throws if locationId appears in the chain

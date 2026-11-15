@@ -28,12 +28,6 @@ export class InventoryItemStorageTypesDomainService {
 
   constructor(private readonly repository: InventoryItemStorageTypesDomainRepository) {}
 
-  // Returns the storage types an item may be stored in, with the max quantity per location of each
-  async findAll(inventoryItemId: string): Promise<InventoryItemStorageTypeDto[]> {
-    const rows = await this.repository.findAllByInventoryItemId(inventoryItemId);
-    return rows.map((row) => InventoryItemStorageTypeDto.from(row));
-  }
-
   // Allows an item in a storage type, with how much of it one location of that type holds
   async create(
     item: InventoryItemContext,
@@ -76,19 +70,10 @@ export class InventoryItemStorageTypesDomainService {
     return { success: true, message: `Storage limits in "${existing.storageTypeName}" updated successfully.` };
   }
 
-  // Removes an item's storage type unless the item has stock in a location of that type
-  async delete(inventoryItemId: string, id: string): Promise<SuccessResponseDto> {
-    const existing = await this.findRowOrThrow(inventoryItemId, id);
-    const stockedAt = await this.repository.findStockedLocationNames(inventoryItemId, existing.storageTypeId);
-    if (stockedAt.length > 0) {
-      throw new ConflictException({
-        label: 'Item Stored In This Type',
-        detail: `The item has stock in ${namedList(stockedAt)} of storage type "${existing.storageTypeName}". Move that stock before removing the storage type.`,
-      });
-    }
-    await this.repository.delete(id);
-    this.logger.log(`Removed storage type ${existing.storageTypeId} from inventory item ${inventoryItemId}`);
-    return { success: true, message: `Item no longer allowed in "${existing.storageTypeName}".` };
+  // Returns the storage types an item may be stored in, with the max quantity per location of each
+  async findAll(inventoryItemId: string): Promise<InventoryItemStorageTypeDto[]> {
+    const rows = await this.repository.findAllByInventoryItemId(inventoryItemId);
+    return rows.map((row) => InventoryItemStorageTypeDto.from(row));
   }
 
   // Returns the rows pairing any of the items with any of the storage types
@@ -122,6 +107,21 @@ export class InventoryItemStorageTypesDomainService {
       label: 'Stored Items Not Allowed',
       detail: `The new storage type does not allow ${namedList(pairs)}. Allow those items in the storage type or move their stock first.`,
     });
+  }
+
+  // Removes an item's storage type unless the item has stock in a location of that type
+  async delete(inventoryItemId: string, id: string): Promise<SuccessResponseDto> {
+    const existing = await this.findRowOrThrow(inventoryItemId, id);
+    const stockedAt = await this.repository.findStockedLocationNames(inventoryItemId, existing.storageTypeId);
+    if (stockedAt.length > 0) {
+      throw new ConflictException({
+        label: 'Item Stored In This Type',
+        detail: `The item has stock in ${namedList(stockedAt)} of storage type "${existing.storageTypeName}". Move that stock before removing the storage type.`,
+      });
+    }
+    await this.repository.delete(id);
+    this.logger.log(`Removed storage type ${existing.storageTypeId} from inventory item ${inventoryItemId}`);
+    return { success: true, message: `Item no longer allowed in "${existing.storageTypeName}".` };
   }
 
   // Loads a row of the item, throwing when it is missing or belongs to another item

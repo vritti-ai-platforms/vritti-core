@@ -41,34 +41,6 @@ export class TaxGroupRatesDomainService {
     private readonly repository: TaxGroupRatesDomainRepository,
   ) {}
 
-  // Returns a group's paginated rates in the order they apply, latest period first; a state and a day in the context
-  // narrow them to the rates charged there on that day
-  async findForTable(
-    taxGroupId: string,
-    state: TableState,
-    context: TaxGroupRateContext,
-  ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
-    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
-    const fieldMap = TaxGroupRatesDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findDetailsForTable({
-      where: and(
-        eq(taxGroupRates.taxGroupId, group.id),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, TaxGroupRatesDomainService.SEARCH_FIELD_MAP),
-      ),
-      context,
-      orderBy:
-        orderBy.length > 0
-          ? orderBy
-          : [asc(taxGroupRates.sequence), asc(taxComponents.name), desc(taxGroupRates.validFrom)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxGroupRateDto.from), count };
-  }
-
   // Adds a dated rate to a group: its component and jurisdiction are of the group's country, it carries the values
   // its calculation needs, and it overlaps no other rate of the same component, place and jurisdiction check — except an
   // open-ended rate that started earlier, which the new rate takes over from the day it starts
@@ -164,6 +136,34 @@ export class TaxGroupRatesDomainService {
     });
     this.logger.log(`Updated ${component.code} rate on tax group ${group.code} (${existing.id})`);
     return { success: true, message: `${component.name} rate on "${group.name}" updated.` };
+  }
+
+  // Returns a group's paginated rates in the order they apply, latest period first; a state and a day in the context
+  // narrow them to the rates charged there on that day
+  async findForTable(
+    taxGroupId: string,
+    state: TableState,
+    context: TaxGroupRateContext,
+  ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
+    const group = await this.groupsRepository.findByIdOrThrow(taxGroupId);
+    const fieldMap = TaxGroupRatesDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findDetailsForTable({
+      where: and(
+        eq(taxGroupRates.taxGroupId, group.id),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxGroupRatesDomainService.SEARCH_FIELD_MAP),
+      ),
+      context,
+      orderBy:
+        orderBy.length > 0
+          ? orderBy
+          : [asc(taxGroupRates.sequence), asc(taxComponents.name), desc(taxGroupRates.validFrom)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxGroupRateDto.from), count };
   }
 
   // Removes a rate from a group

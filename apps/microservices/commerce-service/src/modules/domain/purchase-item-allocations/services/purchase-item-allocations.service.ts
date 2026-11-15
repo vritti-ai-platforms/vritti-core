@@ -75,137 +75,6 @@ export class PurchaseItemAllocationsDomainService {
 
   constructor(private readonly repository: PurchaseItemAllocationsDomainRepository) {}
 
-  // Returns every allocation of a purchase's items
-  findByPurchaseId(purchaseId: string): Promise<PurchaseAllocationRow[]> {
-    return this.repository.findByPurchaseId(purchaseId);
-  }
-
-  // Returns the allocations of a leg
-  findByLegId(purchaseSupplierId: string): Promise<PurchaseItemAllocation[]> {
-    return this.repository.findByLegId(purchaseSupplierId);
-  }
-
-  // Returns allocations narrowed by the filter with their purchase, leg, item tracking and units
-  findWithLegs(filter: AllocationWithLegFilter): Promise<AllocationWithLegRow[]> {
-    return this.repository.findWithLegs(filter);
-  }
-
-  // Points allocations at the PO lines they became, in the caller's transaction
-  async linkOrderLines(links: { allocationId: string; purchaseOrderItemId: string }[]): Promise<void> {
-    await this.repository.linkOrderLines(links);
-  }
-
-  // Frees the allocations of PO lines about to be deleted, in the caller's transaction
-  async unlinkOrderLines(purchaseOrderItemIds: string[]): Promise<void> {
-    await this.repository.unlinkOrderLines(purchaseOrderItemIds);
-  }
-
-  // Returns the unit price an allocation is ordered at, rejecting one without a price and naming its item
-  requireUnitPrice(allocation: Pick<PurchaseItemAllocation, 'unitPrice'> & { inventoryItemName: string }): bigint {
-    if (allocation.unitPrice !== null) return allocation.unitPrice;
-    throw new BadRequestException({
-      label: 'Price Missing',
-      detail: `"${allocation.inventoryItemName}" has no unit price on its allocation. Price it before ordering.`,
-    });
-  }
-
-  // Returns one allocation of a purchase
-  async findById(purchaseId: string, allocationId: string): Promise<PurchaseAllocationDto> {
-    return PurchaseAllocationDto.from(await this.findOnPurchaseOrThrow(purchaseId, allocationId));
-  }
-
-  // Loads an allocation of the given purchase, throwing when it is not on it
-  async findOnPurchaseOrThrow(purchaseId: string, allocationId: string): Promise<PurchaseAllocationRow> {
-    const allocation = await this.repository.findDetailOnPurchase(purchaseId, allocationId);
-    if (!allocation) throw new NotFoundException('Allocation not found.');
-    return allocation;
-  }
-
-  // Sums a leg's allocations as Σ unit price × quantity in their one currency; the total is null when there are none,
-  // any is unpriced or they are in more than one currency
-  summarize(allocations: PricedAllocation[]): PurchaseAllocationSourcing {
-    const currencyCodes = _.uniq(allocations.map((allocation) => allocation.currencyCode));
-    const unpricedCount = allocations.filter((allocation) => allocation.unitPrice === null).length;
-    if (allocations.length === 0 || unpricedCount > 0 || currencyCodes.length > 1) {
-      return { currencyCodes, total: null, unpricedCount };
-    }
-    const total = allocations.reduce(
-      (sum, allocation) => sum.plus(new Decimal((allocation.unitPrice ?? 0n).toString()).times(allocation.uomQty)),
-      new Decimal(0),
-    );
-    return {
-      currencyCodes,
-      total: BigInt(total.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0)),
-      unpricedCount,
-    };
-  }
-
-  // Returns a leg's sourced total as money: Σ unit price × quantity of its priced allocations in their currency (zero
-  // when they span currencies), and whether any allocation is still unpriced
-  sourcedTotal(allocations: PricedAllocation[]): PurchaseLegSourcedTotal {
-    const priced = allocations.filter(
-      (allocation): allocation is PricedAllocation & { unitPrice: bigint } => allocation.unitPrice !== null,
-    );
-    const currencyCodes = _.uniq(priced.map((allocation) => allocation.currencyCode));
-    const currencyCode = currencyCodes[0] ?? allocations[0]?.currencyCode ?? '';
-    const total =
-      currencyCodes.length > 1
-        ? new Decimal(0)
-        : priced.reduce(
-            (sum, allocation) => sum.plus(new Decimal(allocation.unitPrice.toString()).times(allocation.uomQty)),
-            new Decimal(0),
-          );
-    return {
-      sourcedTotal: CurrencyAmountDto.from(
-        BigInt(total.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0)),
-        currencyCode,
-      ),
-      hasUnpricedAllocations: priced.length < allocations.length,
-    };
-  }
-
-  // Rejects an entered allocation on a purchase that requires quotations; its allocations come from quotation lines
-  assertEnteredAllowed(purchase: AllocationPurchase): void {
-    if (!purchase.quotationsRequired) return;
-    throw new BadRequestException({
-      label: 'Allocate From Quotations',
-      detail: `"${purchase.purchaseNumber}" requires quotations, so its items are allocated from posted quotation lines.`,
-    });
-  }
-
-  // Keeps the quotation lines that quote a item line, rejecting any requested line that is not a posted, valid line of
-  // the purchase's quotations or quotes no item line
-  requireQuotedItems<TTerms extends QuotedAllocationTerms>(
-    requestedIds: string[],
-    terms: TTerms[],
-  ): (TTerms & { purchaseItemId: string })[] {
-    const quoted = terms.filter((term): term is TTerms & { purchaseItemId: string } => term.purchaseItemId !== null);
-    const unavailableCount = _.uniq(requestedIds).length - quoted.length;
-    if (unavailableCount === 0) return quoted;
-    throw new BadRequestException({
-      label: 'Quotation Lines Unavailable',
-      detail: `${pluralize('chosen line', unavailableCount, true)} cannot be allocated: not on a quotation of this purchase posted to its site and valid today, or quoting none of its items.`,
-      errors: [{ field: 'supplierQuotationItemIds', message: 'Not available to allocate' }],
-    });
-  }
-
-  // Converts the requested primary quantity to whole units of a quotation line: rounds up to the next whole unit and
-  // returns the primary quantity those units hold
-  quotedQuantity(requestedPrimaryQty: number, primaryPerUnit: number): AllocationQuantity {
-    if (primaryPerUnit <= 0) {
-      throw new BadRequestException({
-        label: 'Unit Too Small',
-        detail: 'One unit of the quotation line holds less than the smallest primary quantity that can be recorded.',
-        errors: [{ field: 'supplierQuotationItemIds', message: 'Unit cannot be converted' }],
-      });
-    }
-    const uomQty = new Decimal(requestedPrimaryQty).dividedBy(primaryPerUnit).ceil();
-    return {
-      uomQty: uomQty.toNumber(),
-      primaryUomQty: uomQty.times(primaryPerUnit).toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber(),
-    };
-  }
-
   // Allocates part of a purchase item to a leg at an entered price and scheme; the price may be left out only for a leg
   // its invoice prices, and is otherwise in one of the supplier's currencies
   async create(
@@ -306,6 +175,137 @@ export class PurchaseItemAllocationsDomainService {
     this.logger.log(`Updated allocation ${allocation.id} on ${context.purchase.purchaseNumber}`);
   }
 
+  // Points allocations at the PO lines they became, in the caller's transaction
+  async linkOrderLines(links: { allocationId: string; purchaseOrderItemId: string }[]): Promise<void> {
+    await this.repository.linkOrderLines(links);
+  }
+
+  // Returns one allocation of a purchase
+  async findById(purchaseId: string, allocationId: string): Promise<PurchaseAllocationDto> {
+    return PurchaseAllocationDto.from(await this.findOnPurchaseOrThrow(purchaseId, allocationId));
+  }
+
+  // Returns every allocation of a purchase's items
+  findByPurchaseId(purchaseId: string): Promise<PurchaseAllocationRow[]> {
+    return this.repository.findByPurchaseId(purchaseId);
+  }
+
+  // Returns the allocations of a leg
+  findByLegId(purchaseSupplierId: string): Promise<PurchaseItemAllocation[]> {
+    return this.repository.findByLegId(purchaseSupplierId);
+  }
+
+  // Returns allocations narrowed by the filter with their purchase, leg, item tracking and units
+  findWithLegs(filter: AllocationWithLegFilter): Promise<AllocationWithLegRow[]> {
+    return this.repository.findWithLegs(filter);
+  }
+
+  // Returns the unit price an allocation is ordered at, rejecting one without a price and naming its item
+  requireUnitPrice(allocation: Pick<PurchaseItemAllocation, 'unitPrice'> & { inventoryItemName: string }): bigint {
+    if (allocation.unitPrice !== null) return allocation.unitPrice;
+    throw new BadRequestException({
+      label: 'Price Missing',
+      detail: `"${allocation.inventoryItemName}" has no unit price on its allocation. Price it before ordering.`,
+    });
+  }
+
+  // Loads an allocation of the given purchase, throwing when it is not on it
+  async findOnPurchaseOrThrow(purchaseId: string, allocationId: string): Promise<PurchaseAllocationRow> {
+    const allocation = await this.repository.findDetailOnPurchase(purchaseId, allocationId);
+    if (!allocation) throw new NotFoundException('Allocation not found.');
+    return allocation;
+  }
+
+  // Sums a leg's allocations as Σ unit price × quantity in their one currency; the total is null when there are none,
+  // any is unpriced or they are in more than one currency
+  summarize(allocations: PricedAllocation[]): PurchaseAllocationSourcing {
+    const currencyCodes = _.uniq(allocations.map((allocation) => allocation.currencyCode));
+    const unpricedCount = allocations.filter((allocation) => allocation.unitPrice === null).length;
+    if (allocations.length === 0 || unpricedCount > 0 || currencyCodes.length > 1) {
+      return { currencyCodes, total: null, unpricedCount };
+    }
+    const total = allocations.reduce(
+      (sum, allocation) => sum.plus(new Decimal((allocation.unitPrice ?? 0n).toString()).times(allocation.uomQty)),
+      new Decimal(0),
+    );
+    return {
+      currencyCodes,
+      total: BigInt(total.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0)),
+      unpricedCount,
+    };
+  }
+
+  // Returns a leg's sourced total as money: Σ unit price × quantity of its priced allocations in their currency (zero
+  // when they span currencies), and whether any allocation is still unpriced
+  sourcedTotal(allocations: PricedAllocation[]): PurchaseLegSourcedTotal {
+    const priced = allocations.filter(
+      (allocation): allocation is PricedAllocation & { unitPrice: bigint } => allocation.unitPrice !== null,
+    );
+    const currencyCodes = _.uniq(priced.map((allocation) => allocation.currencyCode));
+    const currencyCode = currencyCodes[0] ?? allocations[0]?.currencyCode ?? '';
+    const total =
+      currencyCodes.length > 1
+        ? new Decimal(0)
+        : priced.reduce(
+            (sum, allocation) => sum.plus(new Decimal(allocation.unitPrice.toString()).times(allocation.uomQty)),
+            new Decimal(0),
+          );
+    return {
+      sourcedTotal: CurrencyAmountDto.from(
+        BigInt(total.toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0)),
+        currencyCode,
+      ),
+      hasUnpricedAllocations: priced.length < allocations.length,
+    };
+  }
+
+  // Rejects an entered allocation on a purchase that requires quotations; its allocations come from quotation lines
+  assertEnteredAllowed(purchase: AllocationPurchase): void {
+    if (!purchase.quotationsRequired) return;
+    throw new BadRequestException({
+      label: 'Allocate From Quotations',
+      detail: `"${purchase.purchaseNumber}" requires quotations, so its items are allocated from posted quotation lines.`,
+    });
+  }
+
+  // Keeps the quotation lines that quote a item line, rejecting any requested line that is not a posted, valid line of
+  // the purchase's quotations or quotes no item line
+  requireQuotedItems<TTerms extends QuotedAllocationTerms>(
+    requestedIds: string[],
+    terms: TTerms[],
+  ): (TTerms & { purchaseItemId: string })[] {
+    const quoted = terms.filter((term): term is TTerms & { purchaseItemId: string } => term.purchaseItemId !== null);
+    const unavailableCount = _.uniq(requestedIds).length - quoted.length;
+    if (unavailableCount === 0) return quoted;
+    throw new BadRequestException({
+      label: 'Quotation Lines Unavailable',
+      detail: `${pluralize('chosen line', unavailableCount, true)} cannot be allocated: not on a quotation of this purchase posted to its site and valid today, or quoting none of its items.`,
+      errors: [{ field: 'supplierQuotationItemIds', message: 'Not available to allocate' }],
+    });
+  }
+
+  // Converts the requested primary quantity to whole units of a quotation line: rounds up to the next whole unit and
+  // returns the primary quantity those units hold
+  quotedQuantity(requestedPrimaryQty: number, primaryPerUnit: number): AllocationQuantity {
+    if (primaryPerUnit <= 0) {
+      throw new BadRequestException({
+        label: 'Unit Too Small',
+        detail: 'One unit of the quotation line holds less than the smallest primary quantity that can be recorded.',
+        errors: [{ field: 'supplierQuotationItemIds', message: 'Unit cannot be converted' }],
+      });
+    }
+    const uomQty = new Decimal(requestedPrimaryQty).dividedBy(primaryPerUnit).ceil();
+    return {
+      uomQty: uomQty.toNumber(),
+      primaryUomQty: uomQty.times(primaryPerUnit).toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber(),
+    };
+  }
+
+  // Whether an allocation on the leg may change: the purchase is sourcing and the leg is still open in SOURCING
+  isEditable(purchase: EditablePurchase, leg: EditableLeg): boolean {
+    return this.isPurchaseSourcing(purchase) && this.isLegSourcing(leg);
+  }
+
   // Removes an allocation while its leg is in sourcing, returning how many allocations the leg still has
   async remove(context: AllocationContext, allocation: PurchaseItemAllocation): Promise<number> {
     this.assertEditable(context);
@@ -314,9 +314,9 @@ export class PurchaseItemAllocationsDomainService {
     return this.repository.countByLeg(context.leg.id);
   }
 
-  // Whether an allocation on the leg may change: the purchase is sourcing and the leg is still open in SOURCING
-  isEditable(purchase: EditablePurchase, leg: EditableLeg): boolean {
-    return this.isPurchaseSourcing(purchase) && this.isLegSourcing(leg);
+  // Frees the allocations of PO lines about to be deleted, in the caller's transaction
+  async unlinkOrderLines(purchaseOrderItemIds: string[]): Promise<void> {
+    await this.repository.unlinkOrderLines(purchaseOrderItemIds);
   }
 
   // Returns the unit price an update leaves: unchanged when not sent, cleared by null, otherwise the sent price

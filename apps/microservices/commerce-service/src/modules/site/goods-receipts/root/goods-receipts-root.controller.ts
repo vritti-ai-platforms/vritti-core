@@ -38,6 +38,20 @@ export class GoodsReceiptsRootController {
     return this.service.update(dto);
   }
 
+  // Posts a goods receipt, landing its stock at the site
+  @MessagePattern({ cmd: 'site.goodsReceipts.post' })
+  post(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<GoodsReceiptDto> {
+    this.logger.log(`site.goodsReceipts.post — id: ${data.id}`);
+    return this.postService.post(data.id, headers.leCurrencyCode, headers);
+  }
+
+  // Returns one goods receipt
+  @MessagePattern({ cmd: 'site.goodsReceipts.findById' })
+  findById(@Payload() data: { id: string }): Promise<GoodsReceiptDto> {
+    this.logger.log(`site.goodsReceipts.findById — id: ${data.id}`);
+    return this.goodsReceiptsService.findById(data.id);
+  }
+
   // Returns one page of the site's goods receipts
   @MessagePattern({ cmd: 'site.goodsReceipts.table' })
   table(@Payload() state: TableState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
@@ -50,20 +64,6 @@ export class GoodsReceiptsRootController {
   feed(@Payload() query: GoodsReceiptFeedQuery): Promise<GoodsReceiptFeed> {
     this.logger.log('site.goodsReceipts.feed');
     return this.goodsReceiptsService.findForFeed(query);
-  }
-
-  // Returns one goods receipt
-  @MessagePattern({ cmd: 'site.goodsReceipts.findById' })
-  findById(@Payload() data: { id: string }): Promise<GoodsReceiptDto> {
-    this.logger.log(`site.goodsReceipts.findById — id: ${data.id}`);
-    return this.goodsReceiptsService.findById(data.id);
-  }
-
-  // Posts a goods receipt, landing its stock at the site
-  @MessagePattern({ cmd: 'site.goodsReceipts.post' })
-  post(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<GoodsReceiptDto> {
-    this.logger.log(`site.goodsReceipts.post — id: ${data.id}`);
-    return this.postService.post(data.id, headers.leCurrencyCode, headers);
   }
 
   // Deletes a draft goods receipt

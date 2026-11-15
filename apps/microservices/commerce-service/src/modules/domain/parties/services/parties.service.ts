@@ -91,66 +91,6 @@ export class PartiesDomainService {
     private readonly socialProfilesService: PartySocialProfilesDomainService,
   ) {}
 
-  // Returns paginated COMPANY parties with their main lines for the companies data table
-  async findCompaniesForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
-    const fieldMap = PartiesDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        eq(parties.partyType, PartyTypeValues.COMPANY),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, fieldMap),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(parties.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => CompanyDto.from(row, { email: row.email, phone: row.phone })), count };
-  }
-
-  // Returns paginated PERSON parties with their main lines for the people data table
-  async findPeopleForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
-    const fieldMap = PartiesDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        eq(parties.partyType, PartyTypeValues.PERSON),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, fieldMap),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(parties.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => PersonDto.from(row, { email: row.email, phone: row.phone })), count };
-  }
-
-  // Returns paginated party options of the given type for select dropdowns
-  findForSelect(query: SelectOptionsQueryDto, partyType: PartyType): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'displayName',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      where: { partyType },
-      orderByKey: query.orderByKey || 'displayName',
-      orderDirection: query.orderDirection || 'asc',
-    });
-  }
-
-  // Returns paginated active tax registration options of a party for select dropdowns; salesTaxOnly keeps GSTIN and VAT
-  findRegistrationsForSelect(
-    query: SelectOptionsQueryDto,
-    partyId: string,
-    options?: { salesTaxOnly?: boolean },
-  ): Promise<SelectQueryResult> {
-    return this.registrationsRepository.findOptionsForSelect(partyId, query, options);
-  }
-
   // Creates a COMPANY party and returns it as a CompanyDto
   async createCompany(data: CreatePartyInput): Promise<CreateResponseDto<CompanyDto>> {
     const { party, email, phone, website } = await this.createParty(data);
@@ -169,150 +109,6 @@ export class PartiesDomainService {
       message: `${party.displayName} created successfully.`,
       data: PersonDto.from(party, { email, phone }),
     };
-  }
-
-  // Creates a party plus its primary EMAIL/PHONE communications when supplied
-  private async createParty(data: CreatePartyInput): Promise<CreatedParty> {
-    const displayName = data.displayName || [data.firstName, data.lastName].filter(Boolean).join(' ');
-    if (!displayName) {
-      throw new ConflictException({
-        label: 'Name Required',
-        detail: 'A display name (or first/last name) is required.',
-      });
-    }
-
-    const countryCode = data.countryCode ?? null;
-    await this.repository.findJurisdictionInCountryOrThrow(data.jurisdictionId, countryCode);
-
-    const email = data.email ?? null;
-    const phone = data.phone ?? null;
-    const website = data.website ?? null;
-
-    const party = await this.database.runInTransaction(async () => {
-      const entity = await this.repository.create({
-        partyType: data.partyType,
-        displayName,
-        isActive: data.isActive,
-        legalName: data.legalName ?? null,
-        countryCode,
-        jurisdictionId: data.jurisdictionId ?? null,
-        firstName: data.firstName ?? null,
-        lastName: data.lastName ?? null,
-      });
-      await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.EMAIL, email);
-      await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.PHONE, phone);
-      await this.socialProfilesService.upsertWebsite(entity.id, website);
-      return entity;
-    });
-
-    this.logger.log(`Created party: ${party.displayName} (${party.partyType})`);
-    return { party, email, phone, website };
-  }
-
-  // Returns a company by ID with its primary address and main-line contact; a supplier reference blocks deletion
-  async findCompanyById(id: string): Promise<CompanyDto> {
-    const details = await this.repository.findByIdWithDetails(id);
-    if (!details) throw new NotFoundException('Company not found.');
-    const canDelete = !details.referencedBySupplier;
-    return CompanyDto.from(
-      details.party,
-      { email: details.email, phone: details.phone, website: details.website },
-      details.primaryAddress,
-      canDelete,
-    );
-  }
-
-  // Returns a person by ID with their primary address and main-line contact; supplier/company links block deletion
-  async findPersonById(id: string): Promise<PersonDto> {
-    const details = await this.repository.findByIdWithDetails(id);
-    if (!details) throw new NotFoundException('Person not found.');
-    const canDelete = !details.referencedBySupplier && !details.linkedToCompanies;
-    return PersonDto.from(
-      details.party,
-      { email: details.email, phone: details.phone },
-      details.primaryAddress,
-      canDelete,
-    );
-  }
-
-  // Updates a party's editable fields, upserting its primary EMAIL/PHONE communications; a jurisdiction it names must
-  // lie in its resulting country
-  async update(id: string, data: UpdatePartyInput): Promise<SuccessResponseDto> {
-    const existing = await this.requireById(id);
-    if (data.countryCode !== undefined || data.jurisdictionId !== undefined) {
-      await this.repository.findJurisdictionInCountryOrThrow(
-        data.jurisdictionId === undefined ? existing.jurisdictionId : data.jurisdictionId,
-        data.countryCode === undefined ? existing.countryCode : data.countryCode,
-      );
-    }
-
-    const { email, phone, website, ...rest } = data;
-    const payload: Partial<Party> = { ...rest };
-
-    if (data.displayName === undefined && (data.firstName !== undefined || data.lastName !== undefined)) {
-      const firstName = data.firstName !== undefined ? data.firstName : existing.firstName;
-      const lastName = data.lastName !== undefined ? data.lastName : existing.lastName;
-      const composed = [firstName, lastName].filter(Boolean).join(' ').trim();
-      if (composed) payload.displayName = composed;
-    }
-
-    await this.database.runInTransaction(async () => {
-      if (Object.keys(payload).length > 0) await this.repository.update(id, payload);
-      if (email !== undefined) {
-        await this.communicationsService.upsertPrimary(id, PartyCommunicationChannelValues.EMAIL, email);
-      }
-      if (phone !== undefined) {
-        await this.communicationsService.upsertPrimary(id, PartyCommunicationChannelValues.PHONE, phone);
-      }
-      if (website !== undefined) {
-        await this.socialProfilesService.upsertWebsite(id, website);
-      }
-    });
-
-    this.logger.log(`Updated party: ${existing.displayName} (${id})`);
-    return { success: true, message: `${data.displayName ?? existing.displayName} updated successfully.` };
-  }
-
-  // Deletes a party by ID.
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.requireById(id);
-    if (await this.repository.isReferencedBySupplier(id)) {
-      throw new ConflictException({
-        label: 'In Use',
-        detail: `"${existing.displayName}" is linked to a supplier and cannot be deleted. Remove the supplier record first.`,
-      });
-    }
-    if (existing.partyType === PartyTypeValues.PERSON && (await this.repository.isLinkedToCompany(id))) {
-      throw new ConflictException({
-        label: 'In Use',
-        detail: `"${existing.displayName}" is linked to one or more companies and cannot be deleted. Remove the company links first.`,
-      });
-    }
-    await this.repository.delete(id);
-    this.logger.log(`Deleted party: ${existing.displayName} (${id})`);
-    return { success: true, message: `${existing.displayName} deleted successfully.` };
-  }
-
-  // Returns paginated tax registrations of a party for the data table
-  async findRegistrationsForTable(
-    partyId: string,
-    state: TableState,
-  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
-    const fieldMap = PartiesDomainService.REGISTRATION_FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.registrationsRepository.findForTable({
-      where: and(
-        eq(partyTaxRegistrations.partyId, partyId),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, PartiesDomainService.REGISTRATION_SEARCH_FIELD_MAP),
-      ),
-      orderBy:
-        orderBy.length > 0 ? orderBy : [desc(partyTaxRegistrations.isPrimary), asc(partyTaxRegistrations.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => PartyTaxRegistrationDto.from(row, row.jurisdictionName)), count };
   }
 
   // Creates a tax registration for a party in a country and, optionally, one of its jurisdictions; a GSTIN must name a
@@ -355,6 +151,44 @@ export class PartiesDomainService {
       message: 'Tax registration created successfully.',
       data: PartyTaxRegistrationDto.from(entity, jurisdiction?.name ?? null),
     };
+  }
+
+  // Updates a party's editable fields, upserting its primary EMAIL/PHONE communications; a jurisdiction it names must
+  // lie in its resulting country
+  async update(id: string, data: UpdatePartyInput): Promise<SuccessResponseDto> {
+    const existing = await this.requireById(id);
+    if (data.countryCode !== undefined || data.jurisdictionId !== undefined) {
+      await this.repository.findJurisdictionInCountryOrThrow(
+        data.jurisdictionId === undefined ? existing.jurisdictionId : data.jurisdictionId,
+        data.countryCode === undefined ? existing.countryCode : data.countryCode,
+      );
+    }
+
+    const { email, phone, website, ...rest } = data;
+    const payload: Partial<Party> = { ...rest };
+
+    if (data.displayName === undefined && (data.firstName !== undefined || data.lastName !== undefined)) {
+      const firstName = data.firstName !== undefined ? data.firstName : existing.firstName;
+      const lastName = data.lastName !== undefined ? data.lastName : existing.lastName;
+      const composed = [firstName, lastName].filter(Boolean).join(' ').trim();
+      if (composed) payload.displayName = composed;
+    }
+
+    await this.database.runInTransaction(async () => {
+      if (Object.keys(payload).length > 0) await this.repository.update(id, payload);
+      if (email !== undefined) {
+        await this.communicationsService.upsertPrimary(id, PartyCommunicationChannelValues.EMAIL, email);
+      }
+      if (phone !== undefined) {
+        await this.communicationsService.upsertPrimary(id, PartyCommunicationChannelValues.PHONE, phone);
+      }
+      if (website !== undefined) {
+        await this.socialProfilesService.upsertWebsite(id, website);
+      }
+    });
+
+    this.logger.log(`Updated party: ${existing.displayName} (${id})`);
+    return { success: true, message: `${data.displayName ?? existing.displayName} updated successfully.` };
   }
 
   // Updates a party tax registration, checking its resulting country, jurisdiction and number as a whole
@@ -407,6 +241,134 @@ export class PartiesDomainService {
     };
   }
 
+  // Returns a company by ID with its primary address and main-line contact; a supplier reference blocks deletion
+  async findCompanyById(id: string): Promise<CompanyDto> {
+    const details = await this.repository.findByIdWithDetails(id);
+    if (!details) throw new NotFoundException('Company not found.');
+    const canDelete = !details.referencedBySupplier;
+    return CompanyDto.from(
+      details.party,
+      { email: details.email, phone: details.phone, website: details.website },
+      details.primaryAddress,
+      canDelete,
+    );
+  }
+
+  // Returns a person by ID with their primary address and main-line contact; supplier/company links block deletion
+  async findPersonById(id: string): Promise<PersonDto> {
+    const details = await this.repository.findByIdWithDetails(id);
+    if (!details) throw new NotFoundException('Person not found.');
+    const canDelete = !details.referencedBySupplier && !details.linkedToCompanies;
+    return PersonDto.from(
+      details.party,
+      { email: details.email, phone: details.phone },
+      details.primaryAddress,
+      canDelete,
+    );
+  }
+
+  // Returns paginated COMPANY parties with their main lines for the companies data table
+  async findCompaniesForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
+    const fieldMap = PartiesDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        eq(parties.partyType, PartyTypeValues.COMPANY),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, fieldMap),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(parties.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => CompanyDto.from(row, { email: row.email, phone: row.phone })), count };
+  }
+
+  // Returns paginated PERSON parties with their main lines for the people data table
+  async findPeopleForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
+    const fieldMap = PartiesDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        eq(parties.partyType, PartyTypeValues.PERSON),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, fieldMap),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(parties.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => PersonDto.from(row, { email: row.email, phone: row.phone })), count };
+  }
+
+  // Returns paginated tax registrations of a party for the data table
+  async findRegistrationsForTable(
+    partyId: string,
+    state: TableState,
+  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
+    const fieldMap = PartiesDomainService.REGISTRATION_FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.registrationsRepository.findForTable({
+      where: and(
+        eq(partyTaxRegistrations.partyId, partyId),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, PartiesDomainService.REGISTRATION_SEARCH_FIELD_MAP),
+      ),
+      orderBy:
+        orderBy.length > 0 ? orderBy : [desc(partyTaxRegistrations.isPrimary), asc(partyTaxRegistrations.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => PartyTaxRegistrationDto.from(row, row.jurisdictionName)), count };
+  }
+
+  // Returns paginated party options of the given type for select dropdowns
+  findForSelect(query: SelectOptionsQueryDto, partyType: PartyType): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'displayName',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      where: { partyType },
+      orderByKey: query.orderByKey || 'displayName',
+      orderDirection: query.orderDirection || 'asc',
+    });
+  }
+
+  // Returns paginated active tax registration options of a party for select dropdowns; salesTaxOnly keeps GSTIN and VAT
+  findRegistrationsForSelect(
+    query: SelectOptionsQueryDto,
+    partyId: string,
+    options?: { salesTaxOnly?: boolean },
+  ): Promise<SelectQueryResult> {
+    return this.registrationsRepository.findOptionsForSelect(partyId, query, options);
+  }
+
+  // Deletes a party by ID.
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.requireById(id);
+    if (await this.repository.isReferencedBySupplier(id)) {
+      throw new ConflictException({
+        label: 'In Use',
+        detail: `"${existing.displayName}" is linked to a supplier and cannot be deleted. Remove the supplier record first.`,
+      });
+    }
+    if (existing.partyType === PartyTypeValues.PERSON && (await this.repository.isLinkedToCompany(id))) {
+      throw new ConflictException({
+        label: 'In Use',
+        detail: `"${existing.displayName}" is linked to one or more companies and cannot be deleted. Remove the company links first.`,
+      });
+    }
+    await this.repository.delete(id);
+    this.logger.log(`Deleted party: ${existing.displayName} (${id})`);
+    return { success: true, message: `${existing.displayName} deleted successfully.` };
+  }
+
   // Deletes a party tax registration
   async deleteRegistration(id: string): Promise<SuccessResponseDto> {
     const existing = await this.registrationsRepository.findById(id);
@@ -414,6 +376,44 @@ export class PartiesDomainService {
     await this.registrationsRepository.delete(id);
     this.logger.log(`Deleted tax registration: ${id}`);
     return { success: true, message: 'Tax registration deleted successfully.' };
+  }
+
+  // Creates a party plus its primary EMAIL/PHONE communications when supplied
+  private async createParty(data: CreatePartyInput): Promise<CreatedParty> {
+    const displayName = data.displayName || [data.firstName, data.lastName].filter(Boolean).join(' ');
+    if (!displayName) {
+      throw new ConflictException({
+        label: 'Name Required',
+        detail: 'A display name (or first/last name) is required.',
+      });
+    }
+
+    const countryCode = data.countryCode ?? null;
+    await this.repository.findJurisdictionInCountryOrThrow(data.jurisdictionId, countryCode);
+
+    const email = data.email ?? null;
+    const phone = data.phone ?? null;
+    const website = data.website ?? null;
+
+    const party = await this.database.runInTransaction(async () => {
+      const entity = await this.repository.create({
+        partyType: data.partyType,
+        displayName,
+        isActive: data.isActive,
+        legalName: data.legalName ?? null,
+        countryCode,
+        jurisdictionId: data.jurisdictionId ?? null,
+        firstName: data.firstName ?? null,
+        lastName: data.lastName ?? null,
+      });
+      await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.EMAIL, email);
+      await this.communicationsService.upsertPrimary(entity.id, PartyCommunicationChannelValues.PHONE, phone);
+      await this.socialProfilesService.upsertWebsite(entity.id, website);
+      return entity;
+    });
+
+    this.logger.log(`Created party: ${party.displayName} (${party.partyType})`);
+    return { party, email, phone, website };
   }
 
   // Loads a party by ID, throwing if not found

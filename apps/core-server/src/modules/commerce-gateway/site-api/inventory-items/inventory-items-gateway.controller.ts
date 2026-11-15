@@ -42,22 +42,39 @@ export class SiteInventoryItemsGatewayController {
 
   constructor(private readonly service: SiteInventoryItemsGatewayService) {}
 
-  // Every master item with the site's stock levels for it and its stock on hand, split by location
-  @Get('stock-table')
-  @RequirePermission(SITE_INVENTORY_ITEMS.view)
-  getStockTable(@UserId() userId: string): Promise<SiteStockTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/inventory-items/stock-table');
-    return this.service.findForStockTable(userId);
+  // Creates an item-location config for an inventory item
+  @Post(':id/locations')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.add)
+  @HttpCode(HttpStatus.CREATED)
+  createLocation(
+    @Param('id') id: string,
+    @Body() dto: CreateInventoryItemLocationDto,
+  ): Promise<CreateResponseDto<InventoryItemLocationResponseDto>> {
+    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/locations`);
+    return this.service.createItemLocation(id, dto);
   }
 
-  // Returns an inventory item's stock levels at the current site, or null while none are set
-  @Get(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.view)
-  findStockLevels(
+  // Updates an inventory item's stock levels at the current site
+  @Patch(':id/stock-levels')
+  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.edit)
+  updateStockLevels(
     @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<InventoryItemSiteStockLevelResponseDto | null> {
-    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.findStockLevels(id);
+    @Body() dto: UpdateSiteStockLevelsDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/stock-levels`);
+    return this.service.updateStockLevels(id, dto);
+  }
+
+  // Updates an item-location config
+  @Patch(':id/locations/:locationConfigId')
+  @RequirePermission(SITE_INVENTORY_ITEMS.locations.edit)
+  updateLocation(
+    @Param('id') id: string,
+    @Param('locationConfigId') locationConfigId: string,
+    @Body() dto: UpdateInventoryItemLocationDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/locations/${locationConfigId}`);
+    return this.service.updateItemLocation(locationConfigId, dto);
   }
 
   // Sets an inventory item's stock levels at the current site
@@ -72,32 +89,20 @@ export class SiteInventoryItemsGatewayController {
     return this.service.setStockLevels(id, dto);
   }
 
-  // Updates an inventory item's stock levels at the current site
-  @Patch(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.edit)
-  updateStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: UpdateSiteStockLevelsDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.updateStockLevels(id, dto);
-  }
-
-  // Removes an inventory item's stock levels at the current site; refused while the site holds it or has it on an open
-  // purchase
-  @Delete(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.delete)
-  removeStockLevels(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.removeStockLevels(id);
-  }
-
   // Returns a single inventory item
   @Get(':id')
   @RequirePermission(SITE_INVENTORY_ITEMS.view)
   findById(@Param('id') id: string): Promise<SiteInventoryItemResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}`);
     return this.service.findById(id);
+  }
+
+  // Every master item with the site's stock levels for it and its stock on hand, split by location
+  @Get('stock-table')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  getStockTable(@UserId() userId: string): Promise<SiteStockTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/inventory-items/stock-table');
+    return this.service.findForStockTable(userId);
   }
 
   // Returns suppliers carrying this item, table-shaped
@@ -114,14 +119,6 @@ export class SiteInventoryItemsGatewayController {
   getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/ledger/table`);
     return this.service.findLedgerForTable(id, userId);
-  }
-
-  // Returns location-wise stock aggregates for an inventory item (sourced from inventory_item_quants)
-  @Get(':id/stocks')
-  @RequirePermission(SITE_INVENTORY_ITEMS.view)
-  getStocks(@Param('id') id: string): Promise<InventoryItemStockResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stocks`);
-    return this.service.findStocks(id);
   }
 
   // Returns paginated quants for an inventory item data table
@@ -148,28 +145,31 @@ export class SiteInventoryItemsGatewayController {
     return this.service.findItemLocationsForTable(id, userId);
   }
 
-  // Creates an item-location config for an inventory item
-  @Post(':id/locations')
-  @RequirePermission(SITE_INVENTORY_ITEMS.locations.add)
-  @HttpCode(HttpStatus.CREATED)
-  createLocation(
-    @Param('id') id: string,
-    @Body() dto: CreateInventoryItemLocationDto,
-  ): Promise<CreateResponseDto<InventoryItemLocationResponseDto>> {
-    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/locations`);
-    return this.service.createItemLocation(id, dto);
+  // Returns an inventory item's stock levels at the current site, or null while none are set
+  @Get(':id/stock-levels')
+  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.view)
+  findStockLevels(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<InventoryItemSiteStockLevelResponseDto | null> {
+    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stock-levels`);
+    return this.service.findStockLevels(id);
   }
 
-  // Updates an item-location config
-  @Patch(':id/locations/:locationConfigId')
-  @RequirePermission(SITE_INVENTORY_ITEMS.locations.edit)
-  updateLocation(
-    @Param('id') id: string,
-    @Param('locationConfigId') locationConfigId: string,
-    @Body() dto: UpdateInventoryItemLocationDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/locations/${locationConfigId}`);
-    return this.service.updateItemLocation(locationConfigId, dto);
+  // Returns location-wise stock aggregates for an inventory item (sourced from inventory_item_quants)
+  @Get(':id/stocks')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  getStocks(@Param('id') id: string): Promise<InventoryItemStockResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stocks`);
+    return this.service.findStocks(id);
+  }
+
+  // Removes an inventory item's stock levels at the current site; refused while the site holds it or has it on an open
+  // purchase
+  @Delete(':id/stock-levels')
+  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.delete)
+  removeStockLevels(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/inventory-items/${id}/stock-levels`);
+    return this.service.removeStockLevels(id);
   }
 
   // Deletes an item-location config

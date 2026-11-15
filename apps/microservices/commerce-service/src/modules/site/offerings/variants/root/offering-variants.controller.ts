@@ -31,24 +31,26 @@ export class SiteOfferingVariantsController {
     readonly _bom: OfferingBomDomainService,
   ) {}
 
-  // Returns paginated variants of one offering for the data table
-  @MessagePattern({ cmd: 'site.offerings.variants.table' })
-  findForTable(
-    @Payload() data: { offeringId: string } & TableState,
-  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
-    const { offeringId, ...state } = data;
-    this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
-    return this.service.findForTable(offeringId, state as TableState);
+  // Creates a single variant from one explicit combination
+  @MessagePattern({ cmd: 'site.offerings.variants.create' })
+  create(@Payload() dto: CreateVariantDto): Promise<CreateResponseDto<OfferingVariantDto>> {
+    this.logger.log(`offerings.variants.create — offeringId: ${dto.offeringId}`);
+    return this.service.create(dto);
   }
-  // The same page of variants as the table above, plus how one channel sees each row
-  @MessagePattern({ cmd: 'site.offerings.variants.channelTable' })
-  findForChannelTable(
-    @Payload()
-    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableState,
-  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
-    const { offeringId, channelType, targetId, ...state } = data;
-    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
-    return this.service.findForTable(offeringId, state as TableState, channelType, targetId);
+
+  // Creates every selected combination that does not exist yet.
+  @MessagePattern({ cmd: 'site.offerings.variants.generate' })
+  generate(@Payload() dto: GenerateVariantsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`offerings.variants.generate — offeringId: ${dto.offeringId}, count: ${dto.combinations.length}`);
+    return this.service.generate(dto);
+  }
+
+  // Updates a variant; activating one is refused until its bill of materials satisfies the offering type
+  @MessagePattern({ cmd: 'site.offerings.variants.update' })
+  update(@Payload() dto: UpdateVariantDto): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`offerings.variants.update — id: ${id}`);
+    return this.service.update(id, data);
   }
 
   // Sets whether one variant is available on one target of one channel
@@ -71,58 +73,6 @@ export class SiteOfferingVariantsController {
       data.variantId,
       data.availableHere,
     );
-  }
-
-  // The subset of these codes that name a variant of this offering
-  @MessagePattern({ cmd: 'site.offerings.variants.codesInOffering' })
-  codesInOffering(@Payload() data: { offeringId: string; codes: string[] }): Promise<string[]> {
-    this.logger.log(`offerings.variants.codesInOffering — offeringId: ${data.offeringId}, codes: ${data.codes.length}`);
-    return this.service.findCodesInOffering(data.offeringId, data.codes);
-  }
-
-  // Every combination the selected values produce, flagged with the ones that already exist
-  @MessagePattern({ cmd: 'site.offerings.variants.combinations' })
-  previewCombinations(@Payload() dto: PreviewCombinationsDto): Promise<VariantCombinationsDto> {
-    this.logger.log(`offerings.variants.combinations — offeringId: ${dto.offeringId}`);
-    return this.service.previewCombinations(dto);
-  }
-
-  // Flat rows for the file export, scoped to one offering
-  @MessagePattern({ cmd: 'site.offerings.variants.exportRows' })
-  exportRows(
-    @Payload() data: { offeringId: string; limit: number; offset: number },
-  ): Promise<Record<string, unknown>[]> {
-    this.logger.log(`offerings.variants.exportRows — offeringId: ${data.offeringId}, offset: ${data.offset}`);
-    return this.service.findForExport(data.offeringId, data);
-  }
-
-  // Returns one variant
-  @MessagePattern({ cmd: 'site.offerings.variants.findById' })
-  findById(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
-    this.logger.log(`offerings.variants.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Creates every selected combination that does not exist yet.
-  @MessagePattern({ cmd: 'site.offerings.variants.generate' })
-  generate(@Payload() dto: GenerateVariantsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`offerings.variants.generate — offeringId: ${dto.offeringId}, count: ${dto.combinations.length}`);
-    return this.service.generate(dto);
-  }
-
-  // Creates a single variant from one explicit combination
-  @MessagePattern({ cmd: 'site.offerings.variants.create' })
-  create(@Payload() dto: CreateVariantDto): Promise<CreateResponseDto<OfferingVariantDto>> {
-    this.logger.log(`offerings.variants.create — offeringId: ${dto.offeringId}`);
-    return this.service.create(dto);
-  }
-
-  // Updates a variant; activating one is refused until its bill of materials satisfies the offering type
-  @MessagePattern({ cmd: 'site.offerings.variants.update' })
-  update(@Payload() dto: UpdateVariantDto): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`offerings.variants.update — id: ${id}`);
-    return this.service.update(id, data);
   }
 
   // Pins one tax class across many variants at once, each marked as overridden from here on
@@ -189,6 +139,57 @@ export class SiteOfferingVariantsController {
   clearTaxClass(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.variants.clearTaxClass — id: ${data.id}`);
     return this.service.clearTaxClassOverride(data.id);
+  }
+
+  // Returns one variant
+  @MessagePattern({ cmd: 'site.offerings.variants.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingVariantDto> {
+    this.logger.log(`offerings.variants.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated variants of one offering for the data table
+  @MessagePattern({ cmd: 'site.offerings.variants.table' })
+  findForTable(
+    @Payload() data: { offeringId: string } & TableState,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    const { offeringId, ...state } = data;
+    this.logger.log(`offerings.variants.table — offeringId: ${offeringId}`);
+    return this.service.findForTable(offeringId, state as TableState);
+  }
+
+  // The same page of variants as the table above, plus how one channel sees each row
+  @MessagePattern({ cmd: 'site.offerings.variants.channelTable' })
+  findForChannelTable(
+    @Payload()
+    data: { offeringId: string; channelType: CatalogChannelType; targetId: string } & TableState,
+  ): Promise<{ result: OfferingVariantTableRowDto[]; count: number }> {
+    const { offeringId, channelType, targetId, ...state } = data;
+    this.logger.log(`offerings.variants.channelTable — offeringId: ${offeringId}, ${channelType} target: ${targetId}`);
+    return this.service.findForTable(offeringId, state as TableState, channelType, targetId);
+  }
+
+  // The subset of these codes that name a variant of this offering
+  @MessagePattern({ cmd: 'site.offerings.variants.codesInOffering' })
+  codesInOffering(@Payload() data: { offeringId: string; codes: string[] }): Promise<string[]> {
+    this.logger.log(`offerings.variants.codesInOffering — offeringId: ${data.offeringId}, codes: ${data.codes.length}`);
+    return this.service.findCodesInOffering(data.offeringId, data.codes);
+  }
+
+  // Every combination the selected values produce, flagged with the ones that already exist
+  @MessagePattern({ cmd: 'site.offerings.variants.combinations' })
+  previewCombinations(@Payload() dto: PreviewCombinationsDto): Promise<VariantCombinationsDto> {
+    this.logger.log(`offerings.variants.combinations — offeringId: ${dto.offeringId}`);
+    return this.service.previewCombinations(dto);
+  }
+
+  // Flat rows for the file export, scoped to one offering
+  @MessagePattern({ cmd: 'site.offerings.variants.exportRows' })
+  exportRows(
+    @Payload() data: { offeringId: string; limit: number; offset: number },
+  ): Promise<Record<string, unknown>[]> {
+    this.logger.log(`offerings.variants.exportRows — offeringId: ${data.offeringId}, offset: ${data.offset}`);
+    return this.service.findForExport(data.offeringId, data);
   }
 
   // Deletes a variant

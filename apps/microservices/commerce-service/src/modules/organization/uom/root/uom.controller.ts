@@ -18,6 +18,33 @@ export class UomController {
     private readonly uomDimensionsService: UomDimensionsDomainService,
   ) {}
 
+  // Creates a new UOM
+  @MessagePattern({ cmd: 'org.uom.create' })
+  async create(@Payload() dto: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
+    this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
+    // Validate dimension exists; throws NotFoundException when missing
+    await this.assertDimensionExists(dto.dimensionId);
+    return this.uomService.create(dto);
+  }
+
+  // Updates a UOM by ID
+  @MessagePattern({ cmd: 'org.uom.update' })
+  async update(@Payload() dto: UpdateUomDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
+    this.logger.log(`uom.update — id: ${id}`);
+    if (updateData.dimensionId) {
+      await this.assertDimensionExists(updateData.dimensionId);
+    }
+    return this.uomService.update(id, updateData);
+  }
+
+  // Finds a UOM by ID
+  @MessagePattern({ cmd: 'org.uom.findById' })
+  async findById(@Payload() data: { id: string }): Promise<UomDto> {
+    this.logger.log(`uom.findById — id: ${data.id}`);
+    return this.uomService.findById(data.id);
+  }
+
   // Returns paginated UOMs for the data table (scoped to a dimension)
   @MessagePattern({ cmd: 'org.uom.table' })
   async table(@Payload() state: TableState & { dimensionId: string }): Promise<{ result: UomDto[]; count: number }> {
@@ -47,33 +74,6 @@ export class UomController {
   async derived(@Payload() data: { baseUnitId: string }): Promise<UomDto[]> {
     this.logger.log(`uom.derived — baseUnitId: ${data.baseUnitId}`);
     return this.uomService.findDerivedUnits(data.baseUnitId);
-  }
-
-  // Creates a new UOM
-  @MessagePattern({ cmd: 'org.uom.create' })
-  async create(@Payload() dto: CreateUomDto): Promise<CreateResponseDto<UomDto>> {
-    this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
-    // Validate dimension exists; throws NotFoundException when missing
-    await this.assertDimensionExists(dto.dimensionId);
-    return this.uomService.create(dto);
-  }
-
-  // Finds a UOM by ID
-  @MessagePattern({ cmd: 'org.uom.findById' })
-  async findById(@Payload() data: { id: string }): Promise<UomDto> {
-    this.logger.log(`uom.findById — id: ${data.id}`);
-    return this.uomService.findById(data.id);
-  }
-
-  // Updates a UOM by ID
-  @MessagePattern({ cmd: 'org.uom.update' })
-  async update(@Payload() dto: UpdateUomDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = dto;
-    this.logger.log(`uom.update — id: ${id}`);
-    if (updateData.dimensionId) {
-      await this.assertDimensionExists(updateData.dimensionId);
-    }
-    return this.uomService.update(id, updateData);
   }
 
   // Deletes a UOM by ID

@@ -20,6 +20,26 @@ export class SupplierSiteItemPricesController {
     private readonly enrollments: SupplierEnrollmentsDomainService,
   ) {}
 
+  // Adds a validity-dated price to a supplier item's timeline
+  @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.create' })
+  create(
+    @Payload() dto: AddLeSupplierItemPriceDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
+    this.logger.log(
+      `le.suppliers.siteItems.prices.create — supplierItemId: ${dto.supplierItemId}, validFrom: ${dto.validFrom}`,
+    );
+    const { siteIds, ...price } = dto;
+    return this.service.addPrice(price, siteIds, headers.userId || null);
+  }
+
+  // Updates a price row's amount, scheme, or end date
+  @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.update' })
+  update(@Payload() dto: UpdateSupplierItemPriceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.siteItems.prices.update — id: ${dto.id}`);
+    return this.service.updatePrice(dto);
+  }
+
   // Returns the paginated price timeline of a supplier item at the site in the table's context
   @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.table' })
   table(
@@ -40,26 +60,6 @@ export class SupplierSiteItemPricesController {
     return this.service.findPriceHistory(data.supplierItemId, data.context, (supplierId) =>
       this.enrollments.findEnrolledSiteIds({ supplierId }),
     );
-  }
-
-  // Adds a validity-dated price to a supplier item's timeline
-  @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.create' })
-  create(
-    @Payload() dto: AddLeSupplierItemPriceDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
-    this.logger.log(
-      `le.suppliers.siteItems.prices.create — supplierItemId: ${dto.supplierItemId}, validFrom: ${dto.validFrom}`,
-    );
-    const { siteIds, ...price } = dto;
-    return this.service.addPrice(price, siteIds, headers.userId || null);
-  }
-
-  // Updates a price row's amount, scheme, or end date
-  @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.update' })
-  update(@Payload() dto: UpdateSupplierItemPriceDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.suppliers.siteItems.prices.update — id: ${dto.id}`);
-    return this.service.updatePrice(dto);
   }
 
   // Deletes a price row from a supplier item's timeline

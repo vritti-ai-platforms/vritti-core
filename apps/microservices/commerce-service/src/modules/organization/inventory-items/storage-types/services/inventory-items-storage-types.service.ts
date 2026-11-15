@@ -19,12 +19,6 @@ export class InventoryItemsStorageTypesService {
     private readonly itemStorageTypesService: InventoryItemStorageTypesDomainService,
   ) {}
 
-  // Returns the storage types the item may be stored in
-  async findAll(inventoryItemId: string): Promise<InventoryItemStorageTypeDto[]> {
-    await this.inventoryItemsService.findById(inventoryItemId);
-    return this.itemStorageTypesService.findAll(inventoryItemId);
-  }
-
   // Allows the item in a storage type
   async create(dto: CreateInventoryItemStorageTypeDto): Promise<CreateResponseDto<InventoryItemStorageTypeDto>> {
     const { inventoryItemId, ...data } = dto;
@@ -40,6 +34,12 @@ export class InventoryItemsStorageTypesService {
     this.logger.log(`update — inventoryItemId=${inventoryItemId}, id=${id}`);
     const { allowedUomIds } = await this.inventoryItemsService.findAllowedUomIds(inventoryItemId);
     return this.itemStorageTypesService.update({ inventoryItemId, allowedUomIds }, id, data);
+  }
+
+  // Returns the storage types the item may be stored in
+  async findAll(inventoryItemId: string): Promise<InventoryItemStorageTypeDto[]> {
+    await this.inventoryItemsService.findById(inventoryItemId);
+    return this.itemStorageTypesService.findAll(inventoryItemId);
   }
 
   // Removes a storage type from the item

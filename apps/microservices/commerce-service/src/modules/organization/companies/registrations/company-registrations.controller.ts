@@ -13,16 +13,6 @@ export class CompanyRegistrationsController {
 
   constructor(private readonly service: PartiesDomainService) {}
 
-  // Returns the paginated tax registrations of a company
-  @MessagePattern({ cmd: 'org.companies.registrations.table' })
-  async table(
-    @Payload() data: { companyId: string } & TableState,
-  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
-    const { companyId, ...state } = data;
-    this.logger.log(`companies.registrations.table — companyId: ${companyId}`);
-    return this.service.findRegistrationsForTable(companyId, state);
-  }
-
   // Creates a tax registration for a company
   @MessagePattern({ cmd: 'org.companies.registrations.create' })
   async create(@Payload() dto: CreateCompanyRegistrationDto): Promise<CreateResponseDto<PartyTaxRegistrationDto>> {
@@ -44,6 +34,16 @@ export class CompanyRegistrationsController {
   async setActive(@Payload() data: { id: string; isActive: boolean }): Promise<SuccessResponseDto> {
     this.logger.log(`companies.registrations.setActive — id: ${data.id}, isActive: ${data.isActive}`);
     return this.service.setRegistrationActive(data.id, data.isActive);
+  }
+
+  // Returns the paginated tax registrations of a company
+  @MessagePattern({ cmd: 'org.companies.registrations.table' })
+  async table(
+    @Payload() data: { companyId: string } & TableState,
+  ): Promise<{ result: PartyTaxRegistrationDto[]; count: number }> {
+    const { companyId, ...state } = data;
+    this.logger.log(`companies.registrations.table — companyId: ${companyId}`);
+    return this.service.findRegistrationsForTable(companyId, state);
   }
 
   // Deletes a tax registration by ID

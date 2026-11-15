@@ -22,14 +22,6 @@ export class TaxComponentsGatewayController {
 
   constructor(private readonly service: TaxComponentsGatewayService) {}
 
-  // Returns paginated tax components for the data table, narrowed to the country in the saved table context if any
-  @Get('table')
-  @RequirePermission(ORG_TAX_COMPONENTS.view)
-  getTable(@UserId() userId: string): Promise<TaxComponentTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/tax-components/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a tax component for one country
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -37,14 +29,6 @@ export class TaxComponentsGatewayController {
   create(@Body() dto: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentResponseDto>> {
     this.logger.log('POST /commerce-api/org/tax-components');
     return this.service.create(dto);
-  }
-
-  // Returns a tax component by ID
-  @Get(':id')
-  @RequirePermission(ORG_TAX_COMPONENTS.view)
-  findById(@Param('id') id: string): Promise<TaxComponentResponseDto> {
-    this.logger.log(`GET /commerce-api/org/tax-components/${id}`);
-    return this.service.findById(id);
   }
 
   // Updates a tax component by ID
@@ -61,6 +45,22 @@ export class TaxComponentsGatewayController {
   setActive(@Param('id') id: string, @Body() dto: SetTaxComponentActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/tax-components/${id}/active`);
     return this.service.setActive(id, dto.isActive);
+  }
+
+  // Returns a tax component by ID
+  @Get(':id')
+  @RequirePermission(ORG_TAX_COMPONENTS.view)
+  findById(@Param('id') id: string): Promise<TaxComponentResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-components/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated tax components for the data table, narrowed to the country in the saved table context if any
+  @Get('table')
+  @RequirePermission(ORG_TAX_COMPONENTS.view)
+  getTable(@UserId() userId: string): Promise<TaxComponentTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/tax-components/table');
+    return this.service.findForTable(userId);
   }
 
   // Deletes a tax component by ID

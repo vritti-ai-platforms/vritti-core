@@ -28,14 +28,6 @@ export class SupplierQuotationsGatewayController {
 
   constructor(private readonly service: SupplierQuotationsGatewayService) {}
 
-  // Returns a supplier's quotations for the data table
-  @Get('table')
-  @RequirePermission(LE_SUPPLIERS.quotations.view)
-  getTable(@Param('id') supplierId: string, @UserId() userId: string): Promise<SupplierQuotationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/quotations/table`);
-    return this.service.findForTable(supplierId, userId);
-  }
-
   // Records a supplier's quotation as a draft
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -46,36 +38,6 @@ export class SupplierQuotationsGatewayController {
   ): Promise<CreateResponseDto<SupplierQuotationResponseDto>> {
     this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/quotations`);
     return this.service.create(supplierId, dto);
-  }
-
-  // Returns a quotation with its lines and posted sites
-  @Get(':quotationId')
-  @RequirePermission(LE_SUPPLIERS.quotations.view)
-  findById(
-    @Param('quotationId') quotationId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierQuotationDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/le/suppliers/quotations/${quotationId}`);
-    return this.service.findById(quotationId, orgId);
-  }
-
-  // Updates a quotation's header
-  @Patch(':quotationId')
-  @RequirePermission(LE_SUPPLIERS.quotations.edit)
-  update(
-    @Param('quotationId') quotationId: string,
-    @Body() dto: UpdateSupplierQuotationDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/suppliers/quotations/${quotationId}`);
-    return this.service.update(quotationId, dto);
-  }
-
-  // Deletes a quotation, removing it from every site first
-  @Delete(':quotationId')
-  @RequirePermission(LE_SUPPLIERS.quotations.delete)
-  delete(@Param('quotationId') quotationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}`);
-    return this.service.delete(quotationId);
   }
 
   // Adds a line to a draft quotation
@@ -90,6 +52,17 @@ export class SupplierQuotationsGatewayController {
     return this.service.addItem(quotationId, dto);
   }
 
+  // Updates a quotation's header
+  @Patch(':quotationId')
+  @RequirePermission(LE_SUPPLIERS.quotations.edit)
+  update(
+    @Param('quotationId') quotationId: string,
+    @Body() dto: UpdateSupplierQuotationDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/suppliers/quotations/${quotationId}`);
+    return this.service.update(quotationId, dto);
+  }
+
   // Updates a line of a draft quotation
   @Patch(':quotationId/items/:itemId')
   @RequirePermission(LE_SUPPLIERS.quotations.edit)
@@ -100,14 +73,6 @@ export class SupplierQuotationsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/suppliers/quotations/${quotationId}/items/${itemId}`);
     return this.service.updateItem(quotationId, itemId, dto);
-  }
-
-  // Removes a line from a draft quotation
-  @Delete(':quotationId/items/:itemId')
-  @RequirePermission(LE_SUPPLIERS.quotations.edit)
-  removeItem(@Param('quotationId') quotationId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}/items/${itemId}`);
-    return this.service.removeItem(quotationId, itemId);
   }
 
   // Posts the quotation to a site, writing its lines as the site's prices
@@ -131,6 +96,41 @@ export class SupplierQuotationsGatewayController {
   postToLegalEntity(@Param('quotationId') quotationId: string): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/le/suppliers/quotations/${quotationId}/legal-entity`);
     return this.service.postToLegalEntity(quotationId);
+  }
+
+  // Returns a quotation with its lines and posted sites
+  @Get(':quotationId')
+  @RequirePermission(LE_SUPPLIERS.quotations.view)
+  findById(
+    @Param('quotationId') quotationId: string,
+    @OrgId() orgId: string,
+  ): Promise<SupplierQuotationDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/quotations/${quotationId}`);
+    return this.service.findById(quotationId, orgId);
+  }
+
+  // Returns a supplier's quotations for the data table
+  @Get('table')
+  @RequirePermission(LE_SUPPLIERS.quotations.view)
+  getTable(@Param('id') supplierId: string, @UserId() userId: string): Promise<SupplierQuotationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/quotations/table`);
+    return this.service.findForTable(supplierId, userId);
+  }
+
+  // Deletes a quotation, removing it from every site first
+  @Delete(':quotationId')
+  @RequirePermission(LE_SUPPLIERS.quotations.delete)
+  delete(@Param('quotationId') quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}`);
+    return this.service.delete(quotationId);
+  }
+
+  // Removes a line from a draft quotation
+  @Delete(':quotationId/items/:itemId')
+  @RequirePermission(LE_SUPPLIERS.quotations.edit)
+  removeItem(@Param('quotationId') quotationId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/suppliers/quotations/${quotationId}/items/${itemId}`);
+    return this.service.removeItem(quotationId, itemId);
   }
 
   // Removes the quotation's legal-entity prices, restoring the ones they replaced

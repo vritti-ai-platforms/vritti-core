@@ -35,38 +35,6 @@ export class TaxComponentsDomainService {
 
   constructor(private readonly repository: TaxComponentsDomainRepository) {}
 
-  // Returns paginated, filtered, and sorted tax components, narrowed to the context's country when one is picked
-  async findForTable(state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
-    const fieldMap = TaxComponentsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findDetailsForTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, TaxComponentsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(taxComponents.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxComponentDto.from), count };
-  }
-
-  // Returns paginated tax-component options for select dropdowns, only one country's when `country` is given
-  findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey || 'code',
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      where: options?.country ? { countryCode: options.country } : undefined,
-    });
-  }
-
   // Creates a tax component for one country; its code is unique within that country
   async create(data: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentDto>> {
     await this.repository.assertCodeFree(data.countryCode, data.code);
@@ -91,11 +59,6 @@ export class TaxComponentsDomainService {
       message: `Tax component "${created.name}" created successfully.`,
       data: TaxComponentDto.from(await this.repository.findDetailOrThrow(created.id)),
     };
-  }
-
-  // Returns a single tax component by ID
-  async findById(id: string): Promise<TaxComponentDto> {
-    return TaxComponentDto.from(await this.repository.findDetailOrThrow(id));
   }
 
   // Updates a tax component's editable fields; its country is fixed once a tax-group rate uses it or another component
@@ -126,6 +89,43 @@ export class TaxComponentsDomainService {
       `${isActive ? 'Activated' : 'Deactivated'} tax component: ${existing.countryCode} ${existing.code} (${id})`,
     );
     return { success: true, message: `Tax component "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
+  }
+
+  // Returns a single tax component by ID
+  async findById(id: string): Promise<TaxComponentDto> {
+    return TaxComponentDto.from(await this.repository.findDetailOrThrow(id));
+  }
+
+  // Returns paginated, filtered, and sorted tax components, narrowed to the context's country when one is picked
+  async findForTable(state: TableState): Promise<{ result: TaxComponentDto[]; count: number }> {
+    const fieldMap = TaxComponentsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findDetailsForTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, TaxComponentsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(taxComponents.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxComponentDto.from), count };
+  }
+
+  // Returns paginated tax-component options for select dropdowns, only one country's when `country` is given
+  findForSelect(query: SelectOptionsQueryDto, options?: { country?: string }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey || 'code',
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      where: options?.country ? { countryCode: options.country } : undefined,
+    });
   }
 
   // Deletes a tax component unless it is reserved by the system or a tax-group rate uses it

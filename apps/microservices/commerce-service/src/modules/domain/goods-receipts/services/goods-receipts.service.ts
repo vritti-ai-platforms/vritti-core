@@ -77,6 +77,51 @@ export class GoodsReceiptsDomainService {
     private readonly itemsRepository: GoodsReceiptItemsDomainRepository,
   ) {}
 
+  // Creates a draft receipt against an inbound delivery with its lines, in the caller's transaction
+  async createDraft(draft: GoodsReceiptDraft): Promise<CreateResponseDto<GoodsReceiptDto>> {
+    const grNumber = await this.repository.generateGrNumber();
+    const receipt = await this.repository.create({
+      grNumber,
+      purchaseId: draft.purchaseId ?? null,
+      supplierId: draft.supplierId,
+      inboundDeliveryId: draft.inboundDeliveryId,
+      siteId: draft.siteId,
+      legalEntityId: draft.legalEntityId,
+      receivedDate: draft.receivedDate,
+      notes: draft.notes ?? null,
+    });
+    await this.itemsRepository.insertMany(
+      draft.lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: draft.siteId })),
+    );
+
+    const created = await this.findById(receipt.id);
+    this.logger.log(
+      `Created goods receipt ${grNumber} with ${draft.lines.length} lines of ${created.poNumbers.join(', ')}`,
+    );
+    return {
+      success: true,
+      message: `Goods receipt "${grNumber}" created with ${pluralize('line', draft.lines.length, true)} of ${created.poNumbers.join(', ')}.`,
+      data: created,
+    };
+  }
+
+  // Changes the notes of a draft receipt, in the caller's transaction
+  async updateNotes(receipt: GoodsReceiptRow, notes: string | null): Promise<void> {
+    await this.repository.update(receipt.id, { notes });
+    this.logger.log(`Updated the notes of goods receipt ${receipt.grNumber}`);
+  }
+
+  // Marks a draft receipt posted once its stock has landed
+  async markPosted(id: string): Promise<void> {
+    await this.repository.update(id, { status: GoodsReceiptStatusValues.POSTED, postedAt: new Date() });
+    this.logger.log(`Posted goods receipt ${id}`);
+  }
+
+  // Returns one goods receipt header with its supplier, delivery, purchase orders and post readiness
+  async findById(id: string): Promise<GoodsReceiptDto> {
+    return GoodsReceiptDto.from(await this.findDetailOrThrow(id));
+  }
+
   // Returns one page of goods receipts, narrowed to those counting a purchase order's lines when one is named
   async findForTable(
     state: TableState,
@@ -127,11 +172,6 @@ export class GoodsReceiptsDomainService {
     return { edges, pageInfo: { hasNextPage: hasMore, endCursor: edges.at(-1)?.cursor ?? null } };
   }
 
-  // Returns one goods receipt header with its supplier, delivery, purchase orders and post readiness
-  async findById(id: string): Promise<GoodsReceiptDto> {
-    return GoodsReceiptDto.from(await this.findDetailOrThrow(id));
-  }
-
   // Returns the receipts a purchase created, with their deliveries and post readiness
   findForPurchase(purchaseId: string): Promise<GoodsReceiptRow[]> {
     return this.repository.findForPurchase(purchaseId);
@@ -162,46 +202,6 @@ export class GoodsReceiptsDomainService {
         ? `Add at least one item to "${receipt.grNumber}" before posting it.`
         : 'Distribute the accepted quantity of every item to lines, and finish their serials, before posting.';
     throw new BadRequestException({ label: 'Not Ready to Post', detail });
-  }
-
-  // Creates a draft receipt against an inbound delivery with its lines, in the caller's transaction
-  async createDraft(draft: GoodsReceiptDraft): Promise<CreateResponseDto<GoodsReceiptDto>> {
-    const grNumber = await this.repository.generateGrNumber();
-    const receipt = await this.repository.create({
-      grNumber,
-      purchaseId: draft.purchaseId ?? null,
-      supplierId: draft.supplierId,
-      inboundDeliveryId: draft.inboundDeliveryId,
-      siteId: draft.siteId,
-      legalEntityId: draft.legalEntityId,
-      receivedDate: draft.receivedDate,
-      notes: draft.notes ?? null,
-    });
-    await this.itemsRepository.insertMany(
-      draft.lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: draft.siteId })),
-    );
-
-    const created = await this.findById(receipt.id);
-    this.logger.log(
-      `Created goods receipt ${grNumber} with ${draft.lines.length} lines of ${created.poNumbers.join(', ')}`,
-    );
-    return {
-      success: true,
-      message: `Goods receipt "${grNumber}" created with ${pluralize('line', draft.lines.length, true)} of ${created.poNumbers.join(', ')}.`,
-      data: created,
-    };
-  }
-
-  // Changes the notes of a draft receipt, in the caller's transaction
-  async updateNotes(receipt: GoodsReceiptRow, notes: string | null): Promise<void> {
-    await this.repository.update(receipt.id, { notes });
-    this.logger.log(`Updated the notes of goods receipt ${receipt.grNumber}`);
-  }
-
-  // Marks a draft receipt posted once its stock has landed
-  async markPosted(id: string): Promise<void> {
-    await this.repository.update(id, { status: GoodsReceiptStatusValues.POSTED, postedAt: new Date() });
-    this.logger.log(`Posted goods receipt ${id}`);
   }
 
   // Deletes a draft goods receipt with everything counted on it

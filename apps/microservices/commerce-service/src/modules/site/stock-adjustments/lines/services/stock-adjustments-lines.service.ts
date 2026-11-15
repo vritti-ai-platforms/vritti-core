@@ -129,14 +129,6 @@ export class StockAdjustmentsLinesService {
     return { success: true, message: 'Line updated successfully.' };
   }
 
-  // Removes a line from a DRAFT adjustment — fetches the adjustment context then delegates to domain
-  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`removeLine — adjustment: ${adjustmentId}, line: ${lineId}`);
-    const adjustment = await this.getAdjustmentContext(adjustmentId);
-    await this.linesService.removeLine(adjustment, lineId);
-    return { success: true, message: 'Line removed successfully.' };
-  }
-
   async updateChangeLine(
     adjustmentId: string,
     lineId: string,
@@ -161,6 +153,14 @@ export class StockAdjustmentsLinesService {
     await this.linesService.updateChangeLine(adjustment, lineId, { ...data, primaryUomQty });
 
     return { success: true, message: 'Line updated successfully.' };
+  }
+
+  // Removes a line from a DRAFT adjustment — fetches the adjustment context then delegates to domain
+  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`removeLine — adjustment: ${adjustmentId}, line: ${lineId}`);
+    const adjustment = await this.getAdjustmentContext(adjustmentId);
+    await this.linesService.removeLine(adjustment, lineId);
+    return { success: true, message: 'Line removed successfully.' };
   }
 
   // Recomputes the primary-qty snapshot when either uomQty or uomId changes; returns undefined otherwise so the domain

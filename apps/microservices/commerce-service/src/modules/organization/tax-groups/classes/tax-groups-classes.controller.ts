@@ -13,15 +13,6 @@ export class TaxGroupsClassesController {
 
   constructor(private readonly service: TaxClassGroupsDomainService) {}
 
-  // Returns a group's paginated class mappings for the data table
-  @MessagePattern({ cmd: 'org.taxGroups.classes.table' })
-  async table(
-    @Payload() data: { taxGroupId: string } & TableState,
-  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
-    this.logger.log(`taxGroups.classes.table — taxGroupId: ${data.taxGroupId}`);
-    return this.service.findForTable(data.taxGroupId, data);
-  }
-
   // Maps a tax class to a group in the group's country
   @MessagePattern({ cmd: 'org.taxGroups.classes.create' })
   async create(@Payload() dto: CreateTaxClassGroupDto): Promise<CreateResponseDto<TaxClassGroupDto>> {
@@ -34,6 +25,15 @@ export class TaxGroupsClassesController {
   async update(@Payload() dto: UpdateTaxClassGroupDto): Promise<SuccessResponseDto> {
     this.logger.log(`taxGroups.classes.update — taxGroupId: ${dto.taxGroupId}, id: ${dto.id}`);
     return this.service.update(dto);
+  }
+
+  // Returns a group's paginated class mappings for the data table
+  @MessagePattern({ cmd: 'org.taxGroups.classes.table' })
+  async table(
+    @Payload() data: { taxGroupId: string } & TableState,
+  ): Promise<{ result: TaxClassGroupDto[]; count: number }> {
+    this.logger.log(`taxGroups.classes.table — taxGroupId: ${data.taxGroupId}`);
+    return this.service.findForTable(data.taxGroupId, data);
   }
 
   // Removes a class mapping from a group

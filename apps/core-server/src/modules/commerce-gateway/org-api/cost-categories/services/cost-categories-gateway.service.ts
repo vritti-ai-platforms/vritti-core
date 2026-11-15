@@ -16,32 +16,6 @@ export class CostCategoriesGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns paginated, filtered and sorted cost categories for the data table
-  async findForTable(userId: string): Promise<CostCategoryTableResponseDto> {
-    this.logger.log('org.costCategories.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-cost-categories');
-
-    const { result, count } = await this.nats.send<{ result: CostCategoryResponseDto[]; count: number }>(
-      'commerce',
-      'org.costCategories.table',
-      state,
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
-  // Returns all cost categories (with canDelete) for the mobile plain list
-  list(search?: string): Promise<CostCategoryResponseDto[]> {
-    this.logger.log('org.costCategories.list');
-    return this.nats.send('commerce', 'org.costCategories.list', { search });
-  }
-
-  // Finds a cost category by ID
-  findById(id: string): Promise<CostCategoryResponseDto> {
-    this.logger.log(`org.costCategories.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.costCategories.findById', { id });
-  }
-
   // Creates a new cost category
   create(dto: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryResponseDto>> {
     this.logger.log(`org.costCategories.create — code: ${dto.code}, kind: ${dto.kind}`);
@@ -64,6 +38,32 @@ export class CostCategoriesGatewayService {
   activate(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.costCategories.activate — id: ${id}`);
     return this.nats.send('commerce', 'org.costCategories.activate', { id });
+  }
+
+  // Finds a cost category by ID
+  findById(id: string): Promise<CostCategoryResponseDto> {
+    this.logger.log(`org.costCategories.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.costCategories.findById', { id });
+  }
+
+  // Returns paginated, filtered and sorted cost categories for the data table
+  async findForTable(userId: string): Promise<CostCategoryTableResponseDto> {
+    this.logger.log('org.costCategories.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-cost-categories');
+
+    const { result, count } = await this.nats.send<{ result: CostCategoryResponseDto[]; count: number }>(
+      'commerce',
+      'org.costCategories.table',
+      state,
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns all cost categories (with canDelete) for the mobile plain list
+  list(search?: string): Promise<CostCategoryResponseDto[]> {
+    this.logger.log('org.costCategories.list');
+    return this.nats.send('commerce', 'org.costCategories.list', { search });
   }
 
   // Deletes a cost category that is not system-reserved and no cost row references

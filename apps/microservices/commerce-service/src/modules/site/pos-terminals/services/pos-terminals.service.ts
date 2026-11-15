@@ -17,6 +17,30 @@ export class PosTerminalsService {
     private readonly locationsRepository: LocationsDomainRepository,
   ) {}
 
+  // Creates a new POS terminal after resolving its storage location
+  async create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
+    const location = await this.locationsRepository.findById(dto.locationId);
+    if (!location) throw new NotFoundException('Storage location not found.');
+    return this.posTerminalsService.create(dto, location);
+  }
+
+  // Updates an existing POS terminal, resolving a new storage location when supplied
+  async update(data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = data;
+    let location: { id: string; locationRole: string; isActive: boolean } | undefined;
+    if (updateData.locationId) {
+      const loc = await this.locationsRepository.findById(updateData.locationId);
+      if (!loc) throw new NotFoundException('Storage location not found.');
+      location = loc;
+    }
+    return this.posTerminalsService.update(id, updateData, location);
+  }
+
+  // Returns a single POS terminal by ID
+  findById(id: string): Promise<PosTerminalDto> {
+    return this.posTerminalsService.findById(id);
+  }
+
   // Returns paginated POS terminals for the data table
   findForTable(state: TableState): Promise<{ result: PosTerminalDto[]; count: number }> {
     return this.posTerminalsService.findForTable(state);
@@ -40,30 +64,6 @@ export class PosTerminalsService {
       orderByKey: data.orderByKey || 'name',
       orderDirection: data.orderDirection || 'asc',
     });
-  }
-
-  // Returns a single POS terminal by ID
-  findById(id: string): Promise<PosTerminalDto> {
-    return this.posTerminalsService.findById(id);
-  }
-
-  // Creates a new POS terminal after resolving its storage location
-  async create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
-    const location = await this.locationsRepository.findById(dto.locationId);
-    if (!location) throw new NotFoundException('Storage location not found.');
-    return this.posTerminalsService.create(dto, location);
-  }
-
-  // Updates an existing POS terminal, resolving a new storage location when supplied
-  async update(data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = data;
-    let location: { id: string; locationRole: string; isActive: boolean } | undefined;
-    if (updateData.locationId) {
-      const loc = await this.locationsRepository.findById(updateData.locationId);
-      if (!loc) throw new NotFoundException('Storage location not found.');
-      location = loc;
-    }
-    return this.posTerminalsService.update(id, updateData, location);
   }
 
   // Deletes a POS terminal

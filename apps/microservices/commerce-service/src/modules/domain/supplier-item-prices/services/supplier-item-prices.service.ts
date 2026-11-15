@@ -132,202 +132,6 @@ export class SupplierItemPricesDomainService {
     private readonly comparisonsRepository: ItemSupplierPriceComparisonsRepository,
   ) {}
 
-  // Returns a site's price row effective on a date, or null when unpriced
-  async resolvePrice(supplierItemId: string, siteId: string, onDate?: string): Promise<SupplierItemPriceDto | null> {
-    await this.requirePriceContext(supplierItemId);
-    const row = await this.repository.resolvePrice(supplierItemId, siteId, onDate);
-    return row ? SupplierItemPriceDto.from(row) : null;
-  }
-
-  // Resolves the price row a purchase order line defaults its scheme from: the site's own in force on the date, else the
-  // legal entity's, or undefined when unpriced
-  resolvePriceForOrderLine(
-    supplierItemId: string,
-    siteId: string,
-    onDate: string,
-  ): Promise<SupplierItemPrice | undefined> {
-    return this.repository.resolvePrice(supplierItemId, siteId, onDate);
-  }
-
-  // Returns a single price row as a DTO, or null when it does not exist
-  async findPriceById(id: string): Promise<SupplierItemPriceDto | null> {
-    const row = await this.repository.findPriceById(id);
-    return row ? SupplierItemPriceDto.from(row) : null;
-  }
-
-  // Returns the paginated price timeline of a supplier item as a site reads it — the workspace's own site, else the site
-  // in the table's context: its own prices and the legal entity's it falls back to; with neither, every price
-  async findPricesForTable(
-    supplierItemId: string,
-    state: TableState,
-    workspaceSiteId?: string,
-  ): Promise<{ result: SupplierItemPriceDto[]; count: number }> {
-    await this.requirePriceContext(supplierItemId);
-
-    // The context site is read as "what this site pays", not as an exact match that would hide the legal entity's prices
-    const contextSite = state.filters.context.find((condition) => condition.field === 'site')?.value;
-    const readingSiteId = workspaceSiteId ?? (typeof contextSite === 'string' ? contextSite : undefined);
-    const filters = {
-      ...state.filters,
-      context: state.filters.context.filter((condition) => condition.field !== 'site'),
-    };
-    const filterWhere = FilterProcessor.buildWhere(filters, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
-    const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findPricesForTable(supplierItemId, readingSiteId, {
-      where,
-      orderBy,
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => SupplierItemPriceDto.from(row)), count };
-  }
-
-  // Returns the paginated prices of every supplier for an inventory item at one site
-  async findItemPricesAtSiteForTable(
-    inventoryItemId: string,
-    siteId: string,
-    state: TableState,
-  ): Promise<{ result: ItemSupplierPriceDto[]; count: number }> {
-    const fieldMap = SupplierItemPricesDomainService.ITEM_PRICE_FIELD_MAP;
-    const where =
-      and(FilterProcessor.buildWhere(state.filters, fieldMap), FilterProcessor.buildSearch(state.search, fieldMap)) ||
-      undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findItemPricesAtSiteForTable(inventoryItemId, siteId, {
-      where,
-      orderBy,
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => ItemSupplierPriceDto.fromItemRow(row)), count };
-  }
-
-  // A supplier item's price windows within a date range, a group per site — the chosen sites, else `siteIdsOf` the
-  // supplier and every site with prices of its own — each its own prices, else the legal entity's, with the price in
-  // force, the one it replaced and the next scheduled; unpaged, for charts. RLS limits a site workspace to its own rows
-  async findPriceHistory(
-    supplierItemId: string,
-    context: FilterCondition[],
-    siteIdsOf?: (supplierId: string) => Promise<string[]>,
-  ): Promise<SupplierItemPriceHistoryDto> {
-    const { supplierId } = await this.requirePriceContext(supplierItemId);
-
-    const currency = conditionValue(context, 'currency') ?? null;
-    if (!currency) return { currency, sites: [] };
-    const where = FilterProcessor.buildWhere(context, SupplierItemPricesDomainService.PRICE_HISTORY_FIELD_MAP);
-    const rows = await this.repository.findPriceHistory(supplierItemId, where);
-    const legalEntityWindows: PriceWindowDto[] = [];
-    const bySite = new Map<string, PriceWindowDto[]>();
-    for (const row of rows) {
-      const windows = row.siteId ? (bySite.get(row.siteId) ?? []) : legalEntityWindows;
-      windows.push(PriceWindowDto.from(row));
-      if (row.siteId) bySite.set(row.siteId, windows);
-    }
-    const picked = conditionValues(context, 'sites');
-    const siteIds = picked.length
-      ? picked
-      : [...new Set([...((await siteIdsOf?.(supplierId)) ?? []), ...bySite.keys()])];
-    const today = SupplierItemPricesDomainService.today();
-    return {
-      currency,
-      sites: siteIds
-        .map((siteId) => ({ siteId, windows: bySite.get(siteId) ?? legalEntityWindows }))
-        .filter(({ windows }) => windows.length > 0)
-        .map(({ siteId, windows }) => SitePriceHistoryDto.from(siteId, windows, today)),
-    };
-  }
-
-  // An inventory item's price history at one site: a line per drawn supplier item in one currency and per one unit, where
-  // `unitsPer` gives how many of that unit one of a supplier's unit holds — the caller owns unit conversion
-  async findItemPriceHistoryAtSite(
-    inventoryItemId: string,
-    siteId: string,
-    context: FilterCondition[],
-    unitsPer: (uomId: string) => Promise<Decimal>,
-  ): Promise<InventoryItemPriceHistoryDto> {
-    const currency = conditionValue(context, 'currency') ?? null;
-    if (!currency) return { currency, lines: [] };
-    const where = FilterProcessor.buildWhere(context, SupplierItemPricesDomainService.ITEM_PRICE_HISTORY_FIELD_MAP);
-    const priced = await this.repository.findItemPriceHistoryAtSite(inventoryItemId, siteId, where);
-
-    const supplierIds = conditionValues(context, 'supplierIds');
-    const charted = new Set(
-      supplierIds.length
-        ? supplierIds.slice(0, MAX_CHARTED_SUPPLIERS)
-        : await this.defaultChartedSuppliers(inventoryItemId, siteId, priced),
-    );
-    const bySupplierItem = new Map<string, ItemPriceAtSiteRow[]>();
-    for (const row of priced.filter((entry) => charted.has(entry.supplierId))) {
-      const group = bySupplierItem.get(row.supplierItemId) ?? [];
-      group.push(row);
-      bySupplierItem.set(row.supplierItemId, group);
-    }
-    const itemsPerSupplier = new Map<string, number>();
-    for (const [first] of bySupplierItem.values()) {
-      itemsPerSupplier.set(first.supplierId, (itemsPerSupplier.get(first.supplierId) ?? 0) + 1);
-    }
-
-    const today = SupplierItemPricesDomainService.today();
-    const lines: PriceHistoryLineDto[] = [];
-    for (const [supplierItemId, group] of bySupplierItem) {
-      const [first] = group;
-      const factor = await unitsPer(first.uomId);
-      // A supplier quoting the item in several units draws a line per unit, named by the unit it quotes
-      const label =
-        first.uomSymbol && (itemsPerSupplier.get(first.supplierId) ?? 0) > 1
-          ? `${first.supplierName} (${first.uomSymbol})`
-          : first.supplierName;
-      lines.push(
-        PriceHistoryLineDto.from(
-          { id: supplierItemId, supplierId: first.supplierId, label },
-          group.map((row) =>
-            PriceWindowDto.from(row, SupplierItemPricesDomainService.perPrimary(row.unitPrice, factor)),
-          ),
-          today,
-        ),
-      );
-    }
-    return { currency, lines };
-  }
-  // Returns every supplier item's price standing for an inventory item at the context's site and day, cheapest per primary
-  // unit first, and no rows without both
-  async findItemPriceComparisonTable(
-    inventoryItemId: string,
-    state: TableState,
-  ): Promise<{ result: ItemSupplierPriceComparisonDto[]; count: number }> {
-    const day = state.filters.context.find((condition) => condition.field === 'asOf');
-    const asOf =
-      day?.operator === 'equals' && typeof day.value === 'string' && isMatch(day.value, 'yyyy-MM-dd')
-        ? day.value
-        : null;
-    if (!asOf || !state.filters.context.some((condition) => condition.field === 'site'))
-      return { result: [], count: 0 };
-
-    const standing = this.comparisonsRepository.standingOn(asOf);
-    const fieldMap = this.comparisonsRepository.fieldMap(standing);
-    const sort = state.sort.length ? state.sort : SupplierItemPricesDomainService.COMPARISON_DEFAULT_SORT;
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.comparisonsRepository.findForTable({
-      inventoryItemId,
-      standing,
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, fieldMap),
-      ),
-      orderBy: FilterProcessor.buildOrderBy(sort, fieldMap),
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => ItemSupplierPriceComparisonDto.from(row)), count };
-  }
-
   // Adds a validity-dated price at each given site, or for the whole legal entity when none is given, delimiting the
   // open row of each (SAP ME11)
   async addPrice(
@@ -439,39 +243,6 @@ export class SupplierItemPricesDomainService {
     return { success: true, message: 'Price updated successfully.' };
   }
 
-  // Deletes a future price row, from a site workspace only its own, re-opening the contiguous prior row
-  async deletePrice(id: string, workspaceSiteId?: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findPriceById(id);
-    if (!existing) throw new NotFoundException('Price not found.');
-    SupplierItemPricesDomainService.assertNotFromQuotation(existing);
-    SupplierItemPricesDomainService.assertSiteOwns(existing, workspaceSiteId);
-    if (existing.validFrom <= SupplierItemPricesDomainService.today()) {
-      throw new BadRequestException({
-        label: 'Price In Force',
-        detail: 'Prices that have taken effect are kept as history. Set an end date instead of deleting.',
-      });
-    }
-
-    await this.database.runInTransaction(async () => {
-      const hasLater = await this.repository.hasLaterPrice(
-        existing.supplierItemId,
-        existing.siteId,
-        existing.validFrom,
-      );
-      const prior = hasLater
-        ? undefined
-        : await this.repository.findContiguousPreviousPrice(
-            existing.supplierItemId,
-            existing.siteId,
-            existing.validFrom,
-          );
-      await this.repository.deletePriceRow(id);
-      if (prior) await this.repository.updatePriceRow(prior.id, { validTo: null });
-    });
-
-    return { success: true, message: 'Price removed successfully.' };
-  }
-
   // Delimit core (SAP ME11): rejects a later-or-equal row in the stratum, closes the open row, inserts.
   // Writes a quotation's lines as QUOTATION prices at a site, or for the legal entity when the site is empty, inside the
   // caller's transaction
@@ -506,6 +277,236 @@ export class SupplierItemPricesDomainService {
       await this.repository.updatePriceRow(row.id, { quotationSiteId });
     }
     return lines.length;
+  }
+
+  // Returns a single price row as a DTO, or null when it does not exist
+  async findPriceById(id: string): Promise<SupplierItemPriceDto | null> {
+    const row = await this.repository.findPriceById(id);
+    return row ? SupplierItemPriceDto.from(row) : null;
+  }
+
+  // Returns the paginated price timeline of a supplier item as a site reads it — the workspace's own site, else the site
+  // in the table's context: its own prices and the legal entity's it falls back to; with neither, every price
+  async findPricesForTable(
+    supplierItemId: string,
+    state: TableState,
+    workspaceSiteId?: string,
+  ): Promise<{ result: SupplierItemPriceDto[]; count: number }> {
+    await this.requirePriceContext(supplierItemId);
+
+    // The context site is read as "what this site pays", not as an exact match that would hide the legal entity's prices
+    const contextSite = state.filters.context.find((condition) => condition.field === 'site')?.value;
+    const readingSiteId = workspaceSiteId ?? (typeof contextSite === 'string' ? contextSite : undefined);
+    const filters = {
+      ...state.filters,
+      context: state.filters.context.filter((condition) => condition.field !== 'site'),
+    };
+    const filterWhere = FilterProcessor.buildWhere(filters, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, SupplierItemPricesDomainService.PRICE_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findPricesForTable(supplierItemId, readingSiteId, {
+      where,
+      orderBy,
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => SupplierItemPriceDto.from(row)), count };
+  }
+
+  // Returns the paginated prices of every supplier for an inventory item at one site
+  async findItemPricesAtSiteForTable(
+    inventoryItemId: string,
+    siteId: string,
+    state: TableState,
+  ): Promise<{ result: ItemSupplierPriceDto[]; count: number }> {
+    const fieldMap = SupplierItemPricesDomainService.ITEM_PRICE_FIELD_MAP;
+    const where =
+      and(FilterProcessor.buildWhere(state.filters, fieldMap), FilterProcessor.buildSearch(state.search, fieldMap)) ||
+      undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findItemPricesAtSiteForTable(inventoryItemId, siteId, {
+      where,
+      orderBy,
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => ItemSupplierPriceDto.fromItemRow(row)), count };
+  }
+
+  // Returns every supplier item's price standing for an inventory item at the context's site and day, cheapest per primary
+  // unit first, and no rows without both
+  async findItemPriceComparisonTable(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: ItemSupplierPriceComparisonDto[]; count: number }> {
+    const day = state.filters.context.find((condition) => condition.field === 'asOf');
+    const asOf =
+      day?.operator === 'equals' && typeof day.value === 'string' && isMatch(day.value, 'yyyy-MM-dd')
+        ? day.value
+        : null;
+    if (!asOf || !state.filters.context.some((condition) => condition.field === 'site'))
+      return { result: [], count: 0 };
+
+    const standing = this.comparisonsRepository.standingOn(asOf);
+    const fieldMap = this.comparisonsRepository.fieldMap(standing);
+    const sort = state.sort.length ? state.sort : SupplierItemPricesDomainService.COMPARISON_DEFAULT_SORT;
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.comparisonsRepository.findForTable({
+      inventoryItemId,
+      standing,
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, fieldMap),
+      ),
+      orderBy: FilterProcessor.buildOrderBy(sort, fieldMap),
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => ItemSupplierPriceComparisonDto.from(row)), count };
+  }
+
+  // Returns a site's price row effective on a date, or null when unpriced
+  async resolvePrice(supplierItemId: string, siteId: string, onDate?: string): Promise<SupplierItemPriceDto | null> {
+    await this.requirePriceContext(supplierItemId);
+    const row = await this.repository.resolvePrice(supplierItemId, siteId, onDate);
+    return row ? SupplierItemPriceDto.from(row) : null;
+  }
+
+  // Resolves the price row a purchase order line defaults its scheme from: the site's own in force on the date, else the
+  // legal entity's, or undefined when unpriced
+  resolvePriceForOrderLine(
+    supplierItemId: string,
+    siteId: string,
+    onDate: string,
+  ): Promise<SupplierItemPrice | undefined> {
+    return this.repository.resolvePrice(supplierItemId, siteId, onDate);
+  }
+
+  // A supplier item's price windows within a date range, a group per site — the chosen sites, else `siteIdsOf` the
+  // supplier and every site with prices of its own — each its own prices, else the legal entity's, with the price in
+  // force, the one it replaced and the next scheduled; unpaged, for charts. RLS limits a site workspace to its own rows
+  async findPriceHistory(
+    supplierItemId: string,
+    context: FilterCondition[],
+    siteIdsOf?: (supplierId: string) => Promise<string[]>,
+  ): Promise<SupplierItemPriceHistoryDto> {
+    const { supplierId } = await this.requirePriceContext(supplierItemId);
+
+    const currency = conditionValue(context, 'currency') ?? null;
+    if (!currency) return { currency, sites: [] };
+    const where = FilterProcessor.buildWhere(context, SupplierItemPricesDomainService.PRICE_HISTORY_FIELD_MAP);
+    const rows = await this.repository.findPriceHistory(supplierItemId, where);
+    const legalEntityWindows: PriceWindowDto[] = [];
+    const bySite = new Map<string, PriceWindowDto[]>();
+    for (const row of rows) {
+      const windows = row.siteId ? (bySite.get(row.siteId) ?? []) : legalEntityWindows;
+      windows.push(PriceWindowDto.from(row));
+      if (row.siteId) bySite.set(row.siteId, windows);
+    }
+    const picked = conditionValues(context, 'sites');
+    const siteIds = picked.length
+      ? picked
+      : [...new Set([...((await siteIdsOf?.(supplierId)) ?? []), ...bySite.keys()])];
+    const today = SupplierItemPricesDomainService.today();
+    return {
+      currency,
+      sites: siteIds
+        .map((siteId) => ({ siteId, windows: bySite.get(siteId) ?? legalEntityWindows }))
+        .filter(({ windows }) => windows.length > 0)
+        .map(({ siteId, windows }) => SitePriceHistoryDto.from(siteId, windows, today)),
+    };
+  }
+
+  // An inventory item's price history at one site: a line per drawn supplier item in one currency and per one unit, where
+  // `unitsPer` gives how many of that unit one of a supplier's unit holds — the caller owns unit conversion
+  async findItemPriceHistoryAtSite(
+    inventoryItemId: string,
+    siteId: string,
+    context: FilterCondition[],
+    unitsPer: (uomId: string) => Promise<Decimal>,
+  ): Promise<InventoryItemPriceHistoryDto> {
+    const currency = conditionValue(context, 'currency') ?? null;
+    if (!currency) return { currency, lines: [] };
+    const where = FilterProcessor.buildWhere(context, SupplierItemPricesDomainService.ITEM_PRICE_HISTORY_FIELD_MAP);
+    const priced = await this.repository.findItemPriceHistoryAtSite(inventoryItemId, siteId, where);
+
+    const supplierIds = conditionValues(context, 'supplierIds');
+    const charted = new Set(
+      supplierIds.length
+        ? supplierIds.slice(0, MAX_CHARTED_SUPPLIERS)
+        : await this.defaultChartedSuppliers(inventoryItemId, siteId, priced),
+    );
+    const bySupplierItem = new Map<string, ItemPriceAtSiteRow[]>();
+    for (const row of priced.filter((entry) => charted.has(entry.supplierId))) {
+      const group = bySupplierItem.get(row.supplierItemId) ?? [];
+      group.push(row);
+      bySupplierItem.set(row.supplierItemId, group);
+    }
+    const itemsPerSupplier = new Map<string, number>();
+    for (const [first] of bySupplierItem.values()) {
+      itemsPerSupplier.set(first.supplierId, (itemsPerSupplier.get(first.supplierId) ?? 0) + 1);
+    }
+
+    const today = SupplierItemPricesDomainService.today();
+    const lines: PriceHistoryLineDto[] = [];
+    for (const [supplierItemId, group] of bySupplierItem) {
+      const [first] = group;
+      const factor = await unitsPer(first.uomId);
+      // A supplier quoting the item in several units draws a line per unit, named by the unit it quotes
+      const label =
+        first.uomSymbol && (itemsPerSupplier.get(first.supplierId) ?? 0) > 1
+          ? `${first.supplierName} (${first.uomSymbol})`
+          : first.supplierName;
+      lines.push(
+        PriceHistoryLineDto.from(
+          { id: supplierItemId, supplierId: first.supplierId, label },
+          group.map((row) =>
+            PriceWindowDto.from(row, SupplierItemPricesDomainService.perPrimary(row.unitPrice, factor)),
+          ),
+          today,
+        ),
+      );
+    }
+    return { currency, lines };
+  }
+
+  // Deletes a future price row, from a site workspace only its own, re-opening the contiguous prior row
+  async deletePrice(id: string, workspaceSiteId?: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findPriceById(id);
+    if (!existing) throw new NotFoundException('Price not found.');
+    SupplierItemPricesDomainService.assertNotFromQuotation(existing);
+    SupplierItemPricesDomainService.assertSiteOwns(existing, workspaceSiteId);
+    if (existing.validFrom <= SupplierItemPricesDomainService.today()) {
+      throw new BadRequestException({
+        label: 'Price In Force',
+        detail: 'Prices that have taken effect are kept as history. Set an end date instead of deleting.',
+      });
+    }
+
+    await this.database.runInTransaction(async () => {
+      const hasLater = await this.repository.hasLaterPrice(
+        existing.supplierItemId,
+        existing.siteId,
+        existing.validFrom,
+      );
+      const prior = hasLater
+        ? undefined
+        : await this.repository.findContiguousPreviousPrice(
+            existing.supplierItemId,
+            existing.siteId,
+            existing.validFrom,
+          );
+      await this.repository.deletePriceRow(id);
+      if (prior) await this.repository.updatePriceRow(prior.id, { validTo: null });
+    });
+
+    return { success: true, message: 'Price removed successfully.' };
   }
 
   // Removes a quotation's prices at a site as though it was never posted there: its rows are deleted — in force or

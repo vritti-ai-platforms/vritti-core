@@ -35,76 +35,14 @@ export class LeCatalogsGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
-  // Returns paginated, filtered and sorted catalogs for the data table
-  async findForTable(orgId: string, userId: string): Promise<CatalogTableResponseDto> {
-    this.logger.log('le.catalogs.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, CATALOGS_TABLE_SLUG);
-    const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
-      'commerce',
-      'le.catalogs.table',
-      state,
-    );
-    // commerce stores only the owning ids; the names live in core
-    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
-  }
-
-  async findById(orgId: string, id: string): Promise<CatalogResponseDto> {
-    this.logger.log(`le.catalogs.findById — id: ${id}`);
-    const catalog = await this.nats.send<CatalogResponseDto>('commerce', 'le.catalogs.findById', { id });
-    const [withOwner] = await this.ownerNames.resolve(orgId, [catalog]);
-    return withOwner;
-  }
-
   async create(dto: CreateCatalogDto): Promise<CreateResponseDto<CatalogResponseDto>> {
     this.logger.log(`le.catalogs.create — name: ${dto.name}`);
     return this.nats.send('commerce', 'le.catalogs.create', dto);
   }
 
-  async update(id: string, dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.catalogs.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.catalogs.update', { id, ...dto });
-  }
-
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.catalogs.delete — id: ${id}`);
-    return this.nats.send('commerce', 'le.catalogs.delete', { id });
-  }
-
-  // The currencies this catalog prices in, each with how much of it it covers
-  async findCurrencies(catalogId: string): Promise<CatalogCurrencyResponseDto[]> {
-    this.logger.log(`le.catalogs.currencies — catalogId: ${catalogId}`);
-    return this.nats.send('commerce', 'le.catalogs.currencies', { catalogId });
-  }
-
   async addCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
     this.logger.log(`le.catalogs.currencies.add — catalogId: ${catalogId}, currency: ${currencyCode}`);
     return this.nats.send('commerce', 'le.catalogs.currencies.add', { catalogId, currencyCode });
-  }
-
-  async removeCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.catalogs.currencies.remove — catalogId: ${catalogId}, currency: ${currencyCode}`);
-    return this.nats.send('commerce', 'le.catalogs.currencies.remove', { catalogId, currencyCode });
-  }
-
-  // Returns paginated listings of one catalog, each with its prices.
-  async findListingsForTable(
-    orgId: string,
-    catalogId: string,
-    userId: string,
-    currencyCode?: string,
-  ): Promise<CatalogListingTableResponseDto> {
-    this.logger.log(`le.catalogs.listings.table — catalogId: ${catalogId}, currency: ${currencyCode ?? 'all'}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      currencyCode ? CATALOG_PRICES_TABLE_SLUG(catalogId) : CATALOG_LISTINGS_TABLE_SLUG(catalogId),
-    );
-    const { result, count } = await this.nats.send<{ result: CatalogListingResponseDto[]; count: number }>(
-      'commerce',
-      'le.catalogs.listings.table',
-      { catalogId, state, currencyCode },
-    );
-    const rows = await this.ownerNames.resolve(orgId, result);
-    return { result: await this.namePriceOwners(orgId, rows), count, state, activeViewId };
   }
 
   async addListing(
@@ -124,6 +62,11 @@ export class LeCatalogsGatewayService {
     return this.nats.send('commerce', 'le.catalogs.listings.addBatch', { catalogId, ...dto });
   }
 
+  async update(id: string, dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.catalogs.update — id: ${id}`);
+    return this.nats.send('commerce', 'le.catalogs.update', { id, ...dto });
+  }
+
   async setListingPrice(listingId: string, dto: SetCatalogListingPriceDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.catalogs.listings.setPrice — listingId: ${listingId}`);
     return this.nats.send('commerce', 'le.catalogs.listings.setPrice', { catalogListingId: listingId, ...dto });
@@ -137,12 +80,6 @@ export class LeCatalogsGatewayService {
     });
   }
 
-  // Every channel carrying this catalog — read-only on the catalog detail
-  async findChannels(catalogId: string): Promise<CatalogChannelResponseDto[]> {
-    this.logger.log(`le.catalogs.channels — catalogId: ${catalogId}`);
-    return this.nats.send('commerce', 'le.catalogs.channels', { catalogId });
-  }
-
   async setListingChannelVisibility(
     listingId: string,
     channelId: string,
@@ -154,11 +91,6 @@ export class LeCatalogsGatewayService {
       catalogChannelId: channelId,
       visible,
     });
-  }
-
-  async bulkRemoveListings(catalogId: string, dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.catalogs.listings.bulkDelete — ${dto.ids.length} selected`);
-    return this.nats.send('commerce', 'le.catalogs.listings.bulkDelete', { catalogId, ids: dto.ids });
   }
 
   async bulkSetListingPrice(catalogId: string, dto: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
@@ -188,6 +120,74 @@ export class LeCatalogsGatewayService {
       channelIds: dto.channelIds,
       visible: dto.visible,
     });
+  }
+
+  async findById(orgId: string, id: string): Promise<CatalogResponseDto> {
+    this.logger.log(`le.catalogs.findById — id: ${id}`);
+    const catalog = await this.nats.send<CatalogResponseDto>('commerce', 'le.catalogs.findById', { id });
+    const [withOwner] = await this.ownerNames.resolve(orgId, [catalog]);
+    return withOwner;
+  }
+
+  // Returns paginated, filtered and sorted catalogs for the data table
+  async findForTable(orgId: string, userId: string): Promise<CatalogTableResponseDto> {
+    this.logger.log('le.catalogs.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, CATALOGS_TABLE_SLUG);
+    const { result, count } = await this.nats.send<{ result: CatalogResponseDto[]; count: number }>(
+      'commerce',
+      'le.catalogs.table',
+      state,
+    );
+    // commerce stores only the owning ids; the names live in core
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
+  }
+
+  // Returns paginated listings of one catalog, each with its prices.
+  async findListingsForTable(
+    orgId: string,
+    catalogId: string,
+    userId: string,
+    currencyCode?: string,
+  ): Promise<CatalogListingTableResponseDto> {
+    this.logger.log(`le.catalogs.listings.table — catalogId: ${catalogId}, currency: ${currencyCode ?? 'all'}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      currencyCode ? CATALOG_PRICES_TABLE_SLUG(catalogId) : CATALOG_LISTINGS_TABLE_SLUG(catalogId),
+    );
+    const { result, count } = await this.nats.send<{ result: CatalogListingResponseDto[]; count: number }>(
+      'commerce',
+      'le.catalogs.listings.table',
+      { catalogId, state, currencyCode },
+    );
+    const rows = await this.ownerNames.resolve(orgId, result);
+    return { result: await this.namePriceOwners(orgId, rows), count, state, activeViewId };
+  }
+
+  // The currencies this catalog prices in, each with how much of it it covers
+  async findCurrencies(catalogId: string): Promise<CatalogCurrencyResponseDto[]> {
+    this.logger.log(`le.catalogs.currencies — catalogId: ${catalogId}`);
+    return this.nats.send('commerce', 'le.catalogs.currencies', { catalogId });
+  }
+
+  // Every channel carrying this catalog — read-only on the catalog detail
+  async findChannels(catalogId: string): Promise<CatalogChannelResponseDto[]> {
+    this.logger.log(`le.catalogs.channels — catalogId: ${catalogId}`);
+    return this.nats.send('commerce', 'le.catalogs.channels', { catalogId });
+  }
+
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.catalogs.delete — id: ${id}`);
+    return this.nats.send('commerce', 'le.catalogs.delete', { id });
+  }
+
+  async removeCurrency(catalogId: string, currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.catalogs.currencies.remove — catalogId: ${catalogId}, currency: ${currencyCode}`);
+    return this.nats.send('commerce', 'le.catalogs.currencies.remove', { catalogId, currencyCode });
+  }
+
+  async bulkRemoveListings(catalogId: string, dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.catalogs.listings.bulkDelete — ${dto.ids.length} selected`);
+    return this.nats.send('commerce', 'le.catalogs.listings.bulkDelete', { catalogId, ids: dto.ids });
   }
 
   async deleteListing(listingId: string): Promise<SuccessResponseDto> {

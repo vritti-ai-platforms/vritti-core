@@ -56,28 +56,6 @@ export class SupplierInvoicesGatewayController {
 
   constructor(private readonly service: SupplierInvoicesGatewayService) {}
 
-  // Returns the invoices of the legal entity's sites for the data table
-  @Get('table')
-  @RequirePermission(LE_SUPPLIER_INVOICES.view)
-  @ApiFindForTableSupplierInvoices()
-  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<SupplierInvoiceTableResponseDto> {
-    this.logger.log('GET /commerce-api/le/supplier-invoices/table');
-    return this.service.findForTable(userId, orgId);
-  }
-
-  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker
-  @Get('invoiceable-goods-receipts/sites/:siteId')
-  @RequirePermission(LE_SUPPLIER_INVOICES.view)
-  @ApiFindSupplierInvoiceInvoiceableGoodsReceipts()
-  findInvoiceableGoodsReceipts(
-    @Param('siteId', new ParseUUIDPipe()) siteId: string,
-    @Query() query: LeInvoiceableGoodsReceiptsQueryDto,
-    @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
-    this.logger.log(`GET /commerce-api/le/supplier-invoices/invoiceable-goods-receipts/sites/${siteId}`);
-    return this.service.findInvoiceableGoodsReceipts(siteId, query, legalEntityId);
-  }
-
   // Records a draft invoice of a supplier at one of the legal entity's sites
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -91,16 +69,17 @@ export class SupplierInvoicesGatewayController {
     return this.service.create(dto, legalEntityId);
   }
 
-  // Returns an invoice with its lines and holds
-  @Get(':id')
-  @RequirePermission(LE_SUPPLIER_INVOICES.view)
-  @ApiFindSupplierInvoiceById()
-  findById(
+  // Adds an item line invoicing a received lot, or a charge line, to an invoice
+  @Post(':id/lines')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(LE_SUPPLIER_INVOICES.edit)
+  @ApiCreateSupplierInvoiceLine()
+  createLine(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierInvoiceDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/le/supplier-invoices/${id}`);
-    return this.service.findById(id, orgId);
+    @Body() dto: SupplierInvoiceLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/supplier-invoices/${id}/lines`);
+    return this.service.createLine(id, dto);
   }
 
   // Updates an invoice's header
@@ -113,6 +92,19 @@ export class SupplierInvoicesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/supplier-invoices/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Updates a line of an invoice
+  @Patch(':id/lines/:lineId')
+  @RequirePermission(LE_SUPPLIER_INVOICES.edit)
+  @ApiUpdateSupplierInvoiceLine()
+  updateLine(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('lineId', new ParseUUIDPipe()) lineId: string,
+    @Body() dto: SupplierInvoiceLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/supplier-invoices/${id}/lines/${lineId}`);
+    return this.service.updateLine(id, lineId, dto);
   }
 
   // Posts a draft invoice, setting the final cost of the stock it invoices
@@ -135,15 +127,6 @@ export class SupplierInvoicesGatewayController {
     return this.service.cancel(id);
   }
 
-  // Deletes a draft invoice
-  @Delete(':id')
-  @RequirePermission(LE_SUPPLIER_INVOICES.delete)
-  @ApiDeleteSupplierInvoice()
-  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/supplier-invoices/${id}`);
-    return this.service.delete(id);
-  }
-
   // Releases an open hold of an invoice with a reason
   @Post(':id/holds/:holdId/release')
   @HttpCode(HttpStatus.OK)
@@ -158,30 +141,47 @@ export class SupplierInvoicesGatewayController {
     return this.service.releaseHold(id, holdId, dto);
   }
 
-  // Adds an item line invoicing a received lot, or a charge line, to an invoice
-  @Post(':id/lines')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(LE_SUPPLIER_INVOICES.edit)
-  @ApiCreateSupplierInvoiceLine()
-  createLine(
+  // Returns an invoice with its lines and holds
+  @Get(':id')
+  @RequirePermission(LE_SUPPLIER_INVOICES.view)
+  @ApiFindSupplierInvoiceById()
+  findById(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: SupplierInvoiceLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/le/supplier-invoices/${id}/lines`);
-    return this.service.createLine(id, dto);
+    @OrgId() orgId: string,
+  ): Promise<SupplierInvoiceDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/le/supplier-invoices/${id}`);
+    return this.service.findById(id, orgId);
   }
 
-  // Updates a line of an invoice
-  @Patch(':id/lines/:lineId')
-  @RequirePermission(LE_SUPPLIER_INVOICES.edit)
-  @ApiUpdateSupplierInvoiceLine()
-  updateLine(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('lineId', new ParseUUIDPipe()) lineId: string,
-    @Body() dto: SupplierInvoiceLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/supplier-invoices/${id}/lines/${lineId}`);
-    return this.service.updateLine(id, lineId, dto);
+  // Returns the invoices of the legal entity's sites for the data table
+  @Get('table')
+  @RequirePermission(LE_SUPPLIER_INVOICES.view)
+  @ApiFindForTableSupplierInvoices()
+  findForTable(@UserId() userId: string, @OrgId() orgId: string): Promise<SupplierInvoiceTableResponseDto> {
+    this.logger.log('GET /commerce-api/le/supplier-invoices/table');
+    return this.service.findForTable(userId, orgId);
+  }
+
+  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker
+  @Get('invoiceable-goods-receipts/sites/:siteId')
+  @RequirePermission(LE_SUPPLIER_INVOICES.view)
+  @ApiFindSupplierInvoiceInvoiceableGoodsReceipts()
+  findInvoiceableGoodsReceipts(
+    @Param('siteId', new ParseUUIDPipe()) siteId: string,
+    @Query() query: LeInvoiceableGoodsReceiptsQueryDto,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
+    this.logger.log(`GET /commerce-api/le/supplier-invoices/invoiceable-goods-receipts/sites/${siteId}`);
+    return this.service.findInvoiceableGoodsReceipts(siteId, query, legalEntityId);
+  }
+
+  // Deletes a draft invoice
+  @Delete(':id')
+  @RequirePermission(LE_SUPPLIER_INVOICES.delete)
+  @ApiDeleteSupplierInvoice()
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/supplier-invoices/${id}`);
+    return this.service.delete(id);
   }
 
   // Removes a line from an invoice

@@ -106,29 +106,219 @@ export class SupplierItemsDomainService {
     private readonly repository: SupplierItemsDomainRepository,
   ) {}
 
-  // Returns paginated supplier item options for select dropdowns and filters.
-  findForSelect(
-    query: SelectOptionsQueryDto,
-    options?: {
-      supplierId?: string;
-      siteId?: string | null;
-      purchaseOrderId?: string;
-      excludeOnGoodsReceiptId?: string;
-    },
-  ): Promise<SelectQueryResult> {
-    return this.repository.findForSelect(
-      {
-        ...selectPageOptions(query),
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'name',
-        description: query.descriptionKey,
-        additionalKeys: query.additionalKeys,
-        groupIdKey: query.groupIdKey || 'categoryId',
-        orderByKey: query.orderByKey || 'name',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      options,
+  // Links an item to a supplier and sets it up at the given enrolled sites
+  async addItem(
+    supplierId: string,
+    data: Omit<AddSupplierItemDto, 'supplierId'>,
+    inventoryItemName: string,
+  ): Promise<CreateResponseDto<SupplierItemDto>> {
+    const supplier = await this.requireSupplier(supplierId);
+
+    const existing = await this.repository.findItemBySupplierInventoryItemAndUom(
+      supplierId,
+      data.inventoryItemId,
+      data.uomId,
     );
+    if (existing) {
+      throw new BadRequestException({
+        label: 'Duplicate Item',
+        detail: 'This item with the selected UOM is already linked to this supplier.',
+      });
+    }
+    const siteIds = [...new Set(data.siteIds)];
+    await this.assertEnrolled(supplierId, siteIds);
+    await this.repository.assertMinOrderFitsUnit(data.uomId, data.minOrderQuantity);
+
+    const uomSymbol = await this.repository.findUomSymbol(data.uomId);
+    const created = await this.database.runInTransaction(async () => {
+      const item = await this.repository.createSupplierItem({
+        supplierId,
+        inventoryItemId: data.inventoryItemId,
+        supplierItemCode: data.supplierItemCode ?? null,
+        minOrderQuantity: data.minOrderQuantity ?? null,
+        defaultLeadTimeDays: data.defaultLeadTimeDays,
+        uomId: data.uomId,
+      });
+      await this.repository.insertSiteItems(
+        siteIds.map((siteId) => ({
+          legalEntityId: supplier.legalEntityId,
+          siteId,
+          supplierItemId: item.id,
+          inventoryItemId: item.inventoryItemId,
+          leadTimeDays: item.defaultLeadTimeDays,
+        })),
+      );
+      return item;
+    });
+
+    return {
+      success: true,
+      message: `"${inventoryItemName}" (${uomSymbol}) added to supplier for ${pluralize('site', siteIds.length, true)}.`,
+      data: SupplierItemDto.from({ ...created, siteCount: siteIds.length }, inventoryItemName, uomSymbol),
+    };
+  }
+
+  // Sets a supplier item up at an enrolled site
+  async createSiteItem(dto: AddSupplierSiteItemDto): Promise<CreateResponseDto<SupplierSiteItemDto>> {
+    const item = await this.repository.findById(dto.supplierItemId);
+    if (!item) throw new NotFoundException('Supplier item not found.');
+    const supplier = await this.requireSupplier(item.supplierId);
+    await this.assertEnrolled(item.supplierId, [dto.siteId]);
+    if (await this.repository.findSiteItem(dto.supplierItemId, dto.siteId)) {
+      throw new BadRequestException({
+        label: 'Already At Site',
+        detail: 'This item is already set up at the selected site.',
+        errors: [{ field: 'siteId', message: 'Already set up at this site' }],
+      });
+    }
+
+    const supplierSiteItem = await this.database.runInTransaction(async () => {
+      const [created] = await this.repository.insertSiteItems([
+        {
+          legalEntityId: supplier.legalEntityId,
+          siteId: dto.siteId,
+          supplierItemId: dto.supplierItemId,
+          inventoryItemId: item.inventoryItemId,
+          // A lead time given here is the site's own; otherwise the site follows the item's default
+          leadTimeDays: dto.leadTimeDays ?? item.defaultLeadTimeDays,
+          isLeadTimeOverridden: dto.leadTimeDays !== undefined,
+        },
+      ]);
+      return dto.isPreferred ? this.applySiteItemSettings(created, { isPreferred: true }) : created;
+    });
+    return {
+      success: true,
+      message: 'Item set up at site successfully.',
+      data: SupplierSiteItemDto.from(supplierSiteItem),
+    };
+  }
+
+  async updateItem(
+    supplierId: string,
+    supplierItemId: string,
+    data: Omit<UpdateSupplierItemDto, 'supplierId' | 'supplierItemId'>,
+  ): Promise<SuccessResponseDto> {
+    await this.requireSupplier(supplierId);
+    const existing = await this.repository.findSupplierItemById(supplierItemId);
+    if (!existing || existing.supplierId !== supplierId) {
+      throw new NotFoundException('Supplier item not found.');
+    }
+
+    const update: Partial<NewSupplierItem> = {};
+    if (data.supplierItemCode !== undefined) update.supplierItemCode = data.supplierItemCode ?? null;
+    if (data.uomId !== undefined && data.uomId !== existing.uomId) {
+      // Its prices are per this unit, so the unit is fixed once the item is priced
+      if ((await this.repository.countPrices([supplierItemId])).prices > 0) {
+        throw new BadRequestException({
+          label: 'Item Is Priced',
+          detail: `"${existing.inventoryItemName}" has prices per ${existing.uomSymbol}, so its unit cannot change. Add the item again in the other unit instead.`,
+          errors: [{ field: 'uomId', message: `Priced per ${existing.uomSymbol}` }],
+        });
+      }
+      update.uomId = data.uomId;
+    }
+    if (data.minOrderQuantity !== undefined) update.minOrderQuantity = data.minOrderQuantity;
+    if (data.defaultLeadTimeDays !== undefined) update.defaultLeadTimeDays = data.defaultLeadTimeDays;
+    if (update.uomId !== undefined || update.minOrderQuantity !== undefined) {
+      await this.repository.assertMinOrderFitsUnit(
+        update.uomId ?? existing.uomId,
+        update.minOrderQuantity !== undefined ? update.minOrderQuantity : existing.minOrderQuantity,
+      );
+    }
+
+    if (Object.keys(update).length === 0) {
+      return { success: true, message: 'No changes to apply.' };
+    }
+
+    // A new default lead time reaches every site still following the item; sites with their own keep it
+    const defaultLeadTimeDays = update.defaultLeadTimeDays;
+    const defaultLeadTimeChanged =
+      defaultLeadTimeDays !== undefined && defaultLeadTimeDays !== existing.defaultLeadTimeDays;
+    const cascaded = await this.database.runInTransaction(async () => {
+      await this.repository.updateSupplierItem(supplierItemId, update);
+      return defaultLeadTimeChanged
+        ? this.repository.applyDefaultLeadTimeToSiteItems([supplierItemId], defaultLeadTimeDays)
+        : 0;
+    });
+    const name = `"${existing.inventoryItemName}" (${existing.uomSymbol})`;
+    if (!defaultLeadTimeChanged) return { success: true, message: `${name} updated successfully.` };
+    const kept = (await this.repository.findSiteIdsOfItem(supplierItemId)).length - cascaded;
+    return {
+      success: true,
+      message: `${name} updated; lead time applied to ${pluralize('site', cascaded, true)}${
+        kept > 0 ? `, ${pluralize('site', kept, true)} kept their own` : ''
+      }.`,
+    };
+  }
+
+  // Updates a supplier item's settings at one site; an omitted field is left as it is
+  async updateSiteItem(dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findSiteItemById(dto.id);
+    if (!existing) throw new NotFoundException('Site item not found.');
+    const item = dto.followDefaultLeadTime ? await this.repository.findById(existing.supplierItemId) : undefined;
+    if (dto.followDefaultLeadTime && !item) throw new NotFoundException('Supplier item not found.');
+    // Following the default takes the item's default lead time back; setting one pins it to this site
+    const leadTime = item
+      ? { leadTimeDays: item.defaultLeadTimeDays, isLeadTimeOverridden: false }
+      : dto.leadTimeDays !== undefined
+        ? { leadTimeDays: dto.leadTimeDays, isLeadTimeOverridden: true }
+        : {};
+    await this.database.runInTransaction(() =>
+      this.applySiteItemSettings(existing, {
+        isPreferred: dto.isPreferred,
+        ...leadTime,
+      }),
+    );
+    return { success: true, message: 'Site item updated successfully.' };
+  }
+
+  // Marks the selected supplier items preferred (or not) at the selected sites; items not set up at a site are skipped
+  async bulkSetSiteItemsPreferred(dto: BulkSetSupplierSiteItemPreferredDto): Promise<SuccessResponseDto> {
+    await this.requireSupplier(dto.supplierId);
+    const siteItems = await this.repository.findSiteItemsFor(dto.supplierItemIds, [...new Set(dto.siteIds)]);
+    await this.database.runInTransaction(async () => {
+      for (const supplierSiteItem of siteItems) {
+        await this.applySiteItemSettings(supplierSiteItem, { isPreferred: dto.isPreferred });
+      }
+    });
+    return {
+      success: true,
+      message: `${pluralize('site item', siteItems.length, true)} marked ${dto.isPreferred ? 'preferred' : 'not preferred'}.`,
+    };
+  }
+
+  // Sets the minimum order of the selected supplier items
+  async bulkSetMinOrder(dto: BulkSetSupplierItemMinOrderDto): Promise<SuccessResponseDto> {
+    await this.requireSupplier(dto.supplierId);
+    await this.repository.assertMinOrderFitsUnits(dto.supplierItemIds, dto.minOrderQuantity);
+    const updated = await this.repository.bulkUpdateSupplierItems(dto.supplierId, dto.supplierItemIds, {
+      minOrderQuantity: dto.minOrderQuantity ?? null,
+    });
+    return {
+      success: true,
+      message: `Minimum order ${dto.minOrderQuantity == null ? 'cleared' : 'set'} on ${pluralize('item', updated.length, true)}.`,
+    };
+  }
+
+  // Sets the default lead time of the selected supplier items and applies it to their sites that do not set their own
+  async bulkSetDefaultLeadTime(dto: BulkSetSupplierItemDefaultLeadTimeDto): Promise<SuccessResponseDto> {
+    await this.requireSupplier(dto.supplierId);
+    const { updated, cascaded } = await this.database.runInTransaction(async () => {
+      const updated = await this.repository.bulkUpdateSupplierItems(dto.supplierId, dto.supplierItemIds, {
+        defaultLeadTimeDays: dto.defaultLeadTimeDays,
+      });
+      const cascaded = await this.repository.applyDefaultLeadTimeToSiteItems(updated, dto.defaultLeadTimeDays);
+      return { updated, cascaded };
+    });
+    return {
+      success: true,
+      message: `Default lead time set to ${pluralize('day', dto.defaultLeadTimeDays, true)} on ${pluralize('item', updated.length, true)} and applied to ${pluralize('site', cascaded, true)}.`,
+    };
+  }
+
+  // Returns a supplier item by id, or undefined when it is out of reach
+  findById(supplierItemId: string): Promise<SupplierItem | undefined> {
+    return this.repository.findById(supplierItemId);
   }
 
   // Returns paginated supplier items for a supplier
@@ -160,6 +350,45 @@ export class SupplierItemsDomainService {
       result: result.map((row) => SupplierSiteItemRowDto.fromSite(row, row.inventoryItemName, row.uomSymbol)),
       count,
     };
+  }
+
+  // Returns the paginated site items of a supplier item
+  async findSiteItemsForTable(
+    supplierItemId: string,
+    state: TableState,
+  ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
+    const item = await this.repository.findById(supplierItemId);
+    if (!item) throw new NotFoundException('Supplier item not found.');
+    const { result, count } = await this.repository.findSiteItemsForTable(
+      supplierItemId,
+      SupplierItemsDomainService.tableOptions(state, SupplierItemsDomainService.SITE_ITEMS_OF_ITEM_FIELD_MAP),
+    );
+    return { result: result.map(SupplierSiteItemDto.from), count };
+  }
+
+  // Returns paginated supplier item options for select dropdowns and filters.
+  findForSelect(
+    query: SelectOptionsQueryDto,
+    options?: {
+      supplierId?: string;
+      siteId?: string | null;
+      purchaseOrderId?: string;
+      excludeOnGoodsReceiptId?: string;
+    },
+  ): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
+      {
+        ...selectPageOptions(query),
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'name',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey || 'categoryId',
+        orderByKey: query.orderByKey || 'name',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
   }
 
   // Returns paginated suppliers carrying an inventory item with a site's terms; no site leaves them empty
@@ -245,11 +474,6 @@ export class SupplierItemsDomainService {
     };
   }
 
-  // Returns a supplier item by id, or undefined when it is out of reach
-  findById(supplierItemId: string): Promise<SupplierItem | undefined> {
-    return this.repository.findById(supplierItemId);
-  }
-
   // Returns a supplier item's setup at a site, or undefined when it is not set up there
   findSiteItem(supplierItemId: string, siteId: string): Promise<SupplierSiteItem | undefined> {
     return this.repository.findSiteItem(supplierItemId, siteId);
@@ -273,253 +497,6 @@ export class SupplierItemsDomainService {
     const row = await this.repository.findSiteItemDetailById(supplierItemId, siteId);
     if (!row) throw new NotFoundException('Supplier item not found.');
     return SupplierSiteItemDetailDto.fromSiteDetail(row, row.inventoryItemName, row.uomSymbol);
-  }
-
-  // Links an item to a supplier and sets it up at the given enrolled sites
-  async addItem(
-    supplierId: string,
-    data: Omit<AddSupplierItemDto, 'supplierId'>,
-    inventoryItemName: string,
-  ): Promise<CreateResponseDto<SupplierItemDto>> {
-    const supplier = await this.requireSupplier(supplierId);
-
-    const existing = await this.repository.findItemBySupplierInventoryItemAndUom(
-      supplierId,
-      data.inventoryItemId,
-      data.uomId,
-    );
-    if (existing) {
-      throw new BadRequestException({
-        label: 'Duplicate Item',
-        detail: 'This item with the selected UOM is already linked to this supplier.',
-      });
-    }
-    const siteIds = [...new Set(data.siteIds)];
-    await this.assertEnrolled(supplierId, siteIds);
-    await this.repository.assertMinOrderFitsUnit(data.uomId, data.minOrderQuantity);
-
-    const uomSymbol = await this.repository.findUomSymbol(data.uomId);
-    const created = await this.database.runInTransaction(async () => {
-      const item = await this.repository.createSupplierItem({
-        supplierId,
-        inventoryItemId: data.inventoryItemId,
-        supplierItemCode: data.supplierItemCode ?? null,
-        minOrderQuantity: data.minOrderQuantity ?? null,
-        defaultLeadTimeDays: data.defaultLeadTimeDays,
-        uomId: data.uomId,
-      });
-      await this.repository.insertSiteItems(
-        siteIds.map((siteId) => ({
-          legalEntityId: supplier.legalEntityId,
-          siteId,
-          supplierItemId: item.id,
-          inventoryItemId: item.inventoryItemId,
-          leadTimeDays: item.defaultLeadTimeDays,
-        })),
-      );
-      return item;
-    });
-
-    return {
-      success: true,
-      message: `"${inventoryItemName}" (${uomSymbol}) added to supplier for ${pluralize('site', siteIds.length, true)}.`,
-      data: SupplierItemDto.from({ ...created, siteCount: siteIds.length }, inventoryItemName, uomSymbol),
-    };
-  }
-
-  async updateItem(
-    supplierId: string,
-    supplierItemId: string,
-    data: Omit<UpdateSupplierItemDto, 'supplierId' | 'supplierItemId'>,
-  ): Promise<SuccessResponseDto> {
-    await this.requireSupplier(supplierId);
-    const existing = await this.repository.findSupplierItemById(supplierItemId);
-    if (!existing || existing.supplierId !== supplierId) {
-      throw new NotFoundException('Supplier item not found.');
-    }
-
-    const update: Partial<NewSupplierItem> = {};
-    if (data.supplierItemCode !== undefined) update.supplierItemCode = data.supplierItemCode ?? null;
-    if (data.uomId !== undefined && data.uomId !== existing.uomId) {
-      // Its prices are per this unit, so the unit is fixed once the item is priced
-      if ((await this.repository.countPrices([supplierItemId])).prices > 0) {
-        throw new BadRequestException({
-          label: 'Item Is Priced',
-          detail: `"${existing.inventoryItemName}" has prices per ${existing.uomSymbol}, so its unit cannot change. Add the item again in the other unit instead.`,
-          errors: [{ field: 'uomId', message: `Priced per ${existing.uomSymbol}` }],
-        });
-      }
-      update.uomId = data.uomId;
-    }
-    if (data.minOrderQuantity !== undefined) update.minOrderQuantity = data.minOrderQuantity;
-    if (data.defaultLeadTimeDays !== undefined) update.defaultLeadTimeDays = data.defaultLeadTimeDays;
-    if (update.uomId !== undefined || update.minOrderQuantity !== undefined) {
-      await this.repository.assertMinOrderFitsUnit(
-        update.uomId ?? existing.uomId,
-        update.minOrderQuantity !== undefined ? update.minOrderQuantity : existing.minOrderQuantity,
-      );
-    }
-
-    if (Object.keys(update).length === 0) {
-      return { success: true, message: 'No changes to apply.' };
-    }
-
-    // A new default lead time reaches every site still following the item; sites with their own keep it
-    const defaultLeadTimeDays = update.defaultLeadTimeDays;
-    const defaultLeadTimeChanged =
-      defaultLeadTimeDays !== undefined && defaultLeadTimeDays !== existing.defaultLeadTimeDays;
-    const cascaded = await this.database.runInTransaction(async () => {
-      await this.repository.updateSupplierItem(supplierItemId, update);
-      return defaultLeadTimeChanged
-        ? this.repository.applyDefaultLeadTimeToSiteItems([supplierItemId], defaultLeadTimeDays)
-        : 0;
-    });
-    const name = `"${existing.inventoryItemName}" (${existing.uomSymbol})`;
-    if (!defaultLeadTimeChanged) return { success: true, message: `${name} updated successfully.` };
-    const kept = (await this.repository.findSiteIdsOfItem(supplierItemId)).length - cascaded;
-    return {
-      success: true,
-      message: `${name} updated; lead time applied to ${pluralize('site', cascaded, true)}${
-        kept > 0 ? `, ${pluralize('site', kept, true)} kept their own` : ''
-      }.`,
-    };
-  }
-
-  async unlinkItem(supplierId: string, supplierItemId: string): Promise<SuccessResponseDto> {
-    await this.requireSupplier(supplierId);
-    const existing = await this.repository.findSupplierItemById(supplierItemId);
-    if (!existing || existing.supplierId !== supplierId) {
-      throw new NotFoundException('Supplier item not found.');
-    }
-
-    await this.assertUnpriced([supplierItemId]);
-    await this.repository.deleteSupplierItem(supplierItemId);
-    return {
-      success: true,
-      message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) deleted from the supplier.`,
-    };
-  }
-
-  // Marks the selected supplier items preferred (or not) at the selected sites; items not set up at a site are skipped
-  async bulkSetSiteItemsPreferred(dto: BulkSetSupplierSiteItemPreferredDto): Promise<SuccessResponseDto> {
-    await this.requireSupplier(dto.supplierId);
-    const siteItems = await this.repository.findSiteItemsFor(dto.supplierItemIds, [...new Set(dto.siteIds)]);
-    await this.database.runInTransaction(async () => {
-      for (const supplierSiteItem of siteItems) {
-        await this.applySiteItemSettings(supplierSiteItem, { isPreferred: dto.isPreferred });
-      }
-    });
-    return {
-      success: true,
-      message: `${pluralize('site item', siteItems.length, true)} marked ${dto.isPreferred ? 'preferred' : 'not preferred'}.`,
-    };
-  }
-
-  // Sets the minimum order of the selected supplier items
-  async bulkSetMinOrder(dto: BulkSetSupplierItemMinOrderDto): Promise<SuccessResponseDto> {
-    await this.requireSupplier(dto.supplierId);
-    await this.repository.assertMinOrderFitsUnits(dto.supplierItemIds, dto.minOrderQuantity);
-    const updated = await this.repository.bulkUpdateSupplierItems(dto.supplierId, dto.supplierItemIds, {
-      minOrderQuantity: dto.minOrderQuantity ?? null,
-    });
-    return {
-      success: true,
-      message: `Minimum order ${dto.minOrderQuantity == null ? 'cleared' : 'set'} on ${pluralize('item', updated.length, true)}.`,
-    };
-  }
-
-  // Sets the default lead time of the selected supplier items and applies it to their sites that do not set their own
-  async bulkSetDefaultLeadTime(dto: BulkSetSupplierItemDefaultLeadTimeDto): Promise<SuccessResponseDto> {
-    await this.requireSupplier(dto.supplierId);
-    const { updated, cascaded } = await this.database.runInTransaction(async () => {
-      const updated = await this.repository.bulkUpdateSupplierItems(dto.supplierId, dto.supplierItemIds, {
-        defaultLeadTimeDays: dto.defaultLeadTimeDays,
-      });
-      const cascaded = await this.repository.applyDefaultLeadTimeToSiteItems(updated, dto.defaultLeadTimeDays);
-      return { updated, cascaded };
-    });
-    return {
-      success: true,
-      message: `Default lead time set to ${pluralize('day', dto.defaultLeadTimeDays, true)} on ${pluralize('item', updated.length, true)} and applied to ${pluralize('site', cascaded, true)}.`,
-    };
-  }
-
-  // Returns the paginated site items of a supplier item
-  async findSiteItemsForTable(
-    supplierItemId: string,
-    state: TableState,
-  ): Promise<{ result: SupplierSiteItemDto[]; count: number }> {
-    const item = await this.repository.findById(supplierItemId);
-    if (!item) throw new NotFoundException('Supplier item not found.');
-    const { result, count } = await this.repository.findSiteItemsForTable(
-      supplierItemId,
-      SupplierItemsDomainService.tableOptions(state, SupplierItemsDomainService.SITE_ITEMS_OF_ITEM_FIELD_MAP),
-    );
-    return { result: result.map(SupplierSiteItemDto.from), count };
-  }
-
-  // Sets a supplier item up at an enrolled site
-  async createSiteItem(dto: AddSupplierSiteItemDto): Promise<CreateResponseDto<SupplierSiteItemDto>> {
-    const item = await this.repository.findById(dto.supplierItemId);
-    if (!item) throw new NotFoundException('Supplier item not found.');
-    const supplier = await this.requireSupplier(item.supplierId);
-    await this.assertEnrolled(item.supplierId, [dto.siteId]);
-    if (await this.repository.findSiteItem(dto.supplierItemId, dto.siteId)) {
-      throw new BadRequestException({
-        label: 'Already At Site',
-        detail: 'This item is already set up at the selected site.',
-        errors: [{ field: 'siteId', message: 'Already set up at this site' }],
-      });
-    }
-
-    const supplierSiteItem = await this.database.runInTransaction(async () => {
-      const [created] = await this.repository.insertSiteItems([
-        {
-          legalEntityId: supplier.legalEntityId,
-          siteId: dto.siteId,
-          supplierItemId: dto.supplierItemId,
-          inventoryItemId: item.inventoryItemId,
-          // A lead time given here is the site's own; otherwise the site follows the item's default
-          leadTimeDays: dto.leadTimeDays ?? item.defaultLeadTimeDays,
-          isLeadTimeOverridden: dto.leadTimeDays !== undefined,
-        },
-      ]);
-      return dto.isPreferred ? this.applySiteItemSettings(created, { isPreferred: true }) : created;
-    });
-    return {
-      success: true,
-      message: 'Item set up at site successfully.',
-      data: SupplierSiteItemDto.from(supplierSiteItem),
-    };
-  }
-
-  // Updates a supplier item's settings at one site; an omitted field is left as it is
-  async updateSiteItem(dto: UpdateSupplierSiteItemDto): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findSiteItemById(dto.id);
-    if (!existing) throw new NotFoundException('Site item not found.');
-    const item = dto.followDefaultLeadTime ? await this.repository.findById(existing.supplierItemId) : undefined;
-    if (dto.followDefaultLeadTime && !item) throw new NotFoundException('Supplier item not found.');
-    // Following the default takes the item's default lead time back; setting one pins it to this site
-    const leadTime = item
-      ? { leadTimeDays: item.defaultLeadTimeDays, isLeadTimeOverridden: false }
-      : dto.leadTimeDays !== undefined
-        ? { leadTimeDays: dto.leadTimeDays, isLeadTimeOverridden: true }
-        : {};
-    await this.database.runInTransaction(() =>
-      this.applySiteItemSettings(existing, {
-        isPreferred: dto.isPreferred,
-        ...leadTime,
-      }),
-    );
-    return { success: true, message: 'Site item updated successfully.' };
-  }
-
-  // Removes a supplier item from a site; its price history at the site is kept
-  async deleteSiteItem(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findSiteItemById(id);
-    if (!existing) throw new NotFoundException('Site item not found.');
-    await this.repository.deleteSiteItem(id);
-    return { success: true, message: 'Item removed from site successfully.' };
   }
 
   // Finds the supplier's item for a quoted item and unit — creating it when the supplier does not have it yet — and sets
@@ -582,11 +559,6 @@ export class SupplierItemsDomainService {
     return leadTimes;
   }
 
-  // Keys a lead time by item and unit
-  static leadTimeKey(item: { inventoryItemId: string; uomId: string }): string {
-    return `${item.inventoryItemId}:${item.uomId}`;
-  }
-
   // Rejects items the supplier does not supply at the site, naming them
   async assertSuppliedAt(supplierId: string, siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
     if (inventoryItemIds.length === 0) return;
@@ -600,6 +572,34 @@ export class SupplierItemsDomainService {
       detail: `This supplier does not supply ${quotedNames} at this site. Set it up on the supplier's items for this site first.`,
       errors: [{ field, message: 'Not supplied at this site' }],
     });
+  }
+
+  async unlinkItem(supplierId: string, supplierItemId: string): Promise<SuccessResponseDto> {
+    await this.requireSupplier(supplierId);
+    const existing = await this.repository.findSupplierItemById(supplierItemId);
+    if (!existing || existing.supplierId !== supplierId) {
+      throw new NotFoundException('Supplier item not found.');
+    }
+
+    await this.assertUnpriced([supplierItemId]);
+    await this.repository.deleteSupplierItem(supplierItemId);
+    return {
+      success: true,
+      message: `"${existing.inventoryItemName}" (${existing.uomSymbol}) deleted from the supplier.`,
+    };
+  }
+
+  // Removes a supplier item from a site; its price history at the site is kept
+  async deleteSiteItem(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findSiteItemById(id);
+    if (!existing) throw new NotFoundException('Site item not found.');
+    await this.repository.deleteSiteItem(id);
+    return { success: true, message: 'Item removed from site successfully.' };
+  }
+
+  // Keys a lead time by item and unit
+  static leadTimeKey(item: { inventoryItemId: string; uomId: string }): string {
+    return `${item.inventoryItemId}:${item.uomId}`;
   }
 
   // Writes site item settings; marking preferred first clears the flag from the item's other suppliers at that site

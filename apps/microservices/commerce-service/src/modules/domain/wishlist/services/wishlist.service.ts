@@ -9,11 +9,6 @@ export class WishlistDomainService {
 
   constructor(private readonly repository: WishlistDomainRepository) {}
 
-  async list(appId: string, partyId: string, currencyCode: string): Promise<WishlistItemDto[]> {
-    const rows = await this.repository.findForParty(appId, partyId, currencyCode);
-    return rows.map((row) => WishlistItemDto.from(row));
-  }
-
   // Saves a product, whether or not the shop offers it today
   async add(input: {
     appId: string;
@@ -32,12 +27,15 @@ export class WishlistDomainService {
     return WishlistAddResultDto.from(!created, wishlistItems);
   }
 
-  // Unmarks a product. Removing one that was never saved is the state the caller asked for
-  async remove(appId: string, partyId: string, code: string, currencyCode: string): Promise<WishlistItemDto[]> {
-    // No listing to resolve: the row is keyed by the product, so removing it needs nothing from the catalogue — which
-    // is also what lets a shopper unsave something the shop has since delisted.
-    await this.repository.deleteForParty(appId, partyId, code);
-    return this.list(appId, partyId, currencyCode);
+  // Clears the whole list — for an account being wound down rather than ordinary use
+  async clear(appId: string, partyId: string): Promise<SuccessResponseDto> {
+    await this.repository.deleteAllForParty(appId, partyId);
+    return { success: true, message: 'Wishlist cleared.' };
+  }
+
+  async list(appId: string, partyId: string, currencyCode: string): Promise<WishlistItemDto[]> {
+    const rows = await this.repository.findForParty(appId, partyId, currencyCode);
+    return rows.map((row) => WishlistItemDto.from(row));
   }
 
   // Everything a person has saved, for the staff view on their record
@@ -46,14 +44,16 @@ export class WishlistDomainService {
     return rows.map((row) => StaffWishlistItemDto.fromStaffRow(row));
   }
 
-  // Clears the whole list — for an account being wound down rather than ordinary use
-  async clear(appId: string, partyId: string): Promise<SuccessResponseDto> {
-    await this.repository.deleteAllForParty(appId, partyId);
-    return { success: true, message: 'Wishlist cleared.' };
-  }
-
   // Which products the party has saved in this storefront, for a product page's toggle
   findCodes(appId: string, partyId: string): Promise<string[]> {
     return this.repository.findCodesForParty(appId, partyId);
+  }
+
+  // Unmarks a product. Removing one that was never saved is the state the caller asked for
+  async remove(appId: string, partyId: string, code: string, currencyCode: string): Promise<WishlistItemDto[]> {
+    // No listing to resolve: the row is keyed by the product, so removing it needs nothing from the catalogue — which
+    // is also what lets a shopper unsave something the shop has since delisted.
+    await this.repository.deleteForParty(appId, partyId, code);
+    return this.list(appId, partyId, currencyCode);
   }
 }

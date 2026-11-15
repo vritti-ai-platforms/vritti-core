@@ -22,11 +22,11 @@ export class GoodsReceiptsItemsController {
     private readonly service: GoodsReceiptsItemsService,
   ) {}
 
-  // Returns a goods receipt's items with their lots and lines as a tree
-  @MessagePattern({ cmd: 'site.goodsReceipts.tree' })
-  tree(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptTreeNode[]> {
-    this.logger.log(`site.goodsReceipts.tree — receipt: ${data.goodsReceiptId}`);
-    return this.itemsService.findTree(data.goodsReceiptId);
+  // Changes the received or rejected quantity of a goods receipt item
+  @MessagePattern({ cmd: 'site.goodsReceipts.updateItem' })
+  updateItem(@Payload() dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.updateItem — item: ${dto.itemId}`);
+    return this.service.updateItem(dto);
   }
 
   // Returns one item of a goods receipt
@@ -34,13 +34,6 @@ export class GoodsReceiptsItemsController {
   itemById(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemDto> {
     this.logger.log(`site.goodsReceipts.itemById — item: ${data.itemId}`);
     return this.itemsService.findById(data.goodsReceiptId, data.itemId);
-  }
-
-  // Returns the inventory items counted on a goods receipt
-  @MessagePattern({ cmd: 'site.goodsReceipts.inventoryItemIds' })
-  inventoryItemIds(@Payload() data: { goodsReceiptId: string }): Promise<string[]> {
-    this.logger.log(`site.goodsReceipts.inventoryItemIds — receipt: ${data.goodsReceiptId}`);
-    return this.itemsService.findInventoryItemIds(data.goodsReceiptId);
   }
 
   // Returns one page of a goods receipt's items
@@ -51,6 +44,20 @@ export class GoodsReceiptsItemsController {
     this.logger.log(`site.goodsReceipts.itemsTable — receipt: ${data.goodsReceiptId}`);
     const { goodsReceiptId, ...state } = data;
     return this.itemsService.findForTable(goodsReceiptId, state);
+  }
+
+  // Returns a goods receipt's items with their lots and lines as a tree
+  @MessagePattern({ cmd: 'site.goodsReceipts.tree' })
+  tree(@Payload() data: { goodsReceiptId: string }): Promise<GoodsReceiptTreeNode[]> {
+    this.logger.log(`site.goodsReceipts.tree — receipt: ${data.goodsReceiptId}`);
+    return this.itemsService.findTree(data.goodsReceiptId);
+  }
+
+  // Returns the inventory items counted on a goods receipt
+  @MessagePattern({ cmd: 'site.goodsReceipts.inventoryItemIds' })
+  inventoryItemIds(@Payload() data: { goodsReceiptId: string }): Promise<string[]> {
+    this.logger.log(`site.goodsReceipts.inventoryItemIds — receipt: ${data.goodsReceiptId}`);
+    return this.itemsService.findInventoryItemIds(data.goodsReceiptId);
   }
 
   // Returns the provisional cost of a goods receipt's items in the legal entity's currency
@@ -68,13 +75,6 @@ export class GoodsReceiptsItemsController {
   itemQuants(@Payload() data: { goodsReceiptId: string; itemId: string }): Promise<GoodsReceiptItemQuantsDto> {
     this.logger.log(`site.goodsReceipts.itemQuants — item: ${data.itemId}`);
     return this.quantsService.findCostsByGrItemId(data.itemId);
-  }
-
-  // Changes the received or rejected quantity of a goods receipt item
-  @MessagePattern({ cmd: 'site.goodsReceipts.updateItem' })
-  updateItem(@Payload() dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.updateItem — item: ${dto.itemId}`);
-    return this.service.updateItem(dto);
   }
 
   // Removes an item from a goods receipt

@@ -39,24 +39,6 @@ export class GoodsReceiptLineItemsDomainService {
 
   constructor(private readonly repository: GoodsReceiptLineItemsDomainRepository) {}
 
-  // Returns one page of the serials registered on a line
-  async findForTable(lineId: string, state: TableState): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
-    const fieldMap = GoodsReceiptLineItemsDomainService.FIELD_MAP;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable(lineId, {
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, fieldMap),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(goodsReceiptLineItems.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(GoodsReceiptLineItemDto.from), count };
-  }
-
   // Registers a new serial on a line of a serial-tracked item of a draft receipt, up to the line's quantity
   async addLineItem(
     item: SerialReceiptItem,
@@ -81,17 +63,35 @@ export class GoodsReceiptLineItemsDomainService {
     };
   }
 
+  // Returns one page of the serials registered on a line
+  async findForTable(lineId: string, state: TableState): Promise<{ result: GoodsReceiptLineItemDto[]; count: number }> {
+    const fieldMap = GoodsReceiptLineItemsDomainService.FIELD_MAP;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable(lineId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, fieldMap),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(goodsReceiptLineItems.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(GoodsReceiptLineItemDto.from), count };
+  }
+
+  // Returns the serials registered on a line, oldest first, for landing them in stock
+  findSerialsOfLine(lineId: string): Promise<GoodsReceiptLineItem[]> {
+    return this.repository.findByLineId(lineId);
+  }
+
   // Removes a serial from a line of a draft receipt
   async removeLineItem(line: SerialReceiptLine, lineItemId: string): Promise<SuccessResponseDto> {
     const lineItem = await this.findOnLineOrThrow(line.id, lineItemId);
     await this.repository.delete(lineItem.id);
     this.logger.log(`Removed serial ${lineItem.serialNumber} from goods receipt line ${line.id}`);
     return { success: true, message: `Serial "${lineItem.serialNumber}" removed successfully.` };
-  }
-
-  // Returns the serials registered on a line, oldest first, for landing them in stock
-  findSerialsOfLine(lineId: string): Promise<GoodsReceiptLineItem[]> {
-    return this.repository.findByLineId(lineId);
   }
 
   // Loads a serial of the given line, throwing when it is not on it

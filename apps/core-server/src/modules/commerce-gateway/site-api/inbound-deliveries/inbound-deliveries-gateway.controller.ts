@@ -37,15 +37,6 @@ export class InboundDeliveriesGatewayController {
 
   constructor(private readonly service: InboundDeliveriesGatewayService) {}
 
-  // Returns the site's inbound deliveries for the data table
-  @Get('table')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
-  @ApiFindForTable()
-  findForTable(@UserId() userId: string): Promise<InboundDeliveryTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/inbound-deliveries/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a planned inbound delivery of a supplier at the site
   @Post()
   @RequirePermission(SITE_INBOUND_DELIVERIES.add)
@@ -56,13 +47,14 @@ export class InboundDeliveriesGatewayController {
     return this.service.create(dto);
   }
 
-  // Returns one inbound delivery
-  @Get(':id')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
-  @ApiFindById()
-  findById(@Param('id') id: string): Promise<InboundDeliveryResponseDto> {
-    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}`);
-    return this.service.findById(id);
+  // Puts purchase order lines on an inbound delivery
+  @Post(':id/lines')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiAddLines()
+  addLines(@Param('id') id: string, @Body() dto: AddInboundDeliveryLinesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/inbound-deliveries/${id}/lines`);
+    return this.service.addLines(id, dto);
   }
 
   // Changes an inbound delivery's expected date, carrier, tracking number, supplier's delivery note or notes
@@ -72,43 +64,6 @@ export class InboundDeliveriesGatewayController {
   update(@Param('id') id: string, @Body() dto: UpdateInboundDeliveryDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}`);
     return this.service.update(id, dto);
-  }
-
-  // Moves an inbound delivery to in transit, arrived or cancelled
-  @Patch(':id/status')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
-  @ApiSetStatus()
-  setStatus(@Param('id') id: string, @Body() dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}/status`);
-    return this.service.setStatus(id, dto);
-  }
-
-  // Deletes a planned inbound delivery without lines
-  @Delete(':id')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.delete)
-  @ApiDelete()
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/inbound-deliveries/${id}`);
-    return this.service.delete(id);
-  }
-
-  // Returns an inbound delivery's lines for the data table
-  @Get(':id/lines/table')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
-  @ApiLinesTable()
-  linesTable(@Param('id') id: string, @UserId() userId: string): Promise<InboundDeliveryLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}/lines/table`);
-    return this.service.findLinesTable(id, userId);
-  }
-
-  // Puts purchase order lines on an inbound delivery
-  @Post(':id/lines')
-  @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddLines()
-  addLines(@Param('id') id: string, @Body() dto: AddInboundDeliveryLinesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/inbound-deliveries/${id}/lines`);
-    return this.service.addLines(id, dto);
   }
 
   // Changes the quantity of an inbound delivery line
@@ -122,6 +77,51 @@ export class InboundDeliveriesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}/lines/${lineId}`);
     return this.service.updateLine(id, lineId, dto);
+  }
+
+  // Moves an inbound delivery to in transit, arrived or cancelled
+  @Patch(':id/status')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
+  @ApiSetStatus()
+  setStatus(@Param('id') id: string, @Body() dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}/status`);
+    return this.service.setStatus(id, dto);
+  }
+
+  // Returns one inbound delivery
+  @Get(':id')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
+  @ApiFindById()
+  findById(@Param('id') id: string): Promise<InboundDeliveryResponseDto> {
+    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns the site's inbound deliveries for the data table
+  @Get('table')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
+  @ApiFindForTable()
+  findForTable(@UserId() userId: string): Promise<InboundDeliveryTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/inbound-deliveries/table');
+    return this.service.findForTable(userId);
+  }
+
+  // Returns an inbound delivery's lines for the data table
+  @Get(':id/lines/table')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
+  @ApiLinesTable()
+  linesTable(@Param('id') id: string, @UserId() userId: string): Promise<InboundDeliveryLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}/lines/table`);
+    return this.service.findLinesTable(id, userId);
+  }
+
+  // Deletes a planned inbound delivery without lines
+  @Delete(':id')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.delete)
+  @ApiDelete()
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/inbound-deliveries/${id}`);
+    return this.service.delete(id);
   }
 
   // Removes a line from an inbound delivery

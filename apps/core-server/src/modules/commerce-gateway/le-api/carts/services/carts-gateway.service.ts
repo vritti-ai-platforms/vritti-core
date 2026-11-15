@@ -57,59 +57,10 @@ export class LeCartsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns paginated, filtered, and sorted carts for the data table
-  async findForTable(userId: string): Promise<CartTableResponse> {
-    this.logger.log('le.carts.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-carts');
-
-    const { result, count } = await this.nats.send<{ result: CartRow[]; count: number }>(
-      'commerce',
-      'le.carts.table',
-      state,
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
-  // Returns a single cart by ID
-  async findById(id: string): Promise<CartRow> {
-    this.logger.log(`le.carts.findById — id: ${id}`);
-    return this.nats.send('commerce', 'le.carts.findById', { id });
-  }
-
-  // Returns a cart's lines, priced through this site's channel
-  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
-    this.logger.log(`le.carts.findItemsById — id: ${id}`);
-    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, appId: null });
-  }
-
-  // Returns paginated, filtered and sorted items of one cart for the data table
-  async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
-    this.logger.log(`le.carts.items.table — cart: ${cartId}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `commerce-le-cart-${cartId}-items`,
-    );
-
-    const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
-      'commerce',
-      'le.carts.items.table',
-      { cartId, currencyCode, appId: null, ...(state as object) },
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
   // Opens a cart for a party, or hands back the one they already have here
   async create(input: { partyId: string }): Promise<CreateResponseDto<CartRow>> {
     this.logger.log(`le.carts.create — party: ${input.partyId}`);
     return this.nats.send('commerce', 'le.carts.create', { partyId: input.partyId });
-  }
-
-  // Closes a cart outright — the lines go with it
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.carts.delete — id: ${id}`);
-    return this.nats.send('commerce', 'le.carts.delete', { id });
   }
 
   async addItem(
@@ -134,6 +85,55 @@ export class LeCartsGatewayService {
     this.logger.log(`le.carts.items.updateForCart — cart: ${cartId}, variant: ${offeringVariantId}`);
     await this.nats.send('commerce', 'le.carts.items.updateForCart', { cartId, offeringVariantId, ...input });
     return this.findItems(cartId, input.currencyCode);
+  }
+
+  // Returns a single cart by ID
+  async findById(id: string): Promise<CartRow> {
+    this.logger.log(`le.carts.findById — id: ${id}`);
+    return this.nats.send('commerce', 'le.carts.findById', { id });
+  }
+
+  // Returns paginated, filtered, and sorted carts for the data table
+  async findForTable(userId: string): Promise<CartTableResponse> {
+    this.logger.log('le.carts.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-carts');
+
+    const { result, count } = await this.nats.send<{ result: CartRow[]; count: number }>(
+      'commerce',
+      'le.carts.table',
+      state,
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated, filtered and sorted items of one cart for the data table
+  async findItemsForTable(cartId: string, userId: string, currencyCode: string): Promise<CartItemsTableResponse> {
+    this.logger.log(`le.carts.items.table — cart: ${cartId}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `commerce-le-cart-${cartId}-items`,
+    );
+
+    const { result, count } = await this.nats.send<{ result: CartLineRow[]; count: number }>(
+      'commerce',
+      'le.carts.items.table',
+      { cartId, currencyCode, appId: null, ...(state as object) },
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns a cart's lines, priced through this site's channel
+  async findItems(id: string, currencyCode: string): Promise<CartLinesResponse> {
+    this.logger.log(`le.carts.findItemsById — id: ${id}`);
+    return this.nats.send('commerce', 'le.carts.findItemsById', { id, currencyCode, appId: null });
+  }
+
+  // Closes a cart outright — the lines go with it
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.carts.delete — id: ${id}`);
+    return this.nats.send('commerce', 'le.carts.delete', { id });
   }
 
   async removeItem(

@@ -18,6 +18,28 @@ export class InventoryItemsRootController {
     private readonly rootService: OrgInventoryItemsService,
   ) {}
 
+  // Creates a master inventory item (asserts the category is a leaf)
+  @MessagePattern({ cmd: 'org.inventoryItems.create' })
+  async create(@Payload() dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+    this.logger.log(`inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
+    return this.rootService.create(dto);
+  }
+
+  // Updates a master inventory item
+  @MessagePattern({ cmd: 'org.inventoryItems.update' })
+  async update(@Payload() dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+    const { id, ...updateData } = dto;
+    this.logger.log(`inventoryItems.update — id: ${id}`);
+    return this.rootService.update(id, updateData);
+  }
+
+  // Returns a single master inventory item by ID
+  @MessagePattern({ cmd: 'org.inventoryItems.findById' })
+  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
+    this.logger.log(`inventoryItems.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
   // Org-wide master list of inventory items
   @MessagePattern({ cmd: 'org.inventoryItems.table' })
   async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
@@ -42,28 +64,6 @@ export class InventoryItemsRootController {
   }> {
     this.logger.log('inventoryItems.feed');
     return this.service.findForFeed(query);
-  }
-
-  // Creates a master inventory item (asserts the category is a leaf)
-  @MessagePattern({ cmd: 'org.inventoryItems.create' })
-  async create(@Payload() dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
-    this.logger.log(`inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
-    return this.rootService.create(dto);
-  }
-
-  // Returns a single master inventory item by ID
-  @MessagePattern({ cmd: 'org.inventoryItems.findById' })
-  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
-    this.logger.log(`inventoryItems.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Updates a master inventory item
-  @MessagePattern({ cmd: 'org.inventoryItems.update' })
-  async update(@Payload() dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    const { id, ...updateData } = dto;
-    this.logger.log(`inventoryItems.update — id: ${id}`);
-    return this.rootService.update(id, updateData);
   }
 
   // Deletes a master inventory item

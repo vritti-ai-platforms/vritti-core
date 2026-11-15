@@ -73,6 +73,69 @@ export class InventoryItemsDomainService {
 
   constructor(private readonly repository: InventoryItemsDomainRepository) {}
 
+  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+    const entity = await this.repository.create({
+      name: data.name,
+      sku: data.sku,
+      type: data.type,
+      ...(data.tracking ? { tracking: data.tracking } : {}),
+      ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
+      categoryId: data.categoryId,
+      description: data.description ?? null,
+      uomId: data.uomId,
+      hsnCode: data.hsnCode ?? null,
+      taxClassId: data.taxClassId,
+    });
+    const [uomSymbol, categoryName, taxClassName] = await Promise.all([
+      this.repository.findUomSymbol(entity.uomId),
+      this.repository.findCategoryName(entity.categoryId),
+      this.repository.findTaxClassName(entity.taxClassId),
+    ]);
+    this.logger.log(`Created inventory item: ${entity.name} (${entity.sku})`);
+    return {
+      success: true,
+      message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
+      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, taxClassName),
+    };
+  }
+
+  // Updates an inventory item. Tracking is set at creation and cannot be changed.
+  async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Inventory item not found.');
+
+    if (data.uomId && data.uomId !== existing.uomId) {
+      const refs = await this.repository.countReferences(id);
+      if (refs.purchaseOrderItems > 0 || refs.stockAdjustments > 0 || refs.stockTransfers > 0) {
+        throw new BadRequestException({
+          label: 'UOM Locked',
+          detail: 'Primary UOM cannot be changed after the item has transaction history.',
+        });
+      }
+    }
+
+    const updated = await this.repository.update(id, data);
+    this.logger.log(`Updated inventory item: ${updated.name} (${updated.sku})`);
+    return {
+      success: true,
+      message: `Inventory item "${updated.name}" updated successfully.`,
+    };
+  }
+
+  // Returns a single inventory item with UOM symbol and canDelete
+  async findById(id: string): Promise<InventoryItemDto> {
+    const entity = await this.repository.findByIdWithUomAndCategory(id);
+    if (!entity) throw new NotFoundException('Inventory item not found.');
+    const referencedIds = await this.repository.findReferencedIds([id]);
+    return InventoryItemDto.from(
+      entity,
+      entity.uomSymbol,
+      !referencedIds.has(id),
+      entity.categoryName,
+      entity.taxClassName,
+    );
+  }
+
   // Returns paginated, filtered, and sorted inventory items for the data table
   async findForTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
@@ -119,6 +182,53 @@ export class InventoryItemsDomainService {
 
     return {
       result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName)),
+      count,
+    };
+  }
+
+  // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
+  async findForOrgTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    return this.findForTable(state);
+  }
+
+  // Every master item with the site's stock levels for it, the stock it holds by location, its value in the site's
+  // currency and where that stock sits against the levels; RLS narrows everything to the request's site
+  async findForSiteStockTable(
+    state: TableState,
+    leCurrencyCode: CurrencyCode,
+  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
+    const filterFields: FieldMap = {
+      ...InventoryItemsDomainService.SITE_FILTER_FIELD_MAP,
+      stockValue: { moneyExpression: compareMoney(siteStockValue, leCurrencyCode), type: 'number' },
+    };
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForSiteStockTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, filterFields),
+        FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
+      limit,
+      offset,
+    });
+
+    return {
+      result: result.map((row) => ({
+        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
+        hasStockLevels: row.hasStockLevels,
+        reorderPoint: row.reorderPoint,
+        safetyStock: row.safetyStock,
+        maxStockLevel: row.maxStockLevel,
+        onHand: row.onHand,
+        stockValue: CurrencyAmountDto.from(row.stockValue, leCurrencyCode),
+        stockStatus: row.stockStatus,
+        locations: row.locations,
+      })),
       count,
     };
   }
@@ -186,53 +296,6 @@ export class InventoryItemsDomainService {
     };
   }
 
-  // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
-  async findForOrgTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
-    return this.findForTable(state);
-  }
-
-  // Every master item with the site's stock levels for it, the stock it holds by location, its value in the site's
-  // currency and where that stock sits against the levels; RLS narrows everything to the request's site
-  async findForSiteStockTable(
-    state: TableState,
-    leCurrencyCode: CurrencyCode,
-  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
-    const filterFields: FieldMap = {
-      ...InventoryItemsDomainService.SITE_FILTER_FIELD_MAP,
-      stockValue: { moneyExpression: compareMoney(siteStockValue, leCurrencyCode), type: 'number' },
-    };
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
-      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForSiteStockTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, filterFields),
-        FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
-      limit,
-      offset,
-    });
-
-    return {
-      result: result.map((row) => ({
-        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
-        hasStockLevels: row.hasStockLevels,
-        reorderPoint: row.reorderPoint,
-        safetyStock: row.safetyStock,
-        maxStockLevel: row.maxStockLevel,
-        onHand: row.onHand,
-        stockValue: CurrencyAmountDto.from(row.stockValue, leCurrencyCode),
-        stockStatus: row.stockStatus,
-        locations: row.locations,
-      })),
-      count,
-    };
-  }
-
   async findForSelect(
     query: SelectOptionsQueryDto,
     options?: {
@@ -275,75 +338,12 @@ export class InventoryItemsDomainService {
     };
   }
 
-  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
-    const entity = await this.repository.create({
-      name: data.name,
-      sku: data.sku,
-      type: data.type,
-      ...(data.tracking ? { tracking: data.tracking } : {}),
-      ...(data.pickStrategy ? { pickStrategy: data.pickStrategy } : {}),
-      categoryId: data.categoryId,
-      description: data.description ?? null,
-      uomId: data.uomId,
-      hsnCode: data.hsnCode ?? null,
-      taxClassId: data.taxClassId,
-    });
-    const [uomSymbol, categoryName, taxClassName] = await Promise.all([
-      this.repository.findUomSymbol(entity.uomId),
-      this.repository.findCategoryName(entity.categoryId),
-      this.repository.findTaxClassName(entity.taxClassId),
-    ]);
-    this.logger.log(`Created inventory item: ${entity.name} (${entity.sku})`);
-    return {
-      success: true,
-      message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, taxClassName),
-    };
-  }
-
-  // Returns a single inventory item with UOM symbol and canDelete
-  async findById(id: string): Promise<InventoryItemDto> {
-    const entity = await this.repository.findByIdWithUomAndCategory(id);
-    if (!entity) throw new NotFoundException('Inventory item not found.');
-    const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(
-      entity,
-      entity.uomSymbol,
-      !referencedIds.has(id),
-      entity.categoryName,
-      entity.taxClassName,
-    );
-  }
-
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
   async findAllowedUomIds(inventoryItemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
     const entity = await this.repository.findById(inventoryItemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const allowedUomIds = await this.repository.findAllowedUomIds(inventoryItemId);
     return { name: entity.name, allowedUomIds };
-  }
-
-  // Updates an inventory item. Tracking is set at creation and cannot be changed.
-  async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Inventory item not found.');
-
-    if (data.uomId && data.uomId !== existing.uomId) {
-      const refs = await this.repository.countReferences(id);
-      if (refs.purchaseOrderItems > 0 || refs.stockAdjustments > 0 || refs.stockTransfers > 0) {
-        throw new BadRequestException({
-          label: 'UOM Locked',
-          detail: 'Primary UOM cannot be changed after the item has transaction history.',
-        });
-      }
-    }
-
-    const updated = await this.repository.update(id, data);
-    this.logger.log(`Updated inventory item: ${updated.name} (${updated.sku})`);
-    return {
-      success: true,
-      message: `Inventory item "${updated.name}" updated successfully.`,
-    };
   }
 
   // Deletes an inventory item; throws ConflictException if referenced

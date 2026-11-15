@@ -15,6 +15,13 @@ export class SupplierInvoiceRecostingService {
     private readonly quantsService: InventoryItemQuantsDomainService,
   ) {}
 
+  // Applies or reverses an invoice's final costing and then its landed charges, in the caller's transaction
+  async revalue(invoice: CostedInvoice, leCurrencyCode: string, direction: CostingDirection): Promise<void> {
+    if (direction === 'reverse') await this.costingService.clearVariances(invoice.id);
+    await this.apply(await this.costingService.planItemCosting(invoice, leCurrencyCode, direction));
+    await this.apply(await this.costingService.planChargeCosting(invoice, leCurrencyCode, direction));
+  }
+
   // Runs a change to an invoice inside the caller's transaction; a posted invoice's costing is reversed before the change
   // and re-applied after it, so its stock carries the edited final cost
   async withPostedCosting<T>(invoice: CostedInvoice, leCurrencyCode: string, change: () => Promise<T>): Promise<T> {
@@ -23,13 +30,6 @@ export class SupplierInvoiceRecostingService {
     const result = await change();
     await this.revalue(invoice, leCurrencyCode, 'apply');
     return result;
-  }
-
-  // Applies or reverses an invoice's final costing and then its landed charges, in the caller's transaction
-  async revalue(invoice: CostedInvoice, leCurrencyCode: string, direction: CostingDirection): Promise<void> {
-    if (direction === 'reverse') await this.costingService.clearVariances(invoice.id);
-    await this.apply(await this.costingService.planItemCosting(invoice, leCurrencyCode, direction));
-    await this.apply(await this.costingService.planChargeCosting(invoice, leCurrencyCode, direction));
   }
 
   // Writes a costing plan: the inventory domain removes and books the costs and revalues the quants, the invoice records

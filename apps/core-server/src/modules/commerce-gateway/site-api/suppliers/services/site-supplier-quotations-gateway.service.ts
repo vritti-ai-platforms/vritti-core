@@ -18,6 +18,17 @@ export class SiteSupplierQuotationsGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  // A quotation posted to the session site, with its lines and its posted sites named
+  async findById(supplierId: string, quotationId: string, orgId: string): Promise<SupplierQuotationDetailResponseDto> {
+    this.logger.log(`site.suppliers.quotations.findById — supplierId: ${supplierId}, id: ${quotationId}`);
+    const quotation = await this.nats.send<SupplierQuotationDetailResponseDto>(
+      'commerce',
+      'site.suppliers.quotations.findById',
+      { supplierId, quotationId },
+    );
+    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
+  }
+
   // The supplier's quotations posted to the session site, with server-stored table state
   async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`site.suppliers.quotations.table — supplierId: ${supplierId}`);
@@ -31,16 +42,5 @@ export class SiteSupplierQuotationsGatewayService {
       { supplierId, ...state },
     );
     return { result, count, state, activeViewId };
-  }
-
-  // A quotation posted to the session site, with its lines and its posted sites named
-  async findById(supplierId: string, quotationId: string, orgId: string): Promise<SupplierQuotationDetailResponseDto> {
-    this.logger.log(`site.suppliers.quotations.findById — supplierId: ${supplierId}, id: ${quotationId}`);
-    const quotation = await this.nats.send<SupplierQuotationDetailResponseDto>(
-      'commerce',
-      'site.suppliers.quotations.findById',
-      { supplierId, quotationId },
-    );
-    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
   }
 }

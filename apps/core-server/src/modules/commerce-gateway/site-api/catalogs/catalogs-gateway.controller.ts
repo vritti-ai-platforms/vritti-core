@@ -61,14 +61,6 @@ export class SiteCatalogsGatewayController {
 
   constructor(private readonly service: SiteCatalogsGatewayService) {}
 
-  @Get('table')
-  @RequirePermission(SITE_CATALOGS.view)
-  @ApiCatalogsTable()
-  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<CatalogTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/catalogs/table');
-    return this.service.findForTable(orgId, userId);
-  }
-
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_CATALOGS.add)
@@ -76,19 +68,6 @@ export class SiteCatalogsGatewayController {
   create(@Body() dto: CreateCatalogDto): Promise<CreateResponseDto<CatalogResponseDto>> {
     this.logger.log('POST /commerce-api/site/catalogs');
     return this.service.create(dto);
-  }
-
-  // Returns one catalog's listings, table-shaped
-  @Get(':id/listings/table')
-  @RequirePermission(SITE_CATALOGS.listings.view)
-  @ApiCatalogListingsTable()
-  getListingsTable(
-    @OrgId() orgId: string,
-    @Param('id') id: string,
-    @UserId() userId: string,
-  ): Promise<CatalogListingTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/catalogs/${id}/listings/table`);
-    return this.service.findListingsForTable(orgId, id, userId);
   }
 
   // Lists a variant, optionally keyed to one MRP slice, with an optional opening price
@@ -117,6 +96,22 @@ export class SiteCatalogsGatewayController {
     return this.service.addListings(id, dto);
   }
 
+  @Post(':id/currencies')
+  @RequirePermission(SITE_CATALOGS.currencies.add)
+  @ApiAddCatalogCurrency()
+  addCurrency(@Param('id') id: string, @Body() dto: AddCatalogCurrencyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/catalogs/${id}/currencies`);
+    return this.service.addCurrency(id, dto.currencyCode);
+  }
+
+  @Patch(':id')
+  @RequirePermission(SITE_CATALOGS.edit)
+  @ApiUpdateCatalog()
+  update(@Param('id') id: string, @Body() dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/catalogs/${id}`);
+    return this.service.update(id, dto);
+  }
+
   // Sets a listing's price; refused above the MRP it is keyed to
   @Patch(':id/listings/:listingId/price')
   @RequirePermission(SITE_CATALOGS.prices.set)
@@ -143,15 +138,6 @@ export class SiteCatalogsGatewayController {
     return this.service.clearListingPrice(listingId, query.currencyCode);
   }
 
-  // Every channel carrying this catalog — managed on the Catalog Channels page, read-only here
-  @Get(':id/channels')
-  @RequirePermission(SITE_CATALOGS.view)
-  @ApiCatalogChannels()
-  getChannels(@Param('id') id: string): Promise<CatalogChannelResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/catalogs/${id}/channels`);
-    return this.service.findChannels(id);
-  }
-
   // Shows or hides one listing on one channel of this catalog
   @Patch(':id/listings/:listingId/channels/:channelId')
   @RequirePermission(SITE_CATALOGS.listings.setAvailability)
@@ -164,15 +150,6 @@ export class SiteCatalogsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/catalogs/${id}/listings/${listingId}/channels/${channelId}`);
     return this.service.setListingChannelVisibility(listingId, channelId, dto.visible);
-  }
-
-  // The selection actions. One call each: a loop of single-row calls would half-apply on the first refusal.
-  @Delete(':id/listings')
-  @RequirePermission(SITE_CATALOGS.listings.delete)
-  @ApiBulkRemoveCatalogListings()
-  bulkRemoveListings(@Param('id') id: string, @Body() dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/listings — ${dto.ids.length} selected`);
-    return this.service.bulkRemoveListings(id, dto);
   }
 
   @Patch(':id/listings/prices')
@@ -209,37 +186,33 @@ export class SiteCatalogsGatewayController {
     return this.service.bulkSetListingAvailability(id, dto);
   }
 
-  @Delete(':id/listings/:listingId')
-  @RequirePermission(SITE_CATALOGS.listings.delete)
-  @ApiDeleteCatalogListing()
-  deleteListing(@Param('id') id: string, @Param('listingId') listingId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/listings/${listingId}`);
-    return this.service.deleteListing(listingId);
+  @Get(':id')
+  @RequirePermission(SITE_CATALOGS.view)
+  @ApiGetCatalog()
+  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<CatalogResponseDto> {
+    this.logger.log(`GET /commerce-api/site/catalogs/${id}`);
+    return this.service.findById(orgId, id);
   }
 
-  // Currencies this catalog may be priced in, each with the coverage it has
-  @Get(':id/currencies')
-  @RequirePermission(SITE_CATALOGS.currencies.view)
-  @ApiCatalogCurrencies()
-  getCurrencies(@Param('id') id: string): Promise<CatalogCurrencyResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/catalogs/${id}/currencies`);
-    return this.service.findCurrencies(id);
+  @Get('table')
+  @RequirePermission(SITE_CATALOGS.view)
+  @ApiCatalogsTable()
+  getTable(@OrgId() orgId: string, @UserId() userId: string): Promise<CatalogTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/catalogs/table');
+    return this.service.findForTable(orgId, userId);
   }
 
-  @Post(':id/currencies')
-  @RequirePermission(SITE_CATALOGS.currencies.add)
-  @ApiAddCatalogCurrency()
-  addCurrency(@Param('id') id: string, @Body() dto: AddCatalogCurrencyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/catalogs/${id}/currencies`);
-    return this.service.addCurrency(id, dto.currencyCode);
-  }
-
-  @Delete(':id/currencies/:currencyCode')
-  @RequirePermission(SITE_CATALOGS.currencies.delete)
-  @ApiRemoveCatalogCurrency()
-  removeCurrency(@Param('id') id: string, @Param('currencyCode') currencyCode: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/currencies/${currencyCode}`);
-    return this.service.removeCurrency(id, currencyCode);
+  // Returns one catalog's listings, table-shaped
+  @Get(':id/listings/table')
+  @RequirePermission(SITE_CATALOGS.listings.view)
+  @ApiCatalogListingsTable()
+  getListingsTable(
+    @OrgId() orgId: string,
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<CatalogListingTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/catalogs/${id}/listings/table`);
+    return this.service.findListingsForTable(orgId, id, userId);
   }
 
   // One page of this catalog's listings priced in one currency — the Prices tab's drill-in
@@ -256,20 +229,22 @@ export class SiteCatalogsGatewayController {
     return this.service.findListingsForTable(orgId, id, userId, currencyCode);
   }
 
-  @Get(':id')
+  // Every channel carrying this catalog — managed on the Catalog Channels page, read-only here
+  @Get(':id/channels')
   @RequirePermission(SITE_CATALOGS.view)
-  @ApiGetCatalog()
-  findById(@OrgId() orgId: string, @Param('id') id: string): Promise<CatalogResponseDto> {
-    this.logger.log(`GET /commerce-api/site/catalogs/${id}`);
-    return this.service.findById(orgId, id);
+  @ApiCatalogChannels()
+  getChannels(@Param('id') id: string): Promise<CatalogChannelResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/catalogs/${id}/channels`);
+    return this.service.findChannels(id);
   }
 
-  @Patch(':id')
-  @RequirePermission(SITE_CATALOGS.edit)
-  @ApiUpdateCatalog()
-  update(@Param('id') id: string, @Body() dto: UpdateCatalogDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/catalogs/${id}`);
-    return this.service.update(id, dto);
+  // Currencies this catalog may be priced in, each with the coverage it has
+  @Get(':id/currencies')
+  @RequirePermission(SITE_CATALOGS.currencies.view)
+  @ApiCatalogCurrencies()
+  getCurrencies(@Param('id') id: string): Promise<CatalogCurrencyResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/catalogs/${id}/currencies`);
+    return this.service.findCurrencies(id);
   }
 
   @Delete(':id')
@@ -278,5 +253,30 @@ export class SiteCatalogsGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/site/catalogs/${id}`);
     return this.service.delete(id);
+  }
+
+  // The selection actions. One call each: a loop of single-row calls would half-apply on the first refusal.
+  @Delete(':id/listings')
+  @RequirePermission(SITE_CATALOGS.listings.delete)
+  @ApiBulkRemoveCatalogListings()
+  bulkRemoveListings(@Param('id') id: string, @Body() dto: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/listings — ${dto.ids.length} selected`);
+    return this.service.bulkRemoveListings(id, dto);
+  }
+
+  @Delete(':id/listings/:listingId')
+  @RequirePermission(SITE_CATALOGS.listings.delete)
+  @ApiDeleteCatalogListing()
+  deleteListing(@Param('id') id: string, @Param('listingId') listingId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/listings/${listingId}`);
+    return this.service.deleteListing(listingId);
+  }
+
+  @Delete(':id/currencies/:currencyCode')
+  @RequirePermission(SITE_CATALOGS.currencies.delete)
+  @ApiRemoveCatalogCurrency()
+  removeCurrency(@Param('id') id: string, @Param('currencyCode') currencyCode: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/catalogs/${id}/currencies/${currencyCode}`);
+    return this.service.removeCurrency(id, currencyCode);
   }
 }

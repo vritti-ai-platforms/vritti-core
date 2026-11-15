@@ -20,6 +20,78 @@ export class CartsController {
 
   constructor(private readonly service: CartsDomainService) {}
 
+  // Opens a cart for a shopper, or hands back the one they already have here
+  @MessagePattern({ cmd: 'site.carts.create' })
+  create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
+    this.logger.log(`site.carts.create — party: ${data.partyId}`);
+    return this.service.create(data);
+  }
+
+  // Adds a listing, opening a cart if this is the first line
+  @MessagePattern({ cmd: 'site.carts.items.add' })
+  addItem(@Payload() dto: AddCartItemDto): Promise<CartDto> {
+    this.logger.log(`site.carts.items.add — party: ${dto.partyId}, code: ${dto.code}`);
+    return this.service.addItem(dto);
+  }
+
+  // Staff add a product to a named cart
+  @MessagePattern({ cmd: 'site.carts.items.addForCart' })
+  addItemForCart(
+    @Payload()
+    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
+  ): Promise<StaffCartItemDto[]> {
+    this.logger.log(`site.carts.items.addForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
+    return this.service.addItemForCart(data);
+  }
+
+  // Sets a line to an exact quantity
+  @MessagePattern({ cmd: 'site.carts.items.update' })
+  updateItem(@Payload() dto: UpdateCartItemDto): Promise<CartDto> {
+    this.logger.log(`site.carts.items.update — party: ${dto.partyId}, code: ${dto.code}`);
+    return this.service.updateItem(dto);
+  }
+
+  @MessagePattern({ cmd: 'site.carts.items.updateForCart' })
+  updateItemForCart(
+    @Payload()
+    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
+  ): Promise<StaffCartItemDto[]> {
+    this.logger.log(`site.carts.items.updateForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
+    return this.service.updateItemForCart(data);
+  }
+
+  // Empties the cart, keeping it open
+  @MessagePattern({ cmd: 'site.carts.clear' })
+  clear(@Payload() dto: ClearCartDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.carts.clear — party: ${dto.partyId}`);
+    return this.service.clear(dto.partyId);
+  }
+
+  // Returns a single cart by ID
+  @MessagePattern({ cmd: 'site.carts.findById' })
+  findById(@Payload() data: { id: string }): Promise<CartDetailDto> {
+    this.logger.log(`site.carts.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated carts open at this workspace, for the data table
+  @MessagePattern({ cmd: 'site.carts.table' })
+  table(@Payload() state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
+    this.logger.log('site.carts.table');
+    return this.service.findForTable(state);
+  }
+
+  // Returns paginated, filtered and sorted items of one cart for the data table
+  @MessagePattern({ cmd: 'site.carts.items.table' })
+  itemsTable(
+    @Payload()
+    payload: { cartId: string; currencyCode: string; appId?: string | null } & TableState,
+  ): Promise<{ result: CartItemDto[]; count: number }> {
+    const { cartId, currencyCode, appId, ...state } = payload;
+    this.logger.log(`site.carts.items.table — cart: ${cartId}`);
+    return this.service.findItemsForTable(cartId, state, currencyCode, appId);
+  }
+
   // Returns the open cart, or an empty one. Never creates.
   @MessagePattern({ cmd: 'site.carts.get' })
   get(@Payload() dto: CartScopeDto): Promise<CartDto> {
@@ -37,18 +109,18 @@ export class CartsController {
     return this.service.findAtSites(dto.partyId, dto.currencyCode, dto.appId, dto.sites, headers);
   }
 
-  // Adds a listing, opening a cart if this is the first line
-  @MessagePattern({ cmd: 'site.carts.items.add' })
-  addItem(@Payload() dto: AddCartItemDto): Promise<CartDto> {
-    this.logger.log(`site.carts.items.add — party: ${dto.partyId}, code: ${dto.code}`);
-    return this.service.addItem(dto);
+  // Returns one cart's lines, priced by the caller's catalogue How many of each product the shopper holds here — a
+  // product page's stepper, without pricing
+  @MessagePattern({ cmd: 'site.carts.quantities' })
+  quantities(@Payload() data: { partyId: string }): Promise<{ code: string; quantity: number }[]> {
+    this.logger.log(`site.carts.quantities — party: ${data.partyId}`);
+    return this.service.findQuantities(data.partyId);
   }
 
-  // Sets a line to an exact quantity
-  @MessagePattern({ cmd: 'site.carts.items.update' })
-  updateItem(@Payload() dto: UpdateCartItemDto): Promise<CartDto> {
-    this.logger.log(`site.carts.items.update — party: ${dto.partyId}, code: ${dto.code}`);
-    return this.service.updateItem(dto);
+  @MessagePattern({ cmd: 'site.carts.findItemsById' })
+  findItemsById(@Payload() data: { id: string; currencyCode: string; appId?: string | null }): Promise<CartDto> {
+    this.logger.log(`site.carts.findItemsById — id: ${data.id}`);
+    return this.service.findItemsById(data.id, data.currencyCode, data.appId);
   }
 
   // Removes a line
@@ -58,76 +130,11 @@ export class CartsController {
     return this.service.removeItem(dto.partyId, dto.code, dto.currencyCode, dto.appId);
   }
 
-  // Returns paginated carts open at this workspace, for the data table
-  @MessagePattern({ cmd: 'site.carts.table' })
-  table(@Payload() state: TableState): Promise<{ result: CartDetailDto[]; count: number }> {
-    this.logger.log('site.carts.table');
-    return this.service.findForTable(state);
-  }
-
-  // Returns a single cart by ID
-  @MessagePattern({ cmd: 'site.carts.findById' })
-  findById(@Payload() data: { id: string }): Promise<CartDetailDto> {
-    this.logger.log(`site.carts.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Returns one cart's lines, priced by the caller's catalogue How many of each product the shopper holds here — a
-  // product page's stepper, without pricing
-  @MessagePattern({ cmd: 'site.carts.quantities' })
-  quantities(@Payload() data: { partyId: string }): Promise<{ code: string; quantity: number }[]> {
-    this.logger.log(`site.carts.quantities — party: ${data.partyId}`);
-    return this.service.findQuantities(data.partyId);
-  }
-
-  // Returns paginated, filtered and sorted items of one cart for the data table
-  @MessagePattern({ cmd: 'site.carts.items.table' })
-  itemsTable(
-    @Payload()
-    payload: { cartId: string; currencyCode: string; appId?: string | null } & TableState,
-  ): Promise<{ result: CartItemDto[]; count: number }> {
-    const { cartId, currencyCode, appId, ...state } = payload;
-    this.logger.log(`site.carts.items.table — cart: ${cartId}`);
-    return this.service.findItemsForTable(cartId, state, currencyCode, appId);
-  }
-
-  @MessagePattern({ cmd: 'site.carts.findItemsById' })
-  findItemsById(@Payload() data: { id: string; currencyCode: string; appId?: string | null }): Promise<CartDto> {
-    this.logger.log(`site.carts.findItemsById — id: ${data.id}`);
-    return this.service.findItemsById(data.id, data.currencyCode, data.appId);
-  }
-
-  // Opens a cart for a shopper, or hands back the one they already have here
-  @MessagePattern({ cmd: 'site.carts.create' })
-  create(@Payload() data: { partyId: string }): Promise<CreateResponseDto<CartDetailDto>> {
-    this.logger.log(`site.carts.create — party: ${data.partyId}`);
-    return this.service.create(data);
-  }
-
   // Closes a cart outright — the lines go with it
   @MessagePattern({ cmd: 'site.carts.delete' })
   deleteCart(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log(`site.carts.delete — id: ${data.id}`);
     return this.service.delete(data.id);
-  }
-
-  // Staff add a product to a named cart
-  @MessagePattern({ cmd: 'site.carts.items.addForCart' })
-  addItemForCart(
-    @Payload()
-    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
-  ): Promise<StaffCartItemDto[]> {
-    this.logger.log(`site.carts.items.addForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
-    return this.service.addItemForCart(data);
-  }
-
-  @MessagePattern({ cmd: 'site.carts.items.updateForCart' })
-  updateItemForCart(
-    @Payload()
-    data: { cartId: string; partyId: string; offeringVariantId: string; quantity: number; currencyCode: string },
-  ): Promise<StaffCartItemDto[]> {
-    this.logger.log(`site.carts.items.updateForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
-    return this.service.updateItemForCart(data);
   }
 
   @MessagePattern({ cmd: 'site.carts.items.removeForCart' })
@@ -136,12 +143,5 @@ export class CartsController {
   ): Promise<StaffCartItemDto[]> {
     this.logger.log(`site.carts.items.removeForCart — cart: ${data.cartId}, variant: ${data.offeringVariantId}`);
     return this.service.removeItemForCart(data);
-  }
-
-  // Empties the cart, keeping it open
-  @MessagePattern({ cmd: 'site.carts.clear' })
-  clear(@Payload() dto: ClearCartDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.carts.clear — party: ${dto.partyId}`);
-    return this.service.clear(dto.partyId);
   }
 }

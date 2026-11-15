@@ -18,24 +18,6 @@ export class StockAdjustmentsLotsController {
     private readonly appService: StockAdjustmentsLotsService,
   ) {}
 
-  @MessagePattern({ cmd: 'site.stockAdjustments.lots' })
-  lots(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLotDto[]> {
-    this.logger.log(`stockAdjustments.lots — adjustment: ${data.adjustmentId}`);
-    return this.service.listByAdjustment(data.adjustmentId);
-  }
-
-  @MessagePattern({ cmd: 'site.stockAdjustments.tree' })
-  tree(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentTreeNode[]> {
-    this.logger.log(`stockAdjustments.tree — adjustment: ${data.adjustmentId}`);
-    return this.service.findTreeForAdjustment(data.adjustmentId);
-  }
-
-  @MessagePattern({ cmd: 'site.stockAdjustments.lotDetail' })
-  lotDetail(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLotDetailDto> {
-    this.logger.log(`stockAdjustments.lotDetail — lot: ${data.lotId}`);
-    return this.service.getLotDetail(data.adjustmentId, data.lotId);
-  }
-
   @MessagePattern({ cmd: 'site.stockAdjustments.addLot' })
   addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${dto.adjustmentId}`);
@@ -56,6 +38,24 @@ export class StockAdjustmentsLotsController {
       expiryDate: dto.expiryDate,
       mrp: dto.mrp !== undefined ? (dto.mrp === null ? null : BigInt(dto.mrp)) : undefined,
     });
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.lots' })
+  lots(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLotDto[]> {
+    this.logger.log(`stockAdjustments.lots — adjustment: ${data.adjustmentId}`);
+    return this.service.listByAdjustment(data.adjustmentId);
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.tree' })
+  tree(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentTreeNode[]> {
+    this.logger.log(`stockAdjustments.tree — adjustment: ${data.adjustmentId}`);
+    return this.service.findTreeForAdjustment(data.adjustmentId);
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.lotDetail' })
+  lotDetail(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLotDetailDto> {
+    this.logger.log(`stockAdjustments.lotDetail — lot: ${data.lotId}`);
+    return this.service.getLotDetail(data.adjustmentId, data.lotId);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.removeLot' })

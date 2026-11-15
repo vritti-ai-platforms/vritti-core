@@ -36,6 +36,39 @@ export class LeInventoryItemsGatewayService {
     private readonly legalEntityContextResolver: LegalEntityContextResolverService,
   ) {}
 
+  // Sets the item's stock levels at one of the legal entity's sites
+  async createSiteStockLevels(
+    inventoryItemId: string,
+    siteId: string,
+    dto: CreateSiteStockLevelsDto,
+    legalEntityId: string | undefined,
+  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
+    this.logger.log(
+      `le.inventoryItems.siteStockLevels.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
+    );
+    await this.resolveWorkspaceSite(siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.create', { inventoryItemId, siteId, ...dto });
+  }
+
+  // Updates the item's stock levels at one of the legal entity's sites
+  async updateSiteStockLevels(
+    inventoryItemId: string,
+    siteId: string,
+    dto: UpdateSiteStockLevelsDto,
+    legalEntityId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
+    );
+    await this.resolveWorkspaceSite(siteId, legalEntityId);
+    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.update', { inventoryItemId, siteId, ...dto });
+  }
+
+  findById(id: string): Promise<InventoryItemResponseDto> {
+    this.logger.log(`le.inventoryItems.findById — id: ${id}`);
+    return this.nats.send('commerce', 'le.inventoryItems.findById', { id });
+  }
+
   // Returns the organization's master items for the read-only legal-entity table
   async findForTable(userId: string): Promise<InventoryItemTableResponseDto> {
     this.logger.log('le.inventoryItems.table');
@@ -48,11 +81,6 @@ export class LeInventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  findById(id: string): Promise<InventoryItemResponseDto> {
-    this.logger.log(`le.inventoryItems.findById — id: ${id}`);
-    return this.nats.send('commerce', 'le.inventoryItems.findById', { id });
   }
 
   // Returns the MRPs of an item, table-shaped
@@ -134,34 +162,6 @@ export class LeInventoryItemsGatewayService {
       };
     });
     return { result, count, state, activeViewId };
-  }
-
-  // Sets the item's stock levels at one of the legal entity's sites
-  async createSiteStockLevels(
-    inventoryItemId: string,
-    siteId: string,
-    dto: CreateSiteStockLevelsDto,
-    legalEntityId: string | undefined,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
-    this.logger.log(
-      `le.inventoryItems.siteStockLevels.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
-    );
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.create', { inventoryItemId, siteId, ...dto });
-  }
-
-  // Updates the item's stock levels at one of the legal entity's sites
-  async updateSiteStockLevels(
-    inventoryItemId: string,
-    siteId: string,
-    dto: UpdateSiteStockLevelsDto,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
-    );
-    await this.resolveWorkspaceSite(siteId, legalEntityId);
-    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.update', { inventoryItemId, siteId, ...dto });
   }
 
   // Removes the item's stock levels at one of the legal entity's sites

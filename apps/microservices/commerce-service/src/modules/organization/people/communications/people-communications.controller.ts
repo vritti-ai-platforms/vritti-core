@@ -14,6 +14,22 @@ export class PeopleCommunicationsController {
 
   constructor(private readonly service: PartyCommunicationsDomainService) {}
 
+  // Creates a communication for a person
+  @MessagePattern({ cmd: 'org.people.communications.create' })
+  create(@Payload() dto: CreatePersonCommunicationDto): Promise<CreateResponseDto<PartyCommunicationDto>> {
+    const { personId, ...payload } = dto;
+    this.logger.log(`people.communications.create — personId: ${personId}`);
+    return this.service.create(personId, payload);
+  }
+
+  // Updates a communication by ID
+  @MessagePattern({ cmd: 'org.people.communications.update' })
+  update(@Payload() dto: UpdateCommunicationDto): Promise<SuccessResponseDto> {
+    const { id, ...payload } = dto;
+    this.logger.log(`people.communications.update — id: ${id}`);
+    return this.service.update(id, payload);
+  }
+
   // Returns the paginated communications of a person
   @MessagePattern({ cmd: 'org.people.communications.table' })
   table(
@@ -29,22 +45,6 @@ export class PeopleCommunicationsController {
   findByValue(@Payload() dto: FindPartiesByCommunicationDto): Promise<string[]> {
     this.logger.log(`people.communications.findByValue — channel: ${dto.channel}`);
     return this.service.findPartyIdsByValue(dto.channel, dto.value);
-  }
-
-  // Creates a communication for a person
-  @MessagePattern({ cmd: 'org.people.communications.create' })
-  create(@Payload() dto: CreatePersonCommunicationDto): Promise<CreateResponseDto<PartyCommunicationDto>> {
-    const { personId, ...payload } = dto;
-    this.logger.log(`people.communications.create — personId: ${personId}`);
-    return this.service.create(personId, payload);
-  }
-
-  // Updates a communication by ID
-  @MessagePattern({ cmd: 'org.people.communications.update' })
-  update(@Payload() dto: UpdateCommunicationDto): Promise<SuccessResponseDto> {
-    const { id, ...payload } = dto;
-    this.logger.log(`people.communications.update — id: ${id}`);
-    return this.service.update(id, payload);
   }
 
   // Deletes a communication by ID

@@ -76,15 +76,6 @@ export class LePurchaseOrdersGatewayController {
 
   constructor(private readonly service: LePurchaseOrdersGatewayService) {}
 
-  // Returns the purchase orders of the legal entity's sites for the data table
-  @Get('table')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiGetTable()
-  getTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LePurchaseOrderTableResponseDto> {
-    this.logger.log('GET /commerce-api/le/purchase-orders/table');
-    return this.service.findForTable(userId, orgId);
-  }
-
   // Creates a purchase order at one of the legal entity's sites
   @Post()
   @RequirePermission(LE_PURCHASE_ORDERS.add)
@@ -96,76 +87,6 @@ export class LePurchaseOrdersGatewayController {
   ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchase-orders');
     return this.service.create(dto, legalEntityId);
-  }
-
-  // Streams the purchase order as a PDF
-  @Get(':id/pdf')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiDownloadPdf()
-  async downloadPdf(@Param('id') id: string, @Res() reply: FastifyReply): Promise<void> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/pdf`);
-    const { buffer, filename } = await this.service.downloadPdf(id);
-    void reply
-      .header('Content-Type', 'application/pdf')
-      .header('Content-Disposition', `inline; filename="${filename}"`)
-      .send(buffer);
-  }
-
-  // Returns one purchase order with its site named
-  @Get(':id')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindById()
-  findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LePurchaseOrderResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}`);
-    return this.service.findById(id, orgId);
-  }
-
-  // Returns the inventory items ordered on a purchase order
-  @Get(':id/items/ids')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindItemIds()
-  findItemIds(@Param('id') id: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/items/ids`);
-    return this.service.findItemIds(id);
-  }
-
-  // Returns a purchase order's lines for the data table
-  @Get(':id/items/table')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindItemsTable()
-  findItemsTable(@Param('id') id: string, @UserId() userId: string): Promise<PurchaseOrderItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/items/table`);
-    return this.service.findItemsTable(id, userId);
-  }
-
-  // Returns the goods receipts counted against a purchase order, for the data table
-  @Get(':id/goods-receipts/table')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindGoodsReceiptTable()
-  findGoodsReceiptTable(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/goods-receipts/table`);
-    return this.service.findGoodsReceiptTable(id, userId);
-  }
-
-  // Returns the inbound deliveries carrying a line of a purchase order, for the data table
-  @Get(':id/inbound-deliveries/table')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindInboundDeliveryTable()
-  findInboundDeliveryTable(
-    @Param('id') id: string,
-    @UserId() userId: string,
-  ): Promise<InboundDeliveryTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/inbound-deliveries/table`);
-    return this.service.findInboundDeliveryTable(id, userId);
-  }
-
-  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
-  @Get(':id/problems')
-  @RequirePermission(LE_PURCHASE_ORDERS.view)
-  @ApiFindProblems()
-  findProblems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderProblemsResponseDto> {
-    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/problems`);
-    return this.service.findProblems(id);
   }
 
   // Adds a line to a purchase order
@@ -194,15 +115,6 @@ export class LePurchaseOrdersGatewayController {
     return this.service.updateItem(id, itemId, dto);
   }
 
-  // Removes a line from a purchase order
-  @Delete(':id/items/:itemId')
-  @RequirePermission(LE_PURCHASE_ORDERS.edit)
-  @ApiRemoveItem()
-  removeItem(@Param('id') id: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/purchase-orders/${id}/items/${itemId}`);
-    return this.service.removeItem(id, itemId);
-  }
-
   // Updates a purchase order's notes
   @Patch(':id/notes')
   @RequirePermission(LE_PURCHASE_ORDERS.edit)
@@ -219,6 +131,16 @@ export class LePurchaseOrdersGatewayController {
   updateTaxDate(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/tax-date`);
     return this.service.updateTaxDate(id, dto);
+  }
+
+  // Moves a purchase order along its manual workflow
+  @Patch(':id/status')
+  @RequirePermission(LE_PURCHASE_ORDERS.edit)
+  @HttpCode(HttpStatus.OK)
+  @ApiUpdateStatus()
+  updateStatus(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/status`);
+    return this.service.updateStatus(id, dto.status);
   }
 
   // Moves a draft purchase order to another supplier
@@ -263,16 +185,6 @@ export class LePurchaseOrdersGatewayController {
     return this.service.completeDelivery(id);
   }
 
-  // Moves a purchase order along its manual workflow
-  @Patch(':id/status')
-  @RequirePermission(LE_PURCHASE_ORDERS.edit)
-  @HttpCode(HttpStatus.OK)
-  @ApiUpdateStatus()
-  updateStatus(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/purchase-orders/${id}/status`);
-    return this.service.updateStatus(id, dto.status);
-  }
-
   // Emails the purchase order with its PDF to the supplier
   @Post(':id/send-email')
   @RequirePermission(LE_PURCHASE_ORDERS.edit)
@@ -283,13 +195,52 @@ export class LePurchaseOrdersGatewayController {
     return this.service.sendEmail(id, dto);
   }
 
-  // Deletes a draft purchase order
-  @Delete(':id')
-  @RequirePermission(LE_PURCHASE_ORDERS.delete)
-  @ApiDelete()
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/purchase-orders/${id}`);
-    return this.service.delete(id);
+  // Returns one purchase order with its site named
+  @Get(':id')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindById()
+  findById(@Param('id') id: string, @OrgId() orgId: string): Promise<LePurchaseOrderResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}`);
+    return this.service.findById(id, orgId);
+  }
+
+  // Returns the purchase orders of the legal entity's sites for the data table
+  @Get('table')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiGetTable()
+  getTable(@UserId() userId: string, @OrgId() orgId: string): Promise<LePurchaseOrderTableResponseDto> {
+    this.logger.log('GET /commerce-api/le/purchase-orders/table');
+    return this.service.findForTable(userId, orgId);
+  }
+
+  // Returns a purchase order's lines for the data table
+  @Get(':id/items/table')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindItemsTable()
+  findItemsTable(@Param('id') id: string, @UserId() userId: string): Promise<PurchaseOrderItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/items/table`);
+    return this.service.findItemsTable(id, userId);
+  }
+
+  // Returns the goods receipts counted against a purchase order, for the data table
+  @Get(':id/goods-receipts/table')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindGoodsReceiptTable()
+  findGoodsReceiptTable(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/goods-receipts/table`);
+    return this.service.findGoodsReceiptTable(id, userId);
+  }
+
+  // Returns the inbound deliveries carrying a line of a purchase order, for the data table
+  @Get(':id/inbound-deliveries/table')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindInboundDeliveryTable()
+  findInboundDeliveryTable(
+    @Param('id') id: string,
+    @UserId() userId: string,
+  ): Promise<InboundDeliveryTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/inbound-deliveries/table`);
+    return this.service.findInboundDeliveryTable(id, userId);
   }
 
   // Returns the invoices with a line invoicing the purchase order for the data table
@@ -305,6 +256,37 @@ export class LePurchaseOrdersGatewayController {
     return this.service.findInvoicesTable(id, userId, orgId);
   }
 
+  // Streams the purchase order as a PDF
+  @Get(':id/pdf')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiDownloadPdf()
+  async downloadPdf(@Param('id') id: string, @Res() reply: FastifyReply): Promise<void> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/pdf`);
+    const { buffer, filename } = await this.service.downloadPdf(id);
+    void reply
+      .header('Content-Type', 'application/pdf')
+      .header('Content-Disposition', `inline; filename="${filename}"`)
+      .send(buffer);
+  }
+
+  // Returns the inventory items ordered on a purchase order
+  @Get(':id/items/ids')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindItemIds()
+  findItemIds(@Param('id') id: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/items/ids`);
+    return this.service.findItemIds(id);
+  }
+
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
+  @Get(':id/problems')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindProblems()
+  findProblems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderProblemsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/problems`);
+    return this.service.findProblems(id);
+  }
+
   // Rolls the purchase order's invoices up into counts and the share of the due quantity invoiced
   @Get(':id/invoices/summary')
   @RequirePermission(LE_PURCHASE_ORDERS.invoices.view)
@@ -312,5 +294,23 @@ export class LePurchaseOrdersGatewayController {
   getInvoicesSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/invoices/summary`);
     return this.service.findInvoicesSummary(id);
+  }
+
+  // Deletes a draft purchase order
+  @Delete(':id')
+  @RequirePermission(LE_PURCHASE_ORDERS.delete)
+  @ApiDelete()
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/purchase-orders/${id}`);
+    return this.service.delete(id);
+  }
+
+  // Removes a line from a purchase order
+  @Delete(':id/items/:itemId')
+  @RequirePermission(LE_PURCHASE_ORDERS.edit)
+  @ApiRemoveItem()
+  removeItem(@Param('id') id: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/purchase-orders/${id}/items/${itemId}`);
+    return this.service.removeItem(id, itemId);
   }
 }

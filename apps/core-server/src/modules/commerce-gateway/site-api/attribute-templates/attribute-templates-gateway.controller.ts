@@ -45,15 +45,6 @@ export class SiteAttributeTemplatesGatewayController {
 
   constructor(private readonly service: SiteAttributeTemplatesGatewayService) {}
 
-  // Returns every attribute template this workspace can reach
-  @Get()
-  @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.view)
-  @ApiListAttributeTemplates()
-  list(@OrgId() orgId: string, @Query() query: AttributeTemplatesQueryDto): Promise<AttributeTemplateResponseDto[]> {
-    this.logger.log('GET /commerce-api/site/attribute-templates');
-    return this.service.list(orgId, query.search);
-  }
-
   // Creates an attribute template owned by this workspace
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -73,6 +64,15 @@ export class SiteAttributeTemplatesGatewayController {
     return this.service.update(id, dto);
   }
 
+  // Replaces a template's values with the set supplied
+  @Put(':id/values')
+  @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.values.upsert)
+  @ApiUpsertAttributeTemplateValues()
+  upsertValues(@Param('id') id: string, @Body() dto: UpsertAttributeTemplateValuesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PUT /commerce-api/site/attribute-templates/${id}/values`);
+    return this.service.upsertValues(id, dto.values);
+  }
+
   // Activates or deactivates an attribute template
   @Patch(':id/active')
   @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.toggle)
@@ -82,6 +82,15 @@ export class SiteAttributeTemplatesGatewayController {
     return this.service.setActive(id, dto.isActive);
   }
 
+  // Returns every attribute template this workspace can reach
+  @Get()
+  @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.view)
+  @ApiListAttributeTemplates()
+  list(@OrgId() orgId: string, @Query() query: AttributeTemplatesQueryDto): Promise<AttributeTemplateResponseDto[]> {
+    this.logger.log('GET /commerce-api/site/attribute-templates');
+    return this.service.list(orgId, query.search);
+  }
+
   // Deletes an attribute template by ID
   @Delete(':id')
   @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.delete)
@@ -89,14 +98,5 @@ export class SiteAttributeTemplatesGatewayController {
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/site/attribute-templates/${id}`);
     return this.service.delete(id);
-  }
-
-  // Replaces a template's values with the set supplied
-  @Put(':id/values')
-  @RequirePermission(SITE_ATTRIBUTE_TEMPLATES.values.upsert)
-  @ApiUpsertAttributeTemplateValues()
-  upsertValues(@Param('id') id: string, @Body() dto: UpsertAttributeTemplateValuesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/site/attribute-templates/${id}/values`);
-    return this.service.upsertValues(id, dto.values);
   }
 }

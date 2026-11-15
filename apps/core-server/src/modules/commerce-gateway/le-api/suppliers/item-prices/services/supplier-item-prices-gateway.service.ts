@@ -22,6 +22,23 @@ export class SupplierItemPricesGatewayService {
     private readonly contextStateService: ContextStateService,
   ) {}
 
+  // Adds a price record to a supplier item's timeline
+  async addItemPrice(
+    supplierItemId: string,
+    dto: AddSupplierItemPriceDto,
+  ): Promise<CreateResponseDto<SupplierItemPriceResponseDto[]>> {
+    this.logger.log(
+      `le.suppliers.siteItems.prices.create — supplierItemId: ${supplierItemId}, validFrom: ${dto.validFrom}`,
+    );
+    return this.nats.send('commerce', 'le.suppliers.siteItems.prices.create', { supplierItemId, ...dto });
+  }
+
+  // Updates a supplier item price record
+  async updateItemPrice(priceId: string, dto: UpdateSupplierItemPriceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.siteItems.prices.update — id: ${priceId}`);
+    return this.nats.send('commerce', 'le.suppliers.siteItems.prices.update', { id: priceId, ...dto });
+  }
+
   // A supplier item's price timeline at the site in the table's context, each price named by the site or legal entity
   // that owns it
   async findItemPricesTable(
@@ -60,23 +77,6 @@ export class SupplierItemPricesGatewayService {
       { supplierItemId, context: withDefaultPeriod(context) },
     );
     return { currency, sites: await this.ownerNames.withSiteNames(orgId, sites) };
-  }
-
-  // Adds a price record to a supplier item's timeline
-  async addItemPrice(
-    supplierItemId: string,
-    dto: AddSupplierItemPriceDto,
-  ): Promise<CreateResponseDto<SupplierItemPriceResponseDto[]>> {
-    this.logger.log(
-      `le.suppliers.siteItems.prices.create — supplierItemId: ${supplierItemId}, validFrom: ${dto.validFrom}`,
-    );
-    return this.nats.send('commerce', 'le.suppliers.siteItems.prices.create', { supplierItemId, ...dto });
-  }
-
-  // Updates a supplier item price record
-  async updateItemPrice(priceId: string, dto: UpdateSupplierItemPriceDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.suppliers.siteItems.prices.update — id: ${priceId}`);
-    return this.nats.send('commerce', 'le.suppliers.siteItems.prices.update', { id: priceId, ...dto });
   }
 
   // Deletes a supplier item price record

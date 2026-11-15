@@ -13,13 +13,6 @@ export class OrgDimensionTemplatesController {
 
   constructor(private readonly service: DimensionTemplatesDomainService) {}
 
-  // Returns every dimension template this workspace can reach, for the card grid
-  @MessagePattern({ cmd: 'org.dimensionTemplates.list' })
-  list(@Payload() data: { search?: string }): Promise<DimensionTemplateDto[]> {
-    this.logger.log('dimensionTemplates.list');
-    return this.service.list(data.search);
-  }
-
   // Creates a org-owned dimension template; values are added through their own endpoint
   @MessagePattern({ cmd: 'org.dimensionTemplates.create' })
   create(@Payload() dto: CreateDimensionTemplateDto): Promise<CreateResponseDto<DimensionTemplateDto>> {
@@ -40,6 +33,13 @@ export class OrgDimensionTemplatesController {
   setActive(@Payload() dto: SetDimensionTemplateActiveDto): Promise<SuccessResponseDto> {
     this.logger.log(`dimensionTemplates.setActive — id: ${dto.id}, isActive: ${dto.isActive}`);
     return this.service.setActive(dto.id, dto.isActive);
+  }
+
+  // Returns every dimension template this workspace can reach, for the card grid
+  @MessagePattern({ cmd: 'org.dimensionTemplates.list' })
+  list(@Payload() data: { search?: string }): Promise<DimensionTemplateDto[]> {
+    this.logger.log('dimensionTemplates.list');
+    return this.service.list(data.search);
   }
 
   // Deletes a dimension template this org owns

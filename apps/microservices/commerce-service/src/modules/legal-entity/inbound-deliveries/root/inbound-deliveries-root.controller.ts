@@ -10,17 +10,17 @@ export class LeInboundDeliveriesRootController {
 
   constructor(private readonly deliveriesService: InboundDeliveriesDomainService) {}
 
-  // Returns one page of the inbound deliveries of the legal entity's sites
-  @MessagePattern({ cmd: 'le.inboundDeliveries.table' })
-  table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
-    this.logger.log('le.inboundDeliveries.table');
-    return this.deliveriesService.findForTable(state);
-  }
-
   // Returns one inbound delivery of the legal entity's sites
   @MessagePattern({ cmd: 'le.inboundDeliveries.findById' })
   findById(@Payload() data: { id: string }): Promise<InboundDeliveryDto> {
     this.logger.log(`le.inboundDeliveries.findById — id: ${data.id}`);
     return this.deliveriesService.findById(data.id);
+  }
+
+  // Returns one page of the inbound deliveries of the legal entity's sites
+  @MessagePattern({ cmd: 'le.inboundDeliveries.table' })
+  table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
+    this.logger.log('le.inboundDeliveries.table');
+    return this.deliveriesService.findForTable(state);
   }
 }

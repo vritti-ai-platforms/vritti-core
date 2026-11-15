@@ -15,14 +15,6 @@ export class InventoryItemsUomConversionsService {
     private readonly uomRepository: UomDomainRepository,
   ) {}
 
-  // Returns paginated UOM conversion overrides for an inventory item
-  findForTable(
-    inventoryItemId: string,
-    state: TableState,
-  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
-    return this.conversionsService.findForTable(inventoryItemId, state);
-  }
-
   // Creates a per-item UOM conversion override, resolving the UOM's base unit
   async create(data: CreateInventoryItemUomConversionDto): Promise<CreateResponseDto<InventoryItemUomConversionDto>> {
     const { inventoryItemId, ...dto } = data;
@@ -39,6 +31,14 @@ export class InventoryItemsUomConversionsService {
   update(data: UpdateInventoryItemUomConversionDto): Promise<SuccessResponseDto> {
     const { id, ...dto } = data;
     return this.conversionsService.update(id, dto);
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  findForTable(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
+    return this.conversionsService.findForTable(inventoryItemId, state);
   }
 
   // Deletes a UOM conversion override

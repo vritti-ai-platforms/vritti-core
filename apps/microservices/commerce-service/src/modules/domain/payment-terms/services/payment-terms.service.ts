@@ -29,51 +29,6 @@ export class PaymentTermsDomainService {
 
   constructor(private readonly repository: PaymentTermsDomainRepository) {}
 
-  // Returns paginated payment terms for the data table
-  async findForTable(state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
-    const fieldMap = PaymentTermsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findAllAndCount({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, PaymentTermsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(paymentTerms.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => PaymentTermDto.from(row)), count };
-  }
-
-  // Returns published payment-term options so drafts cannot be picked; `allowUnpublished` lists drafts too, for
-  // navigation (the breadcrumb switcher)
-  findForSelect(query: SelectOptionsQueryDto, options?: { allowUnpublished?: boolean }): Promise<SelectQueryResult> {
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-      where: options?.allowUnpublished ? undefined : { isPublished: true },
-    });
-  }
-
-  // Loads a payment term, throwing when it is out of reach
-  async findByIdOrThrow(id: string): Promise<PaymentTerm> {
-    const term = await this.repository.findById(id);
-    if (!term) throw new NotFoundException('Payment term not found.');
-    return term;
-  }
-
-  // Returns a payment term with its rule count, rule total and how many suppliers use it
-  async findById(id: string): Promise<PaymentTermDetailDto> {
-    return PaymentTermDetailDto.from(await this.findDetailOrThrow(id));
-  }
-
   // Creates a draft payment term; rules are added next and the term is published once they total 100%
   async create(data: CreatePaymentTermDto): Promise<CreateResponseDto<PaymentTermDto>> {
     await this.assertNameFree(data.name);
@@ -143,13 +98,49 @@ export class PaymentTermsDomainService {
     return { success: true, message: `Payment term "${term.name}" is now a draft.` };
   }
 
-  // Deletes a payment term unless a supplier uses it, as its default or on a site enrollment
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.findDetailOrThrow(id);
-    this.assertNotInUse(existing, 'delete');
-    await this.repository.delete(id);
-    this.logger.log(`Deleted payment term: ${existing.name} (${id})`);
-    return { success: true, message: `Payment term "${existing.name}" deleted successfully.` };
+  // Returns a payment term with its rule count, rule total and how many suppliers use it
+  async findById(id: string): Promise<PaymentTermDetailDto> {
+    return PaymentTermDetailDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Returns paginated payment terms for the data table
+  async findForTable(state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
+    const fieldMap = PaymentTermsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findAllAndCount({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, PaymentTermsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(paymentTerms.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => PaymentTermDto.from(row)), count };
+  }
+
+  // Returns published payment-term options so drafts cannot be picked; `allowUnpublished` lists drafts too, for
+  // navigation (the breadcrumb switcher)
+  findForSelect(query: SelectOptionsQueryDto, options?: { allowUnpublished?: boolean }): Promise<SelectQueryResult> {
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+      where: options?.allowUnpublished ? undefined : { isPublished: true },
+    });
+  }
+
+  // Loads a payment term, throwing when it is out of reach
+  async findByIdOrThrow(id: string): Promise<PaymentTerm> {
+    const term = await this.repository.findById(id);
+    if (!term) throw new NotFoundException('Payment term not found.');
+    return term;
   }
 
   // A published term is in use or may be picked at any moment; unpublish it to edit
@@ -160,6 +151,15 @@ export class PaymentTermsDomainService {
       label: 'Payment term is published',
       detail: 'Unpublish the payment term before editing it.',
     });
+  }
+
+  // Deletes a payment term unless a supplier uses it, as its default or on a site enrollment
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.findDetailOrThrow(id);
+    this.assertNotInUse(existing, 'delete');
+    await this.repository.delete(id);
+    this.logger.log(`Deleted payment term: ${existing.name} (${id})`);
+    return { success: true, message: `Payment term "${existing.name}" deleted successfully.` };
   }
 
   // Loads a payment term with its rule count, rule total and the suppliers using it, throwing when it is out of reach

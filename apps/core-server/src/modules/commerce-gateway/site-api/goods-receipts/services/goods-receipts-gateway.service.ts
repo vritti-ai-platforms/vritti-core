@@ -50,6 +50,95 @@ export class GoodsReceiptsGatewayService {
     return this.nats.send('commerce', 'site.goodsReceipts.createFromDelivery', dto);
   }
 
+  // Adds a lot to a goods receipt item
+  addLot(
+    goodsReceiptId: string,
+    itemId: string,
+    dto: AddGoodsReceiptLotDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
+    this.logger.log(`site.goodsReceipts.addLot — itemId: ${itemId}, lot: ${dto.lotNumber}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.addLot', { goodsReceiptId, itemId, ...dto });
+  }
+
+  // Adds a line to a goods receipt item
+  addLine(
+    goodsReceiptId: string,
+    itemId: string,
+    dto: AddGoodsReceiptLineDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
+    this.logger.log(`site.goodsReceipts.addLine — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.addLine', { goodsReceiptId, itemId, ...dto });
+  }
+
+  // Registers a serial on a goods receipt line
+  addLineItem(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    dto: AddGoodsReceiptLineItemDto,
+  ): Promise<CreateResponseDto<GoodsReceiptLineItemResponseDto>> {
+    this.logger.log(`site.goodsReceipts.addLineItem — lineId: ${lineId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.addLineItem', { goodsReceiptId, itemId, lineId, ...dto });
+  }
+
+  // Changes a draft goods receipt's notes
+  update(id: string, dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.update', { id, ...dto });
+  }
+
+  // Changes the received or rejected quantity of a goods receipt item
+  updateItem(goodsReceiptId: string, itemId: string, dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.updateItem — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.updateItem', { goodsReceiptId, itemId, ...dto });
+  }
+
+  // Changes a lot of a goods receipt item
+  updateLot(
+    goodsReceiptId: string,
+    itemId: string,
+    lotId: string,
+    dto: UpdateGoodsReceiptLotDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.updateLot — lotId: ${lotId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.updateLot', { goodsReceiptId, itemId, lotId, ...dto });
+  }
+
+  // Changes a line of a goods receipt item
+  updateLine(
+    goodsReceiptId: string,
+    itemId: string,
+    lineId: string,
+    dto: UpdateGoodsReceiptLineDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.updateLine — lineId: ${lineId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.updateLine', { goodsReceiptId, itemId, lineId, ...dto });
+  }
+
+  // Posts a goods receipt, landing its stock at the site
+  post(id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`site.goodsReceipts.post — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.post', { id });
+  }
+
+  // Returns one goods receipt
+  findById(id: string): Promise<GoodsReceiptResponseDto> {
+    this.logger.log(`site.goodsReceipts.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.findById', { id });
+  }
+
+  // Returns one item of a goods receipt
+  findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
+    this.logger.log(`site.goodsReceipts.itemById — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.itemById', { goodsReceiptId, itemId });
+  }
+
+  // Returns one line of a goods receipt item
+  findLineById(goodsReceiptId: string, itemId: string, lineId: string): Promise<GoodsReceiptLineResponseDto> {
+    this.logger.log(`site.goodsReceipts.lineById — lineId: ${lineId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.lineById', { goodsReceiptId, itemId, lineId });
+  }
+
   // Returns the site's goods receipts for the data table with server-stored state
   async findForTable(userId: string): Promise<GoodsReceiptTableResponseDto> {
     this.logger.log('site.goodsReceipts.table');
@@ -60,64 +149,6 @@ export class GoodsReceiptsGatewayService {
       state,
     );
     return { result, count, state, activeViewId };
-  }
-
-  // Returns one goods receipt
-  findById(id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`site.goodsReceipts.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.findById', { id });
-  }
-
-  // Returns a keyset page of the site's goods receipts for the mobile feed, mapping first → limit and after → cursor
-  findForFeed(query: GoodsReceiptFeedQuery): Promise<GoodsReceiptFeedResponse> {
-    this.logger.log('site.goodsReceipts.feed');
-    return this.nats.send('commerce', 'site.goodsReceipts.feed', {
-      search: query.search ?? null,
-      limit: query.first ?? 20,
-      cursor: query.after,
-    });
-  }
-
-  // Changes a draft goods receipt's notes
-  update(id: string, dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.update', { id, ...dto });
-  }
-
-  // Returns a goods receipt's items with their lots and lines as a tree
-  findTree(goodsReceiptId: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
-    this.logger.log(`site.goodsReceipts.tree — goodsReceiptId: ${goodsReceiptId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.tree', { goodsReceiptId });
-  }
-
-  // Posts a goods receipt, landing its stock at the site
-  post(id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`site.goodsReceipts.post — id: ${id}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.post', { id });
-  }
-
-  // Deletes a draft goods receipt
-  delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.delete — id: ${id}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.delete', { id });
-  }
-
-  // Returns the inventory items counted on a goods receipt
-  findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
-    this.logger.log(`site.goodsReceipts.inventoryItemIds — goodsReceiptId: ${goodsReceiptId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.inventoryItemIds', { goodsReceiptId });
-  }
-
-  // Returns the provisional cost of a goods receipt's items
-  findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
-    this.logger.log(`site.goodsReceipts.itemsCost — goodsReceiptId: ${goodsReceiptId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.itemsCost', { goodsReceiptId });
-  }
-
-  // Returns the quants a posted goods receipt item landed in
-  findItemQuants(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemQuantsResponseDto> {
-    this.logger.log(`site.goodsReceipts.itemQuants — goodsReceiptId: ${goodsReceiptId}, itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.itemQuants', { goodsReceiptId, itemId });
   }
 
   // Returns a goods receipt's items for the data table with server-stored state
@@ -133,57 +164,6 @@ export class GoodsReceiptsGatewayService {
       { goodsReceiptId, ...state },
     );
     return { result, count, state, activeViewId };
-  }
-
-  // Returns one item of a goods receipt
-  findItemById(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemResponseDto> {
-    this.logger.log(`site.goodsReceipts.itemById — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.itemById', { goodsReceiptId, itemId });
-  }
-
-  // Changes the received or rejected quantity of a goods receipt item
-  updateItem(goodsReceiptId: string, itemId: string, dto: UpdateGoodsReceiptItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.updateItem — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.updateItem', { goodsReceiptId, itemId, ...dto });
-  }
-
-  // Removes an item from a goods receipt
-  removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.removeItem — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.removeItem', { goodsReceiptId, itemId });
-  }
-
-  // Returns the lots of a goods receipt item
-  findLots(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
-    this.logger.log(`site.goodsReceipts.lots — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.lots', { goodsReceiptId, itemId });
-  }
-
-  // Adds a lot to a goods receipt item
-  addLot(
-    goodsReceiptId: string,
-    itemId: string,
-    dto: AddGoodsReceiptLotDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
-    this.logger.log(`site.goodsReceipts.addLot — itemId: ${itemId}, lot: ${dto.lotNumber}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.addLot', { goodsReceiptId, itemId, ...dto });
-  }
-
-  // Changes a lot of a goods receipt item
-  updateLot(
-    goodsReceiptId: string,
-    itemId: string,
-    lotId: string,
-    dto: UpdateGoodsReceiptLotDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.updateLot — lotId: ${lotId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.updateLot', { goodsReceiptId, itemId, lotId, ...dto });
-  }
-
-  // Removes a lot from a goods receipt item
-  removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.removeLot — lotId: ${lotId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.removeLot', { goodsReceiptId, itemId, lotId });
   }
 
   // Returns a goods receipt item's lines for the data table with server-stored state
@@ -225,39 +205,6 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns one line of a goods receipt item
-  findLineById(goodsReceiptId: string, itemId: string, lineId: string): Promise<GoodsReceiptLineResponseDto> {
-    this.logger.log(`site.goodsReceipts.lineById — lineId: ${lineId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.lineById', { goodsReceiptId, itemId, lineId });
-  }
-
-  // Adds a line to a goods receipt item
-  addLine(
-    goodsReceiptId: string,
-    itemId: string,
-    dto: AddGoodsReceiptLineDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
-    this.logger.log(`site.goodsReceipts.addLine — itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.addLine', { goodsReceiptId, itemId, ...dto });
-  }
-
-  // Changes a line of a goods receipt item
-  updateLine(
-    goodsReceiptId: string,
-    itemId: string,
-    lineId: string,
-    dto: UpdateGoodsReceiptLineDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.updateLine — lineId: ${lineId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.updateLine', { goodsReceiptId, itemId, lineId, ...dto });
-  }
-
-  // Removes a line from a goods receipt item
-  removeLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.goodsReceipts.removeLine — lineId: ${lineId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.removeLine', { goodsReceiptId, itemId, lineId });
-  }
-
   // Returns the serials registered on a goods receipt line, for the data table
   async findLineItemsTable(
     goodsReceiptId: string,
@@ -278,15 +225,68 @@ export class GoodsReceiptsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Registers a serial on a goods receipt line
-  addLineItem(
-    goodsReceiptId: string,
-    itemId: string,
-    lineId: string,
-    dto: AddGoodsReceiptLineItemDto,
-  ): Promise<CreateResponseDto<GoodsReceiptLineItemResponseDto>> {
-    this.logger.log(`site.goodsReceipts.addLineItem — lineId: ${lineId}`);
-    return this.nats.send('commerce', 'site.goodsReceipts.addLineItem', { goodsReceiptId, itemId, lineId, ...dto });
+  // Returns a keyset page of the site's goods receipts for the mobile feed, mapping first → limit and after → cursor
+  findForFeed(query: GoodsReceiptFeedQuery): Promise<GoodsReceiptFeedResponse> {
+    this.logger.log('site.goodsReceipts.feed');
+    return this.nats.send('commerce', 'site.goodsReceipts.feed', {
+      search: query.search ?? null,
+      limit: query.first ?? 20,
+      cursor: query.after,
+    });
+  }
+
+  // Returns a goods receipt's items with their lots and lines as a tree
+  findTree(goodsReceiptId: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
+    this.logger.log(`site.goodsReceipts.tree — goodsReceiptId: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.tree', { goodsReceiptId });
+  }
+
+  // Returns the inventory items counted on a goods receipt
+  findInventoryItemIds(goodsReceiptId: string): Promise<string[]> {
+    this.logger.log(`site.goodsReceipts.inventoryItemIds — goodsReceiptId: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.inventoryItemIds', { goodsReceiptId });
+  }
+
+  // Returns the provisional cost of a goods receipt's items
+  findItemsCost(goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
+    this.logger.log(`site.goodsReceipts.itemsCost — goodsReceiptId: ${goodsReceiptId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.itemsCost', { goodsReceiptId });
+  }
+
+  // Returns the quants a posted goods receipt item landed in
+  findItemQuants(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemQuantsResponseDto> {
+    this.logger.log(`site.goodsReceipts.itemQuants — goodsReceiptId: ${goodsReceiptId}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.itemQuants', { goodsReceiptId, itemId });
+  }
+
+  // Returns the lots of a goods receipt item
+  findLots(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
+    this.logger.log(`site.goodsReceipts.lots — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.lots', { goodsReceiptId, itemId });
+  }
+
+  // Deletes a draft goods receipt
+  delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.delete — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.delete', { id });
+  }
+
+  // Removes an item from a goods receipt
+  removeItem(goodsReceiptId: string, itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.removeItem — itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.removeItem', { goodsReceiptId, itemId });
+  }
+
+  // Removes a lot from a goods receipt item
+  removeLot(goodsReceiptId: string, itemId: string, lotId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.removeLot — lotId: ${lotId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.removeLot', { goodsReceiptId, itemId, lotId });
+  }
+
+  // Removes a line from a goods receipt item
+  removeLine(goodsReceiptId: string, itemId: string, lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.goodsReceipts.removeLine — lineId: ${lineId}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.removeLine', { goodsReceiptId, itemId, lineId });
   }
 
   // Removes a serial from a goods receipt line

@@ -24,29 +24,6 @@ export class SiteLocationsService {
     private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
-  // Returns the location tree with each node's storage type and fill
-  async findTree(search?: string): Promise<LocationTreeDto[]> {
-    const tree = await this.locationsService.findTree(search);
-    const nodes = flattenTree(tree);
-    const fills = await this.computeFills(nodes.map((node) => node.id));
-    for (const node of nodes) node.fill = fills.get(node.id) ?? null;
-    return tree;
-  }
-
-  // Returns a page of child locations with their storage types and fill
-  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: LocationDto[]; count: number }> {
-    const page = await this.locationsService.findChildrenForTable(parentId, state);
-    await this.attachFills(page.result);
-    return page;
-  }
-
-  // Returns one location with its storage type and fill
-  async findById(id: string): Promise<LocationDto> {
-    const location = await this.locationsService.findById(id);
-    await this.attachFills([location]);
-    return location;
-  }
-
   // Creates a location after checking the storage type it is given can be assigned
   async create(dto: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
     this.logger.log(`create — code=${dto.code}, storageTypeId=${dto.storageTypeId ?? 'inherited'}`);
@@ -76,6 +53,29 @@ export class SiteLocationsService {
     }
 
     return this.locationsService.applyUpdate(plan);
+  }
+
+  // Returns one location with its storage type and fill
+  async findById(id: string): Promise<LocationDto> {
+    const location = await this.locationsService.findById(id);
+    await this.attachFills([location]);
+    return location;
+  }
+
+  // Returns a page of child locations with their storage types and fill
+  async findChildrenForTable(parentId: string, state: TableState): Promise<{ result: LocationDto[]; count: number }> {
+    const page = await this.locationsService.findChildrenForTable(parentId, state);
+    await this.attachFills(page.result);
+    return page;
+  }
+
+  // Returns the location tree with each node's storage type and fill
+  async findTree(search?: string): Promise<LocationTreeDto[]> {
+    const tree = await this.locationsService.findTree(search);
+    const nodes = flattenTree(tree);
+    const fills = await this.computeFills(nodes.map((node) => node.id));
+    for (const node of nodes) node.fill = fills.get(node.id) ?? null;
+    return tree;
   }
 
   // Sets the fill of each location

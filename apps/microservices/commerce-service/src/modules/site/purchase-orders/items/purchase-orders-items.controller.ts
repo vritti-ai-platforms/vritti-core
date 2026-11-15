@@ -18,28 +18,6 @@ export class PurchaseOrdersItemsController {
     private readonly service: PurchaseOrdersItemsService,
   ) {}
 
-  // Returns every line of a purchase order
-  @MessagePattern({ cmd: 'site.purchaseOrders.items' })
-  items(@Payload() data: { id: string }): Promise<PurchaseOrderItemDto[]> {
-    this.logger.log(`site.purchaseOrders.items — id: ${data.id}`);
-    return this.itemsService.findByPurchaseOrderId(data.id);
-  }
-
-  // Returns the inventory items ordered on a purchase order
-  @MessagePattern({ cmd: 'site.purchaseOrders.itemIds' })
-  itemIds(@Payload() data: { id: string }): Promise<string[]> {
-    this.logger.log(`site.purchaseOrders.itemIds — id: ${data.id}`);
-    return this.itemsService.findInventoryItemIds(data.id);
-  }
-
-  // Returns one page of a purchase order's lines
-  @MessagePattern({ cmd: 'site.purchaseOrders.itemsTable' })
-  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    this.logger.log(`site.purchaseOrders.itemsTable — id: ${data.id}`);
-    const { id, ...state } = data;
-    return this.itemsService.findForTable(id, state);
-  }
-
   // Adds a line to a purchase order
   @MessagePattern({ cmd: 'site.purchaseOrders.addItem' })
   addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
@@ -52,6 +30,28 @@ export class PurchaseOrdersItemsController {
   updateItem(@Payload() dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchaseOrders.updateItem — id: ${dto.purchaseOrderId}, item: ${dto.itemId}`);
     return this.service.updateItem(dto);
+  }
+
+  // Returns one page of a purchase order's lines
+  @MessagePattern({ cmd: 'site.purchaseOrders.itemsTable' })
+  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+    this.logger.log(`site.purchaseOrders.itemsTable — id: ${data.id}`);
+    const { id, ...state } = data;
+    return this.itemsService.findForTable(id, state);
+  }
+
+  // Returns every line of a purchase order
+  @MessagePattern({ cmd: 'site.purchaseOrders.items' })
+  items(@Payload() data: { id: string }): Promise<PurchaseOrderItemDto[]> {
+    this.logger.log(`site.purchaseOrders.items — id: ${data.id}`);
+    return this.itemsService.findByPurchaseOrderId(data.id);
+  }
+
+  // Returns the inventory items ordered on a purchase order
+  @MessagePattern({ cmd: 'site.purchaseOrders.itemIds' })
+  itemIds(@Payload() data: { id: string }): Promise<string[]> {
+    this.logger.log(`site.purchaseOrders.itemIds — id: ${data.id}`);
+    return this.itemsService.findInventoryItemIds(data.id);
   }
 
   // Removes a line from a purchase order

@@ -26,6 +26,48 @@ export class UomGatewayController {
 
   constructor(private readonly uomGatewayService: UomGatewayService) {}
 
+  // Creates a new UOM
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_UOM.add)
+  async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
+    this.logger.log('POST /commerce-api/org/uom');
+    return this.uomGatewayService.create(dto);
+  }
+
+  // Creates a new dimension
+  @Post('dimensions')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_UOM.dim.add)
+  createDimension(@Body() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
+    this.logger.log('POST /commerce-api/org/uom/dimensions');
+    return this.uomGatewayService.createDimension(dto);
+  }
+
+  // Updates a UOM by ID
+  @Patch(':id')
+  @RequirePermission(ORG_UOM.edit)
+  update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/uom/${id}`);
+    return this.uomGatewayService.update(id, dto);
+  }
+
+  // Updates a dimension by ID
+  @Patch('dimensions/:id')
+  @RequirePermission(ORG_UOM.dim.edit)
+  updateDimension(@Param('id') id: string, @Body() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/uom/dimensions/${id}`);
+    return this.uomGatewayService.updateDimension(id, dto);
+  }
+
+  // Returns a dimension by ID
+  @Get('dimensions/:id')
+  @RequirePermission(ORG_UOM.dim.view)
+  findDimensionById(@Param('id') id: string): Promise<UomDimensionResponseDto> {
+    this.logger.log(`GET /commerce-api/org/uom/dimensions/${id}`);
+    return this.uomGatewayService.findDimensionById(id);
+  }
+
   // Returns paginated UOMs for the data table, scoped to a dimension
   @Get('dimension/:dimensionId/table')
   @RequirePermission(ORG_UOM.view)
@@ -49,29 +91,12 @@ export class UomGatewayController {
     return this.uomGatewayService.countDimensions();
   }
 
-  // Returns a dimension by ID
-  @Get('dimensions/:id')
-  @RequirePermission(ORG_UOM.dim.view)
-  findDimensionById(@Param('id') id: string): Promise<UomDimensionResponseDto> {
-    this.logger.log(`GET /commerce-api/org/uom/dimensions/${id}`);
-    return this.uomGatewayService.findDimensionById(id);
-  }
-
-  // Creates a new dimension
-  @Post('dimensions')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_UOM.dim.add)
-  createDimension(@Body() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
-    this.logger.log('POST /commerce-api/org/uom/dimensions');
-    return this.uomGatewayService.createDimension(dto);
-  }
-
-  // Updates a dimension by ID
-  @Patch('dimensions/:id')
-  @RequirePermission(ORG_UOM.dim.edit)
-  updateDimension(@Param('id') id: string, @Body() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/uom/dimensions/${id}`);
-    return this.uomGatewayService.updateDimension(id, dto);
+  // Deletes a UOM by ID
+  @Delete(':id')
+  @RequirePermission(ORG_UOM.delete)
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/uom/${id}`);
+    return this.uomGatewayService.delete(id);
   }
 
   // Deletes a dimension by ID
@@ -80,30 +105,5 @@ export class UomGatewayController {
   deleteDimension(@Param('id') id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/uom/dimensions/${id}`);
     return this.uomGatewayService.deleteDimension(id);
-  }
-
-  // Creates a new UOM
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_UOM.add)
-  async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
-    this.logger.log('POST /commerce-api/org/uom');
-    return this.uomGatewayService.create(dto);
-  }
-
-  // Updates a UOM by ID
-  @Patch(':id')
-  @RequirePermission(ORG_UOM.edit)
-  update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/uom/${id}`);
-    return this.uomGatewayService.update(id, dto);
-  }
-
-  // Deletes a UOM by ID
-  @Delete(':id')
-  @RequirePermission(ORG_UOM.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/uom/${id}`);
-    return this.uomGatewayService.delete(id);
   }
 }

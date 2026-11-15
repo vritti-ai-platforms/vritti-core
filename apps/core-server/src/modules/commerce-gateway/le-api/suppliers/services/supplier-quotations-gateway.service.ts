@@ -26,6 +26,59 @@ export class SupplierQuotationsGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  create(
+    supplierId: string,
+    dto: CreateSupplierQuotationDto,
+  ): Promise<CreateResponseDto<SupplierQuotationResponseDto>> {
+    return this.nats.send('commerce', 'le.suppliers.quotations.create', { ...dto, supplierId });
+  }
+
+  addItem(quotationId: string, dto: AddSupplierQuotationItemDto): Promise<SuccessResponseDto> {
+    return this.nats.send('commerce', 'le.suppliers.quotations.items.add', { ...dto, quotationId });
+  }
+
+  update(id: string, dto: UpdateSupplierQuotationDto): Promise<SuccessResponseDto> {
+    return this.nats.send('commerce', 'le.suppliers.quotations.update', { ...dto, id });
+  }
+
+  updateItem(quotationId: string, id: string, dto: SupplierQuotationItemFieldsDto): Promise<SuccessResponseDto> {
+    return this.nats.send('commerce', 'le.suppliers.quotations.items.update', { ...dto, quotationId, id });
+  }
+
+  // Posts the quotation to one of the session legal entity's sites
+  async postToSite(
+    quotationId: string,
+    siteId: string,
+    orgId: string,
+    legalEntityId: string | undefined,
+  ): Promise<SuccessResponseDto> {
+    const [site] = await this.siteService.findByIds(orgId, [siteId]);
+    if (!legalEntityId || !site || site.legalEntityId !== legalEntityId) {
+      throw new BadRequestException({
+        label: 'Invalid Site',
+        detail: 'The selected site does not belong to this legal entity.',
+        errors: [{ field: 'siteId', message: 'Not a site of this legal entity' }],
+      });
+    }
+    return this.nats.send('commerce', 'le.suppliers.quotations.sites.post', { quotationId, siteId });
+  }
+
+  // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
+  postToLegalEntity(quotationId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.quotations.legalEntity.post — quotationId: ${quotationId}`);
+    return this.nats.send('commerce', 'le.suppliers.quotations.legalEntity.post', { quotationId });
+  }
+
+  // Returns a quotation with its lines and the sites it is posted to, named
+  async findById(id: string, orgId: string): Promise<SupplierQuotationDetailResponseDto> {
+    const quotation = await this.nats.send<SupplierQuotationDetailResponseDto>(
+      'commerce',
+      'le.suppliers.quotations.findById',
+      { id },
+    );
+    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
+  }
+
   async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`le.suppliers.quotations.table — supplierId: ${supplierId}`);
     const { state, activeViewId } = await this.tableStateService.getTableState(
@@ -59,69 +112,16 @@ export class SupplierQuotationsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns a quotation with its lines and the sites it is posted to, named
-  async findById(id: string, orgId: string): Promise<SupplierQuotationDetailResponseDto> {
-    const quotation = await this.nats.send<SupplierQuotationDetailResponseDto>(
-      'commerce',
-      'le.suppliers.quotations.findById',
-      { id },
-    );
-    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
-  }
-
-  create(
-    supplierId: string,
-    dto: CreateSupplierQuotationDto,
-  ): Promise<CreateResponseDto<SupplierQuotationResponseDto>> {
-    return this.nats.send('commerce', 'le.suppliers.quotations.create', { ...dto, supplierId });
-  }
-
-  update(id: string, dto: UpdateSupplierQuotationDto): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'le.suppliers.quotations.update', { ...dto, id });
-  }
-
   delete(id: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'le.suppliers.quotations.delete', { id });
-  }
-
-  addItem(quotationId: string, dto: AddSupplierQuotationItemDto): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'le.suppliers.quotations.items.add', { ...dto, quotationId });
-  }
-
-  updateItem(quotationId: string, id: string, dto: SupplierQuotationItemFieldsDto): Promise<SuccessResponseDto> {
-    return this.nats.send('commerce', 'le.suppliers.quotations.items.update', { ...dto, quotationId, id });
   }
 
   removeItem(quotationId: string, id: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'le.suppliers.quotations.items.delete', { quotationId, id });
   }
 
-  // Posts the quotation to one of the session legal entity's sites
-  async postToSite(
-    quotationId: string,
-    siteId: string,
-    orgId: string,
-    legalEntityId: string | undefined,
-  ): Promise<SuccessResponseDto> {
-    const [site] = await this.siteService.findByIds(orgId, [siteId]);
-    if (!legalEntityId || !site || site.legalEntityId !== legalEntityId) {
-      throw new BadRequestException({
-        label: 'Invalid Site',
-        detail: 'The selected site does not belong to this legal entity.',
-        errors: [{ field: 'siteId', message: 'Not a site of this legal entity' }],
-      });
-    }
-    return this.nats.send('commerce', 'le.suppliers.quotations.sites.post', { quotationId, siteId });
-  }
-
   removeFromSite(quotationId: string, siteId: string): Promise<SuccessResponseDto> {
     return this.nats.send('commerce', 'le.suppliers.quotations.sites.remove', { quotationId, siteId });
-  }
-
-  // Posts the quotation as the legal entity's prices, which every site without its own price in force uses
-  postToLegalEntity(quotationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`le.suppliers.quotations.legalEntity.post — quotationId: ${quotationId}`);
-    return this.nats.send('commerce', 'le.suppliers.quotations.legalEntity.post', { quotationId });
   }
 
   // Removes the quotation's legal-entity prices, restoring the ones they replaced

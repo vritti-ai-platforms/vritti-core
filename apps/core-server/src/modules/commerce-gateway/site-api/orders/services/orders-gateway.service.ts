@@ -28,45 +28,16 @@ export class OrdersGatewayService {
     private readonly gatewayConfigService: PaymentGatewayConfigDomainService,
   ) {}
 
-  // Returns paginated, filtered, and sorted orders for the data table
-  async findForTable(userId: string): Promise<OrderTableResponseDto> {
-    this.logger.log('site.orders.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-orders');
-
-    const { result, count } = await this.nats.send<{ result: OrderResponseDto[]; count: number }>(
-      'commerce',
-      'site.orders.table',
-      state,
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
   // Creates a new order
   async create(dto: CreateOrderDto): Promise<OrderResponseDto> {
     this.logger.log(`orders.create — type: ${dto.type}, channel: ${dto.channel}`);
     return this.nats.send('commerce', 'site.orders.create', dto);
   }
 
-  // Finds an order by ID with full detail
-  async findById(id: string): Promise<OrderDetailResponseDto> {
-    this.logger.log(`orders.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.orders.findById', { id });
-  }
-
   // Updates order status
   async updateStatus(id: string, dto: UpdateOrderStatusDto): Promise<OrderResponseDto> {
     this.logger.log(`orders.updateStatus — id: ${id}, status: ${dto.status}`);
     return this.nats.send('commerce', 'site.orders.updateStatus', { id, ...dto });
-  }
-
-  // The payments of the order's checkout, each marked whether the order uses it and whether staff may refund it. The
-  // order is read at the site in context first, so only an order of this site opens its checkout's payments
-  async listPayments(id: string): Promise<OrderPaymentResponseDto[]> {
-    this.logger.log(`orders.listPayments — id: ${id}`);
-    const order = await this.findById(id);
-    const intents = await this.orderIntents(order);
-    return intents.map((intent) => toOrderPayment(intent, order));
   }
 
   // Retries the refund of a payment of the order's checkout that no order uses, after the gateway refused it. Such a
@@ -121,6 +92,35 @@ export class OrdersGatewayService {
       message: REFUND_CHECK_MESSAGE[checked.status] ?? 'The refund was checked.',
       status: checked.status,
     };
+  }
+
+  // Finds an order by ID with full detail
+  async findById(id: string): Promise<OrderDetailResponseDto> {
+    this.logger.log(`orders.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.orders.findById', { id });
+  }
+
+  // Returns paginated, filtered, and sorted orders for the data table
+  async findForTable(userId: string): Promise<OrderTableResponseDto> {
+    this.logger.log('site.orders.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-site-orders');
+
+    const { result, count } = await this.nats.send<{ result: OrderResponseDto[]; count: number }>(
+      'commerce',
+      'site.orders.table',
+      state,
+    );
+
+    return { result, count, state, activeViewId };
+  }
+
+  // The payments of the order's checkout, each marked whether the order uses it and whether staff may refund it. The
+  // order is read at the site in context first, so only an order of this site opens its checkout's payments
+  async listPayments(id: string): Promise<OrderPaymentResponseDto[]> {
+    this.logger.log(`orders.listPayments — id: ${id}`);
+    const order = await this.findById(id);
+    const intents = await this.orderIntents(order);
+    return intents.map((intent) => toOrderPayment(intent, order));
   }
 
   // The order's checkout's payments, or the one payment of an order paid without a checkout

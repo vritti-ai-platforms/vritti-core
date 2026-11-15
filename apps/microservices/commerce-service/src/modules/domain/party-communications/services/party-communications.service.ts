@@ -64,76 +64,6 @@ export class PartyCommunicationsDomainService {
     private readonly functionsService: PartyFunctionsDomainService,
   ) {}
 
-  // Resolves the parties reachable at a presented email or phone, oldest party first
-  async findPartyIdsByValue(channel: PartyCommunicationChannel, value: string): Promise<string[]> {
-    const normalized = value.trim().toLowerCase();
-    if (!normalized) return [];
-
-    const partyIds = await this.repository.findPartyIdsByValue(channel, normalized);
-    this.logger.log(`communications.findByValue — ${channel} matched ${partyIds.length} parties`);
-    return partyIds;
-  }
-
-  // Returns paginated communications of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyCommunicationDto[]; count: number }> {
-    const fieldMap = PartyCommunicationsDomainService.FIELD_MAP;
-    const { limit = 20, offset = 0 } = state.pagination;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        eq(partyCommunications.partyId, partyId),
-        FilterProcessor.buildWhere(state.filters, fieldMap),
-        FilterProcessor.buildSearch(state.search, PartyCommunicationsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy:
-        orderBy.length > 0
-          ? orderBy
-          : [asc(partyCommunications.channel), desc(partyCommunications.isPrimary), asc(partyCommunications.value)],
-      limit,
-      offset,
-    });
-    return { result: result.map((row) => PartyCommunicationDto.from(row, row.apps, row.functions)), count };
-  }
-
-  // Returns a party's active communications on one channel as select options, optionally only holders of a function
-  findForSelect(
-    query: SelectOptionsQueryDto,
-    partyId: string,
-    channel: PartyCommunicationChannel,
-    functionCode?: PartyFunctionType,
-  ): Promise<SelectQueryResult> {
-    return this.repository.findOptionsForSelect(partyId, channel, query, functionCode);
-  }
-
-  // Returns all communications of a party
-  async findByParty(partyId: string): Promise<PartyCommunicationDto[]> {
-    const rows = await this.repository.findByParty(partyId);
-    return rows.map((row) => PartyCommunicationDto.from(row));
-  }
-
-  // Returns the party's primary communication for a channel, if one is set
-  findPrimary(partyId: string, channel: PartyCommunicationChannel): Promise<PartyCommunication | undefined> {
-    return this.repository.findPrimary(partyId, channel);
-  }
-
-  // Sets the party's primary value for a channel; an empty value clears it. Runs in the caller's transaction.
-  async upsertPrimary(partyId: string, channel: PartyCommunicationChannel, value?: string | null): Promise<void> {
-    const trimmed = value?.trim() || null;
-    const existing = await this.repository.findPrimary(partyId, channel);
-
-    if (!trimmed) {
-      if (existing) await this.repository.delete(existing.id);
-      return;
-    }
-
-    if (existing) {
-      if (existing.value !== trimmed) await this.repository.update(existing.id, { value: trimmed });
-      return;
-    }
-
-    await this.repository.create({ partyId, channel, value: trimmed, isPrimary: true });
-  }
-
   // Creates a communication for a party, clearing any existing primary of the same channel when this one is primary
   async create(partyId: string, data: PartyCommunicationInputDto): Promise<CreateResponseDto<PartyCommunicationDto>> {
     const partyExists = await this.repository.partyExists(partyId);
@@ -194,22 +124,6 @@ export class PartyCommunicationsDomainService {
       message: 'Communication added successfully.',
       data: PartyCommunicationDto.from(entity, apps, functions),
     };
-  }
-
-  // Whether a row that did not ask to be primary should become one anyway
-  private async claimsEmptyPrimarySlot(
-    partyId: string,
-    channel: PartyCommunicationChannel,
-    isActive: boolean,
-  ): Promise<boolean> {
-    // A primary must be reachable and contactable: an inactive row cannot be primary, and the
-    // party_communications_primary_channel_chk CHECK rejects a primary WEB_APP outright — one person may hold accounts
-    // in several web apps.
-    if (!isActive) return false;
-    if (!CONTACTABLE_CHANNELS.includes(channel as (typeof CONTACTABLE_CHANNELS)[number])) return false;
-
-    const existing = await this.repository.findPrimary(partyId, channel);
-    return !existing;
   }
 
   // Updates a communication, enforcing at most one primary per party+channel via clear-then-set
@@ -278,6 +192,76 @@ export class PartyCommunicationsDomainService {
     return { success: true, message: 'Communication updated successfully.' };
   }
 
+  // Sets the party's primary value for a channel; an empty value clears it. Runs in the caller's transaction.
+  async upsertPrimary(partyId: string, channel: PartyCommunicationChannel, value?: string | null): Promise<void> {
+    const trimmed = value?.trim() || null;
+    const existing = await this.repository.findPrimary(partyId, channel);
+
+    if (!trimmed) {
+      if (existing) await this.repository.delete(existing.id);
+      return;
+    }
+
+    if (existing) {
+      if (existing.value !== trimmed) await this.repository.update(existing.id, { value: trimmed });
+      return;
+    }
+
+    await this.repository.create({ partyId, channel, value: trimmed, isPrimary: true });
+  }
+
+  // Returns paginated communications of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyCommunicationDto[]; count: number }> {
+    const fieldMap = PartyCommunicationsDomainService.FIELD_MAP;
+    const { limit = 20, offset = 0 } = state.pagination;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        eq(partyCommunications.partyId, partyId),
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, PartyCommunicationsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy:
+        orderBy.length > 0
+          ? orderBy
+          : [asc(partyCommunications.channel), desc(partyCommunications.isPrimary), asc(partyCommunications.value)],
+      limit,
+      offset,
+    });
+    return { result: result.map((row) => PartyCommunicationDto.from(row, row.apps, row.functions)), count };
+  }
+
+  // Resolves the parties reachable at a presented email or phone, oldest party first
+  async findPartyIdsByValue(channel: PartyCommunicationChannel, value: string): Promise<string[]> {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return [];
+
+    const partyIds = await this.repository.findPartyIdsByValue(channel, normalized);
+    this.logger.log(`communications.findByValue — ${channel} matched ${partyIds.length} parties`);
+    return partyIds;
+  }
+
+  // Returns a party's active communications on one channel as select options, optionally only holders of a function
+  findForSelect(
+    query: SelectOptionsQueryDto,
+    partyId: string,
+    channel: PartyCommunicationChannel,
+    functionCode?: PartyFunctionType,
+  ): Promise<SelectQueryResult> {
+    return this.repository.findOptionsForSelect(partyId, channel, query, functionCode);
+  }
+
+  // Returns all communications of a party
+  async findByParty(partyId: string): Promise<PartyCommunicationDto[]> {
+    const rows = await this.repository.findByParty(partyId);
+    return rows.map((row) => PartyCommunicationDto.from(row));
+  }
+
+  // Returns the party's primary communication for a channel, if one is set
+  findPrimary(partyId: string, channel: PartyCommunicationChannel): Promise<PartyCommunication | undefined> {
+    return this.repository.findPrimary(partyId, channel);
+  }
+
   // Deletes a communication by ID
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
@@ -291,5 +275,21 @@ export class PartyCommunicationsDomainService {
     await this.repository.delete(id);
     this.logger.log(`Deleted communication: ${id}`);
     return { success: true, message: 'Communication removed successfully.' };
+  }
+
+  // Whether a row that did not ask to be primary should become one anyway
+  private async claimsEmptyPrimarySlot(
+    partyId: string,
+    channel: PartyCommunicationChannel,
+    isActive: boolean,
+  ): Promise<boolean> {
+    // A primary must be reachable and contactable: an inactive row cannot be primary, and the
+    // party_communications_primary_channel_chk CHECK rejects a primary WEB_APP outright — one person may hold accounts
+    // in several web apps.
+    if (!isActive) return false;
+    if (!CONTACTABLE_CHANNELS.includes(channel as (typeof CONTACTABLE_CHANNELS)[number])) return false;
+
+    const existing = await this.repository.findPrimary(partyId, channel);
+    return !existing;
   }
 }

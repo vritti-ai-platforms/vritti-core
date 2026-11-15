@@ -16,15 +16,6 @@ export class SiteDimensionTemplatesGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
-  // Returns every dimension template this workspace can reach, for the card grid
-  async list(orgId: string, search?: string): Promise<DimensionTemplateResponseDto[]> {
-    this.logger.log('site.dimensionTemplates.list');
-    const templates = await this.nats.send<DimensionTemplateResponseDto[]>('commerce', 'site.dimensionTemplates.list', {
-      search,
-    });
-    return this.ownerNames.resolve(orgId, templates);
-  }
-
   // Creates a template owned by the calling workspace
   async create(dto: CreateDimensionTemplateDto): Promise<CreateResponseDto<DimensionTemplateResponseDto>> {
     this.logger.log(`dimensionTemplates.create — name: ${dto.name}`);
@@ -37,21 +28,30 @@ export class SiteDimensionTemplatesGatewayService {
     return this.nats.send('commerce', 'site.dimensionTemplates.update', { id, ...dto });
   }
 
+  // Replaces a template's values with the set supplied
+  async upsertValues(templateId: string, values: TemplateValueInputDto[]): Promise<SuccessResponseDto> {
+    this.logger.log(`dimensionTemplates.values.upsert — templateId: ${templateId}, count: ${values.length}`);
+    return this.nats.send('commerce', 'site.dimensionTemplates.values.upsert', { templateId, values });
+  }
+
   // Switches a template on or off; the microservice refuses it while the template has no values
   async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
     this.logger.log(`dimensionTemplates.setActive — id: ${id}, isActive: ${isActive}`);
     return this.nats.send('commerce', 'site.dimensionTemplates.setActive', { id, isActive });
   }
 
+  // Returns every dimension template this workspace can reach, for the card grid
+  async list(orgId: string, search?: string): Promise<DimensionTemplateResponseDto[]> {
+    this.logger.log('site.dimensionTemplates.list');
+    const templates = await this.nats.send<DimensionTemplateResponseDto[]>('commerce', 'site.dimensionTemplates.list', {
+      search,
+    });
+    return this.ownerNames.resolve(orgId, templates);
+  }
+
   // Deletes a template the workspace owns
   async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`dimensionTemplates.delete — id: ${id}`);
     return this.nats.send('commerce', 'site.dimensionTemplates.delete', { id });
-  }
-
-  // Replaces a template's values with the set supplied
-  async upsertValues(templateId: string, values: TemplateValueInputDto[]): Promise<SuccessResponseDto> {
-    this.logger.log(`dimensionTemplates.values.upsert — templateId: ${templateId}, count: ${values.length}`);
-    return this.nats.send('commerce', 'site.dimensionTemplates.values.upsert', { templateId, values });
   }
 }

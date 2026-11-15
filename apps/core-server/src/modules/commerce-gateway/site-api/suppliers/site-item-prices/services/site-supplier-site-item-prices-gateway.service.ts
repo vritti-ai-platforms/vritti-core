@@ -22,6 +22,23 @@ export class SiteSupplierSiteItemPricesGatewayService {
     private readonly contextStateService: ContextStateService,
   ) {}
 
+  // Adds a site-specific price record to a supplier item's timeline
+  async createPrice(
+    supplierItemId: string,
+    dto: AddSupplierSiteItemPriceDto,
+  ): Promise<CreateResponseDto<SupplierSiteItemPriceResponseDto[]>> {
+    this.logger.log(
+      `site.suppliers.siteItems.prices.create — supplierItemId: ${supplierItemId}, validFrom: ${dto.validFrom}`,
+    );
+    return this.nats.send('commerce', 'site.suppliers.siteItems.prices.create', { supplierItemId, ...dto });
+  }
+
+  // Updates a site-specific supplier item price record
+  async updatePrice(priceId: string, dto: UpdateSupplierSiteItemPriceDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.suppliers.siteItems.prices.update — id: ${priceId}`);
+    return this.nats.send('commerce', 'site.suppliers.siteItems.prices.update', { id: priceId, ...dto });
+  }
+
   // Returns the price timeline visible to this site for a supplier item — its own prices and the legal entity's — each
   // named by the site or legal entity that owns it
   async findPricesTable(
@@ -42,23 +59,6 @@ export class SiteSupplierSiteItemPricesGatewayService {
     );
 
     return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
-  }
-
-  // Adds a site-specific price record to a supplier item's timeline
-  async createPrice(
-    supplierItemId: string,
-    dto: AddSupplierSiteItemPriceDto,
-  ): Promise<CreateResponseDto<SupplierSiteItemPriceResponseDto[]>> {
-    this.logger.log(
-      `site.suppliers.siteItems.prices.create — supplierItemId: ${supplierItemId}, validFrom: ${dto.validFrom}`,
-    );
-    return this.nats.send('commerce', 'site.suppliers.siteItems.prices.create', { supplierItemId, ...dto });
-  }
-
-  // Updates a site-specific supplier item price record
-  async updatePrice(priceId: string, dto: UpdateSupplierSiteItemPriceDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.suppliers.siteItems.prices.update — id: ${priceId}`);
-    return this.nats.send('commerce', 'site.suppliers.siteItems.prices.update', { id: priceId, ...dto });
   }
 
   // This site's price windows for a supplier item — its own and the legal entity's — in one currency, at the history's

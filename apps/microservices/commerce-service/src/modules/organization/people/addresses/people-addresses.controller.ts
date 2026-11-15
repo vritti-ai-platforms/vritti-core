@@ -13,6 +13,22 @@ export class PeopleAddressesController {
 
   constructor(private readonly service: PartyAddressesDomainService) {}
 
+  // Adds an address to a person
+  @MessagePattern({ cmd: 'org.people.addresses.add' })
+  async add(@Payload() dto: AddPersonAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
+    const { personId, ...payload } = dto;
+    this.logger.log(`people.addresses.add — personId: ${personId}`);
+    return this.service.add(personId, payload);
+  }
+
+  // Updates an address by ID
+  @MessagePattern({ cmd: 'org.people.addresses.update' })
+  async update(@Payload() dto: UpdatePersonAddressDto): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`people.addresses.update — id: ${id}`);
+    return this.service.update(id, data);
+  }
+
   // Returns the paginated addresses of a person
   @MessagePattern({ cmd: 'org.people.addresses.table' })
   async table(
@@ -28,22 +44,6 @@ export class PeopleAddressesController {
   async list(@Payload() data: { personId: string }): Promise<PartyAddressDto[]> {
     this.logger.log(`people.addresses.list — personId: ${data.personId}`);
     return this.service.findForParty(data.personId);
-  }
-
-  // Adds an address to a person
-  @MessagePattern({ cmd: 'org.people.addresses.add' })
-  async add(@Payload() dto: AddPersonAddressDto): Promise<CreateResponseDto<PartyAddressDto>> {
-    const { personId, ...payload } = dto;
-    this.logger.log(`people.addresses.add — personId: ${personId}`);
-    return this.service.add(personId, payload);
-  }
-
-  // Updates an address by ID
-  @MessagePattern({ cmd: 'org.people.addresses.update' })
-  async update(@Payload() dto: UpdatePersonAddressDto): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`people.addresses.update — id: ${id}`);
-    return this.service.update(id, data);
   }
 
   // Removes an address by ID

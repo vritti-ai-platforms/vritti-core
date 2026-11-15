@@ -12,6 +12,14 @@ export class CompanyIdentifiersController {
 
   constructor(private readonly service: PartyIdentifiersDomainService) {}
 
+  // Adds an identifier to a company
+  @MessagePattern({ cmd: 'org.companies.identifiers.add' })
+  async add(@Payload() dto: AddCompanyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
+    const { companyId, ...payload } = dto;
+    this.logger.log(`companies.identifiers.add — companyId: ${companyId}`);
+    return this.service.add(companyId, payload);
+  }
+
   // Returns the paginated identifiers of a company
   @MessagePattern({ cmd: 'org.companies.identifiers.table' })
   async table(
@@ -20,14 +28,6 @@ export class CompanyIdentifiersController {
     const { companyId, ...state } = data;
     this.logger.log(`companies.identifiers.table — companyId: ${companyId}`);
     return this.service.findForTable(companyId, state);
-  }
-
-  // Adds an identifier to a company
-  @MessagePattern({ cmd: 'org.companies.identifiers.add' })
-  async add(@Payload() dto: AddCompanyIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
-    const { companyId, ...payload } = dto;
-    this.logger.log(`companies.identifiers.add — companyId: ${companyId}`);
-    return this.service.add(companyId, payload);
   }
 
   // Removes an identifier by ID

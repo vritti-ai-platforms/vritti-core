@@ -13,32 +13,11 @@ export class CostCategoriesRootController {
 
   constructor(private readonly service: CostCategoriesDomainService) {}
 
-  // Returns paginated cost categories for the data table
-  @MessagePattern({ cmd: 'org.costCategories.table' })
-  async table(@Payload() state: TableState): Promise<{ result: CostCategoryDto[]; count: number }> {
-    this.logger.log('costCategories.table');
-    return this.service.findForTable(state);
-  }
-
-  // Returns cost categories matching an optional search term
-  @MessagePattern({ cmd: 'org.costCategories.list' })
-  async list(@Payload() data: { search?: string }): Promise<CostCategoryDto[]> {
-    this.logger.log('costCategories.list');
-    return this.service.list(data?.search);
-  }
-
   // Creates a cost category
   @MessagePattern({ cmd: 'org.costCategories.create' })
   async create(@Payload() dto: CreateCostCategoryDto): Promise<CreateResponseDto<CostCategoryDto>> {
     this.logger.log(`costCategories.create — code: ${dto.code}, kind: ${dto.kind}`);
     return this.service.create(dto);
-  }
-
-  // Returns a single cost category by ID
-  @MessagePattern({ cmd: 'org.costCategories.findById' })
-  async findById(@Payload() data: { id: string }): Promise<CostCategoryDto> {
-    this.logger.log('costCategories.findById');
-    return this.service.findById(data.id);
   }
 
   // Updates a cost category
@@ -61,6 +40,27 @@ export class CostCategoriesRootController {
   async activate(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
     this.logger.log('costCategories.activate');
     return this.service.activate(data.id);
+  }
+
+  // Returns a single cost category by ID
+  @MessagePattern({ cmd: 'org.costCategories.findById' })
+  async findById(@Payload() data: { id: string }): Promise<CostCategoryDto> {
+    this.logger.log('costCategories.findById');
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated cost categories for the data table
+  @MessagePattern({ cmd: 'org.costCategories.table' })
+  async table(@Payload() state: TableState): Promise<{ result: CostCategoryDto[]; count: number }> {
+    this.logger.log('costCategories.table');
+    return this.service.findForTable(state);
+  }
+
+  // Returns cost categories matching an optional search term
+  @MessagePattern({ cmd: 'org.costCategories.list' })
+  async list(@Payload() data: { search?: string }): Promise<CostCategoryDto[]> {
+    this.logger.log('costCategories.list');
+    return this.service.list(data?.search);
   }
 
   // Deletes a cost category

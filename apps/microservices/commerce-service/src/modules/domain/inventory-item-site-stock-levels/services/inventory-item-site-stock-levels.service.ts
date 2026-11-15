@@ -31,6 +31,61 @@ export class InventoryItemSiteStockLevelsDomainService {
 
   constructor(private readonly repository: InventoryItemSiteStockLevelsDomainRepository) {}
 
+  // Sets the item's stock levels at one of the legal entity's sites
+  async create(dto: CreateInventoryItemSiteStockLevelDto): Promise<CreateResponseDto<InventoryItemSiteStockLevelDto>> {
+    const entity = await this.setStockLevels(dto.inventoryItemId, dto.siteId, dto);
+    return {
+      success: true,
+      message: 'Stock levels set for the site.',
+      data: InventoryItemSiteStockLevelDto.from(entity),
+    };
+  }
+
+  // Updates the item's stock levels at a site
+  async update(dto: UpdateInventoryItemSiteStockLevelDto): Promise<SuccessResponseDto> {
+    const existing = await this.requireStockLevels(dto.inventoryItemId, dto.siteId);
+    const changes = this.stockSettings(dto);
+    this.assertStockLevels({
+      reorderPoint: changes.reorderPoint ?? existing.reorderPoint,
+      safetyStock: changes.safetyStock ?? existing.safetyStock,
+      maxStockLevel: changes.maxStockLevel ?? existing.maxStockLevel,
+    });
+    await this.repository.update(existing.id, changes);
+    this.logger.log(`Updated stock levels for item ${dto.inventoryItemId} at site ${dto.siteId}`);
+    return { success: true, message: 'Stock levels updated.' };
+  }
+
+  // Sets the item's stock levels at a site, which lets the site buy and stock it; the request's legal entity stamps the row
+  async setStockLevels(
+    inventoryItemId: string,
+    siteId: string,
+    data: StockSettings = {},
+  ): Promise<InventoryItemSiteStockLevel> {
+    const existing = await this.repository.findByCompositeKey(inventoryItemId, siteId);
+    if (existing) throw new ConflictException('Stock levels are already set for this item at this site.');
+    const settings = this.stockSettings(data);
+    this.assertStockLevels({
+      reorderPoint: settings.reorderPoint ?? 0,
+      safetyStock: settings.safetyStock ?? 0,
+      maxStockLevel: settings.maxStockLevel ?? 0,
+    });
+    const entity = await this.repository.create({ inventoryItemId, siteId, ...settings });
+    this.logger.log(`Set stock levels for inventory item ${inventoryItemId} at site ${siteId}`);
+    return entity;
+  }
+
+  // Rejects items without stock levels at the site; nothing is bought, received or stocked there until they are set
+  async ensureStockLevels(siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
+    const missingNames = await this.repository.findNamesWithoutStockLevels(siteId, inventoryItemIds);
+    if (missingNames.length === 0) return;
+    const quotedNames = missingNames.map((name) => `"${name}"`).join(', ');
+    throw new BadRequestException({
+      label: 'No Stock Levels',
+      detail: `Set stock levels for ${quotedNames} at this site before buying, receiving or stocking it here.`,
+      errors: [{ field, message: 'No stock levels at this site' }],
+    });
+  }
+
   // The item's stock levels at each of the legal entity's sites that has them, with the stock held there by location,
   // valued in the legal entity's currency and marked with whether the row passes the status filter; also whether the
   // sites with no stock levels pass it, which core needs to page the legal entity's sites. RLS narrows the rows to the
@@ -63,47 +118,14 @@ export class InventoryItemSiteStockLevelsDomainService {
     return rows.map((row) => row.siteId);
   }
 
-  // Sets the item's stock levels at a site, which lets the site buy and stock it; the request's legal entity stamps the row
-  async setStockLevels(
-    inventoryItemId: string,
-    siteId: string,
-    data: StockSettings = {},
-  ): Promise<InventoryItemSiteStockLevel> {
-    const existing = await this.repository.findByCompositeKey(inventoryItemId, siteId);
-    if (existing) throw new ConflictException('Stock levels are already set for this item at this site.');
-    const settings = this.stockSettings(data);
-    this.assertStockLevels({
-      reorderPoint: settings.reorderPoint ?? 0,
-      safetyStock: settings.safetyStock ?? 0,
-      maxStockLevel: settings.maxStockLevel ?? 0,
-    });
-    const entity = await this.repository.create({ inventoryItemId, siteId, ...settings });
-    this.logger.log(`Set stock levels for inventory item ${inventoryItemId} at site ${siteId}`);
-    return entity;
+  // Returns every projection row for the current site
+  findBySite(siteId: string): Promise<InventoryItemSiteStockLevel[]> {
+    return this.repository.findBySite(siteId);
   }
 
-  // Sets the item's stock levels at one of the legal entity's sites
-  async create(dto: CreateInventoryItemSiteStockLevelDto): Promise<CreateResponseDto<InventoryItemSiteStockLevelDto>> {
-    const entity = await this.setStockLevels(dto.inventoryItemId, dto.siteId, dto);
-    return {
-      success: true,
-      message: 'Stock levels set for the site.',
-      data: InventoryItemSiteStockLevelDto.from(entity),
-    };
-  }
-
-  // Updates the item's stock levels at a site
-  async update(dto: UpdateInventoryItemSiteStockLevelDto): Promise<SuccessResponseDto> {
-    const existing = await this.requireStockLevels(dto.inventoryItemId, dto.siteId);
-    const changes = this.stockSettings(dto);
-    this.assertStockLevels({
-      reorderPoint: changes.reorderPoint ?? existing.reorderPoint,
-      safetyStock: changes.safetyStock ?? existing.safetyStock,
-      maxStockLevel: changes.maxStockLevel ?? existing.maxStockLevel,
-    });
-    await this.repository.update(existing.id, changes);
-    this.logger.log(`Updated stock levels for item ${dto.inventoryItemId} at site ${dto.siteId}`);
-    return { success: true, message: 'Stock levels updated.' };
+  // Returns every projection row for a given item
+  findByItem(inventoryItemId: string): Promise<InventoryItemSiteStockLevel[]> {
+    return this.repository.findByItem(inventoryItemId);
   }
 
   // Removes the item's stock levels at a site, which stops the site buying it; refused while the site holds stock of it or
@@ -114,28 +136,6 @@ export class InventoryItemSiteStockLevelsDomainService {
     await this.repository.delete(existing.id);
     this.logger.log(`Removed stock levels for inventory item ${inventoryItemId} at site ${siteId}`);
     return { success: true, message: 'Stock levels removed for the site.' };
-  }
-
-  // Rejects items without stock levels at the site; nothing is bought, received or stocked there until they are set
-  async ensureStockLevels(siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
-    const missingNames = await this.repository.findNamesWithoutStockLevels(siteId, inventoryItemIds);
-    if (missingNames.length === 0) return;
-    const quotedNames = missingNames.map((name) => `"${name}"`).join(', ');
-    throw new BadRequestException({
-      label: 'No Stock Levels',
-      detail: `Set stock levels for ${quotedNames} at this site before buying, receiving or stocking it here.`,
-      errors: [{ field, message: 'No stock levels at this site' }],
-    });
-  }
-
-  // Returns every projection row for the current site
-  findBySite(siteId: string): Promise<InventoryItemSiteStockLevel[]> {
-    return this.repository.findBySite(siteId);
-  }
-
-  // Returns every projection row for a given item
-  findByItem(inventoryItemId: string): Promise<InventoryItemSiteStockLevel[]> {
-    return this.repository.findByItem(inventoryItemId);
   }
 
   // Loads the item's stock levels at the site, or 404s when none are set there

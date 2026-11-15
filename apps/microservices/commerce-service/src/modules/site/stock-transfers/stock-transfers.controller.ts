@@ -16,12 +16,6 @@ export class StockTransfersController {
     private readonly rootService: StockTransfersService,
   ) {}
 
-  @MessagePattern({ cmd: 'site.stockTransfers.table' })
-  async table(@Payload() state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
-    this.logger.log('stockTransfers.table');
-    return this.service.findForTable(state);
-  }
-
   @MessagePattern({ cmd: 'site.stockTransfers.create' })
   async create(@Payload() dto: CreateStockTransferDto): Promise<StockTransferDto> {
     this.logger.log(`stockTransfers.create — from: ${dto.fromSiteId}, to: ${dto.toSiteId}`);
@@ -33,5 +27,11 @@ export class StockTransfersController {
     const { id, ...statusData } = dto;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
     return this.rootService.updateStatus(id, statusData);
+  }
+
+  @MessagePattern({ cmd: 'site.stockTransfers.table' })
+  async table(@Payload() state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
+    this.logger.log('stockTransfers.table');
+    return this.service.findForTable(state);
   }
 }

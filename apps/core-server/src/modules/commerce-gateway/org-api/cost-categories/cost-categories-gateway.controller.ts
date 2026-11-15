@@ -42,24 +42,6 @@ export class CostCategoriesGatewayController {
 
   constructor(private readonly service: CostCategoriesGatewayService) {}
 
-  // Returns paginated cost categories for the data table
-  @Get('table')
-  @RequirePermission(ORG_COST_CATEGORIES.view)
-  @ApiFindForTableCostCategories()
-  getTable(@UserId() userId: string): Promise<CostCategoryTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/cost-categories/table');
-    return this.service.findForTable(userId);
-  }
-
-  // Returns a cost category by ID
-  @Get(':id')
-  @RequirePermission(ORG_COST_CATEGORIES.view)
-  @ApiFindCostCategoryById()
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CostCategoryResponseDto> {
-    this.logger.log(`GET /commerce-api/org/cost-categories/${id}`);
-    return this.service.findById(id);
-  }
-
   // Creates a new cost category
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -100,6 +82,24 @@ export class CostCategoriesGatewayController {
   activate(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/org/cost-categories/${id}/activate`);
     return this.service.activate(id);
+  }
+
+  // Returns a cost category by ID
+  @Get(':id')
+  @RequirePermission(ORG_COST_CATEGORIES.view)
+  @ApiFindCostCategoryById()
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CostCategoryResponseDto> {
+    this.logger.log(`GET /commerce-api/org/cost-categories/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated cost categories for the data table
+  @Get('table')
+  @RequirePermission(ORG_COST_CATEGORIES.view)
+  @ApiFindForTableCostCategories()
+  getTable(@UserId() userId: string): Promise<CostCategoryTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/cost-categories/table');
+    return this.service.findForTable(userId);
   }
 
   // Deletes a cost category by ID

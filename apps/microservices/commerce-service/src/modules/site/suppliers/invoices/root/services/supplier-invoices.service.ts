@@ -134,13 +134,6 @@ export class SupplierInvoicesService {
     return { success: true, message: `Invoice "${invoice.invoiceNumber}" cancelled.` };
   }
 
-  // Deletes a draft invoice
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const invoice = await this.invoicesService.findDraftOrThrow(id, 'delete');
-    this.assertNotReceiveWithInvoiceDraft(invoice);
-    return this.invoicesService.delete(invoice);
-  }
-
   // Releases an open hold of an invoice that is not cancelled, recording the releasing user
   async releaseHold(dto: ReleaseSupplierInvoiceHoldDto, userId: string): Promise<SuccessResponseDto> {
     if (!userId) throw new UnauthorizedException('A signed-in user is required to release a hold.');
@@ -166,6 +159,13 @@ export class SupplierInvoicesService {
       `Invoice "${invoice.invoiceNumber}"`,
       invoice.purchases.map((purchase) => purchase.purchaseNumber),
     );
+  }
+
+  // Deletes a draft invoice
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const invoice = await this.invoicesService.findDraftOrThrow(id, 'delete');
+    this.assertNotReceiveWithInvoiceDraft(invoice);
+    return this.invoicesService.delete(invoice);
   }
 
   // Runs a change in the caller's transaction; a posted invoice's PO line invoiced counters are taken back before the

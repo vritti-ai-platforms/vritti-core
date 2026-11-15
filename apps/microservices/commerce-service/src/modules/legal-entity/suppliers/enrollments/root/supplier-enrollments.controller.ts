@@ -21,29 +21,6 @@ export class SupplierEnrollmentsController {
     private readonly localService: LeSupplierEnrollmentsService,
   ) {}
 
-  // Returns every enrollment of a supplier for the LE Enrollments tab
-  @MessagePattern({ cmd: 'le.suppliers.enrollments.findAll' })
-  findAll(@Payload() data: { supplierId: string }): Promise<SupplierEnrollmentDto[]> {
-    this.logger.log(`le.suppliers.enrollments.findAll — supplierId: ${data.supplierId}`);
-    return this.service.findAllForSupplier(data.supplierId);
-  }
-
-  // Returns a supplier's enrollment at one of the LE's sites with its commercial identity and purchasing settings,
-  // enrolled or not
-  @MessagePattern({ cmd: 'le.suppliers.enrollments.findBySite' })
-  findBySite(
-    @Payload() data: { supplierId: string; siteId: string },
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<SupplierEnrollmentPurchasingDetailDto> {
-    this.logger.log(`le.suppliers.enrollments.findBySite — supplierId: ${data.supplierId}, siteId: ${data.siteId}`);
-    return this.service.findDetailWithPurchasing(
-      headers.legalEntityId,
-      data.siteId,
-      data.supplierId,
-      headers.leCurrencyCode,
-    );
-  }
-
   // Enrolls a supplier at one of the LE's sites
   @MessagePattern({ cmd: 'le.suppliers.enrollments.create' })
   create(@Payload() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
@@ -77,11 +54,27 @@ export class SupplierEnrollmentsController {
     return this.service.setActive(dto);
   }
 
-  // Removes a supplier's enrollment at one of the LE's sites
-  @MessagePattern({ cmd: 'le.suppliers.enrollments.delete' })
-  delete(@Payload() data: { supplierId: string; siteId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`le.suppliers.enrollments.delete — supplierId: ${data.supplierId}, siteId: ${data.siteId}`);
-    return this.service.delete(data.supplierId, data.siteId);
+  // Returns every enrollment of a supplier for the LE Enrollments tab
+  @MessagePattern({ cmd: 'le.suppliers.enrollments.findAll' })
+  findAll(@Payload() data: { supplierId: string }): Promise<SupplierEnrollmentDto[]> {
+    this.logger.log(`le.suppliers.enrollments.findAll — supplierId: ${data.supplierId}`);
+    return this.service.findAllForSupplier(data.supplierId);
+  }
+
+  // Returns a supplier's enrollment at one of the LE's sites with its commercial identity and purchasing settings,
+  // enrolled or not
+  @MessagePattern({ cmd: 'le.suppliers.enrollments.findBySite' })
+  findBySite(
+    @Payload() data: { supplierId: string; siteId: string },
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SupplierEnrollmentPurchasingDetailDto> {
+    this.logger.log(`le.suppliers.enrollments.findBySite — supplierId: ${data.supplierId}, siteId: ${data.siteId}`);
+    return this.service.findDetailWithPurchasing(
+      headers.legalEntityId,
+      data.siteId,
+      data.supplierId,
+      headers.leCurrencyCode,
+    );
   }
 
   // Returns the sites a supplier, or any supplier of an inventory item, is enrolled at
@@ -91,5 +84,12 @@ export class SupplierEnrollmentsController {
       `le.suppliers.enrollments.siteIds — supplierId: ${query.supplierId}, inventoryItemId: ${query.inventoryItemId}, isActive: ${query.isActive}`,
     );
     return this.service.findEnrolledSiteIds(query);
+  }
+
+  // Removes a supplier's enrollment at one of the LE's sites
+  @MessagePattern({ cmd: 'le.suppliers.enrollments.delete' })
+  delete(@Payload() data: { supplierId: string; siteId: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`le.suppliers.enrollments.delete — supplierId: ${data.supplierId}, siteId: ${data.siteId}`);
+    return this.service.delete(data.supplierId, data.siteId);
   }
 }

@@ -32,6 +32,121 @@ export class StockAdjustmentsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
+    this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
+    const { unitCost, ...rest } = dto;
+    return this.nats.send('commerce', 'site.stockAdjustments.create', {
+      ...rest,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
+    });
+  }
+
+  async addLot(
+    adjustmentId: string,
+    dto: AddStockAdjustmentLotDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
+    this.logger.log(`stockAdjustments.addLot — adjustment: ${adjustmentId}`);
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'site.stockAdjustments.addLot', {
+      adjustmentId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
+    });
+  }
+
+  async addOpeningLine(
+    adjustmentId: string,
+    dto: AddOpeningStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
+    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.addOpeningLine', { adjustmentId, ...dto });
+  }
+
+  async addChangeLine(
+    adjustmentId: string,
+    dto: AddChangeStockAdjustmentLineDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
+    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.addChangeLine', { adjustmentId, ...dto });
+  }
+
+  async addLineItem(
+    adjustmentId: string,
+    lineId: string,
+    dto: AddStockAdjustmentLineItemDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
+    this.logger.log(`stockAdjustments.addLineItem — line: ${lineId}, serial: ${dto.serialNumber}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.addLineItem', { adjustmentId, lineId, ...dto });
+  }
+
+  async update(id: string, dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`stockAdjustments.update — id: ${id}`);
+    const { unitCost, ...rest } = dto;
+    return this.nats.send('commerce', 'site.stockAdjustments.update', {
+      id,
+      ...rest,
+      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
+    });
+  }
+
+  async updateLot(
+    adjustmentId: string,
+    lotId: string,
+    dto: UpdateStockAdjustmentLotDto,
+  ): Promise<StockAdjustmentLotResponseDto> {
+    this.logger.log(`stockAdjustments.updateLot — lot: ${lotId}`);
+    const { mrp, ...rest } = dto;
+    return this.nats.send('commerce', 'site.stockAdjustments.updateLot', {
+      adjustmentId,
+      lotId,
+      ...rest,
+      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
+    });
+  }
+
+  async updateOpeningLine(
+    adjustmentId: string,
+    lineId: string,
+    dto: UpdateOpeningStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${lineId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.updateOpeningLine', { adjustmentId, lineId, ...dto });
+  }
+
+  async updateChangeLine(
+    adjustmentId: string,
+    lineId: string,
+    dto: UpdateChangeStockAdjustmentLineDto,
+  ): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.updateChangeLine — line: ${lineId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.updateChangeLine', { adjustmentId, lineId, ...dto });
+  }
+
+  async updateLineItem(
+    adjustmentId: string,
+    lineId: string,
+    itemId: string,
+    dto: UpdateStockAdjustmentLineItemDto,
+  ): Promise<StockAdjustmentLineItemResponseDto> {
+    this.logger.log(`stockAdjustments.updateLineItem — item: ${itemId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.updateLineItem', { adjustmentId, lineId, itemId, ...dto });
+  }
+
+  async publish(id: string): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`stockAdjustments.publish — id: ${id}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.publish', { id });
+  }
+
+  async findById(id: string): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`stockAdjustments.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.findById', { id });
+  }
+
+  async findLineById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`stockAdjustments.lineById — adjustment: ${adjustmentId}, line: ${lineId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.lineById', { adjustmentId, lineId });
+  }
+
   async findForTable(userId: string): Promise<StockAdjustmentTableResponseDto> {
     this.logger.log('site.stockAdjustments.table');
     const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-stock-adjustments');
@@ -43,21 +158,6 @@ export class StockAdjustmentsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  async findById(id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`stockAdjustments.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.findById', { id });
-  }
-
-  async findLines(adjustmentId: string): Promise<StockAdjustmentLineResponseDto[]> {
-    this.logger.log(`stockAdjustments.lines — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.lines', { adjustmentId });
-  }
-
-  async findTree(adjustmentId: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
-    this.logger.log(`stockAdjustments.tree — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.tree', { adjustmentId });
   }
 
   async findLinesTable(adjustmentId: string, userId: string): Promise<StockAdjustmentLineTableResponseDto> {
@@ -92,112 +192,6 @@ export class StockAdjustmentsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async findLots(adjustmentId: string): Promise<StockAdjustmentLotResponseDto[]> {
-    this.logger.log(`stockAdjustments.lots — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.lots', { adjustmentId });
-  }
-
-  async findLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
-    this.logger.log(`stockAdjustments.lotDetail — adjustment: ${adjustmentId}, lot: ${lotId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.lotDetail', { adjustmentId, lotId });
-  }
-
-  async addLot(
-    adjustmentId: string,
-    dto: AddStockAdjustmentLotDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
-    this.logger.log(`stockAdjustments.addLot — adjustment: ${adjustmentId}`);
-    const { mrp, ...rest } = dto;
-    return this.nats.send('commerce', 'site.stockAdjustments.addLot', {
-      adjustmentId,
-      ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
-    });
-  }
-
-  async updateLot(
-    adjustmentId: string,
-    lotId: string,
-    dto: UpdateStockAdjustmentLotDto,
-  ): Promise<StockAdjustmentLotResponseDto> {
-    this.logger.log(`stockAdjustments.updateLot — lot: ${lotId}`);
-    const { mrp, ...rest } = dto;
-    return this.nats.send('commerce', 'site.stockAdjustments.updateLot', {
-      adjustmentId,
-      lotId,
-      ...rest,
-      mrp: mrp ? majorToMinor(mrp.value, mrp.currency).toString() : (mrp as null | undefined),
-    });
-  }
-
-  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.removeLot — lot: ${lotId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.removeLot', { adjustmentId, lotId });
-  }
-
-  async findLineById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`stockAdjustments.lineById — adjustment: ${adjustmentId}, line: ${lineId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.lineById', { adjustmentId, lineId });
-  }
-
-  async create(dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
-    this.logger.log(`stockAdjustments.create — item: ${dto.inventoryItemId}, type: ${dto.type}`);
-    const { unitCost, ...rest } = dto;
-    return this.nats.send('commerce', 'site.stockAdjustments.create', {
-      ...rest,
-      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
-    });
-  }
-
-  async update(id: string, dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`stockAdjustments.update — id: ${id}`);
-    const { unitCost, ...rest } = dto;
-    return this.nats.send('commerce', 'site.stockAdjustments.update', {
-      id,
-      ...rest,
-      unitCost: unitCost ? majorToMinor(unitCost.value, unitCost.currency).toString() : undefined,
-    });
-  }
-
-  async addOpeningLine(
-    adjustmentId: string,
-    dto: AddOpeningStockAdjustmentLineDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`stockAdjustments.addOpeningLine — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.addOpeningLine', { adjustmentId, ...dto });
-  }
-
-  async addChangeLine(
-    adjustmentId: string,
-    dto: AddChangeStockAdjustmentLineDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`stockAdjustments.addChangeLine — adjustment: ${adjustmentId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.addChangeLine', { adjustmentId, ...dto });
-  }
-
-  async updateOpeningLine(
-    adjustmentId: string,
-    lineId: string,
-    dto: UpdateOpeningStockAdjustmentLineDto,
-  ): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`stockAdjustments.updateOpeningLine — line: ${lineId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.updateOpeningLine', { adjustmentId, lineId, ...dto });
-  }
-
-  async updateChangeLine(
-    adjustmentId: string,
-    lineId: string,
-    dto: UpdateChangeStockAdjustmentLineDto,
-  ): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`stockAdjustments.updateChangeLine — line: ${lineId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.updateChangeLine', { adjustmentId, lineId, ...dto });
-  }
-
-  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.removeLine — line: ${lineId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.removeLine', { adjustmentId, lineId });
-  }
-
   async findLineItemsTable(
     adjustmentId: string,
     lineId: string,
@@ -216,37 +210,43 @@ export class StockAdjustmentsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  async addLineItem(
-    adjustmentId: string,
-    lineId: string,
-    dto: AddStockAdjustmentLineItemDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
-    this.logger.log(`stockAdjustments.addLineItem — line: ${lineId}, serial: ${dto.serialNumber}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.addLineItem', { adjustmentId, lineId, ...dto });
+  async findLines(adjustmentId: string): Promise<StockAdjustmentLineResponseDto[]> {
+    this.logger.log(`stockAdjustments.lines — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.lines', { adjustmentId });
   }
 
-  async updateLineItem(
-    adjustmentId: string,
-    lineId: string,
-    itemId: string,
-    dto: UpdateStockAdjustmentLineItemDto,
-  ): Promise<StockAdjustmentLineItemResponseDto> {
-    this.logger.log(`stockAdjustments.updateLineItem — item: ${itemId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.updateLineItem', { adjustmentId, lineId, itemId, ...dto });
+  async findTree(adjustmentId: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
+    this.logger.log(`stockAdjustments.tree — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.tree', { adjustmentId });
   }
 
-  async removeLineItem(adjustmentId: string, lineId: string, itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`stockAdjustments.removeLineItem — item: ${itemId}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.removeLineItem', { adjustmentId, lineId, itemId });
+  async findLots(adjustmentId: string): Promise<StockAdjustmentLotResponseDto[]> {
+    this.logger.log(`stockAdjustments.lots — adjustment: ${adjustmentId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.lots', { adjustmentId });
   }
 
-  async publish(id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`stockAdjustments.publish — id: ${id}`);
-    return this.nats.send('commerce', 'site.stockAdjustments.publish', { id });
+  async findLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
+    this.logger.log(`stockAdjustments.lotDetail — adjustment: ${adjustmentId}, lot: ${lotId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.lotDetail', { adjustmentId, lotId });
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.delete — id: ${id}`);
     return this.nats.send('commerce', 'site.stockAdjustments.delete', { id });
+  }
+
+  async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.removeLot — lot: ${lotId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.removeLot', { adjustmentId, lotId });
+  }
+
+  async removeLine(adjustmentId: string, lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.removeLine — line: ${lineId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.removeLine', { adjustmentId, lineId });
+  }
+
+  async removeLineItem(adjustmentId: string, lineId: string, itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`stockAdjustments.removeLineItem — item: ${itemId}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.removeLineItem', { adjustmentId, lineId, itemId });
   }
 }

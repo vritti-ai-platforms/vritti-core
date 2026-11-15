@@ -12,6 +12,14 @@ export class PeopleIdentifiersController {
 
   constructor(private readonly service: PartyIdentifiersDomainService) {}
 
+  // Adds an identifier to a person
+  @MessagePattern({ cmd: 'org.people.identifiers.add' })
+  async add(@Payload() dto: AddPersonIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
+    const { personId, ...payload } = dto;
+    this.logger.log(`people.identifiers.add — personId: ${personId}`);
+    return this.service.add(personId, payload);
+  }
+
   // Returns the paginated identifiers of a person
   @MessagePattern({ cmd: 'org.people.identifiers.table' })
   async table(
@@ -20,14 +28,6 @@ export class PeopleIdentifiersController {
     const { personId, ...state } = data;
     this.logger.log(`people.identifiers.table — personId: ${personId}`);
     return this.service.findForTable(personId, state);
-  }
-
-  // Adds an identifier to a person
-  @MessagePattern({ cmd: 'org.people.identifiers.add' })
-  async add(@Payload() dto: AddPersonIdentifierDto): Promise<CreateResponseDto<PartyIdentifierDto>> {
-    const { personId, ...payload } = dto;
-    this.logger.log(`people.identifiers.add — personId: ${personId}`);
-    return this.service.add(personId, payload);
   }
 
   // Removes an identifier by ID

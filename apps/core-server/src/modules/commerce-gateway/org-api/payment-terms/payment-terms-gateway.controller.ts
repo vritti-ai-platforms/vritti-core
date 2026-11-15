@@ -29,14 +29,6 @@ export class PaymentTermsGatewayController {
 
   constructor(private readonly service: PaymentTermsGatewayService) {}
 
-  // Returns paginated payment terms for the data table
-  @Get('table')
-  @RequirePermission(ORG_PAYMENT_TERMS.view)
-  getTable(@UserId() userId: string): Promise<PaymentTermTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/payment-terms/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a draft payment term
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -46,12 +38,13 @@ export class PaymentTermsGatewayController {
     return this.service.create(dto);
   }
 
-  // Returns a payment term with its rule count
-  @Get(':id')
-  @RequirePermission(ORG_PAYMENT_TERMS.view)
-  findById(@Param('id') id: string): Promise<PaymentTermDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/org/payment-terms/${id}`);
-    return this.service.findById(id);
+  // Adds a rule to a draft payment term
+  @Post(':id/rules')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_PAYMENT_TERMS.rules.add)
+  addRule(@Param('id') id: string, @Body() dto: PaymentTermRuleDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/org/payment-terms/${id}/rules`);
+    return this.service.addRule(id, dto);
   }
 
   // Updates a draft payment term
@@ -60,6 +53,18 @@ export class PaymentTermsGatewayController {
   update(@Param('id') id: string, @Body() dto: UpdatePaymentTermDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Updates a rule of a draft payment term
+  @Patch(':id/rules/:ruleId')
+  @RequirePermission(ORG_PAYMENT_TERMS.rules.edit)
+  updateRule(
+    @Param('id') id: string,
+    @Param('ruleId') ruleId: string,
+    @Body() dto: PaymentTermRuleDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}/rules/${ruleId}`);
+    return this.service.updateRule(id, ruleId, dto);
   }
 
   // Moves when a draft's due days start counting
@@ -88,6 +93,22 @@ export class PaymentTermsGatewayController {
     return this.service.unpublish(id);
   }
 
+  // Returns a payment term with its rule count
+  @Get(':id')
+  @RequirePermission(ORG_PAYMENT_TERMS.view)
+  findById(@Param('id') id: string): Promise<PaymentTermDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/org/payment-terms/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated payment terms for the data table
+  @Get('table')
+  @RequirePermission(ORG_PAYMENT_TERMS.view)
+  getTable(@UserId() userId: string): Promise<PaymentTermTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/payment-terms/table');
+    return this.service.findForTable(userId);
+  }
+
   // Returns a payment term's rules in due order with their total
   @Get(':id/rules')
   @RequirePermission(ORG_PAYMENT_TERMS.rules.view)
@@ -107,25 +128,12 @@ export class PaymentTermsGatewayController {
     return this.service.previewSchedule(id, query);
   }
 
-  // Adds a rule to a draft payment term
-  @Post(':id/rules')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_PAYMENT_TERMS.rules.add)
-  addRule(@Param('id') id: string, @Body() dto: PaymentTermRuleDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/org/payment-terms/${id}/rules`);
-    return this.service.addRule(id, dto);
-  }
-
-  // Updates a rule of a draft payment term
-  @Patch(':id/rules/:ruleId')
-  @RequirePermission(ORG_PAYMENT_TERMS.rules.edit)
-  updateRule(
-    @Param('id') id: string,
-    @Param('ruleId') ruleId: string,
-    @Body() dto: PaymentTermRuleDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}/rules/${ruleId}`);
-    return this.service.updateRule(id, ruleId, dto);
+  // Deletes a payment term no supplier uses
+  @Delete(':id')
+  @RequirePermission(ORG_PAYMENT_TERMS.delete)
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/payment-terms/${id}`);
+    return this.service.delete(id);
   }
 
   // Deletes a rule of a draft payment term
@@ -134,13 +142,5 @@ export class PaymentTermsGatewayController {
   deleteRule(@Param('id') id: string, @Param('ruleId') ruleId: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/payment-terms/${id}/rules/${ruleId}`);
     return this.service.deleteRule(id, ruleId);
-  }
-
-  // Deletes a payment term no supplier uses
-  @Delete(':id')
-  @RequirePermission(ORG_PAYMENT_TERMS.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/payment-terms/${id}`);
-    return this.service.delete(id);
   }
 }

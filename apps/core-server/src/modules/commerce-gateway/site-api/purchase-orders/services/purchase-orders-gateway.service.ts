@@ -40,6 +40,82 @@ export class PurchaseOrdersGatewayService {
     private readonly ownerNames: OwnerNameService,
   ) {}
 
+  // Creates a new purchase order
+  async create(dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    this.logger.log(`site.purchaseOrders.create — supplier: ${dto.supplierId}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.create', dto);
+  }
+
+  // Adds a line item to a purchase order
+  async addItem(id: string, dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+    this.logger.log(`site.purchaseOrders.addItem — id: ${id}, supplierItemId: ${dto.supplierItemId}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.addItem', { purchaseOrderId: id, ...dto });
+  }
+
+  // Updates a line item on a purchase order
+  async updateItem(id: string, itemId: string, dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.updateItem — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.updateItem', { purchaseOrderId: id, itemId, ...dto });
+  }
+
+  // Updates purchase order notes
+  async updateNotes(id: string, dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.updateNotes — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.updateNotes', { id, notes: dto.notes ?? null });
+  }
+
+  // Sets a purchase order's tax date and moves the lines that follow it
+  async updateTaxDate(id: string, dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.updateTaxDate — id: ${id}, date: ${dto.taxDate}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.updateTaxDate', { id, ...dto });
+  }
+
+  // Updates a purchase order status
+  async updateStatus(id: string, status: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.updateStatus — id: ${id}, status: ${status}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.updateStatus', { id, status });
+  }
+
+  // Changes purchase order supplier
+  async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.changeSupplier — id: ${id}, supplier: ${dto.supplierId}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.changeSupplier', { id, ...dto });
+  }
+
+  // Changes the exchange rate of a purchase order in another currency than the legal entity's
+  async changeExchangeRate(id: string, dto: ChangePurchaseOrderExchangeRateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.changeExchangeRate — id: ${id}, rate: ${dto.exchangeRate}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.changeExchangeRate', { id, ...dto });
+  }
+
+  // Sets the rate from another of the supplier's currencies into the PO currency
+  async setConversionRate(id: string, dto: SetPurchaseOrderConversionRateDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.setConversionRate — id: ${id}, currency: ${dto.currencyCode}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.setConversionRate', { id, ...dto });
+  }
+
+  // Marks a purchase order delivery completed — no further receipts expected
+  async completeDelivery(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.completeDelivery — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.completeDelivery', { id });
+  }
+
+  // Emails the purchase order with its PDF to the supplier and marks a draft as sent
+  async sendEmail(id: string, dto: SendPurchaseOrderEmailDto): Promise<SuccessResponseDto> {
+    const [po, items] = await Promise.all([this.findById(id), this.findItems(id)]);
+    const recipientEmail = await this.documents.email(po, items, dto.email);
+    if (po.status === 'DRAFT') await this.updateStatus(id, 'SENT');
+
+    this.logger.log(`site.purchaseOrders.sendEmail — id: ${id}, recipient: ${recipientEmail}`);
+    return { success: true, message: `Purchase order "${po.poNumber}" emailed to ${recipientEmail}.` };
+  }
+
+  // Finds a purchase order by ID
+  async findById(id: string): Promise<PurchaseOrderResponseDto> {
+    this.logger.log(`site.purchaseOrders.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.findById', { id });
+  }
+
   // Returns paginated purchase orders for the data table
   async findForTable(userId: string): Promise<PurchaseOrderTableResponseDto> {
     this.logger.log('site.purchaseOrders.table');
@@ -52,24 +128,6 @@ export class PurchaseOrdersGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Creates a new purchase order
-  async create(dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
-    this.logger.log(`site.purchaseOrders.create — supplier: ${dto.supplierId}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.create', dto);
-  }
-
-  // Finds a purchase order by ID
-  async findById(id: string): Promise<PurchaseOrderResponseDto> {
-    this.logger.log(`site.purchaseOrders.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.findById', { id });
-  }
-
-  // Returns inventory item IDs for a purchase order
-  async findItemIds(id: string): Promise<string[]> {
-    this.logger.log(`site.purchaseOrders.itemIds — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.itemIds', { id });
   }
 
   // Returns line items table for a purchase order using persisted table state
@@ -117,88 +175,6 @@ export class PurchaseOrdersGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
-  findProblems(id: string): Promise<PurchaseOrderProblemsResponseDto> {
-    this.logger.log(`site.purchaseOrders.problems — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.problems', { id });
-  }
-
-  // Adds a line item to a purchase order
-  async addItem(id: string, dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
-    this.logger.log(`site.purchaseOrders.addItem — id: ${id}, supplierItemId: ${dto.supplierItemId}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.addItem', { purchaseOrderId: id, ...dto });
-  }
-
-  // Updates a line item on a purchase order
-  async updateItem(id: string, itemId: string, dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.updateItem — id: ${id}, itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.updateItem', { purchaseOrderId: id, itemId, ...dto });
-  }
-
-  // Removes a line item from a purchase order
-  async removeItem(id: string, itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.removeItem — id: ${id}, itemId: ${itemId}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.removeItem', { id, itemId });
-  }
-
-  // Updates purchase order notes
-  async updateNotes(id: string, dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.updateNotes — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.updateNotes', { id, notes: dto.notes ?? null });
-  }
-
-  // Sets a purchase order's tax date and moves the lines that follow it
-  async updateTaxDate(id: string, dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.updateTaxDate — id: ${id}, date: ${dto.taxDate}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.updateTaxDate', { id, ...dto });
-  }
-
-  // Changes purchase order supplier
-  async changeSupplier(id: string, dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.changeSupplier — id: ${id}, supplier: ${dto.supplierId}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.changeSupplier', { id, ...dto });
-  }
-
-  // Changes the exchange rate of a purchase order in another currency than the legal entity's
-  async changeExchangeRate(id: string, dto: ChangePurchaseOrderExchangeRateDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.changeExchangeRate — id: ${id}, rate: ${dto.exchangeRate}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.changeExchangeRate', { id, ...dto });
-  }
-
-  // Sets the rate from another of the supplier's currencies into the PO currency
-  async setConversionRate(id: string, dto: SetPurchaseOrderConversionRateDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.setConversionRate — id: ${id}, currency: ${dto.currencyCode}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.setConversionRate', { id, ...dto });
-  }
-
-  // Marks a purchase order delivery completed — no further receipts expected
-  async completeDelivery(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.completeDelivery — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.completeDelivery', { id });
-  }
-
-  // Updates a purchase order status
-  async updateStatus(id: string, status: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.updateStatus — id: ${id}, status: ${status}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.updateStatus', { id, status });
-  }
-
-  // Emails the purchase order with its PDF to the supplier and marks a draft as sent
-  async sendEmail(id: string, dto: SendPurchaseOrderEmailDto): Promise<SuccessResponseDto> {
-    const [po, items] = await Promise.all([this.findById(id), this.findItems(id)]);
-    const recipientEmail = await this.documents.email(po, items, dto.email);
-    if (po.status === 'DRAFT') await this.updateStatus(id, 'SENT');
-
-    this.logger.log(`site.purchaseOrders.sendEmail — id: ${id}, recipient: ${recipientEmail}`);
-    return { success: true, message: `Purchase order "${po.poNumber}" emailed to ${recipientEmail}.` };
-  }
-
-  // Deletes a purchase order by ID
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchaseOrders.delete — id: ${id}`);
-    return this.nats.send('commerce', 'site.purchaseOrders.delete', { id });
-  }
-
   // Returns the invoices with a line invoicing a purchase order for the data table
   async findInvoicesTable(
     purchaseOrderId: string,
@@ -217,6 +193,18 @@ export class PurchaseOrdersGatewayService {
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
   }
 
+  // Returns inventory item IDs for a purchase order
+  async findItemIds(id: string): Promise<string[]> {
+    this.logger.log(`site.purchaseOrders.itemIds — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.itemIds', { id });
+  }
+
+  // Returns the flags raised on a purchase order's receipts and the open holds on its invoice lines, grouped by order line
+  findProblems(id: string): Promise<PurchaseOrderProblemsResponseDto> {
+    this.logger.log(`site.purchaseOrders.problems — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.problems', { id });
+  }
+
   // Rolls a purchase order's invoices up into counts and the share of the due quantity invoiced
   findInvoicesSummary(purchaseOrderId: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`site.purchaseOrders.invoices.summary — purchaseOrderId: ${purchaseOrderId}`);
@@ -228,6 +216,18 @@ export class PurchaseOrdersGatewayService {
     this.logger.log(`site.purchaseOrders.downloadPdf — id: ${id}`);
     const [po, items] = await Promise.all([this.findById(id), this.findItems(id)]);
     return this.documents.renderPdf(po, items);
+  }
+
+  // Deletes a purchase order by ID
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.delete — id: ${id}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.delete', { id });
+  }
+
+  // Removes a line item from a purchase order
+  async removeItem(id: string, itemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.purchaseOrders.removeItem — id: ${id}, itemId: ${itemId}`);
+    return this.nats.send('commerce', 'site.purchaseOrders.removeItem', { id, itemId });
   }
 
   // Returns every line of a purchase order

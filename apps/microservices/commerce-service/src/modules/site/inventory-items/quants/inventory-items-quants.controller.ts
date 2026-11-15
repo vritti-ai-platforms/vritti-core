@@ -14,6 +14,12 @@ export class InventoryItemsQuantsController {
     private readonly itemsQuantsService: InventoryItemsQuantsService,
   ) {}
 
+  @MessagePattern({ cmd: 'site.inventoryItems.findQuantById' })
+  async findById(@Payload() data: { id: string }): Promise<InventoryItemQuantDto> {
+    this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);
+    return this.service.findQuantById(data.id);
+  }
+
   @MessagePattern({ cmd: 'site.inventoryItems.quantsTable' })
   async quantsTable(
     @Payload() data: { inventoryItemId: string } & TableState,
@@ -29,11 +35,5 @@ export class InventoryItemsQuantsController {
   }> {
     this.logger.log(`inventoryItems.quantsFeed — inventoryItemId: ${data.inventoryItemId}`);
     return this.itemsQuantsService.findFeed(data.inventoryItemId, data.limit, data.cursor);
-  }
-
-  @MessagePattern({ cmd: 'site.inventoryItems.findQuantById' })
-  async findById(@Payload() data: { id: string }): Promise<InventoryItemQuantDto> {
-    this.logger.log(`inventoryItems.findQuantById — id: ${data.id}`);
-    return this.service.findQuantById(data.id);
   }
 }

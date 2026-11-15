@@ -18,22 +18,6 @@ import { type BomVariantRef, OfferingBomDomainRepository } from '../repositories
 export class OfferingBomDomainService {
   constructor(private readonly repository: OfferingBomDomainRepository) {}
 
-  // A variant's components plus the inventory item already carrying its code.
-  async findByVariant(variantId: string): Promise<VariantBomDto> {
-    const variant = await this.requireReachableVariant(variantId);
-    const [lines, suggestion] = await Promise.all([
-      this.repository.findLines([variantId]) as Promise<OfferingBomLineDto[]>,
-      this.repository.findInventoryItemBySku(variant.code),
-    ]);
-    return VariantBomDto.from(lines, suggestion ?? null);
-  }
-
-  // Whether an inventory item already carries this code.
-  async findItemBySku(sku: string): Promise<{ id: string; name: string } | null> {
-    const item = await this.repository.findInventoryItemBySku(sku);
-    return item ? { id: item.id, name: item.name } : null;
-  }
-
   // Adds one component, refusing once the variant's fulfilment type is already satisfied
   async addLine(data: AddBomLineDto): Promise<SuccessResponseDto> {
     const variant = await this.requireOwnedVariant(data.variantId);
@@ -57,30 +41,44 @@ export class OfferingBomDomainService {
     return { success: true, message: `Component added to "${variant.code}".` };
   }
 
+  // Links the inventory item already carrying this variant's code, at quantity 1 in that item's own stocking unit.
+  async addSuggested(variantId: string): Promise<SuccessResponseDto> {
+    const variant = await this.requireOwnedVariant(variantId);
+
+    const suggestion = await this.repository.findInventoryItemBySku(variant.code);
+    if (!suggestion) {
+      throw new ConflictException({
+        label: 'No Suggestion',
+        detail: `No inventory item carries the code "${variant.code}", so there is nothing to link.`,
+      });
+    }
+
+    const lines = await this.repository.findLines([variantId]);
+    if (lines.some((line) => line.inventoryItemId === suggestion.id)) {
+      throw new ConflictException({
+        label: 'Already Linked',
+        detail: `"${suggestion.name}" is already a component of "${variant.code}".`,
+      });
+    }
+
+    return this.replace({
+      variantId,
+      lines: [
+        ...lines.map((line) => ({
+          inventoryItemId: line.inventoryItemId,
+          quantity: line.quantity,
+          uomId: line.uomId,
+        })),
+        { inventoryItemId: suggestion.id, quantity: 1, uomId: suggestion.uomId },
+      ],
+    });
+  }
+
   // Re-quantifies a line, or moves it to a different unit of the same item
   async updateLine(data: UpdateBomLineDto): Promise<SuccessResponseDto> {
     const { line, variant } = await this.requireOwnedLine(data.id);
     await this.repository.updateLine(line.id, { quantity: data.quantity, uomId: data.uomId });
     return { success: true, message: `Component updated on "${variant.code}".` };
-  }
-
-  // Removes one component, deactivating the variant if that drops it below its type's minimum
-  async deleteLine(lineId: string): Promise<SuccessResponseDto> {
-    const { line, variant } = await this.requireOwnedLine(lineId);
-    const rule = BOM_RULES[variant.fulfilmentType];
-    const remaining = (await this.repository.countLines(variant.id)) - 1;
-    const deactivate = await this.repository.isVariantActive(variant.id);
-    const willDeactivate = deactivate && remaining < rule.min;
-
-    await this.repository.transaction(async () => {
-      await this.repository.deleteLine(line.id);
-      if (willDeactivate) await this.repository.setVariantInactive(variant.id);
-    });
-
-    return {
-      success: true,
-      message: `Component removed from "${variant.code}".${willDeactivate ? ' It was deactivated because it no longer has enough behind it.' : ''}`,
-    };
   }
 
   // Replaces a variant's bill of materials, then reconciles whether it can still be sold
@@ -120,37 +118,39 @@ export class OfferingBomDomainService {
     };
   }
 
-  // Links the inventory item already carrying this variant's code, at quantity 1 in that item's own stocking unit.
-  async addSuggested(variantId: string): Promise<SuccessResponseDto> {
-    const variant = await this.requireOwnedVariant(variantId);
+  // A variant's components plus the inventory item already carrying its code.
+  async findByVariant(variantId: string): Promise<VariantBomDto> {
+    const variant = await this.requireReachableVariant(variantId);
+    const [lines, suggestion] = await Promise.all([
+      this.repository.findLines([variantId]) as Promise<OfferingBomLineDto[]>,
+      this.repository.findInventoryItemBySku(variant.code),
+    ]);
+    return VariantBomDto.from(lines, suggestion ?? null);
+  }
 
-    const suggestion = await this.repository.findInventoryItemBySku(variant.code);
-    if (!suggestion) {
-      throw new ConflictException({
-        label: 'No Suggestion',
-        detail: `No inventory item carries the code "${variant.code}", so there is nothing to link.`,
-      });
-    }
+  // Whether an inventory item already carries this code.
+  async findItemBySku(sku: string): Promise<{ id: string; name: string } | null> {
+    const item = await this.repository.findInventoryItemBySku(sku);
+    return item ? { id: item.id, name: item.name } : null;
+  }
 
-    const lines = await this.repository.findLines([variantId]);
-    if (lines.some((line) => line.inventoryItemId === suggestion.id)) {
-      throw new ConflictException({
-        label: 'Already Linked',
-        detail: `"${suggestion.name}" is already a component of "${variant.code}".`,
-      });
-    }
+  // Removes one component, deactivating the variant if that drops it below its type's minimum
+  async deleteLine(lineId: string): Promise<SuccessResponseDto> {
+    const { line, variant } = await this.requireOwnedLine(lineId);
+    const rule = BOM_RULES[variant.fulfilmentType];
+    const remaining = (await this.repository.countLines(variant.id)) - 1;
+    const deactivate = await this.repository.isVariantActive(variant.id);
+    const willDeactivate = deactivate && remaining < rule.min;
 
-    return this.replace({
-      variantId,
-      lines: [
-        ...lines.map((line) => ({
-          inventoryItemId: line.inventoryItemId,
-          quantity: line.quantity,
-          uomId: line.uomId,
-        })),
-        { inventoryItemId: suggestion.id, quantity: 1, uomId: suggestion.uomId },
-      ],
+    await this.repository.transaction(async () => {
+      await this.repository.deleteLine(line.id);
+      if (willDeactivate) await this.repository.setVariantInactive(variant.id);
     });
+
+    return {
+      success: true,
+      message: `Component removed from "${variant.code}".${willDeactivate ? ' It was deactivated because it no longer has enough behind it.' : ''}`,
+    };
   }
 
   // A line is addressed by its own id, so the variant it belongs to is what ownership is checked on

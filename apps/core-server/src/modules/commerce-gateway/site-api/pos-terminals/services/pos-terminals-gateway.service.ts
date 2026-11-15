@@ -17,6 +17,24 @@ export class PosTerminalsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new POS terminal
+  create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalResponseDto>> {
+    this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
+    return this.nats.send('commerce', 'site.posTerminals.create', dto);
+  }
+
+  // Updates an existing POS terminal
+  update(id: string, dto: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
+    this.logger.log(`posTerminals.update — id: ${id}`);
+    return this.nats.send('commerce', 'site.posTerminals.update', { id, ...dto });
+  }
+
+  // Returns a single POS terminal by ID
+  findById(id: string): Promise<PosTerminalResponseDto> {
+    this.logger.log(`posTerminals.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.posTerminals.findById', { id });
+  }
+
   // Returns paginated POS terminals for the data table
   async findForTable(userId: string): Promise<PosTerminalTableResponseDto> {
     this.logger.log('site.posTerminals.table');
@@ -35,24 +53,6 @@ export class PosTerminalsGatewayService {
   selectPosLocations(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('posTerminals.locationsSelect');
     return this.nats.send('commerce', 'site.posTerminals.locationsSelect', query);
-  }
-
-  // Returns a single POS terminal by ID
-  findById(id: string): Promise<PosTerminalResponseDto> {
-    this.logger.log(`posTerminals.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.posTerminals.findById', { id });
-  }
-
-  // Creates a new POS terminal
-  create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalResponseDto>> {
-    this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.nats.send('commerce', 'site.posTerminals.create', dto);
-  }
-
-  // Updates an existing POS terminal
-  update(id: string, dto: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`posTerminals.update — id: ${id}`);
-    return this.nats.send('commerce', 'site.posTerminals.update', { id, ...dto });
   }
 
   // Deletes a POS terminal

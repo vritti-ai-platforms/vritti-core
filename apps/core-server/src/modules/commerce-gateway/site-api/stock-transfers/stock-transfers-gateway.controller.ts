@@ -16,12 +16,6 @@ import { StockTransfersGatewayService } from './services/stock-transfers-gateway
 export class StockTransfersGatewayController {
   constructor(private readonly service: StockTransfersGatewayService) {}
 
-  // Returns paginated stock transfers for the data table with server-stored state
-  @Get('table')
-  getStockTransferTable(@UserId() userId: string, @OrgId() orgId: string): Promise<StockTransferTableResponseDto> {
-    return this.service.findForTable(userId, orgId);
-  }
-
   // Creates a new stock transfer
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -37,5 +31,11 @@ export class StockTransfersGatewayController {
     @Body() dto: UpdateStockTransferStatusDto,
   ): Promise<{ success: boolean; message: string }> {
     return this.service.updateStatus(id, dto);
+  }
+
+  // Returns paginated stock transfers for the data table with server-stored state
+  @Get('table')
+  getStockTransferTable(@UserId() userId: string, @OrgId() orgId: string): Promise<StockTransferTableResponseDto> {
+    return this.service.findForTable(userId, orgId);
   }
 }

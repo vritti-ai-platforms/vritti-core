@@ -50,39 +50,6 @@ export class StockAdjustmentLinesDomainService {
 
   constructor(private readonly repository: StockAdjustmentLinesDomainRepository) {}
 
-  async findForTable(
-    adjustmentId: string,
-    state: TableState,
-    lotId?: string | null,
-  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesDomainService.SEARCH_FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const { limit = 20, offset = 0 } = state.pagination;
-    const { result, count } = await this.repository.findForTable(adjustmentId, {
-      where,
-      orderBy: FilterProcessor.buildOrderBy(state.sort, {
-        ...StockAdjustmentLinesDomainService.SEARCH_FIELD_MAP,
-        ...StockAdjustmentLinesDomainService.FILTER_FIELD_MAP,
-      }),
-      limit,
-      offset,
-      lotId,
-    });
-    return { result: result.map(StockAdjustmentLineDto.from), count };
-  }
-
-  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {
-    const rows = await this.repository.findByAdjustmentId(adjustmentId);
-    return rows.map(StockAdjustmentLineDto.from);
-  }
-
-  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
-    const line = await this.repository.findByAdjustmentIdAndLineId(adjustmentId, lineId);
-    if (!line) throw new NotFoundException('Stock adjustment line not found.');
-    return StockAdjustmentLineDto.from(line);
-  }
-
   async addOpeningLine(
     adjustment: AdjustmentContext,
     data: {
@@ -276,6 +243,45 @@ export class StockAdjustmentLinesDomainService {
     });
   }
 
+  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineDto> {
+    const line = await this.repository.findByAdjustmentIdAndLineId(adjustmentId, lineId);
+    if (!line) throw new NotFoundException('Stock adjustment line not found.');
+    return StockAdjustmentLineDto.from(line);
+  }
+
+  async findForTable(
+    adjustmentId: string,
+    state: TableState,
+    lotId?: string | null,
+  ): Promise<{ result: StockAdjustmentLineDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, StockAdjustmentLinesDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, StockAdjustmentLinesDomainService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const { limit = 20, offset = 0 } = state.pagination;
+    const { result, count } = await this.repository.findForTable(adjustmentId, {
+      where,
+      orderBy: FilterProcessor.buildOrderBy(state.sort, {
+        ...StockAdjustmentLinesDomainService.SEARCH_FIELD_MAP,
+        ...StockAdjustmentLinesDomainService.FILTER_FIELD_MAP,
+      }),
+      limit,
+      offset,
+      lotId,
+    });
+    return { result: result.map(StockAdjustmentLineDto.from), count };
+  }
+
+  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineDto[]> {
+    const rows = await this.repository.findByAdjustmentId(adjustmentId);
+    return rows.map(StockAdjustmentLineDto.from);
+  }
+
+  // Used at publish time — return mismatched lines for serial-bearing adjustments
+  async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
+    const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
+    return { valid: errors.length === 0, invalidLinesCount: errors.length };
+  }
+
   async removeLine(adjustment: AdjustmentContext, lineId: string): Promise<void> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lines can only be removed from DRAFT adjustments.');
@@ -287,12 +293,6 @@ export class StockAdjustmentLinesDomainService {
     }
     await this.repository.deleteLine(lineId);
     this.logger.log(`Removed line ${lineId} from adjustment ${adjustment.id}`);
-  }
-
-  // Used at publish time — return mismatched lines for serial-bearing adjustments
-  async getPublishValidation(adjustmentId: string): Promise<{ valid: boolean; invalidLinesCount: number }> {
-    const errors = await this.repository.findUnbalancedItemLines(adjustmentId);
-    return { valid: errors.length === 0, invalidLinesCount: errors.length };
   }
 
   // Validates lot constraint based purely on tracking type — app-layer verifies lot ownership separately

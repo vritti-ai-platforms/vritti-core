@@ -34,28 +34,11 @@ export class StockAdjustmentsGatewayController {
 
   constructor(private readonly service: StockAdjustmentsGatewayService) {}
 
-  @Get('table')
-  getStockAdjustmentTable(@UserId() userId: string): Promise<StockAdjustmentTableResponseDto> {
-    this.logger.log('GET /commerce-api/site/stock-adjustments/table');
-    return this.service.findForTable(userId);
-  }
-
-  @Get(':id')
-  findById(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}`);
-    return this.service.findById(id);
-  }
-
-  @Get(':id/lots')
-  getLots(@Param('id') id: string): Promise<StockAdjustmentLotResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots`);
-    return this.service.findLots(id);
-  }
-
-  @Get(':id/lots/:lotId/detail')
-  getLotDetail(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/detail`);
-    return this.service.findLotDetail(id, lotId);
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
+    this.logger.log('POST /commerce-api/site/stock-adjustments');
+    return this.service.create(dto);
   }
 
   @Post(':id/lots')
@@ -66,69 +49,6 @@ export class StockAdjustmentsGatewayController {
   ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
     this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lots`);
     return this.service.addLot(id, dto);
-  }
-
-  @Patch(':id/lots/:lotId')
-  updateLot(
-    @Param('id') id: string,
-    @Param('lotId') lotId: string,
-    @Body() dto: UpdateStockAdjustmentLotDto,
-  ): Promise<StockAdjustmentLotResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
-    return this.service.updateLot(id, lotId, dto);
-  }
-
-  @Delete(':id/lots/:lotId')
-  removeLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
-    return this.service.removeLot(id, lotId);
-  }
-
-  @Get(':id/tree')
-  getTree(@Param('id') id: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/tree`);
-    return this.service.findTree(id);
-  }
-
-  @Get(':id/lines')
-  getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines`);
-    return this.service.findLines(id);
-  }
-
-  @Get(':id/lines/table')
-  getLinesTable(@Param('id') id: string, @UserId() userId: string): Promise<StockAdjustmentLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/table`);
-    return this.service.findLinesTable(id, userId);
-  }
-
-  @Get(':id/lots/:lotId/lines/table')
-  getLinesByLotTable(
-    @Param('id') id: string,
-    @Param('lotId') lotId: string,
-    @UserId() userId: string,
-  ): Promise<StockAdjustmentLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/lines/table`);
-    return this.service.findLinesByLotTable(id, lotId, userId);
-  }
-
-  @Get(':id/lines/:lineId')
-  getLineById(@Param('id') id: string, @Param('lineId') lineId: string): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
-    return this.service.findLineById(id, lineId);
-  }
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
-    this.logger.log('POST /commerce-api/site/stock-adjustments');
-    return this.service.create(dto);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}`);
-    return this.service.update(id, dto);
   }
 
   @Post(':id/opening-lines')
@@ -151,6 +71,34 @@ export class StockAdjustmentsGatewayController {
     return this.service.addChangeLine(id, dto);
   }
 
+  @Post(':id/lines/:lineId/items')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiAddStockAdjustmentLineItem()
+  addLineItem(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Body() dto: AddStockAdjustmentLineItemDto,
+  ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items`);
+    return this.service.addLineItem(id, lineId, dto);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}`);
+    return this.service.update(id, dto);
+  }
+
+  @Patch(':id/lots/:lotId')
+  updateLot(
+    @Param('id') id: string,
+    @Param('lotId') lotId: string,
+    @Body() dto: UpdateStockAdjustmentLotDto,
+  ): Promise<StockAdjustmentLotResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
+    return this.service.updateLot(id, lotId, dto);
+  }
+
   @Patch(':id/opening-lines/:lineId')
   updateOpeningLine(
     @Param('id') id: string,
@@ -171,10 +119,55 @@ export class StockAdjustmentsGatewayController {
     return this.service.updateChangeLine(id, lineId, dto);
   }
 
-  @Delete(':id/lines/:lineId')
-  removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
-    return this.service.removeLine(id, lineId);
+  @Patch(':id/lines/:lineId/items/:itemId')
+  updateLineItem(
+    @Param('id') id: string,
+    @Param('lineId') lineId: string,
+    @Param('itemId') itemId: string,
+    @Body() dto: UpdateStockAdjustmentLineItemDto,
+  ): Promise<StockAdjustmentLineItemResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
+    return this.service.updateLineItem(id, lineId, itemId, dto);
+  }
+
+  @Post(':id/publish')
+  publish(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/publish`);
+    return this.service.publish(id);
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}`);
+    return this.service.findById(id);
+  }
+
+  @Get(':id/lines/:lineId')
+  getLineById(@Param('id') id: string, @Param('lineId') lineId: string): Promise<StockAdjustmentLineResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
+    return this.service.findLineById(id, lineId);
+  }
+
+  @Get('table')
+  getStockAdjustmentTable(@UserId() userId: string): Promise<StockAdjustmentTableResponseDto> {
+    this.logger.log('GET /commerce-api/site/stock-adjustments/table');
+    return this.service.findForTable(userId);
+  }
+
+  @Get(':id/lines/table')
+  getLinesTable(@Param('id') id: string, @UserId() userId: string): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/table`);
+    return this.service.findLinesTable(id, userId);
+  }
+
+  @Get(':id/lots/:lotId/lines/table')
+  getLinesByLotTable(
+    @Param('id') id: string,
+    @Param('lotId') lotId: string,
+    @UserId() userId: string,
+  ): Promise<StockAdjustmentLineTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/lines/table`);
+    return this.service.findLinesByLotTable(id, lotId, userId);
   }
 
   @Get(':id/lines/:lineId/items/table')
@@ -187,27 +180,46 @@ export class StockAdjustmentsGatewayController {
     return this.service.findLineItemsTable(id, lineId, userId);
   }
 
-  @Post(':id/lines/:lineId/items')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiAddStockAdjustmentLineItem()
-  addLineItem(
-    @Param('id') id: string,
-    @Param('lineId') lineId: string,
-    @Body() dto: AddStockAdjustmentLineItemDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items`);
-    return this.service.addLineItem(id, lineId, dto);
+  @Get(':id/lots')
+  getLots(@Param('id') id: string): Promise<StockAdjustmentLotResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots`);
+    return this.service.findLots(id);
   }
 
-  @Patch(':id/lines/:lineId/items/:itemId')
-  updateLineItem(
-    @Param('id') id: string,
-    @Param('lineId') lineId: string,
-    @Param('itemId') itemId: string,
-    @Body() dto: UpdateStockAdjustmentLineItemDto,
-  ): Promise<StockAdjustmentLineItemResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
-    return this.service.updateLineItem(id, lineId, itemId, dto);
+  @Get(':id/lots/:lotId/detail')
+  getLotDetail(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/detail`);
+    return this.service.findLotDetail(id, lotId);
+  }
+
+  @Get(':id/tree')
+  getTree(@Param('id') id: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/tree`);
+    return this.service.findTree(id);
+  }
+
+  @Get(':id/lines')
+  getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines`);
+    return this.service.findLines(id);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}`);
+    return this.service.delete(id);
+  }
+
+  @Delete(':id/lots/:lotId')
+  removeLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
+    return this.service.removeLot(id, lotId);
+  }
+
+  @Delete(':id/lines/:lineId')
+  removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
+    return this.service.removeLine(id, lineId);
   }
 
   @Delete(':id/lines/:lineId/items/:itemId')
@@ -218,17 +230,5 @@ export class StockAdjustmentsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
     return this.service.removeLineItem(id, lineId, itemId);
-  }
-
-  @Post(':id/publish')
-  publish(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/publish`);
-    return this.service.publish(id);
-  }
-
-  @Delete(':id')
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}`);
-    return this.service.delete(id);
   }
 }

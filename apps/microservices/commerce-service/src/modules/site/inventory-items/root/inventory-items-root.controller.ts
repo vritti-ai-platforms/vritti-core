@@ -21,21 +21,14 @@ export class InventoryItemsRootController {
     private readonly rootService: SiteInventoryItemsService,
   ) {}
 
-  // Every master item, with its stock levels at this site and the stock it holds here, by location
-  @MessagePattern({ cmd: 'site.inventoryItems.stockTable' })
-  async stockTable(
-    @Payload() state: TableState,
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
-    this.logger.log('inventoryItems.stockTable');
-    return this.service.findForSiteStockTable(state, leCurrencyCode as CurrencyCode);
-  }
-
-  // Returns a single master inventory item by ID (shared detail)
-  @MessagePattern({ cmd: 'site.inventoryItems.findById' })
-  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
-    this.logger.log(`inventoryItems.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+  // Updates an item's stock levels at the current site
+  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.update' })
+  async updateStockLevels(
+    @Payload() dto: UpdateStockLevelsDto,
+    @RpcSiteId() siteId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.stockLevels.update — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.updateStockLevels(siteId, dto);
   }
 
   // Sets a master item's stock levels at the current site
@@ -46,6 +39,23 @@ export class InventoryItemsRootController {
   ): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
     this.logger.log(`inventoryItems.stockLevels.create — inventoryItemId: ${dto.inventoryItemId}`);
     return this.rootService.setStockLevels(siteId, dto);
+  }
+
+  // Returns a single master inventory item by ID (shared detail)
+  @MessagePattern({ cmd: 'site.inventoryItems.findById' })
+  async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
+    this.logger.log(`inventoryItems.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Every master item, with its stock levels at this site and the stock it holds here, by location
+  @MessagePattern({ cmd: 'site.inventoryItems.stockTable' })
+  async stockTable(
+    @Payload() state: TableState,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
+    this.logger.log('inventoryItems.stockTable');
+    return this.service.findForSiteStockTable(state, leCurrencyCode as CurrencyCode);
   }
 
   // Returns an item's stock levels at the current site, or null while none are set
@@ -63,15 +73,5 @@ export class InventoryItemsRootController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`inventoryItems.stockLevels.delete — inventoryItemId: ${data.inventoryItemId}`);
     return this.rootService.removeStockLevels(siteId, data.inventoryItemId);
-  }
-
-  // Updates an item's stock levels at the current site
-  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.update' })
-  async updateStockLevels(
-    @Payload() dto: UpdateStockLevelsDto,
-    @RpcSiteId() siteId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.stockLevels.update — inventoryItemId: ${dto.inventoryItemId}`);
-    return this.rootService.updateStockLevels(siteId, dto);
   }
 }

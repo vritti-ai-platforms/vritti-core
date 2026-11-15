@@ -107,54 +107,6 @@ export class PurchaseOrdersDomainService {
 
   constructor(private readonly repository: PurchaseOrdersDomainRepository) {}
 
-  // Returns paginated purchase order options for select dropdowns, optionally narrowed to statuses and a supplier
-  findForSelect(query: SelectOptionsQueryDto & { status?: string; supplierId?: string }): Promise<SelectQueryResult> {
-    const statuses = (query.status ?? '')
-      .split(',')
-      .map((status) => status.trim())
-      .filter((status): status is PurchaseOrderStatus => status in PurchaseOrderStatusValues);
-
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'poNumber',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      where: query.supplierId ? { supplierId: query.supplierId } : undefined,
-      conditions: statuses.length > 0 ? [inArray(purchaseOrders.status, statuses)] : undefined,
-      orderByKey: query.orderByKey || 'poNumber',
-      orderDirection: query.orderDirection || 'desc',
-    });
-  }
-
-  // Returns one page of purchase orders
-  async findForTable(state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersDomainService.SORT_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, PurchaseOrdersDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, PurchaseOrdersDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrders.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(PurchaseOrderDto.from), count };
-  }
-
-  // Returns one purchase order header
-  async findById(id: string): Promise<PurchaseOrderDto> {
-    return PurchaseOrderDto.from(await this.findDetailOrThrow(id));
-  }
-
-  // Returns the POs a purchase created, with their suppliers, line counts and receipt state
-  findForPurchase(purchaseId: string): Promise<PurchaseOrderRow[]> {
-    return this.repository.findForPurchase(purchaseId);
-  }
-
   // Creates a draft PO at the given site, storing an exchange rate only when its currency is not the legal entity's
   async create(
     dto: CreatePurchaseOrderDto,
@@ -326,6 +278,54 @@ export class PurchaseOrdersDomainService {
     await this.repository.syncTotalAmount(id);
   }
 
+  // Returns one purchase order header
+  async findById(id: string): Promise<PurchaseOrderDto> {
+    return PurchaseOrderDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Returns one page of purchase orders
+  async findForTable(state: TableState): Promise<{ result: PurchaseOrderDto[]; count: number }> {
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrdersDomainService.SORT_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, PurchaseOrdersDomainService.FILTER_FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, PurchaseOrdersDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(purchaseOrders.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(PurchaseOrderDto.from), count };
+  }
+
+  // Returns paginated purchase order options for select dropdowns, optionally narrowed to statuses and a supplier
+  findForSelect(query: SelectOptionsQueryDto & { status?: string; supplierId?: string }): Promise<SelectQueryResult> {
+    const statuses = (query.status ?? '')
+      .split(',')
+      .map((status) => status.trim())
+      .filter((status): status is PurchaseOrderStatus => status in PurchaseOrderStatusValues);
+
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'poNumber',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      where: query.supplierId ? { supplierId: query.supplierId } : undefined,
+      conditions: statuses.length > 0 ? [inArray(purchaseOrders.status, statuses)] : undefined,
+      orderByKey: query.orderByKey || 'poNumber',
+      orderDirection: query.orderDirection || 'desc',
+    });
+  }
+
+  // Returns the POs a purchase created, with their suppliers, line counts and receipt state
+  findForPurchase(purchaseId: string): Promise<PurchaseOrderRow[]> {
+    return this.repository.findForPurchase(purchaseId);
+  }
+
   // Derives a PO's receipt and invoicing statuses from its lines: due = ordered + free − cancelled; a line is received
   // once received ≥ due and invoiced once invoiced ≥ due; open to invoice = received − returned − invoiced
   deriveStatuses(lines: PurchaseOrderLineCounters[]): PurchaseOrderStatuses {
@@ -362,6 +362,33 @@ export class PurchaseOrdersDomainService {
     return { receiptStatus, invoiceStatus };
   }
 
+  // Loads a PO with its supplier name, line count and receipt state, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<PurchaseOrderRow> {
+    const po = await this.repository.findDetail(id);
+    if (!po) throw new NotFoundException('Purchase order not found.');
+    return po;
+  }
+
+  // Rejects marking a PO delivery completed unless it is confirmed
+  assertDeliveryCompletable(po: Pick<PurchaseOrder, 'poNumber' | 'status'>): void {
+    if (po.status === PurchaseOrderStatusValues.CONFIRMED) return;
+    throw new BadRequestException({
+      label: 'Cannot Mark Delivery Completed',
+      detail: `"${po.poNumber}" is ${po.status}; only a confirmed purchase order can be marked delivery completed.`,
+    });
+  }
+
+  // Returns the rate a PO stores: 1 in the legal entity's own currency, the given one in any other
+  resolveExchangeRateOrThrow(currencyCode: string, leCurrencyCode: string, exchangeRate: number | undefined): number {
+    if (currencyCode === leCurrencyCode) return 1;
+    if (exchangeRate !== undefined) return exchangeRate;
+    throw new ValidationException({
+      label: 'Exchange Rate Required',
+      detail: `The order is in ${currencyCode}; enter how much 1 ${currencyCode} is in ${leCurrencyCode}.`,
+      errors: [{ field: 'exchangeRate', message: `1 ${currencyCode} in ${leCurrencyCode}` }],
+    });
+  }
+
   // Deletes a draft purchase order
   async delete(po: PurchaseOrderRow): Promise<SuccessResponseDto> {
     if (po.status !== PurchaseOrderStatusValues.DRAFT) {
@@ -383,22 +410,6 @@ export class PurchaseOrdersDomainService {
     }
     await this.repository.delete(po.id);
     this.logger.log(`Deleted PO ${po.poNumber} (${po.id}) of purchase ${po.purchaseId}`);
-  }
-
-  // Loads a PO with its supplier name, line count and receipt state, throwing when it is out of reach
-  async findDetailOrThrow(id: string): Promise<PurchaseOrderRow> {
-    const po = await this.repository.findDetail(id);
-    if (!po) throw new NotFoundException('Purchase order not found.');
-    return po;
-  }
-
-  // Rejects marking a PO delivery completed unless it is confirmed
-  assertDeliveryCompletable(po: Pick<PurchaseOrder, 'poNumber' | 'status'>): void {
-    if (po.status === PurchaseOrderStatusValues.CONFIRMED) return;
-    throw new BadRequestException({
-      label: 'Cannot Mark Delivery Completed',
-      detail: `"${po.poNumber}" is ${po.status}; only a confirmed purchase order can be marked delivery completed.`,
-    });
   }
 
   // Rejects cancelling a PO goods have been received against; its delivery is marked completed instead
@@ -444,17 +455,6 @@ export class PurchaseOrdersDomainService {
       label: 'Cannot Change Tax Date',
       detail: `"${po.poNumber}" is ${po.status} or has a posted goods receipt, so its tax date is locked.`,
       errors: [{ field: 'taxDate', message: 'Locked' }],
-    });
-  }
-
-  // Returns the rate a PO stores: 1 in the legal entity's own currency, the given one in any other
-  resolveExchangeRateOrThrow(currencyCode: string, leCurrencyCode: string, exchangeRate: number | undefined): number {
-    if (currencyCode === leCurrencyCode) return 1;
-    if (exchangeRate !== undefined) return exchangeRate;
-    throw new ValidationException({
-      label: 'Exchange Rate Required',
-      detail: `The order is in ${currencyCode}; enter how much 1 ${currencyCode} is in ${leCurrencyCode}.`,
-      errors: [{ field: 'exchangeRate', message: `1 ${currencyCode} in ${leCurrencyCode}` }],
     });
   }
 }

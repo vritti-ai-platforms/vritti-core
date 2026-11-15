@@ -25,6 +25,37 @@ export class SiteCatalogChannelsController {
 
   constructor(private readonly service: CatalogChannelsDomainService) {}
 
+  // A null currency withdraws the item from the channel outright; a code withdraws it from that currency only, leaving
+  // the others available
+  @MessagePattern({ cmd: 'site.catalogChannels.setItemVisibility' })
+  setItemVisibility(
+    @Payload()
+    data: { channelId: string; listingId: string; availableHere: boolean; currencyCode?: string | null },
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `catalogChannels.setItemVisibility — listingId: ${data.listingId}, currency: ${data.currencyCode ?? 'all'}`,
+    );
+    return this.service.setItemVisibility(data.channelId, data.listingId, data.availableHere, data.currencyCode);
+  }
+
+  // One channel's items, each flagged with whether that channel makes it available
+  @MessagePattern({ cmd: 'site.catalogChannels.items' })
+  findItemsForTable(
+    @Payload() data: { channelId: string; state: TableState },
+  ): Promise<{ result: ChannelItemDto[]; count: number }> {
+    this.logger.log(`catalogChannels.items — channelId: ${data.channelId}`);
+    return this.service.findItemsForTable(data.channelId, data.state);
+  }
+
+  // One channel's prices in one currency, each flagged with whether it is available there
+  @MessagePattern({ cmd: 'site.catalogChannels.prices' })
+  findPricesForTable(
+    @Payload() data: { channelId: string; currencyCode: string; state: TableState },
+  ): Promise<{ result: ChannelPriceDto[]; count: number }> {
+    this.logger.log(`catalogChannels.prices — channelId: ${data.channelId}, currency: ${data.currencyCode}`);
+    return this.service.findPricesForTable(data.channelId, data.currencyCode, data.state);
+  }
+
   @MessagePattern({ cmd: 'site.catalogChannels.list' })
   list(): Promise<ResolvedChannelsDto> {
     this.logger.log('catalogChannels.list');
@@ -75,30 +106,6 @@ export class SiteCatalogChannelsController {
     return this.service.appListingsByCodes(data.appId, data.codes, data.currencyCode, data.filters ?? []);
   }
 
-  @MessagePattern({ cmd: 'site.catalogChannels.delete' })
-  delete(@Payload() data: { channelId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogChannels.delete — channelId: ${data.channelId}`);
-    return this.service.delete(data.channelId);
-  }
-
-  // One channel's items, each flagged with whether that channel makes it available
-  @MessagePattern({ cmd: 'site.catalogChannels.items' })
-  findItemsForTable(
-    @Payload() data: { channelId: string; state: TableState },
-  ): Promise<{ result: ChannelItemDto[]; count: number }> {
-    this.logger.log(`catalogChannels.items — channelId: ${data.channelId}`);
-    return this.service.findItemsForTable(data.channelId, data.state);
-  }
-
-  // One channel's prices in one currency, each flagged with whether it is available there
-  @MessagePattern({ cmd: 'site.catalogChannels.prices' })
-  findPricesForTable(
-    @Payload() data: { channelId: string; currencyCode: string; state: TableState },
-  ): Promise<{ result: ChannelPriceDto[]; count: number }> {
-    this.logger.log(`catalogChannels.prices — channelId: ${data.channelId}, currency: ${data.currencyCode}`);
-    return this.service.findPricesForTable(data.channelId, data.currencyCode, data.state);
-  }
-
   // The currencies this channel's catalog is priced in
   @MessagePattern({ cmd: 'site.catalogChannels.currencies' })
   findCurrencies(@Payload() data: { channelId: string }): Promise<string[]> {
@@ -106,16 +113,9 @@ export class SiteCatalogChannelsController {
     return this.service.findCurrencies(data.channelId);
   }
 
-  // A null currency withdraws the item from the channel outright; a code withdraws it from that currency only, leaving
-  // the others available
-  @MessagePattern({ cmd: 'site.catalogChannels.setItemVisibility' })
-  setItemVisibility(
-    @Payload()
-    data: { channelId: string; listingId: string; availableHere: boolean; currencyCode?: string | null },
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `catalogChannels.setItemVisibility — listingId: ${data.listingId}, currency: ${data.currencyCode ?? 'all'}`,
-    );
-    return this.service.setItemVisibility(data.channelId, data.listingId, data.availableHere, data.currencyCode);
+  @MessagePattern({ cmd: 'site.catalogChannels.delete' })
+  delete(@Payload() data: { channelId: string }): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogChannels.delete — channelId: ${data.channelId}`);
+    return this.service.delete(data.channelId);
   }
 }

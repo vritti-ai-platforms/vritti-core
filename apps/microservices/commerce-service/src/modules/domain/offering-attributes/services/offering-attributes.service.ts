@@ -20,13 +20,6 @@ export class OfferingAttributesDomainService {
 
   constructor(private readonly repository: OfferingAttributesDomainRepository) {}
 
-  // Lists an offering's axes with their values.
-  async list(offeringId: string): Promise<OfferingAttributeDto[]> {
-    if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
-    const attributes = await this.repository.findByOfferingWithValues(offeringId);
-    return attributes.map((d) => OfferingAttributeDto.from(d, d.values));
-  }
-
   // Adds an empty axis to an offering.
   async create(data: CreateOfferingAttributeDto): Promise<CreateResponseDto<OfferingAttributeDto>> {
     const offering = await this.requireOwnedOffering(data.offeringId);
@@ -87,6 +80,14 @@ export class OfferingAttributesDomainService {
         result.values.map((value) => ({ ...value, canDelete: true })),
       ),
     };
+  }
+
+  // Renames the attribute.
+  async update(id: string, data: Omit<UpdateOfferingAttributeDto, 'id'>): Promise<SuccessResponseDto> {
+    const attribute = await this.requireOwnedAttribute(id);
+    await this.repository.update(id, { name: data.name, description: data.description });
+    await this.repository.refreshVariantAttributes(attribute.offeringId);
+    return { success: true, message: `"${data.name}" updated.` };
   }
 
   // Replaces the attribute's value set.
@@ -176,12 +177,11 @@ export class OfferingAttributesDomainService {
     return { success: true, message: 'Attribute order updated.' };
   }
 
-  // Renames the attribute.
-  async update(id: string, data: Omit<UpdateOfferingAttributeDto, 'id'>): Promise<SuccessResponseDto> {
-    const attribute = await this.requireOwnedAttribute(id);
-    await this.repository.update(id, { name: data.name, description: data.description });
-    await this.repository.refreshVariantAttributes(attribute.offeringId);
-    return { success: true, message: `"${data.name}" updated.` };
+  // Lists an offering's axes with their values.
+  async list(offeringId: string): Promise<OfferingAttributeDto[]> {
+    if (!(await this.repository.findOffering(offeringId))) throw new NotFoundException('Offering not found.');
+    const attributes = await this.repository.findByOfferingWithValues(offeringId);
+    return attributes.map((d) => OfferingAttributeDto.from(d, d.values));
   }
 
   // Blocked while any variant carries a value on this axis — removing it would leave those variants with variants

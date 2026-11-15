@@ -21,16 +21,28 @@ export class CategoriesGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns total category count
-  async count(): Promise<CategoryCountResponseDto> {
-    this.logger.log('categories.count');
-    return this.nats.send('commerce', 'org.categories.count', {});
+  // Creates a new category
+  async create(dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
+    this.logger.log(`categories.create — name: ${dto.name}`);
+    return this.nats.send('commerce', 'org.categories.create', dto);
   }
 
-  // Returns categories as tree hierarchy
-  async findTree(search?: string): Promise<CategoryTreeResponseDto[]> {
-    this.logger.log('categories.tree');
-    return this.nats.send('commerce', 'org.categories.tree', { search });
+  // Updates a category by ID
+  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
+    this.logger.log(`categories.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.categories.update', { id, ...dto });
+  }
+
+  // Reorders sibling categories under a parent
+  async reorder(dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
+    this.logger.log('categories.reorder');
+    return this.nats.send('commerce', 'org.categories.reorder', dto);
+  }
+
+  // Finds a category by ID
+  async findById(id: string): Promise<CategoryResponseDto> {
+    this.logger.log(`categories.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.categories.findById', { id });
   }
 
   // Returns paginated child categories for a given parent ID
@@ -60,28 +72,16 @@ export class CategoriesGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Creates a new category
-  async create(dto: CreateCategoryDto): Promise<CreateResponseDto<CategoryResponseDto>> {
-    this.logger.log(`categories.create — name: ${dto.name}`);
-    return this.nats.send('commerce', 'org.categories.create', dto);
+  // Returns total category count
+  async count(): Promise<CategoryCountResponseDto> {
+    this.logger.log('categories.count');
+    return this.nats.send('commerce', 'org.categories.count', {});
   }
 
-  // Finds a category by ID
-  async findById(id: string): Promise<CategoryResponseDto> {
-    this.logger.log(`categories.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.categories.findById', { id });
-  }
-
-  // Updates a category by ID
-  async update(id: string, dto: UpdateCategoryDto): Promise<CategoryResponseDto> {
-    this.logger.log(`categories.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.categories.update', { id, ...dto });
-  }
-
-  // Reorders sibling categories under a parent
-  async reorder(dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
-    this.logger.log('categories.reorder');
-    return this.nats.send('commerce', 'org.categories.reorder', dto);
+  // Returns categories as tree hierarchy
+  async findTree(search?: string): Promise<CategoryTreeResponseDto[]> {
+    this.logger.log('categories.tree');
+    return this.nats.send('commerce', 'org.categories.tree', { search });
   }
 
   // Deletes a category by ID

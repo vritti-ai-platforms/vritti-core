@@ -24,24 +24,6 @@ export class PartyLicensesDomainService {
 
   constructor(private readonly repository: PartyLicensesDomainRepository) {}
 
-  // Returns paginated licenses of a party for the data table
-  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyLicensesDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, PartyLicensesDomainService.FIELD_MAP);
-    const where = and(eq(partyLicenses.partyId, partyId), filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyLicensesDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findForTable({
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(partyLicenses.createdAt)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(PartyLicenseDto.from), count };
-  }
-
   // Creates a license for a party, rejecting duplicates of the same type and number
   async create(
     partyId: string,
@@ -95,6 +77,24 @@ export class PartyLicensesDomainService {
 
     this.logger.log(`Updated license: ${id}`);
     return { success: true, message: 'License updated successfully.' };
+  }
+
+  // Returns paginated licenses of a party for the data table
+  async findForTable(partyId: string, state: TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, PartyLicensesDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, PartyLicensesDomainService.FIELD_MAP);
+    const where = and(eq(partyLicenses.partyId, partyId), filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PartyLicensesDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findForTable({
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(partyLicenses.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(PartyLicenseDto.from), count };
   }
 
   // Deletes a license by ID

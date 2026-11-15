@@ -23,35 +23,6 @@ export class LeSupplierInvoicesRootController {
     private readonly service: SupplierInvoicesService,
   ) {}
 
-  // Returns the invoices of the legal entity's sites for the data table
-  @MessagePattern({ cmd: 'le.supplierInvoices.table' })
-  table(@Payload() state: TableState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
-    this.logger.log('le.supplierInvoices.table');
-    return this.invoicesService.findForTable(state);
-  }
-
-  // Returns an invoice with its lines and holds
-  @MessagePattern({ cmd: 'le.supplierInvoices.findById' })
-  findById(
-    @Payload() data: { id: string },
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<SupplierInvoiceDetailDto> {
-    this.logger.log(`le.supplierInvoices.findById — id: ${data.id}`);
-    return this.invoicesService.findById(data.id, leCurrencyCode);
-  }
-
-  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker
-  @MessagePattern({ cmd: 'le.supplierInvoices.invoiceableGoodsReceipts' })
-  invoiceableGoodsReceipts(
-    @Payload() query: LeInvoiceableGoodsReceiptsQueryDto,
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<InvoiceableGoodsReceiptDto[]> {
-    this.logger.log(
-      `le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${query.siteId}`,
-    );
-    return this.invoicesService.findInvoiceableGoodsReceipts(query, leCurrencyCode);
-  }
-
   // Records a draft invoice of a supplier at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.supplierInvoices.create' })
   create(
@@ -89,6 +60,35 @@ export class LeSupplierInvoicesRootController {
   cancel(@Payload() data: { id: string }, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`le.supplierInvoices.cancel — id: ${data.id}`);
     return this.service.cancel(data.id, headers.leCurrencyCode, headers.userId || null);
+  }
+
+  // Returns an invoice with its lines and holds
+  @MessagePattern({ cmd: 'le.supplierInvoices.findById' })
+  findById(
+    @Payload() data: { id: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SupplierInvoiceDetailDto> {
+    this.logger.log(`le.supplierInvoices.findById — id: ${data.id}`);
+    return this.invoicesService.findById(data.id, leCurrencyCode);
+  }
+
+  // Returns the invoices of the legal entity's sites for the data table
+  @MessagePattern({ cmd: 'le.supplierInvoices.table' })
+  table(@Payload() state: TableState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
+    this.logger.log('le.supplierInvoices.table');
+    return this.invoicesService.findForTable(state);
+  }
+
+  // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker
+  @MessagePattern({ cmd: 'le.supplierInvoices.invoiceableGoodsReceipts' })
+  invoiceableGoodsReceipts(
+    @Payload() query: LeInvoiceableGoodsReceiptsQueryDto,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptDto[]> {
+    this.logger.log(
+      `le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${query.siteId}`,
+    );
+    return this.invoicesService.findInvoiceableGoodsReceipts(query, leCurrencyCode);
   }
 
   // Deletes a draft invoice

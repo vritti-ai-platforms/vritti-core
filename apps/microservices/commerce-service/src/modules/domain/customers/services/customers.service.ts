@@ -25,6 +25,35 @@ export class CustomersDomainService {
 
   constructor(private readonly repository: CustomersDomainRepository) {}
 
+  // Creates a new customer
+  async create(data: CreateCustomerDto): Promise<CustomerDto> {
+    const entity = await this.repository.create({
+      name: data.name,
+      phone: data.phone,
+      email: data.email ?? null,
+      notes: data.notes ?? null,
+    });
+    this.logger.log(`Created customer: ${entity.name} (${entity.id})`);
+    return CustomerDto.from(entity);
+  }
+
+  // Updates a customer
+  async update(id: string, data: Omit<UpdateCustomerDto, 'id'>): Promise<CustomerDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Customer not found.');
+
+    const entity = await this.repository.update(id, data);
+    this.logger.log(`Updated customer: ${entity.name} (${entity.id})`);
+    return CustomerDto.from(entity);
+  }
+
+  // Returns a customer by ID
+  async findById(id: string): Promise<CustomerDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Customer not found.');
+    return CustomerDto.from(entity);
+  }
+
   // Returns paginated customers for the data table
   async findForTable(state: TableState): Promise<{ result: CustomerDto[]; count: number }> {
     const filterWhere = FilterProcessor.buildWhere(state.filters, CustomersDomainService.FIELD_MAP);
@@ -55,35 +84,6 @@ export class CustomersDomainService {
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
     });
-  }
-
-  // Creates a new customer
-  async create(data: CreateCustomerDto): Promise<CustomerDto> {
-    const entity = await this.repository.create({
-      name: data.name,
-      phone: data.phone,
-      email: data.email ?? null,
-      notes: data.notes ?? null,
-    });
-    this.logger.log(`Created customer: ${entity.name} (${entity.id})`);
-    return CustomerDto.from(entity);
-  }
-
-  // Returns a customer by ID
-  async findById(id: string): Promise<CustomerDto> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('Customer not found.');
-    return CustomerDto.from(entity);
-  }
-
-  // Updates a customer
-  async update(id: string, data: Omit<UpdateCustomerDto, 'id'>): Promise<CustomerDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Customer not found.');
-
-    const entity = await this.repository.update(id, data);
-    this.logger.log(`Updated customer: ${entity.name} (${entity.id})`);
-    return CustomerDto.from(entity);
   }
 
   // Deletes a customer if not referenced by orders

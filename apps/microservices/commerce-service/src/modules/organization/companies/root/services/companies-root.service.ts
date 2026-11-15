@@ -15,11 +15,6 @@ export class CompaniesService {
     private readonly addressesService: PartyAddressesDomainService,
   ) {}
 
-  // Paginated COMPANY parties for the companies table
-  findForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
-    return this.partiesService.findCompaniesForTable(state);
-  }
-
   // Creates a COMPANY party, optionally seeding its primary address
   async create(dto: CreateCompanyDto): Promise<CreateResponseDto<CompanyDto>> {
     const result = await this.partiesService.createCompany({
@@ -39,11 +34,6 @@ export class CompaniesService {
     return result;
   }
 
-  // Company detail (includes the primary address when one exists)
-  findById(id: string): Promise<CompanyDto> {
-    return this.partiesService.findCompanyById(id);
-  }
-
   // Updates a company, upserting its primary address when address fields are supplied
   async update(dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
     const { id, address, ...payload } = dto;
@@ -52,6 +42,16 @@ export class CompaniesService {
       await this.addressesService.upsertPrimary(id, { ...address });
     }
     return result;
+  }
+
+  // Company detail (includes the primary address when one exists)
+  findById(id: string): Promise<CompanyDto> {
+    return this.partiesService.findCompanyById(id);
+  }
+
+  // Paginated COMPANY parties for the companies table
+  findForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
+    return this.partiesService.findCompaniesForTable(state);
   }
 
   // Deletes a company by ID

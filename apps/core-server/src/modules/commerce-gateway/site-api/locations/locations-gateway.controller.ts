@@ -40,72 +40,6 @@ export class LocationsGatewayController {
 
   constructor(private readonly locationsGatewayService: LocationsGatewayService) {}
 
-  // Returns total storage location count
-  @Get('count')
-  count(): Promise<LocationCountResponseDto> {
-    this.logger.log('GET /commerce-api/site/locations/count');
-    return this.locationsGatewayService.count();
-  }
-
-  // Returns storage locations as a tree hierarchy for TreeView
-  @Get('tree')
-  @RequirePermission(SITE_LOCATIONS.view)
-  findTree(@Query('search') search?: string): Promise<LocationTreeResponseDto[]> {
-    this.logger.log('GET /commerce-api/site/locations/tree');
-    return this.locationsGatewayService.findTree(search);
-  }
-
-  // Returns paginated child locations for a given parent location
-  @Get(':parentId/children/table')
-  @RequirePermission(SITE_LOCATIONS.view)
-  childrenTable(
-    @Param('parentId', new ParseUUIDPipe()) parentId: string,
-    @UserId() userId: string,
-  ): Promise<LocationChildrenTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/locations/${parentId}/children/table`);
-    return this.locationsGatewayService.findChildrenForTable(userId, parentId);
-  }
-
-  // Reorders siblings under a parent location
-  @Post('reorder')
-  @RequirePermission(SITE_LOCATIONS.edit)
-  reorder(@Body() dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
-    this.logger.log('POST /commerce-api/site/locations/reorder');
-    return this.locationsGatewayService.reorder(dto);
-  }
-
-  // Returns a location's stocked items (grouped, non-zero) as a data table
-  @Get(':locationId/items/table')
-  @RequirePermission(SITE_LOCATIONS.quants.view)
-  @ApiGetLocationItemsTable()
-  getItemsTable(
-    @Param('locationId', new ParseUUIDPipe()) locationId: string,
-    @UserId() userId: string,
-  ): Promise<LocationItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/table`);
-    return this.locationsGatewayService.findItemsForTable(userId, locationId);
-  }
-
-  // Returns the per-quant breakdown for a single item within a location
-  @Get(':locationId/items/:itemId/quants')
-  @RequirePermission(SITE_LOCATIONS.quants.view)
-  @ApiGetLocationItemQuants()
-  getItemQuants(
-    @Param('locationId', new ParseUUIDPipe()) locationId: string,
-    @Param('itemId', new ParseUUIDPipe()) itemId: string,
-  ): Promise<LocationItemQuantResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/${itemId}/quants`);
-    return this.locationsGatewayService.findItemQuants(locationId, itemId);
-  }
-
-  // Returns a single storage location by ID
-  @Get(':id')
-  @RequirePermission(SITE_LOCATIONS.view)
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<LocationResponseDto> {
-    this.logger.log(`GET /commerce-api/site/locations/${id}`);
-    return this.locationsGatewayService.findById(id);
-  }
-
   // Creates a new storage location
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -121,6 +55,72 @@ export class LocationsGatewayController {
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateLocationDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/locations/${id}`);
     return this.locationsGatewayService.update(id, dto);
+  }
+
+  // Reorders siblings under a parent location
+  @Post('reorder')
+  @RequirePermission(SITE_LOCATIONS.edit)
+  reorder(@Body() dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
+    this.logger.log('POST /commerce-api/site/locations/reorder');
+    return this.locationsGatewayService.reorder(dto);
+  }
+
+  // Returns a single storage location by ID
+  @Get(':id')
+  @RequirePermission(SITE_LOCATIONS.view)
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<LocationResponseDto> {
+    this.logger.log(`GET /commerce-api/site/locations/${id}`);
+    return this.locationsGatewayService.findById(id);
+  }
+
+  // Returns paginated child locations for a given parent location
+  @Get(':parentId/children/table')
+  @RequirePermission(SITE_LOCATIONS.view)
+  childrenTable(
+    @Param('parentId', new ParseUUIDPipe()) parentId: string,
+    @UserId() userId: string,
+  ): Promise<LocationChildrenTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/locations/${parentId}/children/table`);
+    return this.locationsGatewayService.findChildrenForTable(userId, parentId);
+  }
+
+  // Returns a location's stocked items (grouped, non-zero) as a data table
+  @Get(':locationId/items/table')
+  @RequirePermission(SITE_LOCATIONS.quants.view)
+  @ApiGetLocationItemsTable()
+  getItemsTable(
+    @Param('locationId', new ParseUUIDPipe()) locationId: string,
+    @UserId() userId: string,
+  ): Promise<LocationItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/table`);
+    return this.locationsGatewayService.findItemsForTable(userId, locationId);
+  }
+
+  // Returns total storage location count
+  @Get('count')
+  count(): Promise<LocationCountResponseDto> {
+    this.logger.log('GET /commerce-api/site/locations/count');
+    return this.locationsGatewayService.count();
+  }
+
+  // Returns storage locations as a tree hierarchy for TreeView
+  @Get('tree')
+  @RequirePermission(SITE_LOCATIONS.view)
+  findTree(@Query('search') search?: string): Promise<LocationTreeResponseDto[]> {
+    this.logger.log('GET /commerce-api/site/locations/tree');
+    return this.locationsGatewayService.findTree(search);
+  }
+
+  // Returns the per-quant breakdown for a single item within a location
+  @Get(':locationId/items/:itemId/quants')
+  @RequirePermission(SITE_LOCATIONS.quants.view)
+  @ApiGetLocationItemQuants()
+  getItemQuants(
+    @Param('locationId', new ParseUUIDPipe()) locationId: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+  ): Promise<LocationItemQuantResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/${itemId}/quants`);
+    return this.locationsGatewayService.findItemQuants(locationId, itemId);
   }
 
   // Deletes an storage location by ID

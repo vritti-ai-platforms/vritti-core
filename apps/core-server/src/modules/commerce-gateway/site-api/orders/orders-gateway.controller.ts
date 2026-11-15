@@ -23,13 +23,6 @@ import { OrdersGatewayService } from './services/orders-gateway.service';
 export class OrdersGatewayController {
   constructor(private readonly ordersGatewayService: OrdersGatewayService) {}
 
-  // Returns paginated orders for the data table with server-stored state
-  @Get('table')
-  @RequirePermission(SITE_ORDERS.view)
-  getOrderTable(@UserId() userId: string): Promise<OrderTableResponseDto> {
-    return this.ordersGatewayService.findForTable(userId);
-  }
-
   // Creates a new order
   @Post()
   @RequirePermission(SITE_ORDERS.add)
@@ -38,18 +31,12 @@ export class OrdersGatewayController {
     return this.ordersGatewayService.create(dto);
   }
 
-  // Returns a single order by ID with items
-  @Get(':id')
-  @RequirePermission(SITE_ORDERS.view)
-  findById(@Param('id') id: string): Promise<OrderDetailResponseDto> {
-    return this.ordersGatewayService.findById(id);
-  }
-
-  // Lists the payments of the order's checkout: the one the order uses, and any second payment to refund
-  @Get(':id/payments')
-  @RequirePermission(SITE_ORDERS.payments.view)
-  listPayments(@Param('id') id: string): Promise<OrderPaymentResponseDto[]> {
-    return this.ordersGatewayService.listPayments(id);
+  // Updates the status of an order
+  @Post(':id/status')
+  @RequirePermission(SITE_ORDERS.edit)
+  @HttpCode(HttpStatus.OK)
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto): Promise<OrderResponseDto> {
+    return this.ordersGatewayService.updateStatus(id, dto);
   }
 
   // Retries the refund of a payment no order uses, after the gateway refused it
@@ -74,11 +61,24 @@ export class OrdersGatewayController {
     return this.ordersGatewayService.checkRefund(id, paymentIntentId);
   }
 
-  // Updates the status of an order
-  @Post(':id/status')
-  @RequirePermission(SITE_ORDERS.edit)
-  @HttpCode(HttpStatus.OK)
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto): Promise<OrderResponseDto> {
-    return this.ordersGatewayService.updateStatus(id, dto);
+  // Returns a single order by ID with items
+  @Get(':id')
+  @RequirePermission(SITE_ORDERS.view)
+  findById(@Param('id') id: string): Promise<OrderDetailResponseDto> {
+    return this.ordersGatewayService.findById(id);
+  }
+
+  // Returns paginated orders for the data table with server-stored state
+  @Get('table')
+  @RequirePermission(SITE_ORDERS.view)
+  getOrderTable(@UserId() userId: string): Promise<OrderTableResponseDto> {
+    return this.ordersGatewayService.findForTable(userId);
+  }
+
+  // Lists the payments of the order's checkout: the one the order uses, and any second payment to refund
+  @Get(':id/payments')
+  @RequirePermission(SITE_ORDERS.payments.view)
+  listPayments(@Param('id') id: string): Promise<OrderPaymentResponseDto[]> {
+    return this.ordersGatewayService.listPayments(id);
   }
 }

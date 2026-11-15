@@ -111,51 +111,6 @@ export class PurchaseOrderItemsDomainService {
 
   constructor(private readonly repository: PurchaseOrderItemsDomainRepository) {}
 
-  // Returns the lines of one PO as select options
-  findForSelectByPurchaseOrder(purchaseOrderId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    return this.repository.findForSelectByPurchaseOrder(purchaseOrderId, {
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'name',
-      description: query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey || 'categoryId',
-      orderByKey: query.orderByKey || 'name',
-      orderDirection: query.orderDirection || 'asc',
-    });
-  }
-
-  // Returns every line of a PO
-  async findByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderItemDto[]> {
-    const rows = await this.repository.findByPurchaseOrderId(purchaseOrderId);
-    return rows.map(PurchaseOrderItemDto.from);
-  }
-
-  // Returns the inventory items ordered on a PO
-  findInventoryItemIds(purchaseOrderId: string): Promise<string[]> {
-    return this.repository.findInventoryItemIds(purchaseOrderId);
-  }
-
-  // Returns one page of a PO's lines
-  async findForTable(
-    purchaseOrderId: string,
-    state: TableState,
-  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable(purchaseOrderId, {
-      where: and(
-        FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsDomainService.FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, PurchaseOrderItemsDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [asc(inventoryItems.name)],
-      limit,
-      offset,
-    });
-    return { result: result.map(PurchaseOrderItemDto.from), count };
-  }
-
   // Adds a line priced in the PO currency, converting another quoted currency at the PO's rate for it
   async addItem(
     po: PurchaseOrderLinesContext,
@@ -228,11 +183,6 @@ export class PurchaseOrderItemsDomainService {
     return created;
   }
 
-  // Returns every line of the given POs with its item, units and counters
-  findRowsByPurchaseOrderIds(purchaseOrderIds: string[]): Promise<PurchaseOrderItemRow[]> {
-    return this.repository.findByPurchaseOrderIds(purchaseOrderIds);
-  }
-
   // Updates a line's item, quantity, price, scheme, expected delivery or tax date, pricing it again in the PO currency
   async updateItem(
     po: PurchaseOrderLinesContext,
@@ -302,17 +252,6 @@ export class PurchaseOrderItemsDomainService {
     return this.repository.setFollowersTaxDate(purchaseOrderId, taxDate);
   }
 
-  // Removes a line that no goods receipt counts goods against
-  async removeItem(po: PurchaseOrderLinesContext, itemId: string): Promise<SuccessResponseDto> {
-    this.assertLinesEditable(po);
-    const item = await this.findOnPurchaseOrderOrThrow(po.id, itemId);
-    await this.assertNotOnGoodsReceipt(item.id, 'Cannot Remove Item');
-
-    await this.repository.delete(item.id);
-    this.logger.log(`Removed item ${item.id} from PO ${po.poNumber}`);
-    return { success: true, message: `Line item removed from purchase order "${po.poNumber}".` };
-  }
-
   // Converts every line quoted in `currencyCode` again at its new rate; the caller stores the rate and syncs the total
   async repriceSourceCurrency(po: PurchaseOrderLinesContext, currencyCode: string, rate: string): Promise<number> {
     this.assertLinesEditable(po);
@@ -371,11 +310,72 @@ export class PurchaseOrderItemsDomainService {
     return cancelledLines;
   }
 
+  // Returns one page of a PO's lines
+  async findForTable(
+    purchaseOrderId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable(purchaseOrderId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, PurchaseOrderItemsDomainService.FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, PurchaseOrderItemsDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(inventoryItems.name)],
+      limit,
+      offset,
+    });
+    return { result: result.map(PurchaseOrderItemDto.from), count };
+  }
+
+  // Returns the lines of one PO as select options
+  findForSelectByPurchaseOrder(purchaseOrderId: string, query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    return this.repository.findForSelectByPurchaseOrder(purchaseOrderId, {
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'name',
+      description: query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey || 'categoryId',
+      orderByKey: query.orderByKey || 'name',
+      orderDirection: query.orderDirection || 'asc',
+    });
+  }
+
+  // Returns every line of a PO
+  async findByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderItemDto[]> {
+    const rows = await this.repository.findByPurchaseOrderId(purchaseOrderId);
+    return rows.map(PurchaseOrderItemDto.from);
+  }
+
+  // Returns the inventory items ordered on a PO
+  findInventoryItemIds(purchaseOrderId: string): Promise<string[]> {
+    return this.repository.findInventoryItemIds(purchaseOrderId);
+  }
+
+  // Returns every line of the given POs with its item, units and counters
+  findRowsByPurchaseOrderIds(purchaseOrderIds: string[]): Promise<PurchaseOrderItemRow[]> {
+    return this.repository.findByPurchaseOrderIds(purchaseOrderIds);
+  }
+
   // Loads a line of the given PO, throwing when it is not on it
   async findOnPurchaseOrderOrThrow(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItem> {
     const item = await this.repository.findOnPurchaseOrder(purchaseOrderId, itemId);
     if (!item) throw new NotFoundException('Purchase order line item not found.');
     return item;
+  }
+
+  // Removes a line that no goods receipt counts goods against
+  async removeItem(po: PurchaseOrderLinesContext, itemId: string): Promise<SuccessResponseDto> {
+    this.assertLinesEditable(po);
+    const item = await this.findOnPurchaseOrderOrThrow(po.id, itemId);
+    await this.assertNotOnGoodsReceipt(item.id, 'Cannot Remove Item');
+
+    await this.repository.delete(item.id);
+    this.logger.log(`Removed item ${item.id} from PO ${po.poNumber}`);
+    return { success: true, message: `Line item removed from purchase order "${po.poNumber}".` };
   }
 
   // Returns an ordered line's unit price in minor units of the PO currency, rejecting a price quoted in another one

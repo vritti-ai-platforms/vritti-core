@@ -41,14 +41,6 @@ export class LeSupplierQuotationsService {
     private readonly mrps: InventoryItemMrpsDomainService,
   ) {}
 
-  table(supplierId: string, state: TableState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
-    return this.quotations.findForSupplierTable(supplierId, state);
-  }
-
-  findById(id: string): Promise<SupplierQuotationDetailDto> {
-    return this.quotations.findDetail(id);
-  }
-
   async create(
     dto: CreateSupplierQuotationDto,
     userId: string | null,
@@ -58,28 +50,6 @@ export class LeSupplierQuotationsService {
     LeSupplierQuotationsService.assertSupplierCurrency(supplier.currencyCodes, currencyCode);
     const data = await this.quotations.create(dto, currencyCode, userId);
     return { success: true, message: `Quotation "${data.quotationNumber}" created as a draft.`, data };
-  }
-
-  async update(dto: UpdateSupplierQuotationDto): Promise<SuccessResponseDto> {
-    if (dto.currencyCode !== undefined) {
-      const quotation = await this.quotations.requireQuotation(dto.id);
-      const supplier = await this.suppliers.findById(quotation.supplierId);
-      LeSupplierQuotationsService.assertSupplierCurrency(supplier.currencyCodes, dto.currencyCode);
-    }
-    return this.quotations.update(dto);
-  }
-
-  // Deletes a quotation; removing it from every site first takes its prices with it
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const quotation = await this.quotations.requireQuotation(id);
-    await this.database.runInTransaction(async () => {
-      for (const site of await this.quotations.findSites(id)) {
-        await this.supplierItemPrices.removeQuotationPrices(site.id);
-        await this.quotations.removeSiteRecord(site.id);
-      }
-      await this.quotations.delete(id);
-    });
-    return { success: true, message: `Quotation "${quotation.quotationNumber}" deleted.` };
   }
 
   async addItem(dto: AddSupplierQuotationItemDto): Promise<SuccessResponseDto> {
@@ -93,6 +63,15 @@ export class LeSupplierQuotationsService {
       await this.quotations.addItem(quotation, { inventoryItemId, uomId }, fields, currencyCode, mrpId);
     });
     return { success: true, message: 'Line added.' };
+  }
+
+  async update(dto: UpdateSupplierQuotationDto): Promise<SuccessResponseDto> {
+    if (dto.currencyCode !== undefined) {
+      const quotation = await this.quotations.requireQuotation(dto.id);
+      const supplier = await this.suppliers.findById(quotation.supplierId);
+      LeSupplierQuotationsService.assertSupplierCurrency(supplier.currencyCodes, dto.currencyCode);
+    }
+    return this.quotations.update(dto);
   }
 
   async updateItem(dto: UpdateSupplierQuotationItemDto): Promise<SuccessResponseDto> {
@@ -109,12 +88,6 @@ export class LeSupplierQuotationsService {
       await this.quotations.updateItem(quotation, item, fields, currencyCode, mrpId);
     });
     return { success: true, message: 'Line updated.' };
-  }
-
-  async removeItem(quotationId: string, id: string): Promise<SuccessResponseDto> {
-    const quotation = await this.quotations.requireQuotation(quotationId);
-    await this.quotations.removeItem(quotation, id);
-    return { success: true, message: 'Line removed.' };
   }
 
   // Posts the quotation to a site, or to the whole legal entity when the site is empty: every line becomes the price
@@ -179,6 +152,33 @@ export class LeSupplierQuotationsService {
       `Posted quotation ${quotation.quotationNumber} to ${siteId ?? 'the legal entity'}: ${posted} prices`,
     );
     return { success: true, message: `Posted ${pluralize('price', posted, true)} to ${target}.` };
+  }
+
+  findById(id: string): Promise<SupplierQuotationDetailDto> {
+    return this.quotations.findDetail(id);
+  }
+
+  table(supplierId: string, state: TableState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
+    return this.quotations.findForSupplierTable(supplierId, state);
+  }
+
+  // Deletes a quotation; removing it from every site first takes its prices with it
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const quotation = await this.quotations.requireQuotation(id);
+    await this.database.runInTransaction(async () => {
+      for (const site of await this.quotations.findSites(id)) {
+        await this.supplierItemPrices.removeQuotationPrices(site.id);
+        await this.quotations.removeSiteRecord(site.id);
+      }
+      await this.quotations.delete(id);
+    });
+    return { success: true, message: `Quotation "${quotation.quotationNumber}" deleted.` };
+  }
+
+  async removeItem(quotationId: string, id: string): Promise<SuccessResponseDto> {
+    const quotation = await this.quotations.requireQuotation(quotationId);
+    await this.quotations.removeItem(quotation, id);
+    return { success: true, message: 'Line removed.' };
   }
 
   // Removes the quotation from a site, or from the whole legal entity when the site is empty, as though it was never

@@ -101,6 +101,15 @@ export class GoodsReceiptsPostService {
     return this.goodsReceiptsService.findById(id);
   }
 
+  // Lands a prepared draft's stock, marks it posted and moves the documents it fulfils, in the caller's transaction
+  async land(receipt: GoodsReceiptRow, landing: ReceiptLanding, leCurrencyCode: string): Promise<void> {
+    for (const cost of landing.costs) {
+      await this.landItem(receipt, cost, landing.lotsByItemId.get(cost.item.id) ?? [], leCurrencyCode);
+    }
+    await this.goodsReceiptsService.markPosted(receipt.id);
+    await this.moveFulfilledDocuments(receipt, landing.costs);
+  }
+
   // Runs work in a receipt's site context, which landing stock needs, with the legal entity's currency
   inSiteContext<T>(
     receipt: Pick<GoodsReceiptRow, 'siteId' | 'siteTimezone'>,
@@ -132,15 +141,6 @@ export class GoodsReceiptsPostService {
       lotsByItemId.set(cost.item.id, lots);
     }
     return { costs, lotsByItemId };
-  }
-
-  // Lands a prepared draft's stock, marks it posted and moves the documents it fulfils, in the caller's transaction
-  async land(receipt: GoodsReceiptRow, landing: ReceiptLanding, leCurrencyCode: string): Promise<void> {
-    for (const cost of landing.costs) {
-      await this.landItem(receipt, cost, landing.lotsByItemId.get(cost.item.id) ?? [], leCurrencyCode);
-    }
-    await this.goodsReceiptsService.markPosted(receipt.id);
-    await this.moveFulfilledDocuments(receipt, landing.costs);
   }
 
   // Moves what the posted receipt accepted and rejected onto its PO lines' counters, then its POs' statuses and its delivery's status

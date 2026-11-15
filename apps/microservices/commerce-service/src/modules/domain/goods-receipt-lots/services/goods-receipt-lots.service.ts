@@ -28,17 +28,6 @@ export class GoodsReceiptLotsDomainService {
 
   constructor(private readonly repository: GoodsReceiptLotsDomainRepository) {}
 
-  // Returns the lots of a receipt item, their MRP in the legal entity's currency
-  async findByItem(itemId: string, leCurrencyCode: string): Promise<GoodsReceiptLotDto[]> {
-    const lots = await this.repository.findByItemId(itemId);
-    return lots.map((lot) => GoodsReceiptLotDto.from(lot, leCurrencyCode));
-  }
-
-  // Returns the lots of a receipt item with how much of it their lines hold, for landing them in stock
-  findLotsOfItem(itemId: string): Promise<GoodsReceiptLotRow[]> {
-    return this.repository.findByItemId(itemId);
-  }
-
   // Adds a lot to a lot-tracked item of a draft receipt; its MRP is printed in the legal entity's currency
   async addLot(
     item: GoodsReceiptLotItem,
@@ -88,17 +77,28 @@ export class GoodsReceiptLotsDomainService {
     return { success: true, message: `Lot "${dto.lotNumber ?? lot.lotNumber}" updated successfully.` };
   }
 
+  // Links a receipt lot to the inventory lot it landed in, in the caller's transaction
+  async linkInventoryLot(lotId: string, inventoryLotId: string): Promise<void> {
+    await this.repository.update(lotId, { resolvedLotId: inventoryLotId });
+  }
+
+  // Returns the lots of a receipt item, their MRP in the legal entity's currency
+  async findByItem(itemId: string, leCurrencyCode: string): Promise<GoodsReceiptLotDto[]> {
+    const lots = await this.repository.findByItemId(itemId);
+    return lots.map((lot) => GoodsReceiptLotDto.from(lot, leCurrencyCode));
+  }
+
+  // Returns the lots of a receipt item with how much of it their lines hold, for landing them in stock
+  findLotsOfItem(itemId: string): Promise<GoodsReceiptLotRow[]> {
+    return this.repository.findByItemId(itemId);
+  }
+
   // Removes a lot, with the lines it is distributed to, from a draft receipt
   async removeLot(item: GoodsReceiptLotItem, lotId: string): Promise<SuccessResponseDto> {
     const lot = await this.findOnItemOrThrow(item.id, lotId);
     await this.repository.delete(lot.id);
     this.logger.log(`Removed lot ${lot.lotNumber} from goods receipt item ${item.id}`);
     return { success: true, message: `Lot "${lot.lotNumber}" removed successfully.` };
-  }
-
-  // Links a receipt lot to the inventory lot it landed in, in the caller's transaction
-  async linkInventoryLot(lotId: string, inventoryLotId: string): Promise<void> {
-    await this.repository.update(lotId, { resolvedLotId: inventoryLotId });
   }
 
   // Loads a lot of the given receipt item, throwing when it is not on it

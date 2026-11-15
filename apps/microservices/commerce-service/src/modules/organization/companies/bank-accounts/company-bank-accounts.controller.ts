@@ -13,16 +13,6 @@ export class CompanyBankAccountsController {
 
   constructor(private readonly service: PartyBankAccountsDomainService) {}
 
-  // Returns the paginated bank accounts of a company
-  @MessagePattern({ cmd: 'org.companies.bankAccounts.table' })
-  table(
-    @Payload() data: { companyId: string } & TableState,
-  ): Promise<{ result: PartyBankAccountDto[]; count: number }> {
-    const { companyId, ...state } = data;
-    this.logger.log(`companies.bankAccounts.table — companyId: ${companyId}`);
-    return this.service.findForTable(companyId, state);
-  }
-
   // Creates a bank account for a company
   @MessagePattern({ cmd: 'org.companies.bankAccounts.create' })
   create(@Payload() dto: CreateCompanyBankAccountDto): Promise<CreateResponseDto<PartyBankAccountDto>> {
@@ -37,6 +27,16 @@ export class CompanyBankAccountsController {
     const { id, ...payload } = dto;
     this.logger.log(`companies.bankAccounts.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  // Returns the paginated bank accounts of a company
+  @MessagePattern({ cmd: 'org.companies.bankAccounts.table' })
+  table(
+    @Payload() data: { companyId: string } & TableState,
+  ): Promise<{ result: PartyBankAccountDto[]; count: number }> {
+    const { companyId, ...state } = data;
+    this.logger.log(`companies.bankAccounts.table — companyId: ${companyId}`);
+    return this.service.findForTable(companyId, state);
   }
 
   // Deletes a bank account by ID

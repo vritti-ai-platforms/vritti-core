@@ -20,43 +20,6 @@ export class LocationsController {
     private readonly rootService: SiteLocationsService,
   ) {}
 
-  // Returns total storage location count
-  @MessagePattern({ cmd: 'site.locations.count' })
-  async count(): Promise<LocationCountDto> {
-    this.logger.log('locations.count');
-    return this.locationsService.count();
-  }
-
-  // Returns storage locations as a tree hierarchy for TreeView, each node with its storage type and fill
-  @MessagePattern({ cmd: 'site.locations.tree' })
-  async tree(@Payload() data?: { search?: string }): Promise<LocationTreeDto[]> {
-    this.logger.log('locations.tree');
-    return this.rootService.findTree(data?.search);
-  }
-
-  // Returns paginated child locations for a given parent ID
-  @MessagePattern({ cmd: 'site.locations.childrenTable' })
-  async childrenTable(
-    @Payload() data: { parentId: string } & TableState,
-  ): Promise<{ result: LocationDto[]; count: number }> {
-    this.logger.log(`locations.childrenTable — parentId: ${data.parentId}`);
-    return this.rootService.findChildrenForTable(data.parentId, data);
-  }
-
-  // Returns a single storage location by ID
-  @MessagePattern({ cmd: 'site.locations.findById' })
-  async findById(@Payload() data: { id: string }): Promise<LocationDto> {
-    this.logger.log(`locations.findById — id: ${data.id}`);
-    return this.rootService.findById(data.id);
-  }
-
-  // Reorders siblings under a parent location
-  @MessagePattern({ cmd: 'site.locations.reorder' })
-  async reorder(@Payload() data: ReorderLocationsDto): Promise<SuccessResponseDto> {
-    this.logger.log('locations.reorder');
-    return this.locationsService.reorderSiblings(data.parentId ?? null, data.orderedIds);
-  }
-
   // Creates a new storage location
   @MessagePattern({ cmd: 'site.locations.create' })
   async create(@Payload() dto: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
@@ -70,6 +33,43 @@ export class LocationsController {
     const { id, ...updateData } = data;
     this.logger.log(`locations.update — id: ${id}`);
     return this.rootService.update(id, updateData);
+  }
+
+  // Reorders siblings under a parent location
+  @MessagePattern({ cmd: 'site.locations.reorder' })
+  async reorder(@Payload() data: ReorderLocationsDto): Promise<SuccessResponseDto> {
+    this.logger.log('locations.reorder');
+    return this.locationsService.reorderSiblings(data.parentId ?? null, data.orderedIds);
+  }
+
+  // Returns a single storage location by ID
+  @MessagePattern({ cmd: 'site.locations.findById' })
+  async findById(@Payload() data: { id: string }): Promise<LocationDto> {
+    this.logger.log(`locations.findById — id: ${data.id}`);
+    return this.rootService.findById(data.id);
+  }
+
+  // Returns paginated child locations for a given parent ID
+  @MessagePattern({ cmd: 'site.locations.childrenTable' })
+  async childrenTable(
+    @Payload() data: { parentId: string } & TableState,
+  ): Promise<{ result: LocationDto[]; count: number }> {
+    this.logger.log(`locations.childrenTable — parentId: ${data.parentId}`);
+    return this.rootService.findChildrenForTable(data.parentId, data);
+  }
+
+  // Returns total storage location count
+  @MessagePattern({ cmd: 'site.locations.count' })
+  async count(): Promise<LocationCountDto> {
+    this.logger.log('locations.count');
+    return this.locationsService.count();
+  }
+
+  // Returns storage locations as a tree hierarchy for TreeView, each node with its storage type and fill
+  @MessagePattern({ cmd: 'site.locations.tree' })
+  async tree(@Payload() data?: { search?: string }): Promise<LocationTreeDto[]> {
+    this.logger.log('locations.tree');
+    return this.rootService.findTree(data?.search);
   }
 
   // Deletes an storage location by ID

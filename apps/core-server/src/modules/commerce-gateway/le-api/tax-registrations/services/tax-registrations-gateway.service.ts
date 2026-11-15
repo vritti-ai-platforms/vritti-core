@@ -21,6 +21,21 @@ export class TaxRegistrationsGatewayService {
     private readonly siteService: SiteDomainService,
   ) {}
 
+  async create(dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationResponseDto>> {
+    this.logger.log(`le.taxRegistrations.create — number: ${dto.registrationNumber}`);
+    return this.nats.send('commerce', 'le.taxRegistrations.create', dto);
+  }
+
+  async update(id: string, dto: UpdateTaxRegistrationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.taxRegistrations.update — id: ${id}`);
+    return this.nats.send('commerce', 'le.taxRegistrations.update', { id, ...dto });
+  }
+
+  async findById(id: string): Promise<TaxRegistrationResponseDto> {
+    this.logger.log(`le.taxRegistrations.get — id: ${id}`);
+    return this.nats.send('commerce', 'le.taxRegistrations.findById', { id });
+  }
+
   async findForTable(userId: string): Promise<TaxRegistrationTableResponseDto> {
     this.logger.log('le.taxRegistrations.table');
     const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-le-tax-registrations');
@@ -32,12 +47,6 @@ export class TaxRegistrationsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // The workspace's own entity on the VAP path; cloud names one explicitly on the internal path
-  async listByLegalEntity(legalEntityId?: string): Promise<TaxRegistrationResponseDto[]> {
-    this.logger.log(`le.taxRegistrations.list — legalEntityId: ${legalEntityId ?? 'workspace'}`);
-    return this.nats.send('commerce', 'le.taxRegistrations.list', { legalEntityId });
-  }
-
   // Cloud owns its own view state, so it sends the page request rather than this reading Redis for a user, and names
   // the legal entity it is viewing
   async findForTablePage(legalEntityId: string, page: TablePageRequest): Promise<TaxRegistrationsPageResponseDto> {
@@ -45,25 +54,16 @@ export class TaxRegistrationsGatewayService {
     return this.nats.send('commerce', 'le.taxRegistrations.table', { page, legalEntityId });
   }
 
+  // The workspace's own entity on the VAP path; cloud names one explicitly on the internal path
+  async listByLegalEntity(legalEntityId?: string): Promise<TaxRegistrationResponseDto[]> {
+    this.logger.log(`le.taxRegistrations.list — legalEntityId: ${legalEntityId ?? 'workspace'}`);
+    return this.nats.send('commerce', 'le.taxRegistrations.list', { legalEntityId });
+  }
+
   // The whole organization's registrations, for the cloud structure aggregate
   async listAll(): Promise<TaxRegistrationResponseDto[]> {
     this.logger.log('le.taxRegistrations.listAll');
     return this.nats.send('commerce', 'le.taxRegistrations.listAll', {});
-  }
-
-  async findById(id: string): Promise<TaxRegistrationResponseDto> {
-    this.logger.log(`le.taxRegistrations.get — id: ${id}`);
-    return this.nats.send('commerce', 'le.taxRegistrations.findById', { id });
-  }
-
-  async create(dto: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationResponseDto>> {
-    this.logger.log(`le.taxRegistrations.create — number: ${dto.registrationNumber}`);
-    return this.nats.send('commerce', 'le.taxRegistrations.create', dto);
-  }
-
-  async update(id: string, dto: UpdateTaxRegistrationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.taxRegistrations.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.taxRegistrations.update', { id, ...dto });
   }
 
   // Sites hold a loose reference to the registration they trade under, so the check that the dropped foreign key used

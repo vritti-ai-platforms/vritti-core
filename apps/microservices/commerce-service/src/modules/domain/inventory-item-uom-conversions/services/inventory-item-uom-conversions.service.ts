@@ -35,32 +35,6 @@ export class InventoryItemUomConversionsDomainService {
 
   constructor(private readonly repository: InventoryItemUomConversionsDomainRepository) {}
 
-  // Returns paginated, filtered, sorted UOM conversions for an inventory item
-  async findForTable(
-    inventoryItemId: string,
-    state: TableState,
-  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsDomainService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemUomConversionsDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable(inventoryItemId, {
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(inventoryItemUomConversions.createdAt)],
-      limit,
-      offset,
-    });
-
-    const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
-
-    return {
-      result: result.map((row) => InventoryItemUomConversionDto.from(row, usedUomIds.has(row.uomId))),
-      count,
-    };
-  }
-
   // Creates a per-item UOM conversion with its optional per-pack weight, volume and dimensions
   async create(
     inventoryItemId: string,
@@ -138,6 +112,32 @@ export class InventoryItemUomConversionsDomainService {
     });
     this.logger.log(`Updated UOM conversion ${id}: primaryUomQty=${dto.primaryUomQty}, uomQty=${dto.uomQty}`);
     return { success: true, message: 'UOM conversion updated successfully.' };
+  }
+
+  // Returns paginated, filtered, sorted UOM conversions for an inventory item
+  async findForTable(
+    inventoryItemId: string,
+    state: TableState,
+  ): Promise<{ result: InventoryItemUomConversionDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemUomConversionsDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemUomConversionsDomainService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemUomConversionsDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable(inventoryItemId, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(inventoryItemUomConversions.createdAt)],
+      limit,
+      offset,
+    });
+
+    const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
+
+    return {
+      result: result.map((row) => InventoryItemUomConversionDto.from(row, usedUomIds.has(row.uomId))),
+      count,
+    };
   }
 
   // Deletes a UOM conversion by ID

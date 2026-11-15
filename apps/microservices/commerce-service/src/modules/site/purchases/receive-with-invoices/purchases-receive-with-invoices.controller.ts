@@ -16,16 +16,6 @@ export class PurchasesReceiveWithInvoicesController {
 
   constructor(private readonly service: PurchasesReceiveWithInvoicesService) {}
 
-  // Returns the supplier's allocations at the site an invoice may still receive
-  @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.openLines' })
-  openLines(
-    @Payload() query: ReceiveWithInvoiceOpenLinesQueryDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
-    this.logger.log(`site.purchases.receiveWithInvoices.openLines — supplier: ${query.supplierId}`);
-    return this.service.findOpenLines(query, headers.siteId);
-  }
-
   // Drafts a supplier's invoice entered with its goods
   @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.create' })
   create(
@@ -40,16 +30,6 @@ export class PurchasesReceiveWithInvoicesController {
       { siteId: headers.siteId, timezone: headers.siteTimezone, leCurrencyCode: headers.leCurrencyCode },
       headers,
     );
-  }
-
-  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
-  @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.findById' })
-  findById(
-    @Payload() data: ReceiveWithInvoiceRefDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<ReceiveWithInvoiceDetailDto> {
-    this.logger.log(`site.purchases.receiveWithInvoices.findById — invoice: ${data.invoiceId}`);
-    return this.service.findById(data.invoiceId, headers.leCurrencyCode);
   }
 
   // Replaces a draft Receive with Invoice
@@ -71,6 +51,26 @@ export class PurchasesReceiveWithInvoicesController {
   post(@Payload() data: ReceiveWithInvoiceRefDto, @RpcNatsHeaders() headers: NatsHeaders): Promise<SuccessResponseDto> {
     this.logger.log(`site.purchases.receiveWithInvoices.post — invoice: ${data.invoiceId}`);
     return this.service.post(data.invoiceId, headers.leCurrencyCode, headers);
+  }
+
+  // Returns a Receive with Invoice with its lines, purchases, receipts and holds
+  @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.findById' })
+  findById(
+    @Payload() data: ReceiveWithInvoiceRefDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<ReceiveWithInvoiceDetailDto> {
+    this.logger.log(`site.purchases.receiveWithInvoices.findById — invoice: ${data.invoiceId}`);
+    return this.service.findById(data.invoiceId, headers.leCurrencyCode);
+  }
+
+  // Returns the supplier's allocations at the site an invoice may still receive
+  @MessagePattern({ cmd: 'site.purchases.receiveWithInvoices.openLines' })
+  openLines(
+    @Payload() query: ReceiveWithInvoiceOpenLinesQueryDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
+    this.logger.log(`site.purchases.receiveWithInvoices.openLines — supplier: ${query.supplierId}`);
+    return this.service.findOpenLines(query, headers.siteId);
   }
 
   // Discards a draft Receive with Invoice and the documents it drafted

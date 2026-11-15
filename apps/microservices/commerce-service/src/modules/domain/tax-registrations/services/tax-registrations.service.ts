@@ -25,48 +25,6 @@ export class TaxRegistrationsDomainService {
 
   constructor(private readonly repository: TaxRegistrationsDomainRepository) {}
 
-  // Returns a page of registrations, limited to one legal entity when the caller names it
-  async findForTable(
-    page: TablePageRequest,
-    legalEntityId?: string,
-  ): Promise<{ result: TaxRegistrationDto[]; count: number }> {
-    const where = and(
-      legalEntityId ? eq(taxRegistrations.legalEntityId, legalEntityId) : undefined,
-      FilterProcessor.buildWhere(page.filters, TaxRegistrationsDomainService.FILTER_FIELD_MAP),
-      FilterProcessor.buildSearch(page.search, TaxRegistrationsDomainService.SEARCH_FIELD_MAP),
-    );
-    const orderBy = FilterProcessor.buildOrderBy(page.sort, {
-      ...TaxRegistrationsDomainService.SEARCH_FIELD_MAP,
-      ...TaxRegistrationsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = page.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where: (where as SQL) || undefined,
-      orderBy:
-        orderBy.length > 0 ? orderBy : [asc(taxRegistrations.countryCode), asc(taxRegistrations.registrationNumber)],
-      limit,
-      offset,
-    });
-    return { result: result.map(TaxRegistrationDto.from), count };
-  }
-
-  async listByLegalEntity(legalEntityId?: string): Promise<TaxRegistrationDto[]> {
-    const rows = await this.repository.findByLegalEntity(legalEntityId);
-    return rows.map(TaxRegistrationDto.from);
-  }
-
-  async listAll(): Promise<TaxRegistrationDto[]> {
-    const rows = await this.repository.findAllInOrg();
-    return rows.map(TaxRegistrationDto.from);
-  }
-
-  async findById(id: string): Promise<TaxRegistrationDto> {
-    const row = await this.repository.findByIdWithJurisdiction(id);
-    if (!row) throw new NotFoundException('Tax registration not found.');
-    return TaxRegistrationDto.from(row);
-  }
-
   // Adds a registration for a country and, optionally, one of its jurisdictions; a GSTIN must name a state
   async create(data: CreateTaxRegistrationDto): Promise<CreateResponseDto<TaxRegistrationDto>> {
     const registration = { ...data, jurisdictionId: data.jurisdictionId ?? null };
@@ -108,6 +66,48 @@ export class TaxRegistrationsDomainService {
     if (data.isPrimary) await this.repository.clearPrimary(existing.legalEntityId, id);
 
     return { success: true, message: `"${registration.registrationNumber}" updated.` };
+  }
+
+  async findById(id: string): Promise<TaxRegistrationDto> {
+    const row = await this.repository.findByIdWithJurisdiction(id);
+    if (!row) throw new NotFoundException('Tax registration not found.');
+    return TaxRegistrationDto.from(row);
+  }
+
+  // Returns a page of registrations, limited to one legal entity when the caller names it
+  async findForTable(
+    page: TablePageRequest,
+    legalEntityId?: string,
+  ): Promise<{ result: TaxRegistrationDto[]; count: number }> {
+    const where = and(
+      legalEntityId ? eq(taxRegistrations.legalEntityId, legalEntityId) : undefined,
+      FilterProcessor.buildWhere(page.filters, TaxRegistrationsDomainService.FILTER_FIELD_MAP),
+      FilterProcessor.buildSearch(page.search, TaxRegistrationsDomainService.SEARCH_FIELD_MAP),
+    );
+    const orderBy = FilterProcessor.buildOrderBy(page.sort, {
+      ...TaxRegistrationsDomainService.SEARCH_FIELD_MAP,
+      ...TaxRegistrationsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = page.pagination;
+
+    const { result, count } = await this.repository.findForTable({
+      where: (where as SQL) || undefined,
+      orderBy:
+        orderBy.length > 0 ? orderBy : [asc(taxRegistrations.countryCode), asc(taxRegistrations.registrationNumber)],
+      limit,
+      offset,
+    });
+    return { result: result.map(TaxRegistrationDto.from), count };
+  }
+
+  async listByLegalEntity(legalEntityId?: string): Promise<TaxRegistrationDto[]> {
+    const rows = await this.repository.findByLegalEntity(legalEntityId);
+    return rows.map(TaxRegistrationDto.from);
+  }
+
+  async listAll(): Promise<TaxRegistrationDto[]> {
+    const rows = await this.repository.findAllInOrg();
+    return rows.map(TaxRegistrationDto.from);
   }
 
   // Removes a registration

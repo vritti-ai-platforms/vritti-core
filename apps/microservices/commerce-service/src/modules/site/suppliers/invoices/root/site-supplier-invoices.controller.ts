@@ -23,37 +23,6 @@ export class SiteSupplierInvoicesController {
     private readonly service: SupplierInvoicesService,
   ) {}
 
-  // Returns the supplier's invoices at the caller's site for the data table
-  @MessagePattern({ cmd: 'site.suppliers.invoices.table' })
-  table(
-    @Payload() data: { supplierId: string } & TableState,
-  ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
-    const { supplierId, ...state } = data;
-    this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
-    return this.invoicesService.findForTable(state, { supplierId });
-  }
-
-  // Returns one of the supplier's invoices with its lines and holds
-  @MessagePattern({ cmd: 'site.suppliers.invoices.findById' })
-  findById(
-    @Payload() data: { supplierId: string; id: string },
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<SupplierInvoiceDetailDto> {
-    this.logger.log(`site.suppliers.invoices.findById — supplierId: ${data.supplierId}, id: ${data.id}`);
-    return this.invoicesService.findById(data.id, leCurrencyCode, { supplierId: data.supplierId });
-  }
-
-  // Returns the supplier's posted receipt lots at the site still to invoice, for an invoice's line picker
-  @MessagePattern({ cmd: 'site.suppliers.invoices.invoiceableGoodsReceipts' })
-  invoiceableGoodsReceipts(
-    @Payload() query: InvoiceableGoodsReceiptsQueryDto,
-    @RpcSiteId() siteId: string,
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<InvoiceableGoodsReceiptDto[]> {
-    this.logger.log(`site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}`);
-    return this.invoicesService.findInvoiceableGoodsReceipts({ ...query, siteId }, leCurrencyCode);
-  }
-
   // Records a draft invoice of the supplier at the site
   @MessagePattern({ cmd: 'site.suppliers.invoices.create' })
   create(
@@ -87,5 +56,36 @@ export class SiteSupplierInvoicesController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`site.suppliers.invoices.post — id: ${data.id}`);
     return this.service.post(data.id, leCurrencyCode, headers.userId || null);
+  }
+
+  // Returns one of the supplier's invoices with its lines and holds
+  @MessagePattern({ cmd: 'site.suppliers.invoices.findById' })
+  findById(
+    @Payload() data: { supplierId: string; id: string },
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<SupplierInvoiceDetailDto> {
+    this.logger.log(`site.suppliers.invoices.findById — supplierId: ${data.supplierId}, id: ${data.id}`);
+    return this.invoicesService.findById(data.id, leCurrencyCode, { supplierId: data.supplierId });
+  }
+
+  // Returns the supplier's invoices at the caller's site for the data table
+  @MessagePattern({ cmd: 'site.suppliers.invoices.table' })
+  table(
+    @Payload() data: { supplierId: string } & TableState,
+  ): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
+    const { supplierId, ...state } = data;
+    this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
+    return this.invoicesService.findForTable(state, { supplierId });
+  }
+
+  // Returns the supplier's posted receipt lots at the site still to invoice, for an invoice's line picker
+  @MessagePattern({ cmd: 'site.suppliers.invoices.invoiceableGoodsReceipts' })
+  invoiceableGoodsReceipts(
+    @Payload() query: InvoiceableGoodsReceiptsQueryDto,
+    @RpcSiteId() siteId: string,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptDto[]> {
+    this.logger.log(`site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}`);
+    return this.invoicesService.findInvoiceableGoodsReceipts({ ...query, siteId }, leCurrencyCode);
   }
 }

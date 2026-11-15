@@ -26,6 +26,60 @@ export class TaxClassesDomainService {
 
   constructor(private readonly repository: TaxClassesDomainRepository) {}
 
+  // Creates a new tax class, rejecting duplicate codes
+  async create(data: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassDto>> {
+    const existing = await this.repository.findByCode(data.code);
+    if (existing) {
+      throw new ConflictException({
+        label: 'Code already exists',
+        detail: `A tax class with code "${data.code}" already exists.`,
+      });
+    }
+
+    const entity = await this.repository.create({
+      code: data.code,
+      name: data.name,
+      isActive: data.isActive ?? true,
+      isSystem: false,
+    });
+
+    this.logger.log(`Created tax class: ${entity.code}`);
+    return {
+      success: true,
+      message: `Tax class "${entity.name}" created successfully.`,
+      data: TaxClassDto.from(entity, true),
+    };
+  }
+
+  // Renames a tax class
+  async update(id: string, data: Omit<UpdateTaxClassDto, 'id'>): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Tax class not found.');
+
+    await this.repository.update(id, { name: data.name });
+
+    this.logger.log(`Updated tax class: ${existing.code} (${id})`);
+    return { success: true, message: `Tax class "${data.name}" updated successfully.` };
+  }
+
+  // Activates or deactivates a tax class
+  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
+    const existing = await this.repository.findById(id);
+    if (!existing) throw new NotFoundException('Tax class not found.');
+
+    await this.repository.update(id, { isActive });
+
+    this.logger.log(`${isActive ? 'Activated' : 'Deactivated'} tax class: ${existing.code} (${id})`);
+    return { success: true, message: `Tax class "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
+  }
+
+  // Returns a single tax class by ID
+  async findById(id: string): Promise<TaxClassDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Tax class not found.');
+    return TaxClassDto.from(entity, !entity.isSystem);
+  }
+
   // Returns paginated tax classes with the tax groups they map to in the context's country on the context's day; the
   // two pick the joined mappings, not the rows, and the field map leaves them out of the where
   async findForTable(state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
@@ -66,60 +120,6 @@ export class TaxClassesDomainService {
       orderByKey: query.orderByKey || 'name',
       orderDirection: query.orderDirection || 'asc',
     });
-  }
-
-  // Creates a new tax class, rejecting duplicate codes
-  async create(data: CreateTaxClassDto): Promise<CreateResponseDto<TaxClassDto>> {
-    const existing = await this.repository.findByCode(data.code);
-    if (existing) {
-      throw new ConflictException({
-        label: 'Code already exists',
-        detail: `A tax class with code "${data.code}" already exists.`,
-      });
-    }
-
-    const entity = await this.repository.create({
-      code: data.code,
-      name: data.name,
-      isActive: data.isActive ?? true,
-      isSystem: false,
-    });
-
-    this.logger.log(`Created tax class: ${entity.code}`);
-    return {
-      success: true,
-      message: `Tax class "${entity.name}" created successfully.`,
-      data: TaxClassDto.from(entity, true),
-    };
-  }
-
-  // Returns a single tax class by ID
-  async findById(id: string): Promise<TaxClassDto> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('Tax class not found.');
-    return TaxClassDto.from(entity, !entity.isSystem);
-  }
-
-  // Renames a tax class
-  async update(id: string, data: Omit<UpdateTaxClassDto, 'id'>): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Tax class not found.');
-
-    await this.repository.update(id, { name: data.name });
-
-    this.logger.log(`Updated tax class: ${existing.code} (${id})`);
-    return { success: true, message: `Tax class "${data.name}" updated successfully.` };
-  }
-
-  // Activates or deactivates a tax class
-  async setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
-    const existing = await this.repository.findById(id);
-    if (!existing) throw new NotFoundException('Tax class not found.');
-
-    await this.repository.update(id, { isActive });
-
-    this.logger.log(`${isActive ? 'Activated' : 'Deactivated'} tax class: ${existing.code} (${id})`);
-    return { success: true, message: `Tax class "${existing.name}" ${isActive ? 'activated' : 'deactivated'}.` };
   }
 
   // Deletes a tax class; rejects system rows

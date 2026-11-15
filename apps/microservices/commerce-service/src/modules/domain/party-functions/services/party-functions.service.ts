@@ -32,16 +32,6 @@ export class PartyFunctionsDomainService {
 
   constructor(private readonly repository: PartyFunctionsDomainRepository) {}
 
-  // Returns the relationship that holds a party's primary row for a contact-function, if one is set
-  findPrimaryRelationship(partyId: string, functionCode: PartyFunctionType): Promise<PartyRelationship | undefined> {
-    return this.repository.findPrimaryRelationship(partyId, functionCode);
-  }
-
-  // Returns true when the relationship already holds the given function
-  relationshipHasFunction(relationshipId: string, functionCode: PartyFunctionType): Promise<boolean> {
-    return this.repository.relationshipHasFunction(relationshipId, functionCode);
-  }
-
   // Upserts the function rows of one address, relationship or communication: inserts new, deletes removed, and
   // applies single-primary-per-function via clear-then-set (communication functions are never primary)
   async syncEntityFunctions(input: SyncEntityFunctionsInput): Promise<void> {
@@ -98,5 +88,15 @@ export class PartyFunctionsDomainService {
       }
     }
     this.logger.log(`Synced functions for party ${partyId} ${kind}`);
+  }
+
+  // Returns the relationship that holds a party's primary row for a contact-function, if one is set
+  findPrimaryRelationship(partyId: string, functionCode: PartyFunctionType): Promise<PartyRelationship | undefined> {
+    return this.repository.findPrimaryRelationship(partyId, functionCode);
+  }
+
+  // Returns true when the relationship already holds the given function
+  relationshipHasFunction(relationshipId: string, functionCode: PartyFunctionType): Promise<boolean> {
+    return this.repository.relationshipHasFunction(relationshipId, functionCode);
   }
 }

@@ -86,20 +86,6 @@ export class PurchaseProgressService {
     private readonly invoicesService: SupplierInvoicesDomainService,
   ) {}
 
-  // Gathers each leg's documents and the facts its step and actions derive from, in the order of the given legs
-  async findFulfilment(purchase: PurchaseRow, legs: ProgressLeg[]): Promise<PurchaseLegFulfilment[]> {
-    const documents = await this.findDocuments(purchase.id);
-    const fulfilment: PurchaseLegFulfilment[] = [];
-    for (const leg of legs) fulfilment.push(await this.legFulfilment(purchase, leg, documents));
-    return fulfilment;
-  }
-
-  // Gathers one leg's documents and fulfilment facts
-  async findLegFulfilment(purchase: PurchaseRow, leg: ProgressLeg): Promise<PurchaseLegFulfilment> {
-    const [fulfilment] = await this.findFulfilment(purchase, [leg]);
-    return fulfilment;
-  }
-
   // Records a leg event and re-derives the leg's step from its documents, in the caller's transaction; a leg that is now
   // received and invoiced closes and the purchase completes once every leg is closed
   async recordLegEvent(
@@ -178,6 +164,20 @@ export class PurchaseProgressService {
         actorId,
       );
     }
+  }
+
+  // Gathers each leg's documents and the facts its step and actions derive from, in the order of the given legs
+  async findFulfilment(purchase: PurchaseRow, legs: ProgressLeg[]): Promise<PurchaseLegFulfilment[]> {
+    const documents = await this.findDocuments(purchase.id);
+    const fulfilment: PurchaseLegFulfilment[] = [];
+    for (const leg of legs) fulfilment.push(await this.legFulfilment(purchase, leg, documents));
+    return fulfilment;
+  }
+
+  // Gathers one leg's documents and fulfilment facts
+  async findLegFulfilment(purchase: PurchaseRow, leg: ProgressLeg): Promise<PurchaseLegFulfilment> {
+    const [fulfilment] = await this.findFulfilment(purchase, [leg]);
+    return fulfilment;
   }
 
   // Loads every document a purchase created or its lines invoice, with the lines of its live POs and what they still have

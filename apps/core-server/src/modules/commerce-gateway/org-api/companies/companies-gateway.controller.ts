@@ -65,14 +65,6 @@ export class CompaniesGatewayController {
 
   constructor(private readonly service: CompaniesGatewayService) {}
 
-  // Returns paginated companies for the data table
-  @Get('table')
-  @RequirePermission(ORG_COMPANIES.view)
-  getTable(@UserId() userId: string): Promise<CompanyTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/companies/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a new company
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -80,17 +72,6 @@ export class CompaniesGatewayController {
   create(@Body() dto: CreateCompanyDto): Promise<CreateResponseDto<CompanyResponseDto>> {
     this.logger.log('POST /commerce-api/org/companies');
     return this.service.create(dto);
-  }
-
-  // Returns the linked people of a company for the data table
-  @Get(':id/people/table')
-  @RequirePermission(ORG_COMPANIES.people.view)
-  listPeople(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<CompanyPersonTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/people/table`);
-    return this.service.listPeople(id, userId);
   }
 
   // Links a person to a company
@@ -105,40 +86,6 @@ export class CompaniesGatewayController {
     return this.service.addPerson(id, dto);
   }
 
-  // Updates a company-person relationship
-  @Patch(':id/people/:relationshipId')
-  @RequirePermission(ORG_COMPANIES.people.edit)
-  updatePerson(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
-    @Body() dto: UpdateCompanyPersonDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/people/${relationshipId}`);
-    return this.service.updatePerson(relationshipId, dto);
-  }
-
-  // Removes a company-person relationship
-  @Delete(':id/people/:relationshipId')
-  @RequirePermission(ORG_COMPANIES.people.delete)
-  removePerson(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/people/${relationshipId}`);
-    return this.service.removePerson(relationshipId);
-  }
-
-  // Returns the tax registrations of a company for the data table
-  @Get(':id/registrations/table')
-  @RequirePermission(ORG_COMPANIES.registrations.view)
-  listRegistrations(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<CompanyRegistrationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/registrations/table`);
-    return this.service.listRegistrations(id, userId);
-  }
-
   // Creates a tax registration for a company
   @Post(':id/registrations')
   @HttpCode(HttpStatus.CREATED)
@@ -149,52 +96,6 @@ export class CompaniesGatewayController {
   ): Promise<CreateResponseDto<CompanyRegistrationResponseDto>> {
     this.logger.log(`POST /commerce-api/org/companies/${id}/registrations`);
     return this.service.createRegistration(id, dto);
-  }
-
-  // Updates a company tax registration
-  @Patch(':id/registrations/:regId')
-  @RequirePermission(ORG_COMPANIES.registrations.edit)
-  updateRegistration(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('regId', new ParseUUIDPipe()) regId: string,
-    @Body() dto: UpdateCompanyRegistrationDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}`);
-    return this.service.updateRegistration(regId, dto);
-  }
-
-  // Activates or retires a company tax registration
-  @Patch(':id/registrations/:regId/active')
-  @RequirePermission(ORG_COMPANIES.registrations.edit)
-  setRegistrationActive(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('regId', new ParseUUIDPipe()) regId: string,
-    @Body() dto: SetRegistrationActiveDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}/active`);
-    return this.service.setRegistrationActive(regId, dto.isActive);
-  }
-
-  // Deletes a company tax registration
-  @Delete(':id/registrations/:regId')
-  @RequirePermission(ORG_COMPANIES.registrations.delete)
-  deleteRegistration(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('regId', new ParseUUIDPipe()) regId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/registrations/${regId}`);
-    return this.service.deleteRegistration(regId);
-  }
-
-  // Returns the identifiers of a company for the data table
-  @Get(':id/identifiers/table')
-  @RequirePermission(ORG_COMPANIES.identifiers.view)
-  listIdentifiers(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartyIdentifierTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/identifiers/table`);
-    return this.service.listIdentifiers(id, userId);
   }
 
   // Adds an identifier to a company
@@ -209,28 +110,6 @@ export class CompaniesGatewayController {
     return this.service.addIdentifier(id, dto);
   }
 
-  // Removes an identifier from a company
-  @Delete(':id/identifiers/:identifierId')
-  @RequirePermission(ORG_COMPANIES.identifiers.delete)
-  removeIdentifier(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/identifiers/${identifierId}`);
-    return this.service.removeIdentifier(identifierId);
-  }
-
-  // Returns the addresses of a company for the data table
-  @Get(':id/addresses/table')
-  @RequirePermission(ORG_COMPANIES.addresses.view)
-  listAddresses(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartyAddressTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/addresses/table`);
-    return this.service.listAddresses(id, userId);
-  }
-
   // Adds an address to a company
   @Post(':id/addresses')
   @HttpCode(HttpStatus.CREATED)
@@ -241,40 +120,6 @@ export class CompaniesGatewayController {
   ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
     this.logger.log(`POST /commerce-api/org/companies/${id}/addresses`);
     return this.service.addAddress(id, dto);
-  }
-
-  // Updates an address of a company
-  @Patch(':id/addresses/:addressId')
-  @RequirePermission(ORG_COMPANIES.addresses.edit)
-  updateAddress(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('addressId', new ParseUUIDPipe()) addressId: string,
-    @Body() dto: UpdateCompanyAddressDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/addresses/${addressId}`);
-    return this.service.updateAddress(addressId, dto);
-  }
-
-  // Removes an address from a company
-  @Delete(':id/addresses/:addressId')
-  @RequirePermission(ORG_COMPANIES.addresses.delete)
-  removeAddress(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('addressId', new ParseUUIDPipe()) addressId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/addresses/${addressId}`);
-    return this.service.removeAddress(addressId);
-  }
-
-  // Returns the licenses of a company for the data table
-  @Get(':id/licenses/table')
-  @RequirePermission(ORG_COMPANIES.licenses.view)
-  listLicenses(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartyLicenseTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/licenses/table`);
-    return this.service.listLicenses(id, userId);
   }
 
   // Creates a license for a company
@@ -289,40 +134,6 @@ export class CompaniesGatewayController {
     return this.service.createLicense(id, dto);
   }
 
-  // Updates a company license
-  @Patch(':id/licenses/:licenseId')
-  @RequirePermission(ORG_COMPANIES.licenses.edit)
-  updateLicense(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
-    @Body() dto: UpdateCompanyLicenseDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/licenses/${licenseId}`);
-    return this.service.updateLicense(licenseId, dto);
-  }
-
-  // Deletes a company license
-  @Delete(':id/licenses/:licenseId')
-  @RequirePermission(ORG_COMPANIES.licenses.delete)
-  deleteLicense(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/licenses/${licenseId}`);
-    return this.service.deleteLicense(licenseId);
-  }
-
-  // Returns the bank accounts of a company for the data table
-  @Get(':id/bank-accounts/table')
-  @RequirePermission(ORG_COMPANIES.bankAccounts.view)
-  listBankAccounts(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartyBankAccountTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/bank-accounts/table`);
-    return this.service.listBankAccounts(id, userId);
-  }
-
   // Creates a bank account for a company
   @Post(':id/bank-accounts')
   @HttpCode(HttpStatus.CREATED)
@@ -333,40 +144,6 @@ export class CompaniesGatewayController {
   ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
     this.logger.log(`POST /commerce-api/org/companies/${id}/bank-accounts`);
     return this.service.createBankAccount(id, dto);
-  }
-
-  // Updates a company bank account
-  @Patch(':id/bank-accounts/:accountId')
-  @RequirePermission(ORG_COMPANIES.bankAccounts.edit)
-  updateBankAccount(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('accountId', new ParseUUIDPipe()) accountId: string,
-    @Body() dto: UpdateCompanyBankAccountDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
-    return this.service.updateBankAccount(accountId, dto);
-  }
-
-  // Deletes a company bank account
-  @Delete(':id/bank-accounts/:accountId')
-  @RequirePermission(ORG_COMPANIES.bankAccounts.delete)
-  deleteBankAccount(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('accountId', new ParseUUIDPipe()) accountId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
-    return this.service.deleteBankAccount(accountId);
-  }
-
-  // Returns the communications of a company for the data table
-  @Get(':id/communications/table')
-  @RequirePermission(ORG_COMPANIES.communications.view)
-  listCommunications(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartyCommunicationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/communications/table`);
-    return this.service.listCommunications(id, userId);
   }
 
   // Creates a communication for a company
@@ -381,40 +158,6 @@ export class CompaniesGatewayController {
     return this.service.createCommunication(id, dto);
   }
 
-  // Updates a company communication
-  @Patch(':id/communications/:communicationId')
-  @RequirePermission(ORG_COMPANIES.communications.edit)
-  updateCommunication(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
-    @Body() dto: UpdateCompanyCommunicationDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}/communications/${communicationId}`);
-    return this.service.updateCommunication(communicationId, dto);
-  }
-
-  // Deletes a company communication
-  @Delete(':id/communications/:communicationId')
-  @RequirePermission(ORG_COMPANIES.communications.delete)
-  deleteCommunication(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/communications/${communicationId}`);
-    return this.service.deleteCommunication(communicationId);
-  }
-
-  // Returns the social profiles of a company for the data table
-  @Get(':id/social-profiles/table')
-  @RequirePermission(ORG_COMPANIES.socialProfiles.view)
-  listSocialProfiles(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @UserId() userId: string,
-  ): Promise<PartySocialProfileTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/companies/${id}/social-profiles/table`);
-    return this.service.listSocialProfiles(id, userId);
-  }
-
   // Creates a social profile for a company
   @Post(':id/social-profiles')
   @HttpCode(HttpStatus.CREATED)
@@ -425,6 +168,86 @@ export class CompaniesGatewayController {
   ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
     this.logger.log(`POST /commerce-api/org/companies/${id}/social-profiles`);
     return this.service.createSocialProfile(id, dto);
+  }
+
+  // Updates a company by ID
+  @Patch(':id')
+  @RequirePermission(ORG_COMPANIES.edit)
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}`);
+    return this.service.update(id, dto);
+  }
+
+  // Updates a company-person relationship
+  @Patch(':id/people/:relationshipId')
+  @RequirePermission(ORG_COMPANIES.people.edit)
+  updatePerson(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
+    @Body() dto: UpdateCompanyPersonDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/people/${relationshipId}`);
+    return this.service.updatePerson(relationshipId, dto);
+  }
+
+  // Updates a company tax registration
+  @Patch(':id/registrations/:regId')
+  @RequirePermission(ORG_COMPANIES.registrations.edit)
+  updateRegistration(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('regId', new ParseUUIDPipe()) regId: string,
+    @Body() dto: UpdateCompanyRegistrationDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}`);
+    return this.service.updateRegistration(regId, dto);
+  }
+
+  // Updates an address of a company
+  @Patch(':id/addresses/:addressId')
+  @RequirePermission(ORG_COMPANIES.addresses.edit)
+  updateAddress(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('addressId', new ParseUUIDPipe()) addressId: string,
+    @Body() dto: UpdateCompanyAddressDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/addresses/${addressId}`);
+    return this.service.updateAddress(addressId, dto);
+  }
+
+  // Updates a company license
+  @Patch(':id/licenses/:licenseId')
+  @RequirePermission(ORG_COMPANIES.licenses.edit)
+  updateLicense(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
+    @Body() dto: UpdateCompanyLicenseDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/licenses/${licenseId}`);
+    return this.service.updateLicense(licenseId, dto);
+  }
+
+  // Updates a company bank account
+  @Patch(':id/bank-accounts/:accountId')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.edit)
+  updateBankAccount(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+    @Body() dto: UpdateCompanyBankAccountDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
+    return this.service.updateBankAccount(accountId, dto);
+  }
+
+  // Updates a company communication
+  @Patch(':id/communications/:communicationId')
+  @RequirePermission(ORG_COMPANIES.communications.edit)
+  updateCommunication(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
+    @Body() dto: UpdateCompanyCommunicationDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/communications/${communicationId}`);
+    return this.service.updateCommunication(communicationId, dto);
   }
 
   // Updates a company social profile
@@ -439,15 +262,16 @@ export class CompaniesGatewayController {
     return this.service.updateSocialProfile(profileId, dto);
   }
 
-  // Deletes a company social profile
-  @Delete(':id/social-profiles/:profileId')
-  @RequirePermission(ORG_COMPANIES.socialProfiles.delete)
-  deleteSocialProfile(
+  // Activates or retires a company tax registration
+  @Patch(':id/registrations/:regId/active')
+  @RequirePermission(ORG_COMPANIES.registrations.edit)
+  setRegistrationActive(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+    @Param('regId', new ParseUUIDPipe()) regId: string,
+    @Body() dto: SetRegistrationActiveDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/companies/${id}/social-profiles/${profileId}`);
-    return this.service.deleteSocialProfile(profileId);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}/active`);
+    return this.service.setRegistrationActive(regId, dto.isActive);
   }
 
   // Returns a company by ID
@@ -458,12 +282,100 @@ export class CompaniesGatewayController {
     return this.service.findById(id);
   }
 
-  // Updates a company by ID
-  @Patch(':id')
-  @RequirePermission(ORG_COMPANIES.edit)
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/companies/${id}`);
-    return this.service.update(id, dto);
+  // Returns paginated companies for the data table
+  @Get('table')
+  @RequirePermission(ORG_COMPANIES.view)
+  getTable(@UserId() userId: string): Promise<CompanyTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/companies/table');
+    return this.service.findForTable(userId);
+  }
+
+  // Returns the linked people of a company for the data table
+  @Get(':id/people/table')
+  @RequirePermission(ORG_COMPANIES.people.view)
+  listPeople(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<CompanyPersonTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/people/table`);
+    return this.service.listPeople(id, userId);
+  }
+
+  // Returns the tax registrations of a company for the data table
+  @Get(':id/registrations/table')
+  @RequirePermission(ORG_COMPANIES.registrations.view)
+  listRegistrations(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<CompanyRegistrationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/registrations/table`);
+    return this.service.listRegistrations(id, userId);
+  }
+
+  // Returns the identifiers of a company for the data table
+  @Get(':id/identifiers/table')
+  @RequirePermission(ORG_COMPANIES.identifiers.view)
+  listIdentifiers(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyIdentifierTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/identifiers/table`);
+    return this.service.listIdentifiers(id, userId);
+  }
+
+  // Returns the addresses of a company for the data table
+  @Get(':id/addresses/table')
+  @RequirePermission(ORG_COMPANIES.addresses.view)
+  listAddresses(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyAddressTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/addresses/table`);
+    return this.service.listAddresses(id, userId);
+  }
+
+  // Returns the licenses of a company for the data table
+  @Get(':id/licenses/table')
+  @RequirePermission(ORG_COMPANIES.licenses.view)
+  listLicenses(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyLicenseTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/licenses/table`);
+    return this.service.listLicenses(id, userId);
+  }
+
+  // Returns the bank accounts of a company for the data table
+  @Get(':id/bank-accounts/table')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.view)
+  listBankAccounts(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyBankAccountTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/bank-accounts/table`);
+    return this.service.listBankAccounts(id, userId);
+  }
+
+  // Returns the communications of a company for the data table
+  @Get(':id/communications/table')
+  @RequirePermission(ORG_COMPANIES.communications.view)
+  listCommunications(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartyCommunicationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/communications/table`);
+    return this.service.listCommunications(id, userId);
+  }
+
+  // Returns the social profiles of a company for the data table
+  @Get(':id/social-profiles/table')
+  @RequirePermission(ORG_COMPANIES.socialProfiles.view)
+  listSocialProfiles(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PartySocialProfileTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/social-profiles/table`);
+    return this.service.listSocialProfiles(id, userId);
   }
 
   // Deletes a company by ID
@@ -472,5 +384,93 @@ export class CompaniesGatewayController {
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/companies/${id}`);
     return this.service.delete(id);
+  }
+
+  // Removes a company-person relationship
+  @Delete(':id/people/:relationshipId')
+  @RequirePermission(ORG_COMPANIES.people.delete)
+  removePerson(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/people/${relationshipId}`);
+    return this.service.removePerson(relationshipId);
+  }
+
+  // Deletes a company tax registration
+  @Delete(':id/registrations/:regId')
+  @RequirePermission(ORG_COMPANIES.registrations.delete)
+  deleteRegistration(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('regId', new ParseUUIDPipe()) regId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/registrations/${regId}`);
+    return this.service.deleteRegistration(regId);
+  }
+
+  // Removes an identifier from a company
+  @Delete(':id/identifiers/:identifierId')
+  @RequirePermission(ORG_COMPANIES.identifiers.delete)
+  removeIdentifier(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/identifiers/${identifierId}`);
+    return this.service.removeIdentifier(identifierId);
+  }
+
+  // Removes an address from a company
+  @Delete(':id/addresses/:addressId')
+  @RequirePermission(ORG_COMPANIES.addresses.delete)
+  removeAddress(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('addressId', new ParseUUIDPipe()) addressId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/addresses/${addressId}`);
+    return this.service.removeAddress(addressId);
+  }
+
+  // Deletes a company license
+  @Delete(':id/licenses/:licenseId')
+  @RequirePermission(ORG_COMPANIES.licenses.delete)
+  deleteLicense(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/licenses/${licenseId}`);
+    return this.service.deleteLicense(licenseId);
+  }
+
+  // Deletes a company bank account
+  @Delete(':id/bank-accounts/:accountId')
+  @RequirePermission(ORG_COMPANIES.bankAccounts.delete)
+  deleteBankAccount(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('accountId', new ParseUUIDPipe()) accountId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
+    return this.service.deleteBankAccount(accountId);
+  }
+
+  // Deletes a company communication
+  @Delete(':id/communications/:communicationId')
+  @RequirePermission(ORG_COMPANIES.communications.delete)
+  deleteCommunication(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/communications/${communicationId}`);
+    return this.service.deleteCommunication(communicationId);
+  }
+
+  // Deletes a company social profile
+  @Delete(':id/social-profiles/:profileId')
+  @RequirePermission(ORG_COMPANIES.socialProfiles.delete)
+  deleteSocialProfile(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('profileId', new ParseUUIDPipe()) profileId: string,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/social-profiles/${profileId}`);
+    return this.service.deleteSocialProfile(profileId);
   }
 }

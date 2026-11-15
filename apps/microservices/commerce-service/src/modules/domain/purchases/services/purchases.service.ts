@@ -87,58 +87,6 @@ export class PurchasesDomainService {
 
   constructor(private readonly repository: PurchasesDomainRepository) {}
 
-  // Returns one page of purchases with their progress through their step
-  async findForTable(state: TableState): Promise<{ result: PurchaseTableRowDto[]; count: number }> {
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchasesDomainService.SORT_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findForTable({
-      where: and(
-        FilterProcessor.buildWhere(state.filters, PurchasesDomainService.FILTER_FIELD_MAP),
-        FilterProcessor.buildSearch(state.search, PurchasesDomainService.SEARCH_FIELD_MAP),
-      ),
-      orderBy: orderBy.length > 0 ? orderBy : [desc(purchases.createdAt)],
-      limit,
-      offset,
-    });
-    return { result: result.map(PurchaseTableRowDto.from), count };
-  }
-
-  // Returns paginated purchase options, newest first; the `stage` description is the step while open and the status once closed
-  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    const describesStage = !query.descriptionKey || query.descriptionKey === 'stage';
-    return this.repository.findForSelect({
-      ...selectPageOptions(query),
-      value: query.valueKey || 'id',
-      label: query.labelKey || 'purchaseNumber',
-      description: describesStage ? PurchasesDomainService.STAGE_LABEL : query.descriptionKey,
-      additionalKeys: query.additionalKeys,
-      groupIdKey: query.groupIdKey,
-      searchKeys: ['purchaseNumber'],
-      orderByKey: query.orderByKey || 'createdAt',
-      orderDirection: query.orderDirection || 'desc',
-    });
-  }
-
-  // Returns one purchase header
-  async findById(id: string): Promise<PurchaseDto> {
-    return PurchaseDto.from(await this.findDetailOrThrow(id));
-  }
-
-  // Loads a purchase with its item count and quantities, throwing when it is out of reach
-  async findDetailOrThrow(id: string): Promise<PurchaseRow> {
-    const purchase = await this.repository.findDetail(id);
-    if (!purchase) throw new NotFoundException('Purchase not found.');
-    return purchase;
-  }
-
-  // Loads a purchase with its counts, progress and leg and allocation facts, throwing when it is out of reach
-  async findHeaderOrThrow(id: string): Promise<PurchaseHeaderRow> {
-    const purchase = await this.repository.findHeader(id);
-    if (!purchase) throw new NotFoundException('Purchase not found.');
-    return purchase;
-  }
-
   // Opens a purchase in REQUESTING at the given site; the caller adds its items in the same transaction
   async create(dto: CreatePurchaseDto, context: PurchaseCreateContext): Promise<Purchase> {
     const purchaseNumber = await this.repository.generatePurchaseNumber();
@@ -181,11 +129,6 @@ export class PurchasesDomainService {
     return step;
   }
 
-  // Rejects a quotation request unless the purchase is collecting quotations
-  assertCollectingQuotations(purchase: PurchaseState): void {
-    this.assertInStep(purchase, [PurchaseStepValues.QUOTING], 'Cannot Request Quotation');
-  }
-
   // Moves a purchase collecting quotations to SOURCING once enough suppliers have posted one
   async completeQuotations(purchase: PurchaseRow, postedSupplierCount: number): Promise<void> {
     this.assertInStep(purchase, [PurchaseStepValues.QUOTING], 'Cannot Complete Quotations');
@@ -224,20 +167,69 @@ export class PurchasesDomainService {
     this.logger.log(`Cancelled purchase ${purchase.purchaseNumber}`);
   }
 
-  // Deletes a purchase nothing exists behind yet; its items, events and legs go with it on the foreign keys
-  async delete(purchase: PurchaseRow, facts: PurchaseDeleteFacts): Promise<void> {
-    const blocker = this.deleteBlocker(purchase, facts);
-    if (blocker) throw new ConflictException({ label: 'Cannot Delete Purchase', detail: blocker });
-    await this.repository.delete(purchase.id);
-    this.logger.log(`Deleted purchase ${purchase.purchaseNumber}`);
-  }
-
   // Completes an open purchase once every one of its legs is closed, in the caller's transaction; returns whether it did
   async completeIfLegsClosed(purchase: PurchaseState & Pick<Purchase, 'id'>, allLegsClosed: boolean): Promise<boolean> {
     if (purchase.status !== PurchaseStatusValues.OPEN || !allLegsClosed) return false;
     await this.repository.update(purchase.id, { status: PurchaseStatusValues.COMPLETED, completedAt: new Date() });
     this.logger.log(`Completed purchase ${purchase.purchaseNumber}`);
     return true;
+  }
+
+  // Returns one purchase header
+  async findById(id: string): Promise<PurchaseDto> {
+    return PurchaseDto.from(await this.findDetailOrThrow(id));
+  }
+
+  // Returns one page of purchases with their progress through their step
+  async findForTable(state: TableState): Promise<{ result: PurchaseTableRowDto[]; count: number }> {
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchasesDomainService.SORT_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findForTable({
+      where: and(
+        FilterProcessor.buildWhere(state.filters, PurchasesDomainService.FILTER_FIELD_MAP),
+        FilterProcessor.buildSearch(state.search, PurchasesDomainService.SEARCH_FIELD_MAP),
+      ),
+      orderBy: orderBy.length > 0 ? orderBy : [desc(purchases.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(PurchaseTableRowDto.from), count };
+  }
+
+  // Returns paginated purchase options, newest first; the `stage` description is the step while open and the status once closed
+  findForSelect(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
+    const describesStage = !query.descriptionKey || query.descriptionKey === 'stage';
+    return this.repository.findForSelect({
+      ...selectPageOptions(query),
+      value: query.valueKey || 'id',
+      label: query.labelKey || 'purchaseNumber',
+      description: describesStage ? PurchasesDomainService.STAGE_LABEL : query.descriptionKey,
+      additionalKeys: query.additionalKeys,
+      groupIdKey: query.groupIdKey,
+      searchKeys: ['purchaseNumber'],
+      orderByKey: query.orderByKey || 'createdAt',
+      orderDirection: query.orderDirection || 'desc',
+    });
+  }
+
+  // Loads a purchase with its item count and quantities, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<PurchaseRow> {
+    const purchase = await this.repository.findDetail(id);
+    if (!purchase) throw new NotFoundException('Purchase not found.');
+    return purchase;
+  }
+
+  // Loads a purchase with its counts, progress and leg and allocation facts, throwing when it is out of reach
+  async findHeaderOrThrow(id: string): Promise<PurchaseHeaderRow> {
+    const purchase = await this.repository.findHeader(id);
+    if (!purchase) throw new NotFoundException('Purchase not found.');
+    return purchase;
+  }
+
+  // Rejects a quotation request unless the purchase is collecting quotations
+  assertCollectingQuotations(purchase: PurchaseState): void {
+    this.assertInStep(purchase, [PurchaseStepValues.QUOTING], 'Cannot Request Quotation');
   }
 
   // Rejects a change a manual feature would make to a document a purchase created or completes (409)
@@ -270,6 +262,14 @@ export class PurchasesDomainService {
       actions.push(PurchaseActionValues.SUBMIT);
     }
     return actions;
+  }
+
+  // Deletes a purchase nothing exists behind yet; its items, events and legs go with it on the foreign keys
+  async delete(purchase: PurchaseRow, facts: PurchaseDeleteFacts): Promise<void> {
+    const blocker = this.deleteBlocker(purchase, facts);
+    if (blocker) throw new ConflictException({ label: 'Cannot Delete Purchase', detail: blocker });
+    await this.repository.delete(purchase.id);
+    this.logger.log(`Deleted purchase ${purchase.purchaseNumber}`);
   }
 
   // Explains what keeps a purchase from being deleted, or returns null while it is open in REQUESTING with no quotations,

@@ -162,14 +162,6 @@ export class CheckoutsDomainService {
     });
   }
 
-  // The party's open checkout, if its window is still open — what core checks before a new one replaces it, and what
-  // the storefront's "checkout in progress" card shows
-  async findOpen(dto: FindOpenCheckoutDto): Promise<{ checkout: CheckoutStatusDto | null }> {
-    const open = await this.repository.findOpenByParty(dto.partyId);
-    if (!open || open.expiresAt.getTime() <= Date.now()) return { checkout: null };
-    return { checkout: CheckoutStatusDto.from(open, await this.repository.findLines(open.id), []) };
-  }
-
   // Expires the open checkouts whose window closed unpaid. A checkout ends only by its own deadline: one payment
   // intent ending says nothing about it, since another may still be open
   async expireStale(limit = EXPIRE_BATCH): Promise<{ cancelled: number }> {
@@ -355,6 +347,22 @@ export class CheckoutsDomainService {
     }));
   }
 
+  // The party's open checkout, if its window is still open — what core checks before a new one replaces it, and what
+  // the storefront's "checkout in progress" card shows
+  async findOpen(dto: FindOpenCheckoutDto): Promise<{ checkout: CheckoutStatusDto | null }> {
+    const open = await this.repository.findOpenByParty(dto.partyId);
+    if (!open || open.expiresAt.getTime() <= Date.now()) return { checkout: null };
+    return { checkout: CheckoutStatusDto.from(open, await this.repository.findLines(open.id), []) };
+  }
+
+  // Where a party's checkout stands, with the orders it has become — what a return page shows. Another party's is
+  // not found
+  async get(checkoutId: string, partyId: string): Promise<CheckoutStatusDto> {
+    const checkout = await this.requireById(checkoutId);
+    if (checkout.partyId !== partyId) throw new NotFoundException('Checkout not found.');
+    return this.statusOf(checkout);
+  }
+
   // Changes an open checkout under its row lock, so a payment completing at the same moment sees either the old or
   // the new values, never half of each. A checkout paid, ended or past its window is refused
   private async updateOpen(
@@ -374,14 +382,6 @@ export class CheckoutsDomainService {
       const updated = await this.repository.update(checkout.id, await change());
       return CheckoutStatusDto.from(updated, await this.repository.findLines(checkout.id), []);
     });
-  }
-
-  // Where a party's checkout stands, with the orders it has become — what a return page shows. Another party's is
-  // not found
-  async get(checkoutId: string, partyId: string): Promise<CheckoutStatusDto> {
-    const checkout = await this.requireById(checkoutId);
-    if (checkout.partyId !== partyId) throw new NotFoundException('Checkout not found.');
-    return this.statusOf(checkout);
   }
 
   private async requireById(id: string): Promise<Checkout> {

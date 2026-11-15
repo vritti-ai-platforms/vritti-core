@@ -43,24 +43,6 @@ export class OrdersDomainService {
 
   constructor(private readonly repository: OrdersDomainRepository) {}
 
-  // Returns paginated orders for the data table
-  async findForTable(state: TableState): Promise<{ result: OrderDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersDomainService.FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, OrdersDomainService.FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersDomainService.FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findAllAndCount({
-      where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(orders.createdAt)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map(OrderDto.from), count };
-  }
-
   // Creates a new order with items, denormalizing catalog data. Priced in the store's currency, which the caller
   // reads from the request's site context
   async create(data: CreateOrderDto, currencyCode: string): Promise<OrderDto> {
@@ -169,15 +151,6 @@ export class OrdersDomainService {
     return entity;
   }
 
-  // Returns order detail with items
-  async findById(id: string): Promise<OrderDetailDto> {
-    const entity = await this.repository.findById(id);
-    if (!entity) throw new NotFoundException('Order not found.');
-
-    const itemRows = await this.repository.findItemsByOrderId(id);
-    return OrderDetailDto.fromDetail(entity, itemRows.map(OrderItemDto.from));
-  }
-
   // Transitions order to a new status with validation
   async updateStatus(id: string, data: Omit<UpdateOrderStatusDto, 'id'>): Promise<OrderDto> {
     const existing = await this.repository.findById(id);
@@ -208,6 +181,33 @@ export class OrdersDomainService {
     const entity = await this.repository.update(id, updatePayload);
     this.logger.log(`Updated order status: ${entity.orderNumber} -> ${data.status}`);
     return OrderDto.from(entity);
+  }
+
+  // Returns order detail with items
+  async findById(id: string): Promise<OrderDetailDto> {
+    const entity = await this.repository.findById(id);
+    if (!entity) throw new NotFoundException('Order not found.');
+
+    const itemRows = await this.repository.findItemsByOrderId(id);
+    return OrderDetailDto.fromDetail(entity, itemRows.map(OrderItemDto.from));
+  }
+
+  // Returns paginated orders for the data table
+  async findForTable(state: TableState): Promise<{ result: OrderDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, OrdersDomainService.FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, OrdersDomainService.FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, OrdersDomainService.FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findAllAndCount({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(orders.createdAt)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map(OrderDto.from), count };
   }
 
   // Builds denormalized order item rows using the variant's own price

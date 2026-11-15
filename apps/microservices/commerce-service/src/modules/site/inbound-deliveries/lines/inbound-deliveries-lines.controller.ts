@@ -17,16 +17,6 @@ export class InboundDeliveriesLinesController {
     private readonly service: InboundDeliveriesLinesService,
   ) {}
 
-  // Returns one page of an inbound delivery's lines
-  @MessagePattern({ cmd: 'site.inboundDeliveries.lines.table' })
-  table(
-    @Payload() data: { inboundDeliveryId: string } & TableState,
-  ): Promise<{ result: InboundDeliveryLineDto[]; count: number }> {
-    this.logger.log(`site.inboundDeliveries.lines.table — inboundDeliveryId: ${data.inboundDeliveryId}`);
-    const { inboundDeliveryId, ...state } = data;
-    return this.linesService.findForTable(inboundDeliveryId, state);
-  }
-
   // Puts purchase order lines on an inbound delivery
   @MessagePattern({ cmd: 'site.inboundDeliveries.lines.add' })
   add(@Payload() dto: AddInboundDeliveryLinesDto): Promise<SuccessResponseDto> {
@@ -43,6 +33,16 @@ export class InboundDeliveriesLinesController {
       `site.inboundDeliveries.lines.update — inboundDeliveryId: ${dto.inboundDeliveryId}, line: ${dto.lineId}`,
     );
     return this.service.updateLine(dto);
+  }
+
+  // Returns one page of an inbound delivery's lines
+  @MessagePattern({ cmd: 'site.inboundDeliveries.lines.table' })
+  table(
+    @Payload() data: { inboundDeliveryId: string } & TableState,
+  ): Promise<{ result: InboundDeliveryLineDto[]; count: number }> {
+    this.logger.log(`site.inboundDeliveries.lines.table — inboundDeliveryId: ${data.inboundDeliveryId}`);
+    const { inboundDeliveryId, ...state } = data;
+    return this.linesService.findForTable(inboundDeliveryId, state);
   }
 
   // Removes a line from an inbound delivery

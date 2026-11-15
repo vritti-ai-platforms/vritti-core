@@ -13,18 +13,18 @@ export class PeopleController {
 
   constructor(private readonly service: PeopleService) {}
 
-  // Returns paginated PERSON parties for the people table
-  @MessagePattern({ cmd: 'org.people.table' })
-  async table(@Payload() state: TableState): Promise<{ result: PersonDto[]; count: number }> {
-    this.logger.log('people.table');
-    return this.service.findForTable(state);
-  }
-
   // Creates a PERSON party (display name derived from first/last) with an optional primary identifier
   @MessagePattern({ cmd: 'org.people.create' })
   async create(@Payload() dto: CreatePersonDto): Promise<CreateResponseDto<PersonDto>> {
     this.logger.log(`people.create — ${dto.firstName} ${dto.lastName ?? ''}`);
     return this.service.create(dto);
+  }
+
+  // Updates a person by ID
+  @MessagePattern({ cmd: 'org.people.update' })
+  async update(@Payload() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
+    this.logger.log(`people.update — id: ${dto.id}`);
+    return this.service.update(dto);
   }
 
   // Finds a person by ID
@@ -34,11 +34,11 @@ export class PeopleController {
     return this.service.findById(data.id);
   }
 
-  // Updates a person by ID
-  @MessagePattern({ cmd: 'org.people.update' })
-  async update(@Payload() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
-    this.logger.log(`people.update — id: ${dto.id}`);
-    return this.service.update(dto);
+  // Returns paginated PERSON parties for the people table
+  @MessagePattern({ cmd: 'org.people.table' })
+  async table(@Payload() state: TableState): Promise<{ result: PersonDto[]; count: number }> {
+    this.logger.log('people.table');
+    return this.service.findForTable(state);
   }
 
   // Deletes a person by ID

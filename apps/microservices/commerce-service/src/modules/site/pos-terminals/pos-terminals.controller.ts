@@ -14,6 +14,27 @@ export class PosTerminalsController {
 
   constructor(private readonly service: PosTerminalsService) {}
 
+  // Creates a new POS terminal
+  @MessagePattern({ cmd: 'site.posTerminals.create' })
+  async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
+    this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
+    return this.service.create(dto);
+  }
+
+  // Updates an existing POS terminal
+  @MessagePattern({ cmd: 'site.posTerminals.update' })
+  async update(@Payload() data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
+    this.logger.log(`posTerminals.update — id: ${data.id}`);
+    return this.service.update(data);
+  }
+
+  // Returns a single POS terminal by ID
+  @MessagePattern({ cmd: 'site.posTerminals.findById' })
+  async findById(@Payload() data: { id: string }): Promise<PosTerminalDto> {
+    this.logger.log(`posTerminals.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
   // Returns paginated POS terminals for the data table
   @MessagePattern({ cmd: 'site.posTerminals.table' })
   async table(@Payload() state: TableState): Promise<{ result: PosTerminalDto[]; count: number }> {
@@ -33,27 +54,6 @@ export class PosTerminalsController {
   async locationsSelect(@Payload() data: SelectOptionsQueryDto): Promise<SelectQueryResult> {
     this.logger.log('posTerminals.locationsSelect');
     return this.service.findLocationsForSelect(data);
-  }
-
-  // Returns a single POS terminal by ID
-  @MessagePattern({ cmd: 'site.posTerminals.findById' })
-  async findById(@Payload() data: { id: string }): Promise<PosTerminalDto> {
-    this.logger.log(`posTerminals.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Creates a new POS terminal
-  @MessagePattern({ cmd: 'site.posTerminals.create' })
-  async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
-    this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
-    return this.service.create(dto);
-  }
-
-  // Updates an existing POS terminal
-  @MessagePattern({ cmd: 'site.posTerminals.update' })
-  async update(@Payload() data: UpdatePosTerminalPayloadDto): Promise<SuccessResponseDto> {
-    this.logger.log(`posTerminals.update — id: ${data.id}`);
-    return this.service.update(data);
   }
 
   // Deletes a POS terminal

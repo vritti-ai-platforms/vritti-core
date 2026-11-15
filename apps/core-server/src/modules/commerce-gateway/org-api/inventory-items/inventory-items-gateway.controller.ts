@@ -50,14 +50,6 @@ export class InventoryItemsGatewayController {
 
   constructor(private readonly service: InventoryItemsGatewayService) {}
 
-  // Returns paginated org-wide inventory items for the data table
-  @Get('table')
-  @RequirePermission(ORG_INVENTORY_ITEMS.view)
-  getTable(@UserId() userId: string): Promise<InventoryItemTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/inventory-items/table');
-    return this.service.findForTable(userId);
-  }
-
   // Creates a new org inventory item
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -65,14 +57,6 @@ export class InventoryItemsGatewayController {
   async create(@Body() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
     this.logger.log('POST /commerce-api/org/inventory-items');
     return this.service.create(dto);
-  }
-
-  // Returns paginated UOM conversion overrides for an inventory item
-  @Get(':id/uom-conversions/table')
-  @RequirePermission(ORG_INVENTORY_ITEMS.conversions.view)
-  getUomConversionsTable(@Param('id') id: string, @UserId() userId: string) {
-    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/uom-conversions/table`);
-    return this.service.findUomConversionsForTable(id, userId);
   }
 
   // Creates a UOM conversion override for an inventory item
@@ -87,6 +71,35 @@ export class InventoryItemsGatewayController {
     return this.service.createUomConversion(id, dto);
   }
 
+  // Adds a manual MRP for an inventory item
+  @Post(':id/mrp')
+  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.add)
+  addMrp(@Param('id') id: string, @Body() dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
+    this.logger.log(`POST /commerce-api/org/inventory-items/${id}/mrp`);
+    return this.service.addMrp(id, dto);
+  }
+
+  // Allows an inventory item in a storage type with a maximum per location
+  @Post(':id/storage-types')
+  @HttpCode(HttpStatus.CREATED)
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.add)
+  @ApiCreateInventoryItemStorageType()
+  createStorageType(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: CreateInventoryItemStorageTypeDto,
+  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+    this.logger.log(`POST /commerce-api/org/inventory-items/${id}/storage-types`);
+    return this.service.createStorageType(id, dto);
+  }
+
+  // Updates an inventory item
+  @Patch(':id')
+  @RequirePermission(ORG_INVENTORY_ITEMS.edit)
+  update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}`);
+    return this.service.update(id, dto);
+  }
+
   // Updates a UOM conversion override
   @Patch(':id/uom-conversions/:conversionId')
   @RequirePermission(ORG_INVENTORY_ITEMS.conversions.edit)
@@ -97,33 +110,6 @@ export class InventoryItemsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}/uom-conversions/${conversionId}`);
     return this.service.updateUomConversion(conversionId, dto);
-  }
-
-  // Deletes a UOM conversion override
-  @Delete(':id/uom-conversions/:conversionId')
-  @RequirePermission(ORG_INVENTORY_ITEMS.conversions.delete)
-  deleteUomConversion(
-    @Param('id') id: string,
-    @Param('conversionId') conversionId: string,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/uom-conversions/${conversionId}`);
-    return this.service.deleteUomConversion(conversionId);
-  }
-
-  // Returns an inventory item's MRPs, table-shaped
-  @Get(':id/mrp/table')
-  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.view)
-  getMrpTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemMrpTableResponseDto> {
-    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/mrp/table`);
-    return this.service.findMrpTable(id, userId);
-  }
-
-  // Adds a manual MRP for an inventory item
-  @Post(':id/mrp')
-  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.add)
-  addMrp(@Param('id') id: string, @Body() dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpResponseDto> {
-    this.logger.log(`POST /commerce-api/org/inventory-items/${id}/mrp`);
-    return this.service.addMrp(id, dto);
   }
 
   // Updates a manual MRP for an inventory item
@@ -138,6 +124,19 @@ export class InventoryItemsGatewayController {
     return this.service.updateMrp(id, mrpId, dto);
   }
 
+  // Updates an item × storage type row
+  @Patch(':id/storage-types/:rowId')
+  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.edit)
+  @ApiUpdateInventoryItemStorageType()
+  updateStorageType(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('rowId', new ParseUUIDPipe()) rowId: string,
+    @Body() dto: UpdateInventoryItemStorageTypeDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}/storage-types/${rowId}`);
+    return this.service.updateStorageType(id, rowId, dto);
+  }
+
   // Promotes one recorded MRP to the current one shown on listings
   @Patch(':id/mrp/:mrpId/current')
   @RequirePermission(ORG_INVENTORY_ITEMS.mrp.edit)
@@ -146,12 +145,36 @@ export class InventoryItemsGatewayController {
     return this.service.setMrpCurrent(id, mrpId);
   }
 
-  // Deletes a manual MRP for an inventory item
-  @Delete(':id/mrp/:mrpId')
-  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.delete)
-  deleteMrp(@Param('id') id: string, @Param('mrpId') mrpId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/mrp/${mrpId}`);
-    return this.service.deleteMrp(mrpId);
+  // Returns a single inventory item
+  @Get(':id')
+  @RequirePermission(ORG_INVENTORY_ITEMS.view)
+  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
+    this.logger.log(`GET /commerce-api/org/inventory-items/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated org-wide inventory items for the data table
+  @Get('table')
+  @RequirePermission(ORG_INVENTORY_ITEMS.view)
+  getTable(@UserId() userId: string): Promise<InventoryItemTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/inventory-items/table');
+    return this.service.findForTable(userId);
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  @Get(':id/uom-conversions/table')
+  @RequirePermission(ORG_INVENTORY_ITEMS.conversions.view)
+  getUomConversionsTable(@Param('id') id: string, @UserId() userId: string) {
+    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/uom-conversions/table`);
+    return this.service.findUomConversionsForTable(id, userId);
+  }
+
+  // Returns an inventory item's MRPs, table-shaped
+  @Get(':id/mrp/table')
+  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.view)
+  getMrpTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemMrpTableResponseDto> {
+    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/mrp/table`);
+    return this.service.findMrpTable(id, userId);
   }
 
   // Returns suppliers carrying this item, table-shaped
@@ -171,30 +194,31 @@ export class InventoryItemsGatewayController {
     return this.service.findStorageTypes(id);
   }
 
-  // Allows an inventory item in a storage type with a maximum per location
-  @Post(':id/storage-types')
-  @HttpCode(HttpStatus.CREATED)
-  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.add)
-  @ApiCreateInventoryItemStorageType()
-  createStorageType(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreateInventoryItemStorageTypeDto,
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
-    this.logger.log(`POST /commerce-api/org/inventory-items/${id}/storage-types`);
-    return this.service.createStorageType(id, dto);
+  // Deletes an inventory item
+  @Delete(':id')
+  @RequirePermission(ORG_INVENTORY_ITEMS.delete)
+  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}`);
+    return this.service.delete(id);
   }
 
-  // Updates an item × storage type row
-  @Patch(':id/storage-types/:rowId')
-  @RequirePermission(ORG_INVENTORY_ITEMS.storageTypes.edit)
-  @ApiUpdateInventoryItemStorageType()
-  updateStorageType(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('rowId', new ParseUUIDPipe()) rowId: string,
-    @Body() dto: UpdateInventoryItemStorageTypeDto,
+  // Deletes a UOM conversion override
+  @Delete(':id/uom-conversions/:conversionId')
+  @RequirePermission(ORG_INVENTORY_ITEMS.conversions.delete)
+  deleteUomConversion(
+    @Param('id') id: string,
+    @Param('conversionId') conversionId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}/storage-types/${rowId}`);
-    return this.service.updateStorageType(id, rowId, dto);
+    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/uom-conversions/${conversionId}`);
+    return this.service.deleteUomConversion(conversionId);
+  }
+
+  // Deletes a manual MRP for an inventory item
+  @Delete(':id/mrp/:mrpId')
+  @RequirePermission(ORG_INVENTORY_ITEMS.mrp.delete)
+  deleteMrp(@Param('id') id: string, @Param('mrpId') mrpId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/mrp/${mrpId}`);
+    return this.service.deleteMrp(mrpId);
   }
 
   // Stops allowing an inventory item in a storage type
@@ -207,29 +231,5 @@ export class InventoryItemsGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}/storage-types/${rowId}`);
     return this.service.deleteStorageType(id, rowId);
-  }
-
-  // Returns a single inventory item
-  @Get(':id')
-  @RequirePermission(ORG_INVENTORY_ITEMS.view)
-  findById(@Param('id') id: string): Promise<InventoryItemResponseDto> {
-    this.logger.log(`GET /commerce-api/org/inventory-items/${id}`);
-    return this.service.findById(id);
-  }
-
-  // Updates an inventory item
-  @Patch(':id')
-  @RequirePermission(ORG_INVENTORY_ITEMS.edit)
-  update(@Param('id') id: string, @Body() dto: UpdateInventoryItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/org/inventory-items/${id}`);
-    return this.service.update(id, dto);
-  }
-
-  // Deletes an inventory item
-  @Delete(':id')
-  @RequirePermission(ORG_INVENTORY_ITEMS.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/org/inventory-items/${id}`);
-    return this.service.delete(id);
   }
 }

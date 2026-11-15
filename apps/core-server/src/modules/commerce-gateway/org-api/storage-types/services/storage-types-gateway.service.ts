@@ -16,6 +16,24 @@ export class StorageTypesGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new storage type
+  create(dto: CreateStorageTypeDto): Promise<CreateResponseDto<StorageTypeResponseDto>> {
+    this.logger.log(`org.storageTypes.create — code: ${dto.code}`);
+    return this.nats.send('commerce', 'org.storageTypes.create', dto);
+  }
+
+  // Updates a storage type by ID
+  update(id: string, dto: UpdateStorageTypeDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.storageTypes.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.storageTypes.update', { id, ...dto });
+  }
+
+  // Finds a storage type by ID
+  findById(id: string): Promise<StorageTypeResponseDto> {
+    this.logger.log(`org.storageTypes.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.storageTypes.findById', { id });
+  }
+
   // Returns paginated, filtered and sorted storage types for the data table
   async findForTable(userId: string): Promise<StorageTypeTableResponseDto> {
     this.logger.log('org.storageTypes.table');
@@ -28,24 +46,6 @@ export class StorageTypesGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Finds a storage type by ID
-  findById(id: string): Promise<StorageTypeResponseDto> {
-    this.logger.log(`org.storageTypes.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.storageTypes.findById', { id });
-  }
-
-  // Creates a new storage type
-  create(dto: CreateStorageTypeDto): Promise<CreateResponseDto<StorageTypeResponseDto>> {
-    this.logger.log(`org.storageTypes.create — code: ${dto.code}`);
-    return this.nats.send('commerce', 'org.storageTypes.create', dto);
-  }
-
-  // Updates a storage type by ID
-  update(id: string, dto: UpdateStorageTypeDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.storageTypes.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.storageTypes.update', { id, ...dto });
   }
 
   // Deletes a storage type no location or allowed item references

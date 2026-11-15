@@ -13,14 +13,6 @@ export class StockAdjustmentsLineItemsController {
 
   constructor(private readonly service: StockAdjustmentsLineItemsTransactionService) {}
 
-  @MessagePattern({ cmd: 'site.stockAdjustments.lineItemsTable' })
-  lineItemsTable(
-    @Payload() data: { adjustmentId: string; lineId: string } & TableState,
-  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
-    this.logger.log(`stockAdjustments.lineItemsTable — line: ${data.lineId}`);
-    return this.service.lineItemsTable(data);
-  }
-
   @MessagePattern({ cmd: 'site.stockAdjustments.addLineItem' })
   addLineItem(@Payload() dto: AddLineItemDto): Promise<CreateResponseDto<StockAdjustmentLineItemDto>> {
     this.logger.log(`stockAdjustments.addLineItem — line: ${dto.lineId}`);
@@ -31,6 +23,14 @@ export class StockAdjustmentsLineItemsController {
   updateLineItem(@Payload() dto: UpdateLineItemDto): Promise<SuccessResponseDto> {
     this.logger.log(`stockAdjustments.updateLineItem — item: ${dto.itemId}`);
     return this.service.updateLineItem(dto);
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.lineItemsTable' })
+  lineItemsTable(
+    @Payload() data: { adjustmentId: string; lineId: string } & TableState,
+  ): Promise<{ result: StockAdjustmentLineItemDto[]; count: number }> {
+    this.logger.log(`stockAdjustments.lineItemsTable — line: ${data.lineId}`);
+    return this.service.lineItemsTable(data);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.removeLineItem' })

@@ -18,34 +18,6 @@ export class SiteOfferingsController {
 
   constructor(private readonly service: OfferingsDomainService) {}
 
-  // Returns paginated offerings for the data table
-  @MessagePattern({ cmd: 'site.offerings.table' })
-  findForTable(@Payload() state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
-    this.logger.log('offerings.table');
-    return this.service.findForTable(state);
-  }
-
-  // Flat rows for the file export; the gateway builds the workbook
-  @MessagePattern({ cmd: 'site.offerings.exportRows' })
-  exportRows(@Payload() data: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
-    this.logger.log(`offerings.exportRows — limit: ${data.limit}, offset: ${data.offset}`);
-    return this.service.findForExport(data);
-  }
-
-  // Returns one offering with its dimension and variant counts
-  @MessagePattern({ cmd: 'site.offerings.findById' })
-  findById(@Payload() data: { id: string }): Promise<OfferingDto> {
-    this.logger.log(`offerings.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
-  }
-
-  // Where this offering sells: a row per app or till whose catalog carries it
-  @MessagePattern({ cmd: 'site.offerings.channels' })
-  channels(@Payload() data: { offeringId: string; appIds: string[] }): Promise<OfferingTargetRow[]> {
-    this.logger.log(`offerings.channels — offeringId: ${data.offeringId}, apps: ${data.appIds.length}`);
-    return this.service.findTargetsForOffering(data.offeringId, data.appIds);
-  }
-
   // Creates a site-owned offering; dimensions and variants follow
   @MessagePattern({ cmd: 'site.offerings.create' })
   create(@Payload() dto: CreateOfferingDto): Promise<CreateResponseDto<OfferingDto>> {
@@ -87,6 +59,34 @@ export class SiteOfferingsController {
   bulkSetStatus(@Payload() dto: BulkSetOfferingStatusDto): Promise<SuccessResponseDto> {
     this.logger.log(`offerings.bulkSetStatus — count: ${dto.ids.length}, isActive: ${dto.isActive}`);
     return this.service.bulkSetStatus(dto);
+  }
+
+  // Returns one offering with its dimension and variant counts
+  @MessagePattern({ cmd: 'site.offerings.findById' })
+  findById(@Payload() data: { id: string }): Promise<OfferingDto> {
+    this.logger.log(`offerings.findById — id: ${data.id}`);
+    return this.service.findById(data.id);
+  }
+
+  // Returns paginated offerings for the data table
+  @MessagePattern({ cmd: 'site.offerings.table' })
+  findForTable(@Payload() state: TableState): Promise<{ result: OfferingTableRowDto[]; count: number }> {
+    this.logger.log('offerings.table');
+    return this.service.findForTable(state);
+  }
+
+  // Flat rows for the file export; the gateway builds the workbook
+  @MessagePattern({ cmd: 'site.offerings.exportRows' })
+  exportRows(@Payload() data: { limit: number; offset: number }): Promise<Record<string, unknown>[]> {
+    this.logger.log(`offerings.exportRows — limit: ${data.limit}, offset: ${data.offset}`);
+    return this.service.findForExport(data);
+  }
+
+  // Where this offering sells: a row per app or till whose catalog carries it
+  @MessagePattern({ cmd: 'site.offerings.channels' })
+  channels(@Payload() data: { offeringId: string; appIds: string[] }): Promise<OfferingTargetRow[]> {
+    this.logger.log(`offerings.channels — offeringId: ${data.offeringId}, apps: ${data.appIds.length}`);
+    return this.service.findTargetsForOffering(data.offeringId, data.appIds);
   }
 
   // Deletes an offering this site owns; refused while it has variants

@@ -45,15 +45,6 @@ export class LeCatalogChannelsGatewayController {
 
   constructor(private readonly service: LeCatalogChannelsGatewayService) {}
 
-  // The whole list: each type's default plus every app / terminal under it
-  @Get()
-  @RequirePermission(LE_CATALOG_CHANNELS.view)
-  @ApiListCatalogChannels()
-  list(@OrgId() orgId: string): Promise<ChannelEntryResponseDto[]> {
-    this.logger.log('GET /commerce-api/le/catalog-channels');
-    return this.service.list(orgId);
-  }
-
   // Creation is per type because each names a different target; everything after it keys on channelId
   @Put('app')
   @RequirePermission(LE_CATALOG_CHANNELS.edit)
@@ -79,6 +70,18 @@ export class LeCatalogChannelsGatewayController {
     return this.service.upsertB2b(dto);
   }
 
+  @Patch(':channelId/listings/:listingId')
+  @RequirePermission(LE_CATALOG_CHANNELS.setAvailability)
+  @ApiSetChannelItemVisibility()
+  setItemVisibility(
+    @Param('channelId') channelId: string,
+    @Param('listingId') listingId: string,
+    @Body() dto: SetItemVisibilityDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/catalog-channels/${channelId}/listings/${listingId}`);
+    return this.service.setItemVisibility(channelId, listingId, dto.availableHere, dto.currencyCode);
+  }
+
   @Get(':channelId/listings/table')
   @RequirePermission(LE_CATALOG_CHANNELS.listings)
   @ApiChannelItems()
@@ -88,15 +91,6 @@ export class LeCatalogChannelsGatewayController {
   ): Promise<ChannelItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/listings/table`);
     return this.service.findItemsForTable(userId, channelId);
-  }
-
-  // The currencies this channel's catalog is priced in — the cards on its Prices tab
-  @Get(':channelId/currencies')
-  @RequirePermission(LE_CATALOG_CHANNELS.prices)
-  @ApiChannelCurrencies()
-  findCurrencies(@Param('channelId') channelId: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/currencies`);
-    return this.service.findCurrencies(channelId);
   }
 
   @Get(':channelId/currencies/:currencyCode/prices/table')
@@ -112,16 +106,22 @@ export class LeCatalogChannelsGatewayController {
     return this.service.findPricesForTable(orgId, userId, channelId, currencyCode);
   }
 
-  @Patch(':channelId/listings/:listingId')
-  @RequirePermission(LE_CATALOG_CHANNELS.setAvailability)
-  @ApiSetChannelItemVisibility()
-  setItemVisibility(
-    @Param('channelId') channelId: string,
-    @Param('listingId') listingId: string,
-    @Body() dto: SetItemVisibilityDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/catalog-channels/${channelId}/listings/${listingId}`);
-    return this.service.setItemVisibility(channelId, listingId, dto.availableHere, dto.currencyCode);
+  // The whole list: each type's default plus every app / terminal under it
+  @Get()
+  @RequirePermission(LE_CATALOG_CHANNELS.view)
+  @ApiListCatalogChannels()
+  list(@OrgId() orgId: string): Promise<ChannelEntryResponseDto[]> {
+    this.logger.log('GET /commerce-api/le/catalog-channels');
+    return this.service.list(orgId);
+  }
+
+  // The currencies this channel's catalog is priced in — the cards on its Prices tab
+  @Get(':channelId/currencies')
+  @RequirePermission(LE_CATALOG_CHANNELS.prices)
+  @ApiChannelCurrencies()
+  findCurrencies(@Param('channelId') channelId: string): Promise<string[]> {
+    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/currencies`);
+    return this.service.findCurrencies(channelId);
   }
 
   @Delete(':channelId')

@@ -16,6 +16,13 @@ export class LeGoodsReceiptsLineItemsController {
     private readonly service: GoodsReceiptsLineItemsService,
   ) {}
 
+  // Registers a serial on a goods receipt line
+  @MessagePattern({ cmd: 'le.goodsReceipts.addLineItem' })
+  addLineItem(@Payload() dto: AddGoodsReceiptLineItemDto): Promise<CreateResponseDto<GoodsReceiptLineItemDto>> {
+    this.logger.log(`le.goodsReceipts.addLineItem — line: ${dto.lineId}`);
+    return this.service.addLineItem(dto);
+  }
+
   // Returns one page of the serials registered on a goods receipt line
   @MessagePattern({ cmd: 'le.goodsReceipts.lineItemsTable' })
   lineItemsTable(
@@ -24,13 +31,6 @@ export class LeGoodsReceiptsLineItemsController {
     this.logger.log(`le.goodsReceipts.lineItemsTable — line: ${data.lineId}`);
     const { goodsReceiptId, itemId, lineId, ...state } = data;
     return this.lineItemsService.findForTable(lineId, state);
-  }
-
-  // Registers a serial on a goods receipt line
-  @MessagePattern({ cmd: 'le.goodsReceipts.addLineItem' })
-  addLineItem(@Payload() dto: AddGoodsReceiptLineItemDto): Promise<CreateResponseDto<GoodsReceiptLineItemDto>> {
-    this.logger.log(`le.goodsReceipts.addLineItem — line: ${dto.lineId}`);
-    return this.service.addLineItem(dto);
   }
 
   // Removes a serial from a goods receipt line

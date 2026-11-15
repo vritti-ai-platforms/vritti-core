@@ -14,6 +14,12 @@ export class WishlistController {
 
   constructor(private readonly service: WishlistDomainService) {}
 
+  @MessagePattern({ cmd: 'org.wishlist.add' })
+  add(@Payload() dto: AddWishlistItemDto): Promise<WishlistAddResultDto> {
+    this.logger.log(`wishlist.add — party: ${dto.partyId}, code: ${dto.code}`);
+    return this.service.add(dto);
+  }
+
   @MessagePattern({ cmd: 'org.wishlist.list' })
   list(@Payload() dto: WishlistScopeDto): Promise<WishlistItemDto[]> {
     this.logger.log(`wishlist.list — party: ${dto.partyId}`);
@@ -25,12 +31,6 @@ export class WishlistController {
   codes(@Payload() data: { appId: string; partyId: string }): Promise<string[]> {
     this.logger.log(`org.wishlist.codes — party: ${data.partyId}`);
     return this.service.findCodes(data.appId, data.partyId);
-  }
-
-  @MessagePattern({ cmd: 'org.wishlist.add' })
-  add(@Payload() dto: AddWishlistItemDto): Promise<WishlistAddResultDto> {
-    this.logger.log(`wishlist.add — party: ${dto.partyId}, code: ${dto.code}`);
-    return this.service.add(dto);
   }
 
   @MessagePattern({ cmd: 'org.wishlist.remove' })

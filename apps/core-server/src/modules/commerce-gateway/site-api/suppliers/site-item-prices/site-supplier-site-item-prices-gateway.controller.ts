@@ -24,31 +24,6 @@ export class SiteSupplierSiteItemPricesGatewayController {
 
   constructor(private readonly service: SiteSupplierSiteItemPricesGatewayService) {}
 
-  // Returns the price timeline visible to this site for a supplier item
-  @Get(':id/site-items/:itemId/prices/table')
-  @RequirePermission(SITE_SUPPLIERS.siteItems.prices.view)
-  getSiteItemPricesTable(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @UserId() userId: string,
-    @OrgId() orgId: string,
-  ): Promise<SupplierSiteItemPriceTableResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/prices/table`);
-    return this.service.findPricesTable(itemId, userId, orgId);
-  }
-
-  // Returns this site's price windows for a supplier item, in one currency, at the history's saved context
-  @Get(':id/site-items/:itemId/price-history')
-  @RequirePermission(SITE_SUPPLIERS.siteItems.prices.view)
-  getSiteItemPriceHistory(
-    @Param('id') supplierId: string,
-    @Param('itemId') itemId: string,
-    @UserId() userId: string,
-  ): Promise<SupplierItemPriceHistoryResponseDto> {
-    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/price-history`);
-    return this.service.findPriceHistory(itemId, userId);
-  }
-
   // Adds a site-specific price record to a supplier item's timeline
   @Post(':id/site-items/:itemId/prices')
   @HttpCode(HttpStatus.CREATED)
@@ -73,6 +48,31 @@ export class SiteSupplierSiteItemPricesGatewayController {
   ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/prices/${priceId}`);
     return this.service.updatePrice(priceId, dto);
+  }
+
+  // Returns the price timeline visible to this site for a supplier item
+  @Get(':id/site-items/:itemId/prices/table')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.prices.view)
+  getSiteItemPricesTable(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @UserId() userId: string,
+    @OrgId() orgId: string,
+  ): Promise<SupplierSiteItemPriceTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/prices/table`);
+    return this.service.findPricesTable(itemId, userId, orgId);
+  }
+
+  // Returns this site's price windows for a supplier item, in one currency, at the history's saved context
+  @Get(':id/site-items/:itemId/price-history')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.prices.view)
+  getSiteItemPriceHistory(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+    @UserId() userId: string,
+  ): Promise<SupplierItemPriceHistoryResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/price-history`);
+    return this.service.findPriceHistory(itemId, userId);
   }
 
   // Deletes a site-specific supplier item price record

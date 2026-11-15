@@ -20,15 +20,6 @@ export class LeCatalogListingsController {
 
   constructor(private readonly listingsService: CatalogListingsDomainService) {}
 
-  // Returns paginated listings of one catalog, each with its prices
-  @MessagePattern({ cmd: 'le.catalogs.listings.table' })
-  findListingsForTable(
-    @Payload() data: { catalogId: string; state: TableState; currencyCode?: string },
-  ): Promise<{ result: CatalogListingDto[]; count: number }> {
-    this.logger.log(`catalogs.listings.table — catalogId: ${data.catalogId}`);
-    return this.listingsService.findForTable(data.catalogId, data.state, data.currencyCode);
-  }
-
   // The MRP slices a variant can be listed at Everything one storefront channel makes available — the list a
 
   // Lists a variant, optionally keyed to one MRP slice, with an optional opening price
@@ -71,13 +62,6 @@ export class LeCatalogListingsController {
     return this.listingsService.setChannelVisibility(data.id, data.catalogChannelId, data.visible);
   }
 
-  // Removes a whole selection in one statement — refused unless every one of them is in this catalog
-  @MessagePattern({ cmd: 'le.catalogs.listings.bulkDelete' })
-  bulkDeleteListings(@Payload() data: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`catalogs.listings.bulkDelete — ${data.ids.length} selected`);
-    return this.listingsService.bulkRemove(data);
-  }
-
   // Prices a whole selection the same, refused if any one of them is keyed to a lower printed MRP
   @MessagePattern({ cmd: 'le.catalogs.listings.bulkSetPrice' })
   bulkSetListingPrice(@Payload() data: BulkSetCatalogListingPriceDto): Promise<SuccessResponseDto> {
@@ -97,6 +81,22 @@ export class LeCatalogListingsController {
   bulkSetListingAvailability(@Payload() data: BulkSetCatalogListingAvailabilityDto): Promise<SuccessResponseDto> {
     this.logger.log(`catalogs.listings.bulkSetAvailability — ${data.ids.length} selected`);
     return this.listingsService.bulkSetAvailability(data);
+  }
+
+  // Returns paginated listings of one catalog, each with its prices
+  @MessagePattern({ cmd: 'le.catalogs.listings.table' })
+  findListingsForTable(
+    @Payload() data: { catalogId: string; state: TableState; currencyCode?: string },
+  ): Promise<{ result: CatalogListingDto[]; count: number }> {
+    this.logger.log(`catalogs.listings.table — catalogId: ${data.catalogId}`);
+    return this.listingsService.findForTable(data.catalogId, data.state, data.currencyCode);
+  }
+
+  // Removes a whole selection in one statement — refused unless every one of them is in this catalog
+  @MessagePattern({ cmd: 'le.catalogs.listings.bulkDelete' })
+  bulkDeleteListings(@Payload() data: BulkRemoveCatalogListingsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`catalogs.listings.bulkDelete — ${data.ids.length} selected`);
+    return this.listingsService.bulkRemove(data);
   }
 
   @MessagePattern({ cmd: 'le.catalogs.listings.delete' })

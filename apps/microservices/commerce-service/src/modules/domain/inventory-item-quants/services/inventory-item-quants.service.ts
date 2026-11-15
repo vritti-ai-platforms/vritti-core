@@ -77,76 +77,9 @@ export class InventoryItemQuantsDomainService {
     private readonly costsRepository: InventoryItemCostsDomainRepository,
   ) {}
 
-  // Rounds unit_cost × qty to whole minor units (ROUND_HALF_UP).
-  private roundMinor(unitCost: bigint, qty: number): bigint {
-    return BigInt(new Decimal(unitCost.toString()).times(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
-  }
-
   // Adds a freshly-allocated cost slice to a quant's cost + value (GR post allocation pass).
   async addQuantCostValue(quantId: string, addCost: bigint, addValue: bigint): Promise<InventoryItemQuant> {
     return this.repository.addQuantCostValue(quantId, addCost, addValue);
-  }
-
-  // Moves a quant's cost laid in and its on-hand value by a revaluation, re-deriving its unit cost, in the caller's transaction
-  async revalueQuant(quantId: string, costDelta: bigint, onHandDelta: bigint): Promise<void> {
-    await this.repository.revalueQuant(quantId, costDelta, onHandDelta);
-  }
-
-  // Resolves the org's single ITEM-kind cost category, which item costs are booked under
-  findItemCategoryId(): Promise<string | null> {
-    return this.costsRepository.findItemCategoryId();
-  }
-
-  // Books a cost header with one allocation per quant, in the caller's transaction
-  async bookCost(cost: NewInventoryItemCost, allocations: QuantCostAllocation[]): Promise<void> {
-    const costId = await this.costsRepository.insertCost(cost);
-    await this.costsRepository.insertQuantCosts(allocations.map((allocation) => ({ ...allocation, costId })));
-  }
-
-  // Removes the costs the given sources booked with their allocations, in the caller's transaction
-  async removeCostsBySources(sourceType: CostSourceType, sourceIds: string[]): Promise<void> {
-    await this.costsRepository.deleteBySources(sourceType, sourceIds);
-  }
-
-  // Quants produced by a GR-item (after posting) with their landed cost, for the Items Cost dialog.
-  async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
-    const rows = await this.repository.findCostsByGrItemId(grItemId);
-    return GoodsReceiptItemQuantsDto.from(rows);
-  }
-
-  // Returns a location's stocked items (grouped, non-zero), table-shaped with FilterProcessor search/sort.
-  async findItemsForLocationTable(
-    locationId: string,
-    state: TableState,
-  ): Promise<{ result: LocationItemDto[]; count: number }> {
-    this.logger.log(`findItemsForLocationTable — locationId=${locationId}`);
-    const filterWhere = FilterProcessor.buildWhere(
-      state.filters,
-      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
-    );
-    const searchWhere = FilterProcessor.buildSearch(
-      state.search,
-      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
-    );
-    const where = and(filterWhere, searchWhere) || undefined;
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP);
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result, count } = await this.repository.findItemsForLocation(locationId, {
-      where,
-      orderBy: orderBy.length > 0 ? orderBy : undefined,
-      limit,
-      offset,
-    });
-
-    return { result: result.map((row) => LocationItemDto.from(row)), count };
-  }
-
-  // Returns the per-quant breakdown for a single item within a location.
-  async findItemBreakdownForLocation(locationId: string, itemId: string): Promise<LocationItemQuantDto[]> {
-    this.logger.log(`findItemBreakdownForLocation — locationId=${locationId}, itemId=${itemId}`);
-    const rows = await this.repository.findItemBreakdownForLocation(locationId, itemId);
-    return rows.map((row) => LocationItemQuantDto.from(row));
   }
 
   // Creates a new quant in its own transaction and writes the ledger entry.
@@ -288,80 +221,15 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
-  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM category is seeded or
-  // no currency is known (header.currency_code is NOT NULL).
-  private async bookBaselineCost(
-    quant: InventoryItemQuant,
-    baseline: bigint,
-    params: CreateQuantParams,
-  ): Promise<void> {
-    const currencyCode = params.costCurrency ?? quant.costCurrency;
-    if (!currencyCode) return;
-    const categoryId = await this.costsRepository.findItemCategoryId();
-    if (!categoryId) return;
-    const costId = await this.costsRepository.insertCost({
-      categoryId,
-      totalAmount: baseline,
-      currencyCode,
-      sourceType: params.sourceType ?? CostSourceTypeValues.MANUAL_ADJUSTMENT,
-      sourceId: params.sourceId ?? quant.id,
-      distributionMethod: CostDistributionMethodValues.EQUAL,
-      unallocatedAmount: 0n,
-    });
-    await this.costsRepository.insertQuantCosts([{ quantId: quant.id, costId, allocatedAmount: baseline }]);
+  // Moves a quant's cost laid in and its on-hand value by a revaluation, re-deriving its unit cost, in the caller's transaction
+  async revalueQuant(quantId: string, costDelta: bigint, onHandDelta: bigint): Promise<void> {
+    await this.repository.revalueQuant(quantId, costDelta, onHandDelta);
   }
 
-  private validateCreateParams(params: CreateQuantParams): void {
-    if (params.quantity <= 0) {
-      throw new BadRequestException('Quantity must be positive.');
-    }
-    if (params.unitCost <= 0n) {
-      throw new BadRequestException('Unit cost must be a positive amount.');
-    }
-    if (params.tracking === InventoryTrackingValues.QUANTITY) {
-      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=QUANTITY.');
-      if (params.serialNumbers?.length) {
-        throw new BadRequestException('serialNumbers must not be provided for tracking=QUANTITY.');
-      }
-      return;
-    }
-    if (params.tracking === InventoryTrackingValues.LOT) {
-      if (!params.lot?.lotNumber && params.lotId == null) {
-        throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT.');
-      }
-      if (params.serialNumbers?.length) {
-        throw new BadRequestException('serialNumbers must not be provided for tracking=LOT.');
-      }
-      return;
-    }
-    if (params.tracking === InventoryTrackingValues.SERIAL) {
-      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=SERIAL.');
-      const serials = params.serialNumbers ?? [];
-      if (serials.length !== params.quantity) {
-        throw new BadRequestException(
-          `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
-        );
-      }
-      const unique = new Set(serials);
-      if (unique.size !== serials.length) {
-        throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
-      }
-      return;
-    }
-    // LOT_SERIAL: lot (or pre-resolved lotId) required + serials required
-    if (!params.lot?.lotNumber && params.lotId == null) {
-      throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT_SERIAL.');
-    }
-    const serials = params.serialNumbers ?? [];
-    if (serials.length !== params.quantity) {
-      throw new BadRequestException(
-        `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
-      );
-    }
-    const unique = new Set(serials);
-    if (unique.size !== serials.length) {
-      throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
-    }
+  // Books a cost header with one allocation per quant, in the caller's transaction
+  async bookCost(cost: NewInventoryItemCost, allocations: QuantCostAllocation[]): Promise<void> {
+    const costId = await this.costsRepository.insertCost(cost);
+    await this.costsRepository.insertQuantCosts(allocations.map((allocation) => ({ ...allocation, costId })));
   }
 
   // Adjusts a quant in its own transaction and writes the ledger entry. Tracking-aware.
@@ -431,20 +299,38 @@ export class InventoryItemQuantsDomainService {
     });
   }
 
-  // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
-  async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
-    const quant = await this.repository.findByIdWithRefs(quantId);
-    if (!quant?.lotNumber) return null;
-    return {
-      id: quant.lotId as string,
-      organizationId: '',
-      inventoryItemId: quant.inventoryItemId,
-      lotNumber: quant.lotNumber,
-      manufacturingDate: quant.manufacturingDate ?? null,
-      expiryDate: quant.expiryDate ?? null,
-      createdAt: quant.createdAt,
-      updatedAt: quant.updatedAt,
-    } as InventoryItemLot;
+  async findQuantById(id: string): Promise<InventoryItemQuantDto> {
+    const row = await this.repository.findByIdWithRefs(id);
+    if (!row) throw new NotFoundException('Quant not found.');
+    return InventoryItemQuantDto.from(row, true);
+  }
+
+  // Returns a location's stocked items (grouped, non-zero), table-shaped with FilterProcessor search/sort.
+  async findItemsForLocationTable(
+    locationId: string,
+    state: TableState,
+  ): Promise<{ result: LocationItemDto[]; count: number }> {
+    this.logger.log(`findItemsForLocationTable — locationId=${locationId}`);
+    const filterWhere = FilterProcessor.buildWhere(
+      state.filters,
+      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
+    );
+    const searchWhere = FilterProcessor.buildSearch(
+      state.search,
+      InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP,
+    );
+    const where = and(filterWhere, searchWhere) || undefined;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, InventoryItemQuantsDomainService.LOCATION_ITEMS_FIELD_MAP);
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result, count } = await this.repository.findItemsForLocation(locationId, {
+      where,
+      orderBy: orderBy.length > 0 ? orderBy : undefined,
+      limit,
+      offset,
+    });
+
+    return { result: result.map((row) => LocationItemDto.from(row)), count };
   }
 
   async findQuantsForTable(
@@ -465,6 +351,40 @@ export class InventoryItemQuantsDomainService {
     });
 
     return { result: result.map((row) => InventoryItemQuantDto.from(row, true)), count };
+  }
+
+  // Resolves the org's single ITEM-kind cost category, which item costs are booked under
+  findItemCategoryId(): Promise<string | null> {
+    return this.costsRepository.findItemCategoryId();
+  }
+
+  // Quants produced by a GR-item (after posting) with their landed cost, for the Items Cost dialog.
+  async findCostsByGrItemId(grItemId: string): Promise<GoodsReceiptItemQuantsDto> {
+    const rows = await this.repository.findCostsByGrItemId(grItemId);
+    return GoodsReceiptItemQuantsDto.from(rows);
+  }
+
+  // Returns the per-quant breakdown for a single item within a location.
+  async findItemBreakdownForLocation(locationId: string, itemId: string): Promise<LocationItemQuantDto[]> {
+    this.logger.log(`findItemBreakdownForLocation — locationId=${locationId}, itemId=${itemId}`);
+    const rows = await this.repository.findItemBreakdownForLocation(locationId, itemId);
+    return rows.map((row) => LocationItemQuantDto.from(row));
+  }
+
+  // Loads the lot for a quant. Useful for stock transfers preserving source lot at destination.
+  async loadLotByQuantId(quantId: string): Promise<InventoryItemLot | null> {
+    const quant = await this.repository.findByIdWithRefs(quantId);
+    if (!quant?.lotNumber) return null;
+    return {
+      id: quant.lotId as string,
+      organizationId: '',
+      inventoryItemId: quant.inventoryItemId,
+      lotNumber: quant.lotNumber,
+      manufacturingDate: quant.manufacturingDate ?? null,
+      expiryDate: quant.expiryDate ?? null,
+      createdAt: quant.createdAt,
+      updatedAt: quant.updatedAt,
+    } as InventoryItemLot;
   }
 
   // Keyset page of an item's quants for the mobile Relay feed (read-only).
@@ -493,12 +413,6 @@ export class InventoryItemQuantsDomainService {
       edges,
       pageInfo: { hasNextPage: hasMore, endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null },
     };
-  }
-
-  async findQuantById(id: string): Promise<InventoryItemQuantDto> {
-    const row = await this.repository.findByIdWithRefs(id);
-    if (!row) throw new NotFoundException('Quant not found.');
-    return InventoryItemQuantDto.from(row, true);
   }
 
   async findLocationStockByInventoryItemId(inventoryItemId: string): Promise<LocationStockDto[]> {
@@ -582,5 +496,91 @@ export class InventoryItemQuantsDomainService {
           : [or(ilike(inventoryItems.name, `%${search}%`), ilike(inventoryItemLots.lotNumber, `%${search}%`)) as SQL]
         : undefined,
     });
+  }
+
+  // Removes the costs the given sources booked with their allocations, in the caller's transaction
+  async removeCostsBySources(sourceType: CostSourceType, sourceIds: string[]): Promise<void> {
+    await this.costsRepository.deleteBySources(sourceType, sourceIds);
+  }
+
+  // Rounds unit_cost × qty to whole minor units (ROUND_HALF_UP).
+  private roundMinor(unitCost: bigint, qty: number): bigint {
+    return BigInt(new Decimal(unitCost.toString()).times(qty).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toFixed(0));
+  }
+
+  // Creates a cost header + one junction row for a non-GR baseline; skips gracefully when no ITEM category is seeded or
+  // no currency is known (header.currency_code is NOT NULL).
+  private async bookBaselineCost(
+    quant: InventoryItemQuant,
+    baseline: bigint,
+    params: CreateQuantParams,
+  ): Promise<void> {
+    const currencyCode = params.costCurrency ?? quant.costCurrency;
+    if (!currencyCode) return;
+    const categoryId = await this.costsRepository.findItemCategoryId();
+    if (!categoryId) return;
+    const costId = await this.costsRepository.insertCost({
+      categoryId,
+      totalAmount: baseline,
+      currencyCode,
+      sourceType: params.sourceType ?? CostSourceTypeValues.MANUAL_ADJUSTMENT,
+      sourceId: params.sourceId ?? quant.id,
+      distributionMethod: CostDistributionMethodValues.EQUAL,
+      unallocatedAmount: 0n,
+    });
+    await this.costsRepository.insertQuantCosts([{ quantId: quant.id, costId, allocatedAmount: baseline }]);
+  }
+
+  private validateCreateParams(params: CreateQuantParams): void {
+    if (params.quantity <= 0) {
+      throw new BadRequestException('Quantity must be positive.');
+    }
+    if (params.unitCost <= 0n) {
+      throw new BadRequestException('Unit cost must be a positive amount.');
+    }
+    if (params.tracking === InventoryTrackingValues.QUANTITY) {
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=QUANTITY.');
+      if (params.serialNumbers?.length) {
+        throw new BadRequestException('serialNumbers must not be provided for tracking=QUANTITY.');
+      }
+      return;
+    }
+    if (params.tracking === InventoryTrackingValues.LOT) {
+      if (!params.lot?.lotNumber && params.lotId == null) {
+        throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT.');
+      }
+      if (params.serialNumbers?.length) {
+        throw new BadRequestException('serialNumbers must not be provided for tracking=LOT.');
+      }
+      return;
+    }
+    if (params.tracking === InventoryTrackingValues.SERIAL) {
+      if (params.lot) throw new BadRequestException('lot must not be provided for tracking=SERIAL.');
+      const serials = params.serialNumbers ?? [];
+      if (serials.length !== params.quantity) {
+        throw new BadRequestException(
+          `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
+        );
+      }
+      const unique = new Set(serials);
+      if (unique.size !== serials.length) {
+        throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
+      }
+      return;
+    }
+    // LOT_SERIAL: lot (or pre-resolved lotId) required + serials required
+    if (!params.lot?.lotNumber && params.lotId == null) {
+      throw new BadRequestException('lot.lotNumber or a pre-resolved lotId is required for tracking=LOT_SERIAL.');
+    }
+    const serials = params.serialNumbers ?? [];
+    if (serials.length !== params.quantity) {
+      throw new BadRequestException(
+        `serialNumbers.length (${serials.length}) must equal quantity (${params.quantity}).`,
+      );
+    }
+    const unique = new Set(serials);
+    if (unique.size !== serials.length) {
+      throw new BadRequestException('serialNumbers must be unique within the same quant creation.');
+    }
   }
 }

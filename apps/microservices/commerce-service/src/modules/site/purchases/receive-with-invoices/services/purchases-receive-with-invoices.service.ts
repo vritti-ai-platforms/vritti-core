@@ -96,38 +96,6 @@ export class PurchasesReceiveWithInvoicesService {
     private readonly invoiceDocumentsService: ReceiveWithInvoiceDocumentsService,
   ) {}
 
-  // Returns the supplier's allocations at the site an invoice may still receive, with what is open of each: allocated less
-  // received less what other draft invoices carry (the excluded invoice's own lines count as open)
-  async findOpenLines(
-    query: ReceiveWithInvoiceOpenLinesQueryDto,
-    siteId: string,
-  ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
-    const allocations = (
-      await this.allocationsService.findWithLegs({
-        supplierId: query.supplierId,
-        siteId,
-        legTypes: PurchaseSuppliersDomainService.RECEIVE_WITH_INVOICE_TYPES,
-      })
-    ).filter((allocation) => this.receivableReason(allocation) === null);
-    const excludedDeliveryIds = query.excludeInvoiceId
-      ? (await this.invoiceDocumentsService.findDocuments(query.excludeInvoiceId)).receipts.map(
-          (receipt) => receipt.inboundDeliveryId,
-        )
-      : [];
-    const pending = await this.deliveryLinesService.findPendingOnSupplierInvoices(
-      allocations.flatMap((allocation) => (allocation.purchaseOrderItemId ? [allocation.purchaseOrderItemId] : [])),
-      excludedDeliveryIds,
-    );
-    return allocations
-      .map((allocation) =>
-        ReceiveWithInvoiceOpenLineDto.from(
-          allocation,
-          allocation.purchaseOrderItemId ? (pending.get(allocation.purchaseOrderItemId) ?? 0) : 0,
-        ),
-      )
-      .filter((line) => line.openQty > 0);
-  }
-
   // Drafts a supplier's invoice entered with its goods: per purchase it touches, a direct purchase's PO of the invoiced
   // allocations not ordered yet, a delivery created behind the invoice and a draft receipt of it; and one draft invoice
   // whose lines name what each receipt puts away, all in one transaction
@@ -152,47 +120,6 @@ export class PurchasesReceiveWithInvoicesService {
       message: `Invoice "${dto.invoiceNumber}" drafted with its goods across ${pluralize('purchase', plans.length, true)}.`,
       data: { supplierInvoiceId: invoiceId },
     };
-  }
-
-  // Returns a Receive with Invoice with its lines (batch and location from its receipts), purchases, receipts and holds
-  async findById(invoiceId: string, leCurrencyCode: string): Promise<ReceiveWithInvoiceDetailDto> {
-    const invoice = await this.findReceiveWithInvoiceOrThrow(invoiceId);
-    const documents = await this.invoiceDocumentsService.findDocuments(invoice.id);
-    const allocations = await this.allocationsService.findWithLegs({
-      supplierId: invoice.supplierId,
-      siteId: invoice.siteId,
-    });
-    const receiptLines = await this.findReceiptLines(documents);
-    const { holds } = await this.invoicesService.findById(invoice.id, leCurrencyCode);
-    const lines = documents.lines
-      .filter((line) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
-      .flatMap((line) =>
-        allocations
-          .filter((allocation) => allocation.purchaseOrderItemId === line.purchaseOrderItemId)
-          .map((allocation) =>
-            ReceiveWithInvoiceDetailLineDto.from(
-              line,
-              allocation,
-              receiptLines.find(
-                (receiptLine) =>
-                  receiptLine.goodsReceiptItemId === line.goodsReceiptItemId &&
-                  receiptLine.goodsReceiptLotId === line.goodsReceiptLotId,
-              ),
-              invoice.currencyCode,
-              leCurrencyCode,
-            ),
-          ),
-      );
-    return ReceiveWithInvoiceDetailDto.from(invoice, {
-      status:
-        invoice.status === SupplierInvoiceStatusValues.POSTED
-          ? SupplierInvoiceStatusValues.POSTED
-          : SupplierInvoiceStatusValues.DRAFT,
-      leCurrencyCode,
-      receipts: documents.receipts,
-      lines,
-      holds,
-    });
   }
 
   // Replaces a draft Receive with Invoice: its header changes and its receipts, deliveries and invoice lines are drafted again
@@ -263,6 +190,79 @@ export class PurchasesReceiveWithInvoicesService {
     );
     this.logger.log(`purchases.receiveWithInvoices.post — ${invoice.invoiceNumber}, receipts: ${receipts.length}`);
     return { success: true, message: `Invoice "${invoice.invoiceNumber}" posted with its goods.` };
+  }
+
+  // Returns a Receive with Invoice with its lines (batch and location from its receipts), purchases, receipts and holds
+  async findById(invoiceId: string, leCurrencyCode: string): Promise<ReceiveWithInvoiceDetailDto> {
+    const invoice = await this.findReceiveWithInvoiceOrThrow(invoiceId);
+    const documents = await this.invoiceDocumentsService.findDocuments(invoice.id);
+    const allocations = await this.allocationsService.findWithLegs({
+      supplierId: invoice.supplierId,
+      siteId: invoice.siteId,
+    });
+    const receiptLines = await this.findReceiptLines(documents);
+    const { holds } = await this.invoicesService.findById(invoice.id, leCurrencyCode);
+    const lines = documents.lines
+      .filter((line) => line.lineType === SupplierInvoiceLineTypeValues.ITEM)
+      .flatMap((line) =>
+        allocations
+          .filter((allocation) => allocation.purchaseOrderItemId === line.purchaseOrderItemId)
+          .map((allocation) =>
+            ReceiveWithInvoiceDetailLineDto.from(
+              line,
+              allocation,
+              receiptLines.find(
+                (receiptLine) =>
+                  receiptLine.goodsReceiptItemId === line.goodsReceiptItemId &&
+                  receiptLine.goodsReceiptLotId === line.goodsReceiptLotId,
+              ),
+              invoice.currencyCode,
+              leCurrencyCode,
+            ),
+          ),
+      );
+    return ReceiveWithInvoiceDetailDto.from(invoice, {
+      status:
+        invoice.status === SupplierInvoiceStatusValues.POSTED
+          ? SupplierInvoiceStatusValues.POSTED
+          : SupplierInvoiceStatusValues.DRAFT,
+      leCurrencyCode,
+      receipts: documents.receipts,
+      lines,
+      holds,
+    });
+  }
+
+  // Returns the supplier's allocations at the site an invoice may still receive, with what is open of each: allocated less
+  // received less what other draft invoices carry (the excluded invoice's own lines count as open)
+  async findOpenLines(
+    query: ReceiveWithInvoiceOpenLinesQueryDto,
+    siteId: string,
+  ): Promise<ReceiveWithInvoiceOpenLineDto[]> {
+    const allocations = (
+      await this.allocationsService.findWithLegs({
+        supplierId: query.supplierId,
+        siteId,
+        legTypes: PurchaseSuppliersDomainService.RECEIVE_WITH_INVOICE_TYPES,
+      })
+    ).filter((allocation) => this.receivableReason(allocation) === null);
+    const excludedDeliveryIds = query.excludeInvoiceId
+      ? (await this.invoiceDocumentsService.findDocuments(query.excludeInvoiceId)).receipts.map(
+          (receipt) => receipt.inboundDeliveryId,
+        )
+      : [];
+    const pending = await this.deliveryLinesService.findPendingOnSupplierInvoices(
+      allocations.flatMap((allocation) => (allocation.purchaseOrderItemId ? [allocation.purchaseOrderItemId] : [])),
+      excludedDeliveryIds,
+    );
+    return allocations
+      .map((allocation) =>
+        ReceiveWithInvoiceOpenLineDto.from(
+          allocation,
+          allocation.purchaseOrderItemId ? (pending.get(allocation.purchaseOrderItemId) ?? 0) : 0,
+        ),
+      )
+      .filter((line) => line.openQty > 0);
   }
 
   // Discards a draft Receive with Invoice: its invoice, draft receipts and the deliveries created behind them, and a direct

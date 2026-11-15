@@ -13,14 +13,6 @@ export class PeopleLicensesController {
 
   constructor(private readonly service: PartyLicensesDomainService) {}
 
-  // Returns the paginated licenses of a person
-  @MessagePattern({ cmd: 'org.people.licenses.table' })
-  table(@Payload() data: { personId: string } & TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
-    const { personId, ...state } = data;
-    this.logger.log(`people.licenses.table — personId: ${personId}`);
-    return this.service.findForTable(personId, state);
-  }
-
   // Creates a license for a person
   @MessagePattern({ cmd: 'org.people.licenses.create' })
   create(@Payload() dto: CreatePersonLicenseDto): Promise<CreateResponseDto<PartyLicenseDto>> {
@@ -35,6 +27,14 @@ export class PeopleLicensesController {
     const { id, ...payload } = dto;
     this.logger.log(`people.licenses.update — id: ${id}`);
     return this.service.update(id, payload);
+  }
+
+  // Returns the paginated licenses of a person
+  @MessagePattern({ cmd: 'org.people.licenses.table' })
+  table(@Payload() data: { personId: string } & TableState): Promise<{ result: PartyLicenseDto[]; count: number }> {
+    const { personId, ...state } = data;
+    this.logger.log(`people.licenses.table — personId: ${personId}`);
+    return this.service.findForTable(personId, state);
   }
 
   // Deletes a license by ID

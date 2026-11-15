@@ -13,18 +13,6 @@ export class TaxGroupsRatesController {
 
   constructor(private readonly service: TaxGroupRatesDomainService) {}
 
-  // Returns a group's paginated rates for the data table, optionally only those charged in a state on a day
-  @MessagePattern({ cmd: 'org.taxGroups.rates.table' })
-  async table(
-    @Payload() data: { taxGroupId: string; jurisdiction?: string; asOf?: string } & TableState,
-  ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
-    const { taxGroupId, jurisdiction, asOf, ...state } = data;
-    this.logger.log(
-      `taxGroups.rates.table — taxGroupId: ${taxGroupId}, jurisdiction: ${jurisdiction ?? 'all'}, asOf: ${asOf ?? 'any'}`,
-    );
-    return this.service.findForTable(taxGroupId, state, { jurisdictionId: jurisdiction, asOf });
-  }
-
   // Adds a dated rate to a group
   @MessagePattern({ cmd: 'org.taxGroups.rates.create' })
   async create(@Payload() dto: CreateTaxGroupRateDto): Promise<CreateResponseDto<TaxGroupRateDto>> {
@@ -37,6 +25,18 @@ export class TaxGroupsRatesController {
   async update(@Payload() dto: UpdateTaxGroupRateDto): Promise<SuccessResponseDto> {
     this.logger.log(`taxGroups.rates.update — taxGroupId: ${dto.taxGroupId}, id: ${dto.id}`);
     return this.service.update(dto);
+  }
+
+  // Returns a group's paginated rates for the data table, optionally only those charged in a state on a day
+  @MessagePattern({ cmd: 'org.taxGroups.rates.table' })
+  async table(
+    @Payload() data: { taxGroupId: string; jurisdiction?: string; asOf?: string } & TableState,
+  ): Promise<{ result: TaxGroupRateDto[]; count: number }> {
+    const { taxGroupId, jurisdiction, asOf, ...state } = data;
+    this.logger.log(
+      `taxGroups.rates.table — taxGroupId: ${taxGroupId}, jurisdiction: ${jurisdiction ?? 'all'}, asOf: ${asOf ?? 'any'}`,
+    );
+    return this.service.findForTable(taxGroupId, state, { jurisdictionId: jurisdiction, asOf });
   }
 
   // Removes a rate from a group

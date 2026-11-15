@@ -17,6 +17,27 @@ export class LeGoodsReceiptsLinesController {
     private readonly service: GoodsReceiptsLinesService,
   ) {}
 
+  // Adds a line to a goods receipt item
+  @MessagePattern({ cmd: 'le.goodsReceipts.addLine' })
+  addLine(@Payload() dto: AddGoodsReceiptLineDto): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
+    this.logger.log(`le.goodsReceipts.addLine — item: ${dto.itemId}`);
+    return this.service.addLine(dto);
+  }
+
+  // Changes a line of a goods receipt item
+  @MessagePattern({ cmd: 'le.goodsReceipts.updateLine' })
+  updateLine(@Payload() dto: UpdateGoodsReceiptLineDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.goodsReceipts.updateLine — line: ${dto.lineId}`);
+    return this.service.updateLine(dto);
+  }
+
+  // Returns one line of a goods receipt item
+  @MessagePattern({ cmd: 'le.goodsReceipts.lineById' })
+  lineById(@Payload() data: { goodsReceiptId: string; itemId: string; lineId: string }): Promise<GoodsReceiptLineDto> {
+    this.logger.log(`le.goodsReceipts.lineById — line: ${data.lineId}`);
+    return this.linesService.findById(data.itemId, data.lineId);
+  }
+
   // Returns one page of a goods receipt item's lines
   @MessagePattern({ cmd: 'le.goodsReceipts.linesTable' })
   linesTable(
@@ -35,27 +56,6 @@ export class LeGoodsReceiptsLinesController {
     this.logger.log(`le.goodsReceipts.linesByLotTable — item: ${data.itemId}, lot: ${data.lotId}`);
     const { goodsReceiptId, itemId, lotId, ...state } = data;
     return this.linesService.findForTable(itemId, state, lotId);
-  }
-
-  // Returns one line of a goods receipt item
-  @MessagePattern({ cmd: 'le.goodsReceipts.lineById' })
-  lineById(@Payload() data: { goodsReceiptId: string; itemId: string; lineId: string }): Promise<GoodsReceiptLineDto> {
-    this.logger.log(`le.goodsReceipts.lineById — line: ${data.lineId}`);
-    return this.linesService.findById(data.itemId, data.lineId);
-  }
-
-  // Adds a line to a goods receipt item
-  @MessagePattern({ cmd: 'le.goodsReceipts.addLine' })
-  addLine(@Payload() dto: AddGoodsReceiptLineDto): Promise<CreateResponseDto<GoodsReceiptLineDto>> {
-    this.logger.log(`le.goodsReceipts.addLine — item: ${dto.itemId}`);
-    return this.service.addLine(dto);
-  }
-
-  // Changes a line of a goods receipt item
-  @MessagePattern({ cmd: 'le.goodsReceipts.updateLine' })
-  updateLine(@Payload() dto: UpdateGoodsReceiptLineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.goodsReceipts.updateLine — line: ${dto.lineId}`);
-    return this.service.updateLine(dto);
   }
 
   // Removes a line from a goods receipt item

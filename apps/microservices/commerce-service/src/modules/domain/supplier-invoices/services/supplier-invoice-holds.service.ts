@@ -64,6 +64,32 @@ export class SupplierInvoiceHoldsDomainService {
     return openHoldCount;
   }
 
+  // Releases an open hold with a reason, recording who released it and when, and recounts the invoice's open holds
+  async release(
+    invoice: Pick<SupplierInvoice, 'id' | 'invoiceNumber'>,
+    dto: ReleaseSupplierInvoiceHoldDto,
+    releasedBy: string,
+  ): Promise<SuccessResponseDto> {
+    const hold = await this.findOnInvoiceOrThrow(invoice.id, dto.id);
+    if (hold.status !== SupplierInvoiceHoldStatusValues.OPEN) {
+      throw new BadRequestException({
+        label: 'Hold Not Open',
+        detail: `This hold is already ${hold.status.toLowerCase()}.`,
+      });
+    }
+    await this.invoicesRepository.transaction(async () => {
+      await this.repository.update(hold.id, {
+        status: SupplierInvoiceHoldStatusValues.RELEASED,
+        releasedBy,
+        releasedAt: new Date(),
+        releaseReason: dto.reason,
+      });
+      await this.invoicesRepository.setOpenHoldCount(invoice.id, await this.repository.countOpenBlocking(invoice.id));
+    });
+    this.logger.log(`Released hold ${hold.code} (${hold.id}) on supplier invoice ${invoice.invoiceNumber}`);
+    return { success: true, message: `Hold released on invoice "${invoice.invoiceNumber}".` };
+  }
+
   // Evaluates the hold causes of an invoice's item lines against their PO lines, receipts and the enrollment's tolerances
   evaluate(invoice: HoldInvoiceFacts, lines: HoldLineFacts[], leCurrencyCode: string): ComputedHold[] {
     const money = (minor: bigint, currencyCode: string) =>
@@ -200,32 +226,6 @@ export class SupplierInvoiceHoldsDomainService {
       changes.updates.push({ id: hold.id, changes: { status: SupplierInvoiceHoldStatusValues.RESOLVED } });
     }
     return changes;
-  }
-
-  // Releases an open hold with a reason, recording who released it and when, and recounts the invoice's open holds
-  async release(
-    invoice: Pick<SupplierInvoice, 'id' | 'invoiceNumber'>,
-    dto: ReleaseSupplierInvoiceHoldDto,
-    releasedBy: string,
-  ): Promise<SuccessResponseDto> {
-    const hold = await this.findOnInvoiceOrThrow(invoice.id, dto.id);
-    if (hold.status !== SupplierInvoiceHoldStatusValues.OPEN) {
-      throw new BadRequestException({
-        label: 'Hold Not Open',
-        detail: `This hold is already ${hold.status.toLowerCase()}.`,
-      });
-    }
-    await this.invoicesRepository.transaction(async () => {
-      await this.repository.update(hold.id, {
-        status: SupplierInvoiceHoldStatusValues.RELEASED,
-        releasedBy,
-        releasedAt: new Date(),
-        releaseReason: dto.reason,
-      });
-      await this.invoicesRepository.setOpenHoldCount(invoice.id, await this.repository.countOpenBlocking(invoice.id));
-    });
-    this.logger.log(`Released hold ${hold.code} (${hold.id}) on supplier invoice ${invoice.invoiceNumber}`);
-    return { success: true, message: `Hold released on invoice "${invoice.invoiceNumber}".` };
   }
 
   // Returns the open holds a purchase order's live invoices carry on lines invoicing it

@@ -14,21 +14,6 @@ export class StockAdjustmentsRootController {
 
   constructor(private readonly service: StockAdjustmentsService) {}
 
-  @MessagePattern({ cmd: 'site.stockAdjustments.table' })
-  table(
-    @Payload() state: TableState,
-    @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    this.logger.log('stockAdjustments.table');
-    return this.service.table(state, leCurrencyCode);
-  }
-
-  @MessagePattern({ cmd: 'site.stockAdjustments.findById' })
-  findById(@Payload() data: { id: string }, @RpcLeCurrencyCode() leCurrencyCode: string): Promise<StockAdjustmentDto> {
-    this.logger.log(`stockAdjustments.findById — id: ${data.id}`);
-    return this.service.findById(data.id, leCurrencyCode);
-  }
-
   @MessagePattern({ cmd: 'site.stockAdjustments.create' })
   create(
     @Payload() dto: CreateStockAdjustmentDto,
@@ -41,12 +26,6 @@ export class StockAdjustmentsRootController {
       reason: dto.reason,
       unitCost: dto.unitCost !== undefined ? BigInt(dto.unitCost) : undefined,
     });
-  }
-
-  @MessagePattern({ cmd: 'site.stockAdjustments.publish' })
-  publish(@Payload() data: { id: string }, @RpcLeCurrencyCode() leCurrencyCode: string): Promise<StockAdjustmentDto> {
-    this.logger.log(`stockAdjustments.publish — id: ${data.id}, site currency: ${leCurrencyCode}`);
-    return this.service.publish(data.id, leCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.update' })
@@ -63,6 +42,27 @@ export class StockAdjustmentsRootController {
       },
       leCurrencyCode,
     );
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.publish' })
+  publish(@Payload() data: { id: string }, @RpcLeCurrencyCode() leCurrencyCode: string): Promise<StockAdjustmentDto> {
+    this.logger.log(`stockAdjustments.publish — id: ${data.id}, site currency: ${leCurrencyCode}`);
+    return this.service.publish(data.id, leCurrencyCode);
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.findById' })
+  findById(@Payload() data: { id: string }, @RpcLeCurrencyCode() leCurrencyCode: string): Promise<StockAdjustmentDto> {
+    this.logger.log(`stockAdjustments.findById — id: ${data.id}`);
+    return this.service.findById(data.id, leCurrencyCode);
+  }
+
+  @MessagePattern({ cmd: 'site.stockAdjustments.table' })
+  table(
+    @Payload() state: TableState,
+    @RpcLeCurrencyCode() leCurrencyCode: string,
+  ): Promise<{ result: StockAdjustmentDto[]; count: number }> {
+    this.logger.log('stockAdjustments.table');
+    return this.service.table(state, leCurrencyCode);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.delete' })

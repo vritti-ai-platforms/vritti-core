@@ -16,30 +16,10 @@ export class TaxComponentsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
-  // Returns paginated, filtered, and sorted tax components; the country comes from the saved table context
-  async findForTable(userId: string): Promise<TaxComponentTableResponseDto> {
-    this.logger.log('org.taxComponents.table');
-    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-tax-components');
-
-    const { result, count } = await this.nats.send<{ result: TaxComponentResponseDto[]; count: number }>(
-      'commerce',
-      'org.taxComponents.table',
-      state,
-    );
-
-    return { result, count, state, activeViewId };
-  }
-
   // Creates a new tax component
   create(dto: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentResponseDto>> {
     this.logger.log(`taxComponents.create — country: ${dto.countryCode}, code: ${dto.code}`);
     return this.nats.send('commerce', 'org.taxComponents.create', dto);
-  }
-
-  // Finds a tax component by ID
-  findById(id: string): Promise<TaxComponentResponseDto> {
-    this.logger.log(`taxComponents.findById — id: ${id}`);
-    return this.nats.send('commerce', 'org.taxComponents.findById', { id });
   }
 
   // Updates a tax component by ID
@@ -52,6 +32,26 @@ export class TaxComponentsGatewayService {
   setActive(id: string, isActive: boolean): Promise<SuccessResponseDto> {
     this.logger.log(`taxComponents.setActive — id: ${id}, isActive: ${isActive}`);
     return this.nats.send('commerce', 'org.taxComponents.setActive', { id, isActive });
+  }
+
+  // Finds a tax component by ID
+  findById(id: string): Promise<TaxComponentResponseDto> {
+    this.logger.log(`taxComponents.findById — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxComponents.findById', { id });
+  }
+
+  // Returns paginated, filtered, and sorted tax components; the country comes from the saved table context
+  async findForTable(userId: string): Promise<TaxComponentTableResponseDto> {
+    this.logger.log('org.taxComponents.table');
+    const { state, activeViewId } = await this.tableStateService.getTableState(userId, 'commerce-org-tax-components');
+
+    const { result, count } = await this.nats.send<{ result: TaxComponentResponseDto[]; count: number }>(
+      'commerce',
+      'org.taxComponents.table',
+      state,
+    );
+
+    return { result, count, state, activeViewId };
   }
 
   // Deletes a tax component by ID

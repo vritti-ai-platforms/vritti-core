@@ -13,16 +13,6 @@ export class InventoryItemsMrpController {
 
   constructor(private readonly service: InventoryItemsMrpService) {}
 
-  // Returns an inventory item's MRPs for the data table
-  @MessagePattern({ cmd: 'org.inventoryItems.mrp.table' })
-  async table(
-    @Payload() data: { inventoryItemId: string } & TableState,
-  ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
-    const { inventoryItemId, ...state } = data;
-    this.logger.log(`inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
-    return this.service.findForTable(inventoryItemId, state);
-  }
-
   // Adds a new suggested MRP for an (item, uom, currency)
   @MessagePattern({ cmd: 'org.inventoryItems.mrp.add' })
   async add(@Payload() dto: AddInventoryItemMrpDto): Promise<InventoryItemMrpDto> {
@@ -42,6 +32,16 @@ export class InventoryItemsMrpController {
   async setCurrent(@Payload() data: { id: string }): Promise<InventoryItemMrpDto> {
     this.logger.log(`inventoryItems.mrp.setCurrent — id: ${data.id}`);
     return this.service.setCurrent(data.id);
+  }
+
+  // Returns an inventory item's MRPs for the data table
+  @MessagePattern({ cmd: 'org.inventoryItems.mrp.table' })
+  async table(
+    @Payload() data: { inventoryItemId: string } & TableState,
+  ): Promise<{ result: InventoryItemMrpDto[]; count: number }> {
+    const { inventoryItemId, ...state } = data;
+    this.logger.log(`inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
+    return this.service.findForTable(inventoryItemId, state);
   }
 
   // Deletes an MRP row by id

@@ -14,13 +14,6 @@ export class SiteOfferingDimensionsController {
 
   constructor(private readonly service: OfferingDimensionsDomainService) {}
 
-  // Returns an offering's dimensions with their values, in Code segment order
-  @MessagePattern({ cmd: 'site.offerings.dimensions.list' })
-  list(@Payload() data: { offeringId: string }): Promise<OfferingDimensionDto[]> {
-    this.logger.log(`offerings.dimensions.list — offeringId: ${data.offeringId}`);
-    return this.service.list(data.offeringId);
-  }
-
   // Appends an empty dimension defined inline; its values are set separately
   @MessagePattern({ cmd: 'site.offerings.dimensions.create' })
   create(@Payload() dto: CreateOfferingDimensionDto): Promise<CreateResponseDto<OfferingDimensionDto>> {
@@ -37,6 +30,15 @@ export class SiteOfferingDimensionsController {
     return this.service.createWithValuesAndTemplate(dto);
   }
 
+  // Removes a dimension; refused while any variant uses one of its values Renames a dimension; its code is fixed
+  // because every derived Code carries it
+  @MessagePattern({ cmd: 'site.offerings.dimensions.update' })
+  update(@Payload() dto: UpdateOfferingDimensionDto): Promise<SuccessResponseDto> {
+    const { id, ...data } = dto;
+    this.logger.log(`offerings.dimensions.update — id: ${id}`);
+    return this.service.update(id, data);
+  }
+
   // Replaces a dimension's value set; values already used by a variant cannot be dropped
   @MessagePattern({ cmd: 'site.offerings.dimensions.values.upsert' })
   upsertValues(@Payload() dto: UpsertOfferingDimensionValuesDto): Promise<SuccessResponseDto> {
@@ -51,13 +53,11 @@ export class SiteOfferingDimensionsController {
     return this.service.reorder(data.offeringId, data.dimensionIds);
   }
 
-  // Removes a dimension; refused while any variant uses one of its values Renames a dimension; its code is fixed
-  // because every derived Code carries it
-  @MessagePattern({ cmd: 'site.offerings.dimensions.update' })
-  update(@Payload() dto: UpdateOfferingDimensionDto): Promise<SuccessResponseDto> {
-    const { id, ...data } = dto;
-    this.logger.log(`offerings.dimensions.update — id: ${id}`);
-    return this.service.update(id, data);
+  // Returns an offering's dimensions with their values, in Code segment order
+  @MessagePattern({ cmd: 'site.offerings.dimensions.list' })
+  list(@Payload() data: { offeringId: string }): Promise<OfferingDimensionDto[]> {
+    this.logger.log(`offerings.dimensions.list — offeringId: ${data.offeringId}`);
+    return this.service.list(data.offeringId);
   }
 
   @MessagePattern({ cmd: 'site.offerings.dimensions.delete' })

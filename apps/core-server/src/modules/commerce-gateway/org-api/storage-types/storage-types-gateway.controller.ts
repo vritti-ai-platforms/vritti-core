@@ -40,24 +40,6 @@ export class StorageTypesGatewayController {
 
   constructor(private readonly service: StorageTypesGatewayService) {}
 
-  // Returns paginated storage types for the data table
-  @Get('table')
-  @RequirePermission(ORG_STORAGE_TYPES.view)
-  @ApiFindForTableStorageTypes()
-  getTable(@UserId() userId: string): Promise<StorageTypeTableResponseDto> {
-    this.logger.log('GET /commerce-api/org/storage-types/table');
-    return this.service.findForTable(userId);
-  }
-
-  // Returns a storage type by ID
-  @Get(':id')
-  @RequirePermission(ORG_STORAGE_TYPES.view)
-  @ApiFindStorageTypeById()
-  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<StorageTypeResponseDto> {
-    this.logger.log(`GET /commerce-api/org/storage-types/${id}`);
-    return this.service.findById(id);
-  }
-
   // Creates a new storage type
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -75,6 +57,24 @@ export class StorageTypesGatewayController {
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateStorageTypeDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/storage-types/${id}`);
     return this.service.update(id, dto);
+  }
+
+  // Returns a storage type by ID
+  @Get(':id')
+  @RequirePermission(ORG_STORAGE_TYPES.view)
+  @ApiFindStorageTypeById()
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<StorageTypeResponseDto> {
+    this.logger.log(`GET /commerce-api/org/storage-types/${id}`);
+    return this.service.findById(id);
+  }
+
+  // Returns paginated storage types for the data table
+  @Get('table')
+  @RequirePermission(ORG_STORAGE_TYPES.view)
+  @ApiFindForTableStorageTypes()
+  getTable(@UserId() userId: string): Promise<StorageTypeTableResponseDto> {
+    this.logger.log('GET /commerce-api/org/storage-types/table');
+    return this.service.findForTable(userId);
   }
 
   // Deletes a storage type by ID

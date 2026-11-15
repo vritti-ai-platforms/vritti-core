@@ -48,49 +48,6 @@ export class SuppliersDomainService {
 
   constructor(private readonly repository: SuppliersDomainRepository) {}
 
-  // Returns paginated suppliers for the data table with the joined party name
-  async findForTable(state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersDomainService.SEARCH_FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...SuppliersDomainService.SEARCH_FIELD_MAP,
-      ...SuppliersDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findAllWithParty({
-      where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [asc(parties.displayName)],
-      limit,
-      offset,
-    });
-
-    return { result: rows.map((row) => SupplierDto.from(row)), count };
-  }
-
-  // Returns paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the
-  // item and enrolledAtSiteId those actively enrolled at the site
-  findForSelect(
-    query: SelectOptionsQueryDto,
-    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
-  ): Promise<SelectQueryResult> {
-    return this.repository.findForSelect(
-      {
-        ...selectPageOptions(query),
-        value: query.valueKey || 'id',
-        label: query.labelKey || 'displayName',
-        description: query.descriptionKey,
-        additionalKeys: query.additionalKeys,
-        groupIdKey: query.groupIdKey,
-        searchKeys: ['displayName', 'code'],
-        orderByKey: query.orderByKey || 'displayName',
-        orderDirection: query.orderDirection || 'asc',
-      },
-      options,
-    );
-  }
-
   // Creates a new supplier referencing an existing party for its identity
   async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
     await this.assertDefaultPaymentTermUsable(data.defaultPaymentTermId);
@@ -114,13 +71,6 @@ export class SuppliersDomainService {
       message: `Supplier "${withParty.partyName}" created.`,
       data: SupplierDto.from(withParty),
     };
-  }
-
-  // Returns supplier detail with party name, registrations, licenses, and its enrollment and item counts
-  async findById(id: string): Promise<SupplierDetailDto> {
-    const supplier = await this.repository.findDetail(id);
-    if (!supplier) throw new NotFoundException('Supplier not found.');
-    return SupplierDetailDto.fromDetail(supplier);
   }
 
   // Updates a supplier's commercial terms and block flags
@@ -201,13 +151,54 @@ export class SuppliersDomainService {
     };
   }
 
-  // Deletes a supplier that nothing references
-  async delete(id: string): Promise<SuccessResponseDto> {
-    const existing = await this.findWithPartyOrThrow(id);
-    await this.assertNotReferenced(existing);
-    await this.repository.delete(id);
-    this.logger.log(`Deleted supplier: ${existing.code} (${id})`);
-    return { success: true, message: `Supplier "${existing.partyName}" deleted successfully.` };
+  // Returns supplier detail with party name, registrations, licenses, and its enrollment and item counts
+  async findById(id: string): Promise<SupplierDetailDto> {
+    const supplier = await this.repository.findDetail(id);
+    if (!supplier) throw new NotFoundException('Supplier not found.');
+    return SupplierDetailDto.fromDetail(supplier);
+  }
+
+  // Returns paginated suppliers for the data table with the joined party name
+  async findForTable(state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, SuppliersDomainService.FILTER_FIELD_MAP);
+    const searchWhere = FilterProcessor.buildSearch(state.search, SuppliersDomainService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...SuppliersDomainService.SEARCH_FIELD_MAP,
+      ...SuppliersDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findAllWithParty({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [asc(parties.displayName)],
+      limit,
+      offset,
+    });
+
+    return { result: rows.map((row) => SupplierDto.from(row)), count };
+  }
+
+  // Returns paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the
+  // item and enrolledAtSiteId those actively enrolled at the site
+  findForSelect(
+    query: SelectOptionsQueryDto,
+    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
+  ): Promise<SelectQueryResult> {
+    return this.repository.findForSelect(
+      {
+        ...selectPageOptions(query),
+        value: query.valueKey || 'id',
+        label: query.labelKey || 'displayName',
+        description: query.descriptionKey,
+        additionalKeys: query.additionalKeys,
+        groupIdKey: query.groupIdKey,
+        searchKeys: ['displayName', 'code'],
+        orderByKey: query.orderByKey || 'displayName',
+        orderDirection: query.orderDirection || 'asc',
+      },
+      options,
+    );
   }
 
   // Loads a supplier by id, throwing when it does not exist
@@ -222,6 +213,15 @@ export class SuppliersDomainService {
     const supplier = await this.repository.findByIdWithParty(id);
     if (!supplier) throw new NotFoundException('Supplier not found.');
     return supplier;
+  }
+
+  // Deletes a supplier that nothing references
+  async delete(id: string): Promise<SuccessResponseDto> {
+    const existing = await this.findWithPartyOrThrow(id);
+    await this.assertNotReferenced(existing);
+    await this.repository.delete(id);
+    this.logger.log(`Deleted supplier: ${existing.code} (${id})`);
+    return { success: true, message: `Supplier "${existing.partyName}" deleted successfully.` };
   }
 
   // Rejects a default payment term that is not a published term of the caller's organization

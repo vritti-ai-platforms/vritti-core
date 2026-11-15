@@ -41,6 +41,69 @@ export class SiteInventoryItemsGatewayService {
     private readonly tableStateService: TableStateService,
   ) {}
 
+  // Creates a new inventory item
+  async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
+    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
+    return this.nats.send('commerce', 'org.inventoryItems.create', { ...dto, createOffering: false });
+  }
+
+  // Creates an item-location config; returns the created entity so the client inserts it into the cached feed.
+  async createItemLocation(
+    inventoryItemId: string,
+    dto: CreateInventoryItemLocationDto,
+  ): Promise<CreateResponseDto<InventoryItemLocationResponseDto>> {
+    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.addLocation', { inventoryItemId, ...dto });
+  }
+
+  // Creates a per-item UOM conversion override
+  async createUomConversion(
+    inventoryItemId: string,
+    dto: CreateInventoryItemUomConversionDto,
+  ): Promise<CreateResponseDto<SiteInventoryItemUomConversionResponseDto>> {
+    this.logger.log(`org.inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.uom.create', { inventoryItemId, ...dto });
+  }
+
+  // Updates an inventory item
+  async update(id: string, dto: UpdateSiteInventoryItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.update — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
+  }
+
+  // Updates an inventory item's stock levels at the current site
+  updateStockLevels(inventoryItemId: string, dto: UpdateSiteStockLevelsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.stockLevels.update — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.update', { inventoryItemId, ...dto });
+  }
+
+  // Updates an item-location config
+  async updateItemLocation(id: string, dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
+    return this.nats.send('commerce', 'site.inventoryItems.updateLocation', { id, ...dto });
+  }
+
+  // Updates a per-item UOM conversion override
+  async updateUomConversion(
+    conversionId: string,
+    dto: UpdateInventoryItemUomConversionDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.uom.update — id: ${conversionId}`);
+    return this.nats.send('commerce', 'org.inventoryItems.uom.update', { id: conversionId, ...dto });
+  }
+
+  // Sets a master inventory item's stock levels at the current site
+  setStockLevels(inventoryItemId: string, dto: CreateSiteStockLevelsDto): Promise<CreateResponseDto<{ id: string }>> {
+    this.logger.log(`site.inventoryItems.stockLevels.create — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.create', { inventoryItemId, ...dto });
+  }
+
+  // Returns a single inventory item
+  async findById(id: string): Promise<SiteInventoryItemResponseDto> {
+    this.logger.log(`inventoryItems.findById — id: ${id}`);
+    return this.nats.send('commerce', 'site.inventoryItems.findById', { id });
+  }
+
   // Every master item with the site's stock levels for it and its stock on hand, split by location
   async findForStockTable(userId: string): Promise<SiteStockTableResponseDto> {
     this.logger.log('site.inventoryItems.stockTable');
@@ -53,51 +116,6 @@ export class SiteInventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
-  }
-
-  // Keyset/cursor Relay connection for the mobile infinite feed (GraphQL-only — no REST route).
-  async findForFeed(query: {
-    filters: TableFilters;
-    search?: SearchState | null;
-    sort?: SortCondition[];
-    limit?: number;
-    cursor?: string;
-  }): Promise<{
-    edges: { cursor: string; node: SiteInventoryItemResponseDto }[];
-    pageInfo: { hasNextPage: boolean; endCursor: string | null };
-  }> {
-    this.logger.log('org.inventoryItems.feed');
-    return this.nats.send('commerce', 'org.inventoryItems.feed', query);
-  }
-
-  // Creates a new inventory item
-  async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
-    this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
-    return this.nats.send('commerce', 'org.inventoryItems.create', { ...dto, createOffering: false });
-  }
-
-  // Sets a master inventory item's stock levels at the current site
-  setStockLevels(inventoryItemId: string, dto: CreateSiteStockLevelsDto): Promise<CreateResponseDto<{ id: string }>> {
-    this.logger.log(`site.inventoryItems.stockLevels.create — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.create', { inventoryItemId, ...dto });
-  }
-
-  // Returns an inventory item's stock levels at the current site, or null while none are set
-  findStockLevels(inventoryItemId: string): Promise<InventoryItemSiteStockLevelResponseDto | null> {
-    this.logger.log(`site.inventoryItems.stockLevels.find — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.find', { inventoryItemId });
-  }
-
-  // Removes an inventory item's stock levels at the current site
-  removeStockLevels(inventoryItemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.inventoryItems.stockLevels.delete — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.delete', { inventoryItemId });
-  }
-
-  // Updates an inventory item's stock levels at the current site
-  updateStockLevels(inventoryItemId: string, dto: UpdateSiteStockLevelsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.inventoryItems.stockLevels.update — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.update', { inventoryItemId, ...dto });
   }
 
   // Returns supplier links for a given inventory item, table-shaped
@@ -117,28 +135,6 @@ export class SiteInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Keyset Relay connection of an item's supplier links for the mobile infinite feed (mirrors findStockLevelsForFeed).
-  async findSuppliersForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
-    edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
-    pageInfo: { hasNextPage: boolean; endCursor: string | null };
-  }> {
-    this.logger.log(`inventoryItems.suppliersFeed — inventoryItemId: ${query.inventoryItemId}`);
-    return this.nats.send<{
-      edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
-      pageInfo: { hasNextPage: boolean; endCursor: string | null };
-    }>('commerce', 'site.inventoryItems.suppliersFeed', {
-      inventoryItemId: query.inventoryItemId,
-      limit: query.first ?? 20,
-      cursor: query.after,
-    });
-  }
-
-  // Returns a single inventory item
-  async findById(id: string): Promise<SiteInventoryItemResponseDto> {
-    this.logger.log(`inventoryItems.findById — id: ${id}`);
-    return this.nats.send('commerce', 'site.inventoryItems.findById', { id });
-  }
-
   // Returns paginated ledger entries for an inventory item data table
   async findLedgerForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log('site.inventoryItems.ledgerTable');
@@ -154,6 +150,110 @@ export class SiteInventoryItemsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated quants for an inventory item data table
+  async findQuantsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemQuantTableResponseDto> {
+    this.logger.log('inventoryItems.quantsTable');
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `inventory-item-${inventoryItemId}-quants`,
+    );
+
+    const { result, count } = await this.nats.send<{
+      result: InventoryItemQuantResponseDto[];
+      count: number;
+    }>('commerce', 'site.inventoryItems.quantsTable', { inventoryItemId, ...state });
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated lots for an inventory item data table
+  async findLotsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLotTableResponseDto> {
+    this.logger.log('inventoryItems.lotsTable');
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `inventory-item-${inventoryItemId}-lots`,
+    );
+
+    const { result, count } = await this.nats.send<{
+      result: InventoryItemLotResponseDto[];
+      count: number;
+    }>('commerce', 'site.inventoryItems.lotsTable', { inventoryItemId, ...state });
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated item-location configs for an inventory item
+  async findItemLocationsForTable(
+    inventoryItemId: string,
+    userId: string,
+  ): Promise<InventoryItemLocationTableResponseDto> {
+    this.logger.log('inventoryItems.locationsTable');
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `inventory-item-${inventoryItemId}-locations`,
+    );
+
+    const { result, count } = await this.nats.send<{
+      result: InventoryItemLocationResponseDto[];
+      count: number;
+    }>('commerce', 'site.inventoryItems.locationsTable', { inventoryItemId, ...state });
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Returns paginated UOM conversion overrides for an inventory item
+  async findUomConversionsForTable(inventoryItemId: string, userId: string) {
+    this.logger.log(`org.inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
+    const { state, activeViewId } = await this.tableStateService.getTableState(
+      userId,
+      `inventory-item-${inventoryItemId}-uom-overrides`,
+    );
+
+    const { result, count } = await this.nats.send<{
+      result: SiteInventoryItemUomConversionResponseDto[];
+      count: number;
+    }>('commerce', 'org.inventoryItems.uom.table', { inventoryItemId, ...state });
+
+    return { result, count, state, activeViewId };
+  }
+
+  // Keyset/cursor Relay connection for the mobile infinite feed (GraphQL-only — no REST route).
+  async findForFeed(query: {
+    filters: TableFilters;
+    search?: SearchState | null;
+    sort?: SortCondition[];
+    limit?: number;
+    cursor?: string;
+  }): Promise<{
+    edges: { cursor: string; node: SiteInventoryItemResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log('org.inventoryItems.feed');
+    return this.nats.send('commerce', 'org.inventoryItems.feed', query);
+  }
+
+  // Returns an inventory item's stock levels at the current site, or null while none are set
+  findStockLevels(inventoryItemId: string): Promise<InventoryItemSiteStockLevelResponseDto | null> {
+    this.logger.log(`site.inventoryItems.stockLevels.find — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.find', { inventoryItemId });
+  }
+
+  // Keyset Relay connection of an item's supplier links for the mobile infinite feed (mirrors findStockLevelsForFeed).
+  async findSuppliersForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
+    edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
+    pageInfo: { hasNextPage: boolean; endCursor: string | null };
+  }> {
+    this.logger.log(`inventoryItems.suppliersFeed — inventoryItemId: ${query.inventoryItemId}`);
+    return this.nats.send<{
+      edges: { cursor: string; node: InventoryItemSupplierResponseDto }[];
+      pageInfo: { hasNextPage: boolean; endCursor: string | null };
+    }>('commerce', 'site.inventoryItems.suppliersFeed', {
+      inventoryItemId: query.inventoryItemId,
+      limit: query.first ?? 20,
+      cursor: query.after,
+    });
   }
 
   // Keyset Relay connection of an item's ledger entries for the mobile infinite feed (mirrors findStockLevelsForFeed).
@@ -195,22 +295,6 @@ export class SiteInventoryItemsGatewayService {
     });
   }
 
-  // Returns paginated quants for an inventory item data table
-  async findQuantsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemQuantTableResponseDto> {
-    this.logger.log('inventoryItems.quantsTable');
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `inventory-item-${inventoryItemId}-quants`,
-    );
-
-    const { result, count } = await this.nats.send<{
-      result: InventoryItemQuantResponseDto[];
-      count: number;
-    }>('commerce', 'site.inventoryItems.quantsTable', { inventoryItemId, ...state });
-
-    return { result, count, state, activeViewId };
-  }
-
   // Keyset Relay connection of an item's quants for the mobile infinite feed (mirrors findStockLevelsForFeed).
   async findQuantsForFeed(query: { inventoryItemId: string; first?: number; after?: string }): Promise<{
     edges: { cursor: string; node: InventoryItemQuantResponseDto }[];
@@ -225,41 +309,6 @@ export class SiteInventoryItemsGatewayService {
       limit: query.first ?? 20,
       cursor: query.after,
     });
-  }
-
-  // Returns paginated lots for an inventory item data table
-  async findLotsForTable(inventoryItemId: string, userId: string): Promise<InventoryItemLotTableResponseDto> {
-    this.logger.log('inventoryItems.lotsTable');
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `inventory-item-${inventoryItemId}-lots`,
-    );
-
-    const { result, count } = await this.nats.send<{
-      result: InventoryItemLotResponseDto[];
-      count: number;
-    }>('commerce', 'site.inventoryItems.lotsTable', { inventoryItemId, ...state });
-
-    return { result, count, state, activeViewId };
-  }
-
-  // Returns paginated item-location configs for an inventory item
-  async findItemLocationsForTable(
-    inventoryItemId: string,
-    userId: string,
-  ): Promise<InventoryItemLocationTableResponseDto> {
-    this.logger.log('inventoryItems.locationsTable');
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `inventory-item-${inventoryItemId}-locations`,
-    );
-
-    const { result, count } = await this.nats.send<{
-      result: InventoryItemLocationResponseDto[];
-      count: number;
-    }>('commerce', 'site.inventoryItems.locationsTable', { inventoryItemId, ...state });
-
-    return { result, count, state, activeViewId };
   }
 
   // Keyset Relay connection of an item's location configs for the mobile infinite feed (mirrors
@@ -279,43 +328,6 @@ export class SiteInventoryItemsGatewayService {
     });
   }
 
-  // Creates an item-location config; returns the created entity so the client inserts it into the cached feed.
-  async createItemLocation(
-    inventoryItemId: string,
-    dto: CreateInventoryItemLocationDto,
-  ): Promise<CreateResponseDto<InventoryItemLocationResponseDto>> {
-    this.logger.log(`inventoryItems.addLocation — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.addLocation', { inventoryItemId, ...dto });
-  }
-
-  // Updates an item-location config
-  async updateItemLocation(id: string, dto: UpdateInventoryItemLocationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.updateLocation — id: ${id}`);
-    return this.nats.send('commerce', 'site.inventoryItems.updateLocation', { id, ...dto });
-  }
-
-  // Deletes an item-location config
-  async deleteItemLocation(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.removeLocation — id: ${id}`);
-    return this.nats.send('commerce', 'site.inventoryItems.removeLocation', { id });
-  }
-
-  // Returns paginated UOM conversion overrides for an inventory item
-  async findUomConversionsForTable(inventoryItemId: string, userId: string) {
-    this.logger.log(`org.inventoryItems.uom.table — inventoryItemId: ${inventoryItemId}`);
-    const { state, activeViewId } = await this.tableStateService.getTableState(
-      userId,
-      `inventory-item-${inventoryItemId}-uom-overrides`,
-    );
-
-    const { result, count } = await this.nats.send<{
-      result: SiteInventoryItemUomConversionResponseDto[];
-      count: number;
-    }>('commerce', 'org.inventoryItems.uom.table', { inventoryItemId, ...state });
-
-    return { result, count, state, activeViewId };
-  }
-
   // Lean list of an item's UOM conversion overrides for the mobile detail tab — skips the web DataTableState machinery
   // (no per-user saved views).
   async findUomConversions(inventoryItemId: string): Promise<SiteInventoryItemUomConversionResponseDto[]> {
@@ -328,39 +340,27 @@ export class SiteInventoryItemsGatewayService {
     return result;
   }
 
-  // Creates a per-item UOM conversion override
-  async createUomConversion(
-    inventoryItemId: string,
-    dto: CreateInventoryItemUomConversionDto,
-  ): Promise<CreateResponseDto<SiteInventoryItemUomConversionResponseDto>> {
-    this.logger.log(`org.inventoryItems.uom.create — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.uom.create', { inventoryItemId, ...dto });
+  // Deletes an inventory item
+  async delete(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`org.inventoryItems.delete — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.delete', { id });
   }
 
-  // Updates a per-item UOM conversion override
-  async updateUomConversion(
-    conversionId: string,
-    dto: UpdateInventoryItemUomConversionDto,
-  ): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.uom.update — id: ${conversionId}`);
-    return this.nats.send('commerce', 'org.inventoryItems.uom.update', { id: conversionId, ...dto });
+  // Removes an inventory item's stock levels at the current site
+  removeStockLevels(inventoryItemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.stockLevels.delete — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.delete', { inventoryItemId });
+  }
+
+  // Deletes an item-location config
+  async deleteItemLocation(id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`inventoryItems.removeLocation — id: ${id}`);
+    return this.nats.send('commerce', 'site.inventoryItems.removeLocation', { id });
   }
 
   // Deletes a per-item UOM conversion override
   async deleteUomConversion(conversionId: string): Promise<SuccessResponseDto> {
     this.logger.log(`org.inventoryItems.uom.delete — id: ${conversionId}`);
     return this.nats.send('commerce', 'org.inventoryItems.uom.delete', { id: conversionId });
-  }
-
-  // Updates an inventory item
-  async update(id: string, dto: UpdateSiteInventoryItemDto): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.update — id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
-  }
-
-  // Deletes an inventory item
-  async delete(id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`org.inventoryItems.delete — id: ${id}`);
-    return this.nats.send('commerce', 'org.inventoryItems.delete', { id });
   }
 }
