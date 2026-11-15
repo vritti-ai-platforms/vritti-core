@@ -15,7 +15,7 @@ import type {
   UpdateTaxGroupPayload,
 } from '@/schemas/tax-groups';
 
-const BASE = 'commerce-api/tax-groups';
+const BASE = 'commerce-api/org/tax-groups';
 
 // Fetches the current page of tax groups; the country comes from the saved table state
 export function getTaxGroupsTable(): Promise<TaxGroupsTableResponse> {

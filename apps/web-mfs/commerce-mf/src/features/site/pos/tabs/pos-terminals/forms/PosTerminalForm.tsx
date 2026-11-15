@@ -80,7 +80,7 @@ export const PosTerminalForm: React.FC<PosTerminalFormProps> = ({ terminal, onSu
           label="POS Location"
           placeholder="Select location"
           searchable
-          optionsEndpoint="commerce-api/pos-terminals/locations/select"
+          optionsEndpoint="commerce-api/site/pos-terminals/locations/select"
           fieldKeys={{ valueKey: 'id', labelKey: 'name' }}
           description="Only storage locations with role POS are listed."
         />

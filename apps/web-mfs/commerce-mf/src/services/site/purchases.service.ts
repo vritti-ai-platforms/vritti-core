@@ -45,7 +45,7 @@ import type {
   UpdateReceiveWithInvoiceVars,
 } from '@/schemas/receive-with-invoices';
 
-const BASE = 'commerce-api/purchases';
+const BASE = 'commerce-api/site/purchases';
 
 // Fetches the site's purchases for the data table
 export function getPurchasesTable(): Promise<PurchasesTableResponse> {

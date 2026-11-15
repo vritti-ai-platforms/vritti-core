@@ -34,7 +34,7 @@ import { PosTerminalsGatewayService } from './services/pos-terminals-gateway.ser
 @ApiTags('Commerce - POS Terminals')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@Controller('pos-terminals')
+@Controller('site/pos-terminals')
 export class PosTerminalsGatewayController {
   private readonly logger = new Logger(PosTerminalsGatewayController.name);
 
@@ -44,7 +44,7 @@ export class PosTerminalsGatewayController {
   @Get('table')
   @ApiTable()
   table(@UserId() userId: string): Promise<PosTerminalTableResponseDto> {
-    this.logger.log('GET /commerce-api/pos-terminals/table');
+    this.logger.log('GET /commerce-api/site/pos-terminals/table');
     return this.posTerminalsGatewayService.findForTable(userId);
   }
 
@@ -53,7 +53,7 @@ export class PosTerminalsGatewayController {
   @ApiSelectLocations()
   @Require(AuthType.Session, SessionTypeValues.WEB, SessionTypeValues.MOBILE)
   selectLocations(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/pos-terminals/locations/select');
+    this.logger.log('GET /commerce-api/site/pos-terminals/locations/select');
     return this.posTerminalsGatewayService.selectPosLocations(query);
   }
 
@@ -61,7 +61,7 @@ export class PosTerminalsGatewayController {
   @Get(':id')
   @ApiFindById()
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<PosTerminalResponseDto> {
-    this.logger.log(`GET /commerce-api/pos-terminals/${id}`);
+    this.logger.log(`GET /commerce-api/site/pos-terminals/${id}`);
     return this.posTerminalsGatewayService.findById(id);
   }
 
@@ -70,7 +70,7 @@ export class PosTerminalsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
   create(@Body() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalResponseDto>> {
-    this.logger.log('POST /commerce-api/pos-terminals');
+    this.logger.log('POST /commerce-api/site/pos-terminals');
     return this.posTerminalsGatewayService.create(dto);
   }
 
@@ -78,7 +78,7 @@ export class PosTerminalsGatewayController {
   @Patch(':id')
   @ApiUpdate()
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePosTerminalDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/pos-terminals/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/pos-terminals/${id}`);
     return this.posTerminalsGatewayService.update(id, dto);
   }
 
@@ -86,7 +86,7 @@ export class PosTerminalsGatewayController {
   @Delete(':id')
   @ApiDelete()
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/pos-terminals/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/pos-terminals/${id}`);
     return this.posTerminalsGatewayService.delete(id);
   }
 }

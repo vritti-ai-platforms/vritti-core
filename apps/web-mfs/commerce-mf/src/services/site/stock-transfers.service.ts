@@ -14,17 +14,17 @@ export interface CreateStockTransferPayload {
 
 export function getStockTransfersTable(): Promise<StockTransfersTableResponse> {
   return axios
-    .get<StockTransfersTableResponse>('commerce-api/stock-transfers/table', { showSuccessToast: false })
+    .get<StockTransfersTableResponse>('commerce-api/site/stock-transfers/table', { showSuccessToast: false })
     .then((r) => r.data);
 }
 
 export function createStockTransfer(data: CreateStockTransferPayload): Promise<StockTransferData> {
-  return axios.post<StockTransferData>('commerce-api/stock-transfers', data).then((r) => r.data);
+  return axios.post<StockTransferData>('commerce-api/site/stock-transfers', data).then((r) => r.data);
 }
 
 export function getStockTransfer(id: string): Promise<StockTransferData> {
   return axios
-    .get<StockTransferData>(`commerce-api/stock-transfers/${id}`, { showSuccessToast: false })
+    .get<StockTransferData>(`commerce-api/site/stock-transfers/${id}`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 
@@ -35,5 +35,5 @@ export function updateStockTransferStatus({
   id: string;
   status: StockTransferStatus;
 }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/stock-transfers/${id}/status`, { status }).then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/site/stock-transfers/${id}/status`, { status }).then((r) => r.data);
 }

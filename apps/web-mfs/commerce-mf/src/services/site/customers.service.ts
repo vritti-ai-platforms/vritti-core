@@ -20,26 +20,28 @@ export interface UpdateCustomerPayload {
 // Fetches customers for the data table
 export function getCustomersTable(): Promise<CustomersTableResponse> {
   return axios
-    .get<CustomersTableResponse>('commerce-api/customers/table', { showSuccessToast: false })
+    .get<CustomersTableResponse>('commerce-api/site/customers/table', { showSuccessToast: false })
     .then((r) => r.data);
 }
 
 // Fetches a single customer by ID
 export function getCustomer(id: string): Promise<CustomerDetail> {
-  return axios.get<CustomerDetail>(`commerce-api/customers/${id}`, { showSuccessToast: false }).then((r) => r.data);
+  return axios
+    .get<CustomerDetail>(`commerce-api/site/customers/${id}`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 // Creates a new customer
 export function createCustomer(data: CreateCustomerPayload): Promise<CustomerData> {
-  return axios.post<CustomerData>('commerce-api/customers', data).then((r) => r.data);
+  return axios.post<CustomerData>('commerce-api/site/customers', data).then((r) => r.data);
 }
 
 // Updates a customer and returns the updated entity
 export function updateCustomer({ id, data }: { id: string; data: UpdateCustomerPayload }): Promise<CustomerData> {
-  return axios.patch<CustomerData>(`commerce-api/customers/${id}`, data).then((r) => r.data);
+  return axios.patch<CustomerData>(`commerce-api/site/customers/${id}`, data).then((r) => r.data);
 }
 
 // Deletes a customer
 export function deleteCustomer(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/customers/${id}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/site/customers/${id}`).then((r) => r.data);
 }

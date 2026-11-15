@@ -23,7 +23,7 @@ import { PaymentTermsGatewayService } from './services/payment-terms-gateway.ser
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_PAYMENT_TERMS.featureCode)
-@Controller('payment-terms')
+@Controller('org/payment-terms')
 export class PaymentTermsGatewayController {
   private readonly logger = new Logger(PaymentTermsGatewayController.name);
 
@@ -33,7 +33,7 @@ export class PaymentTermsGatewayController {
   @Get('table')
   @RequirePermission(ORG_PAYMENT_TERMS.view)
   getTable(@UserId() userId: string): Promise<PaymentTermTableResponseDto> {
-    this.logger.log('GET /commerce-api/payment-terms/table');
+    this.logger.log('GET /commerce-api/org/payment-terms/table');
     return this.service.findForTable(userId);
   }
 
@@ -42,7 +42,7 @@ export class PaymentTermsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_PAYMENT_TERMS.add)
   create(@Body() dto: CreatePaymentTermDto): Promise<CreateResponseDto<PaymentTermResponseDto>> {
-    this.logger.log('POST /commerce-api/payment-terms');
+    this.logger.log('POST /commerce-api/org/payment-terms');
     return this.service.create(dto);
   }
 
@@ -50,7 +50,7 @@ export class PaymentTermsGatewayController {
   @Get(':id')
   @RequirePermission(ORG_PAYMENT_TERMS.view)
   findById(@Param('id') id: string): Promise<PaymentTermDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/payment-terms/${id}`);
+    this.logger.log(`GET /commerce-api/org/payment-terms/${id}`);
     return this.service.findById(id);
   }
 
@@ -58,7 +58,7 @@ export class PaymentTermsGatewayController {
   @Patch(':id')
   @RequirePermission(ORG_PAYMENT_TERMS.edit)
   update(@Param('id') id: string, @Body() dto: UpdatePaymentTermDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/payment-terms/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -66,7 +66,7 @@ export class PaymentTermsGatewayController {
   @Patch(':id/baseline')
   @RequirePermission(ORG_PAYMENT_TERMS.baseline.edit)
   changeBaseline(@Param('id') id: string, @Body() dto: ChangePaymentTermBaselineDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/payment-terms/${id}/baseline`);
+    this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}/baseline`);
     return this.service.changeBaseline(id, dto);
   }
 
@@ -75,7 +75,7 @@ export class PaymentTermsGatewayController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission(ORG_PAYMENT_TERMS.publish)
   publish(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/payment-terms/${id}/publish`);
+    this.logger.log(`POST /commerce-api/org/payment-terms/${id}/publish`);
     return this.service.publish(id);
   }
 
@@ -84,7 +84,7 @@ export class PaymentTermsGatewayController {
   @HttpCode(HttpStatus.OK)
   @RequirePermission(ORG_PAYMENT_TERMS.publish)
   unpublish(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/payment-terms/${id}/unpublish`);
+    this.logger.log(`POST /commerce-api/org/payment-terms/${id}/unpublish`);
     return this.service.unpublish(id);
   }
 
@@ -92,7 +92,7 @@ export class PaymentTermsGatewayController {
   @Get(':id/rules')
   @RequirePermission(ORG_PAYMENT_TERMS.rules.view)
   findRules(@Param('id') id: string): Promise<PaymentTermRulesResponseDto> {
-    this.logger.log(`GET /commerce-api/payment-terms/${id}/rules`);
+    this.logger.log(`GET /commerce-api/org/payment-terms/${id}/rules`);
     return this.service.findRules(id);
   }
 
@@ -103,7 +103,7 @@ export class PaymentTermsGatewayController {
     @Param('id') id: string,
     @Query() query: PaymentScheduleQueryDto,
   ): Promise<PaymentScheduleResponseDto> {
-    this.logger.log(`GET /commerce-api/payment-terms/${id}/schedule`);
+    this.logger.log(`GET /commerce-api/org/payment-terms/${id}/schedule`);
     return this.service.previewSchedule(id, query);
   }
 
@@ -112,7 +112,7 @@ export class PaymentTermsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_PAYMENT_TERMS.rules.add)
   addRule(@Param('id') id: string, @Body() dto: PaymentTermRuleDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/payment-terms/${id}/rules`);
+    this.logger.log(`POST /commerce-api/org/payment-terms/${id}/rules`);
     return this.service.addRule(id, dto);
   }
 
@@ -124,7 +124,7 @@ export class PaymentTermsGatewayController {
     @Param('ruleId') ruleId: string,
     @Body() dto: PaymentTermRuleDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/payment-terms/${id}/rules/${ruleId}`);
+    this.logger.log(`PATCH /commerce-api/org/payment-terms/${id}/rules/${ruleId}`);
     return this.service.updateRule(id, ruleId, dto);
   }
 
@@ -132,7 +132,7 @@ export class PaymentTermsGatewayController {
   @Delete(':id/rules/:ruleId')
   @RequirePermission(ORG_PAYMENT_TERMS.rules.delete)
   deleteRule(@Param('id') id: string, @Param('ruleId') ruleId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/payment-terms/${id}/rules/${ruleId}`);
+    this.logger.log(`DELETE /commerce-api/org/payment-terms/${id}/rules/${ruleId}`);
     return this.service.deleteRule(id, ruleId);
   }
 
@@ -140,7 +140,7 @@ export class PaymentTermsGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_PAYMENT_TERMS.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/payment-terms/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/payment-terms/${id}`);
     return this.service.delete(id);
   }
 }

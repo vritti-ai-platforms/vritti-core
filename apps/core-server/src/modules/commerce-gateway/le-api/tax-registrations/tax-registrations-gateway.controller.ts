@@ -24,7 +24,7 @@ import { TaxRegistrationsGatewayService } from './services/tax-registrations-gat
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(LE_TAX_REGISTRATIONS.featureCode)
-@Controller('tax-registrations')
+@Controller('le/tax-registrations')
 export class TaxRegistrationsGatewayController {
   constructor(private readonly service: TaxRegistrationsGatewayService) {}
 

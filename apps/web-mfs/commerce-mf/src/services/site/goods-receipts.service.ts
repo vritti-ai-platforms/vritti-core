@@ -24,17 +24,17 @@ import type {
 
 // Fetches the site's goods receipts for the data table
 export function getGoodsReceiptsTable(): Promise<GoodsReceiptsTableResponse> {
-  return axios.get<GoodsReceiptsTableResponse>('commerce-api/goods-receipts/table').then((r) => r.data);
+  return axios.get<GoodsReceiptsTableResponse>('commerce-api/site/goods-receipts/table').then((r) => r.data);
 }
 
 // Fetches one goods receipt
 export function getGoodsReceipt(id: string): Promise<GoodsReceiptData> {
-  return axios.get<GoodsReceiptData>(`commerce-api/goods-receipts/${id}`).then((r) => r.data);
+  return axios.get<GoodsReceiptData>(`commerce-api/site/goods-receipts/${id}`).then((r) => r.data);
 }
 
 // Fetches a goods receipt's items with their lots and lines as a tree
 export function getGoodsReceiptTree(id: string): Promise<GoodsReceiptTreeNode[]> {
-  return axios.get<GoodsReceiptTreeNode[]>(`commerce-api/goods-receipts/${id}/tree`).then((r) => r.data);
+  return axios.get<GoodsReceiptTreeNode[]>(`commerce-api/site/goods-receipts/${id}/tree`).then((r) => r.data);
 }
 
 // Starts a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
@@ -42,41 +42,41 @@ export function createGoodsReceiptFromDelivery(
   data: CreateGoodsReceiptFromDeliveryPayload,
 ): Promise<CreateResponse<GoodsReceiptData>> {
   return axios
-    .post<CreateResponse<GoodsReceiptData>>('commerce-api/goods-receipts/from-delivery', data)
+    .post<CreateResponse<GoodsReceiptData>>('commerce-api/site/goods-receipts/from-delivery', data)
     .then((r) => r.data);
 }
 
 // Changes a draft receipt's notes
 export function updateGoodsReceipt(id: string, data: UpdateGoodsReceiptPayload): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/goods-receipts/${id}`, data).then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/site/goods-receipts/${id}`, data).then((r) => r.data);
 }
 
 // Posts a goods receipt: its stock lands at the site and its purchase order lines' received quantities move
 export function postGoodsReceipt(id: string): Promise<GoodsReceiptData> {
-  return axios.post<GoodsReceiptData>(`commerce-api/goods-receipts/${id}/post`).then((r) => r.data);
+  return axios.post<GoodsReceiptData>(`commerce-api/site/goods-receipts/${id}/post`).then((r) => r.data);
 }
 
 // Deletes a draft goods receipt
 export function deleteGoodsReceipt(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/site/goods-receipts/${id}`).then((r) => r.data);
 }
 
 // Fetches the provisional cost of a goods receipt's accepted items
 export function getGoodsReceiptItemsCost(id: string): Promise<GoodsReceiptItemsCostData> {
-  return axios.get<GoodsReceiptItemsCostData>(`commerce-api/goods-receipts/${id}/items/cost`).then((r) => r.data);
+  return axios.get<GoodsReceiptItemsCostData>(`commerce-api/site/goods-receipts/${id}/items/cost`).then((r) => r.data);
 }
 
 // Fetches the stock batches a posted goods receipt item created
 export function getGoodsReceiptItemQuants(id: string, itemId: string): Promise<GoodsReceiptItemQuantsData> {
   return axios
-    .get<GoodsReceiptItemQuantsData>(`commerce-api/goods-receipts/${id}/items/${itemId}/quants`)
+    .get<GoodsReceiptItemQuantsData>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/quants`)
     .then((r) => r.data);
 }
 
 // Fetches one goods receipt item with its purchase order counts and flags
 export function getGoodsReceiptItem(id: string, itemId: string): Promise<GoodsReceiptItemData> {
   return axios
-    .get<GoodsReceiptItemData>(`commerce-api/goods-receipts/${id}/items/${itemId}/detail`)
+    .get<GoodsReceiptItemData>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/detail`)
     .then((r) => r.data);
 }
 
@@ -86,17 +86,21 @@ export function updateGoodsReceiptItem(
   itemId: string,
   data: UpdateGoodsReceiptItemPayload,
 ): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`, data).then((r) => r.data);
+  return axios
+    .patch<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}`, data)
+    .then((r) => r.data);
 }
 
 // Removes an item with its lots, lines and serials
 export function removeGoodsReceiptItem(id: string, itemId: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}`).then((r) => r.data);
 }
 
 // Fetches the lots of a goods receipt item
 export function getGoodsReceiptLots(id: string, itemId: string): Promise<GoodsReceiptLotData[]> {
-  return axios.get<GoodsReceiptLotData[]>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots`).then((r) => r.data);
+  return axios
+    .get<GoodsReceiptLotData[]>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lots`)
+    .then((r) => r.data);
 }
 
 // Adds a lot to a goods receipt item
@@ -106,7 +110,7 @@ export function addGoodsReceiptLot(
   data: AddGoodsReceiptLotPayload,
 ): Promise<CreateResponse<GoodsReceiptLotData>> {
   return axios
-    .post<CreateResponse<GoodsReceiptLotData>>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots`, data)
+    .post<CreateResponse<GoodsReceiptLotData>>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lots`, data)
     .then((r) => r.data);
 }
 
@@ -118,21 +122,21 @@ export function updateGoodsReceiptLot(
   data: UpdateGoodsReceiptLotPayload,
 ): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}`, data)
+    .patch<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lots/${lotId}`, data)
     .then((r) => r.data);
 }
 
 // Removes a lot with its lines and serials
 export function removeGoodsReceiptLot(id: string, itemId: string, lotId: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}`)
+    .delete<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lots/${lotId}`)
     .then((r) => r.data);
 }
 
 // Fetches an item's lines for the data table
 export function getGoodsReceiptLinesTable(id: string, itemId: string): Promise<GoodsReceiptLinesTableResponse> {
   return axios
-    .get<GoodsReceiptLinesTableResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/table`)
+    .get<GoodsReceiptLinesTableResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/table`)
     .then((r) => r.data);
 }
 
@@ -143,14 +147,16 @@ export function getGoodsReceiptLinesByLotTable(
   lotId: string,
 ): Promise<GoodsReceiptLinesTableResponse> {
   return axios
-    .get<GoodsReceiptLinesTableResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lots/${lotId}/lines/table`)
+    .get<GoodsReceiptLinesTableResponse>(
+      `commerce-api/site/goods-receipts/${id}/items/${itemId}/lots/${lotId}/lines/table`,
+    )
     .then((r) => r.data);
 }
 
 // Fetches one line of a goods receipt item
 export function getGoodsReceiptLine(id: string, itemId: string, lineId: string): Promise<GoodsReceiptLineData> {
   return axios
-    .get<GoodsReceiptLineData>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`)
+    .get<GoodsReceiptLineData>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}`)
     .then((r) => r.data);
 }
 
@@ -161,7 +167,7 @@ export function addGoodsReceiptLine(
   data: AddGoodsReceiptLinePayload,
 ): Promise<CreateResponse<GoodsReceiptLineData>> {
   return axios
-    .post<CreateResponse<GoodsReceiptLineData>>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines`, data)
+    .post<CreateResponse<GoodsReceiptLineData>>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines`, data)
     .then((r) => r.data);
 }
 
@@ -173,14 +179,14 @@ export function updateGoodsReceiptLine(
   data: UpdateGoodsReceiptLinePayload,
 ): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`, data)
+    .patch<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}`, data)
     .then((r) => r.data);
 }
 
 // Removes a line with its serials
 export function removeGoodsReceiptLine(id: string, itemId: string, lineId: string): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}`)
+    .delete<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}`)
     .then((r) => r.data);
 }
 
@@ -192,7 +198,7 @@ export function getGoodsReceiptLineItemsTable(
 ): Promise<GoodsReceiptLineItemsTableResponse> {
   return axios
     .get<GoodsReceiptLineItemsTableResponse>(
-      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/table`,
+      `commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/table`,
     )
     .then((r) => r.data);
 }
@@ -206,7 +212,7 @@ export function addGoodsReceiptLineItem(
 ): Promise<CreateResponse<GoodsReceiptLineItemData>> {
   return axios
     .post<CreateResponse<GoodsReceiptLineItemData>>(
-      `commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`,
+      `commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items`,
       data,
     )
     .then((r) => r.data);
@@ -220,6 +226,6 @@ export function removeGoodsReceiptLineItem(
   serialId: string,
 ): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/${serialId}`)
+    .delete<SuccessResponse>(`commerce-api/site/goods-receipts/${id}/items/${itemId}/lines/${lineId}/items/${serialId}`)
     .then((r) => r.data);
 }

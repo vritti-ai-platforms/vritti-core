@@ -28,7 +28,7 @@ import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gat
 @ApiTags('Commerce - Stock Adjustments')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@Controller('stock-adjustments')
+@Controller('site/stock-adjustments')
 export class StockAdjustmentsGatewayController {
   private readonly logger = new Logger(StockAdjustmentsGatewayController.name);
 
@@ -36,25 +36,25 @@ export class StockAdjustmentsGatewayController {
 
   @Get('table')
   getStockAdjustmentTable(@UserId() userId: string): Promise<StockAdjustmentTableResponseDto> {
-    this.logger.log('GET /commerce-api/stock-adjustments/table');
+    this.logger.log('GET /commerce-api/site/stock-adjustments/table');
     return this.service.findForTable(userId);
   }
 
   @Get(':id')
   findById(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}`);
     return this.service.findById(id);
   }
 
   @Get(':id/lots')
   getLots(@Param('id') id: string): Promise<StockAdjustmentLotResponseDto[]> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots`);
     return this.service.findLots(id);
   }
 
   @Get(':id/lots/:lotId/detail')
   getLotDetail(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/detail`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/detail`);
     return this.service.findLotDetail(id, lotId);
   }
 
@@ -64,7 +64,7 @@ export class StockAdjustmentsGatewayController {
     @Param('id') id: string,
     @Body() dto: AddStockAdjustmentLotDto,
   ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lots`);
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lots`);
     return this.service.addLot(id, dto);
   }
 
@@ -74,31 +74,31 @@ export class StockAdjustmentsGatewayController {
     @Param('lotId') lotId: string,
     @Body() dto: UpdateStockAdjustmentLotDto,
   ): Promise<StockAdjustmentLotResponseDto> {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/lots/${lotId}`);
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
     return this.service.updateLot(id, lotId, dto);
   }
 
   @Delete(':id/lots/:lotId')
   removeLot(@Param('id') id: string, @Param('lotId') lotId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lots/${lotId}`);
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lots/${lotId}`);
     return this.service.removeLot(id, lotId);
   }
 
   @Get(':id/tree')
   getTree(@Param('id') id: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/tree`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/tree`);
     return this.service.findTree(id);
   }
 
   @Get(':id/lines')
   getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines`);
     return this.service.findLines(id);
   }
 
   @Get(':id/lines/table')
   getLinesTable(@Param('id') id: string, @UserId() userId: string): Promise<StockAdjustmentLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/table`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/table`);
     return this.service.findLinesTable(id, userId);
   }
 
@@ -108,26 +108,26 @@ export class StockAdjustmentsGatewayController {
     @Param('lotId') lotId: string,
     @UserId() userId: string,
   ): Promise<StockAdjustmentLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lots/${lotId}/lines/table`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/lines/table`);
     return this.service.findLinesByLotTable(id, lotId, userId);
   }
 
   @Get(':id/lines/:lineId')
   getLineById(@Param('id') id: string, @Param('lineId') lineId: string): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
     return this.service.findLineById(id, lineId);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CreateStockAdjustmentDto): Promise<CreateResponseDto<StockAdjustmentResponseDto>> {
-    this.logger.log('POST /commerce-api/stock-adjustments');
+    this.logger.log('POST /commerce-api/site/stock-adjustments');
     return this.service.create(dto);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateStockAdjustmentDto): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -137,7 +137,7 @@ export class StockAdjustmentsGatewayController {
     @Param('id') id: string,
     @Body() dto: AddOpeningStockAdjustmentLineDto,
   ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/opening-lines`);
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/opening-lines`);
     return this.service.addOpeningLine(id, dto);
   }
 
@@ -147,7 +147,7 @@ export class StockAdjustmentsGatewayController {
     @Param('id') id: string,
     @Body() dto: AddChangeStockAdjustmentLineDto,
   ): Promise<CreateResponseDto<StockAdjustmentLineResponseDto>> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/change-lines`);
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/change-lines`);
     return this.service.addChangeLine(id, dto);
   }
 
@@ -157,7 +157,7 @@ export class StockAdjustmentsGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: UpdateOpeningStockAdjustmentLineDto,
   ): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/opening-lines/${lineId}`);
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/opening-lines/${lineId}`);
     return this.service.updateOpeningLine(id, lineId, dto);
   }
 
@@ -167,13 +167,13 @@ export class StockAdjustmentsGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: UpdateChangeStockAdjustmentLineDto,
   ): Promise<StockAdjustmentLineResponseDto> {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/change-lines/${lineId}`);
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/change-lines/${lineId}`);
     return this.service.updateChangeLine(id, lineId, dto);
   }
 
   @Delete(':id/lines/:lineId')
   removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lines/${lineId}`);
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
     return this.service.removeLine(id, lineId);
   }
 
@@ -183,7 +183,7 @@ export class StockAdjustmentsGatewayController {
     @Param('lineId') lineId: string,
     @UserId() userId: string,
   ): Promise<StockAdjustmentLineItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/stock-adjustments/${id}/lines/${lineId}/items/table`);
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/table`);
     return this.service.findLineItemsTable(id, lineId, userId);
   }
 
@@ -195,7 +195,7 @@ export class StockAdjustmentsGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: AddStockAdjustmentLineItemDto,
   ): Promise<CreateResponseDto<StockAdjustmentLineItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/lines/${lineId}/items`);
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items`);
     return this.service.addLineItem(id, lineId, dto);
   }
 
@@ -206,7 +206,7 @@ export class StockAdjustmentsGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: UpdateStockAdjustmentLineItemDto,
   ): Promise<StockAdjustmentLineItemResponseDto> {
-    this.logger.log(`PATCH /commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
+    this.logger.log(`PATCH /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
     return this.service.updateLineItem(id, lineId, itemId, dto);
   }
 
@@ -216,19 +216,19 @@ export class StockAdjustmentsGatewayController {
     @Param('lineId') lineId: string,
     @Param('itemId') itemId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}/lines/${lineId}/items/${itemId}`);
     return this.service.removeLineItem(id, lineId, itemId);
   }
 
   @Post(':id/publish')
   publish(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
-    this.logger.log(`POST /commerce-api/stock-adjustments/${id}/publish`);
+    this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/publish`);
     return this.service.publish(id);
   }
 
   @Delete(':id')
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/stock-adjustments/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/stock-adjustments/${id}`);
     return this.service.delete(id);
   }
 }

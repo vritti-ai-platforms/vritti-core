@@ -31,7 +31,7 @@ import { TaxJurisdictionsGatewayService } from './services/tax-jurisdictions-gat
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_JURISDICTIONS.featureCode)
-@Controller('tax-jurisdictions')
+@Controller('org/tax-jurisdictions')
 export class TaxJurisdictionsGatewayController {
   private readonly logger = new Logger(TaxJurisdictionsGatewayController.name);
 
@@ -41,7 +41,7 @@ export class TaxJurisdictionsGatewayController {
   @Get('count')
   @RequirePermission(ORG_TAX_JURISDICTIONS.view)
   count(): Promise<TaxJurisdictionCountResponseDto> {
-    this.logger.log('GET /commerce-api/tax-jurisdictions/count');
+    this.logger.log('GET /commerce-api/org/tax-jurisdictions/count');
     return this.service.count();
   }
 
@@ -49,7 +49,7 @@ export class TaxJurisdictionsGatewayController {
   @Get('tree')
   @RequirePermission(ORG_TAX_JURISDICTIONS.view)
   findTree(@Query() query: TaxJurisdictionTreeQueryDto): Promise<TaxJurisdictionTreeResponseDto[]> {
-    this.logger.log('GET /commerce-api/tax-jurisdictions/tree');
+    this.logger.log('GET /commerce-api/org/tax-jurisdictions/tree');
     return this.service.findTree(query);
   }
 
@@ -60,7 +60,7 @@ export class TaxJurisdictionsGatewayController {
     @Param('parentId', new ParseUUIDPipe()) parentId: string,
     @UserId() userId: string,
   ): Promise<TaxJurisdictionChildrenTableResponseDto> {
-    this.logger.log(`GET /commerce-api/tax-jurisdictions/${parentId}/children/table`);
+    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${parentId}/children/table`);
     return this.service.findChildrenForTable(userId, parentId);
   }
 
@@ -69,7 +69,7 @@ export class TaxJurisdictionsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_TAX_JURISDICTIONS.add)
   create(@Body() dto: CreateTaxJurisdictionDto): Promise<CreateResponseDto<TaxJurisdictionResponseDto>> {
-    this.logger.log('POST /commerce-api/tax-jurisdictions');
+    this.logger.log('POST /commerce-api/org/tax-jurisdictions');
     return this.service.create(dto);
   }
 
@@ -77,7 +77,7 @@ export class TaxJurisdictionsGatewayController {
   @Get(':id')
   @RequirePermission(ORG_TAX_JURISDICTIONS.view)
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxJurisdictionResponseDto> {
-    this.logger.log(`GET /commerce-api/tax-jurisdictions/${id}`);
+    this.logger.log(`GET /commerce-api/org/tax-jurisdictions/${id}`);
     return this.service.findById(id);
   }
 
@@ -88,7 +88,7 @@ export class TaxJurisdictionsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTaxJurisdictionDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-jurisdictions/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/tax-jurisdictions/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -96,7 +96,7 @@ export class TaxJurisdictionsGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_TAX_JURISDICTIONS.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/tax-jurisdictions/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/tax-jurisdictions/${id}`);
     return this.service.delete(id);
   }
 }

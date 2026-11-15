@@ -54,7 +54,7 @@ import { TaxGroupsGatewayService } from './services/tax-groups-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_GROUPS.featureCode)
-@Controller('tax-groups')
+@Controller('org/tax-groups')
 export class TaxGroupsGatewayController {
   private readonly logger = new Logger(TaxGroupsGatewayController.name);
 
@@ -65,7 +65,7 @@ export class TaxGroupsGatewayController {
   @RequirePermission(ORG_TAX_GROUPS.view)
   @ApiFindForTableTaxGroups()
   findForTable(@UserId() userId: string): Promise<TaxGroupTableResponseDto> {
-    this.logger.log('GET /commerce-api/tax-groups/table');
+    this.logger.log('GET /commerce-api/org/tax-groups/table');
     return this.service.findForTable(userId);
   }
 
@@ -75,7 +75,7 @@ export class TaxGroupsGatewayController {
   @RequirePermission(ORG_TAX_GROUPS.add)
   @ApiCreateTaxGroup()
   create(@Body() dto: CreateTaxGroupDto): Promise<CreateResponseDto<TaxGroupResponseDto>> {
-    this.logger.log('POST /commerce-api/tax-groups');
+    this.logger.log('POST /commerce-api/org/tax-groups');
     return this.service.create(dto);
   }
 
@@ -84,7 +84,7 @@ export class TaxGroupsGatewayController {
   @RequirePermission(ORG_TAX_GROUPS.view)
   @ApiGetTaxGroup()
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxGroupResponseDto> {
-    this.logger.log(`GET /commerce-api/tax-groups/${id}`);
+    this.logger.log(`GET /commerce-api/org/tax-groups/${id}`);
     return this.service.findById(id);
   }
 
@@ -93,7 +93,7 @@ export class TaxGroupsGatewayController {
   @RequirePermission(ORG_TAX_GROUPS.edit)
   @ApiUpdateTaxGroup()
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateTaxGroupDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-groups/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -105,7 +105,7 @@ export class TaxGroupsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: SetTaxGroupActiveDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-groups/${id}/active`);
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/active`);
     return this.service.setActive(id, dto.isActive);
   }
 
@@ -114,7 +114,7 @@ export class TaxGroupsGatewayController {
   @RequirePermission(ORG_TAX_GROUPS.delete)
   @ApiDeleteTaxGroup()
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/tax-groups/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}`);
     return this.service.delete(id);
   }
 
@@ -128,7 +128,7 @@ export class TaxGroupsGatewayController {
     @Query() query: TaxGroupRateTableQueryDto,
   ): Promise<TaxGroupRateTableResponseDto> {
     this.logger.log(
-      `GET /commerce-api/tax-groups/${id}/rates/table?jurisdiction=${query.jurisdiction ?? ''}&asOf=${query.asOf ?? ''}`,
+      `GET /commerce-api/org/tax-groups/${id}/rates/table?jurisdiction=${query.jurisdiction ?? ''}&asOf=${query.asOf ?? ''}`,
     );
     return this.service.findRatesForTable(userId, id, query);
   }
@@ -142,7 +142,7 @@ export class TaxGroupsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateTaxGroupRateDto,
   ): Promise<CreateResponseDto<TaxGroupRateResponseDto>> {
-    this.logger.log(`POST /commerce-api/tax-groups/${id}/rates`);
+    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/rates`);
     return this.service.createRate(id, dto);
   }
 
@@ -155,7 +155,7 @@ export class TaxGroupsGatewayController {
     @Param('rateId', new ParseUUIDPipe()) rateId: string,
     @Body() dto: UpdateTaxGroupRateDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-groups/${id}/rates/${rateId}`);
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
     return this.service.updateRate(id, rateId, dto);
   }
 
@@ -167,7 +167,7 @@ export class TaxGroupsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('rateId', new ParseUUIDPipe()) rateId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/tax-groups/${id}/rates/${rateId}`);
+    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}/rates/${rateId}`);
     return this.service.deleteRate(id, rateId);
   }
 
@@ -179,7 +179,7 @@ export class TaxGroupsGatewayController {
     @UserId() userId: string,
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<TaxClassGroupTableResponseDto> {
-    this.logger.log(`GET /commerce-api/tax-groups/${id}/classes/table`);
+    this.logger.log(`GET /commerce-api/org/tax-groups/${id}/classes/table`);
     return this.service.findClassesForTable(userId, id);
   }
 
@@ -192,7 +192,7 @@ export class TaxGroupsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateTaxClassGroupDto,
   ): Promise<CreateResponseDto<TaxClassGroupResponseDto>> {
-    this.logger.log(`POST /commerce-api/tax-groups/${id}/classes`);
+    this.logger.log(`POST /commerce-api/org/tax-groups/${id}/classes`);
     return this.service.createClass(id, dto);
   }
 
@@ -205,7 +205,7 @@ export class TaxGroupsGatewayController {
     @Param('mappingId', new ParseUUIDPipe()) mappingId: string,
     @Body() dto: UpdateTaxClassGroupDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-groups/${id}/classes/${mappingId}`);
+    this.logger.log(`PATCH /commerce-api/org/tax-groups/${id}/classes/${mappingId}`);
     return this.service.updateClass(id, mappingId, dto);
   }
 
@@ -217,7 +217,7 @@ export class TaxGroupsGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('mappingId', new ParseUUIDPipe()) mappingId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/tax-groups/${id}/classes/${mappingId}`);
+    this.logger.log(`DELETE /commerce-api/org/tax-groups/${id}/classes/${mappingId}`);
     return this.service.deleteClass(id, mappingId);
   }
 }

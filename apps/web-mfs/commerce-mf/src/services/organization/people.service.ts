@@ -59,34 +59,36 @@ export interface UpdatePersonPayload {
 }
 
 export function getPeopleTable(): Promise<PeopleTableResponse> {
-  return axios.get<PeopleTableResponse>('commerce-api/people/table').then((r) => r.data);
+  return axios.get<PeopleTableResponse>('commerce-api/org/people/table').then((r) => r.data);
 }
 
 export function getPerson(id: string): Promise<PersonData> {
-  return axios.get<PersonData>(`commerce-api/people/${id}`).then((r) => r.data);
+  return axios.get<PersonData>(`commerce-api/org/people/${id}`).then((r) => r.data);
 }
 
 export function createPerson(data: CreatePersonPayload): Promise<PersonData> {
-  return axios.post<CreateResponse<PersonData>>('commerce-api/people', data).then((r) => r.data.data);
+  return axios.post<CreateResponse<PersonData>>('commerce-api/org/people', data).then((r) => r.data.data);
 }
 
 export function updatePerson({ id, data }: { id: string; data: UpdatePersonPayload }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/people/${id}`, data).then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/org/people/${id}`, data).then((r) => r.data);
 }
 
 export function deletePerson(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/people/${id}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/org/people/${id}`).then((r) => r.data);
 }
 export function getPersonWishlist(id: string): Promise<PersonWishlistRow[]> {
-  return axios.get<PersonWishlistRow[]>(`commerce-api/people/${id}/wishlist`).then((r) => r.data);
+  return axios.get<PersonWishlistRow[]>(`commerce-api/org/people/${id}/wishlist`).then((r) => r.data);
 }
 
 export function getPersonCompanies(id: string): Promise<PersonCompaniesTableResponse> {
-  return axios.get<PersonCompaniesTableResponse>(`commerce-api/people/${id}/companies/table`).then((r) => r.data);
+  return axios.get<PersonCompaniesTableResponse>(`commerce-api/org/people/${id}/companies/table`).then((r) => r.data);
 }
 
 export function getPersonIdentifiers(id: string): Promise<PartyIdentifiersTableResponse> {
-  return axios.get<PartyIdentifiersTableResponse>(`commerce-api/people/${id}/identifiers/table`).then((r) => r.data);
+  return axios
+    .get<PartyIdentifiersTableResponse>(`commerce-api/org/people/${id}/identifiers/table`)
+    .then((r) => r.data);
 }
 
 export function addPersonIdentifier({
@@ -97,7 +99,7 @@ export function addPersonIdentifier({
   data: AddIdentifierPayload;
 }): Promise<PartyIdentifierRow> {
   return axios
-    .post<CreateResponse<PartyIdentifierRow>>(`commerce-api/people/${personId}/identifiers`, data)
+    .post<CreateResponse<PartyIdentifierRow>>(`commerce-api/org/people/${personId}/identifiers`, data)
     .then((r) => r.data.data);
 }
 
@@ -109,12 +111,12 @@ export function removePersonIdentifier({
   identifierId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/people/${personId}/identifiers/${identifierId}`)
+    .delete<SuccessResponse>(`commerce-api/org/people/${personId}/identifiers/${identifierId}`)
     .then((r) => r.data);
 }
 
 export function getPersonAddresses(id: string): Promise<PartyAddressesTableResponse> {
-  return axios.get<PartyAddressesTableResponse>(`commerce-api/people/${id}/addresses/table`).then((r) => r.data);
+  return axios.get<PartyAddressesTableResponse>(`commerce-api/org/people/${id}/addresses/table`).then((r) => r.data);
 }
 
 export function addPersonAddress({
@@ -125,7 +127,7 @@ export function addPersonAddress({
   data: AddAddressPayload;
 }): Promise<PartyAddressRow> {
   return axios
-    .post<CreateResponse<PartyAddressRow>>(`commerce-api/people/${partyId}/addresses`, data)
+    .post<CreateResponse<PartyAddressRow>>(`commerce-api/org/people/${partyId}/addresses`, data)
     .then((r) => r.data.data);
 }
 
@@ -139,7 +141,7 @@ export function updatePersonAddress({
   data: AddAddressPayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${partyId}/addresses/${addressId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${partyId}/addresses/${addressId}`, data)
     .then((r) => r.data);
 }
 
@@ -150,12 +152,12 @@ export function removePersonAddress({
   partyId: string;
   addressId: string;
 }): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/people/${partyId}/addresses/${addressId}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/org/people/${partyId}/addresses/${addressId}`).then((r) => r.data);
 }
 
 export function getPersonRegistrations(id: string): Promise<PartyRegistrationsTableResponse> {
   return axios
-    .get<PartyRegistrationsTableResponse>(`commerce-api/people/${id}/registrations/table`)
+    .get<PartyRegistrationsTableResponse>(`commerce-api/org/people/${id}/registrations/table`)
     .then((r) => r.data);
 }
 
@@ -167,7 +169,7 @@ export function createPersonRegistration({
   data: PartyRegistrationPayload;
 }): Promise<PartyTaxRegistrationRow> {
   return axios
-    .post<CreateResponse<PartyTaxRegistrationRow>>(`commerce-api/people/${personId}/registrations`, data)
+    .post<CreateResponse<PartyTaxRegistrationRow>>(`commerce-api/org/people/${personId}/registrations`, data)
     .then((r) => r.data.data);
 }
 
@@ -181,7 +183,7 @@ export function updatePersonRegistration({
   data: PartyRegistrationPayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/registrations/${registrationId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/registrations/${registrationId}`, data)
     .then((r) => r.data);
 }
 
@@ -195,7 +197,7 @@ export function setPersonRegistrationActive({
   isActive: boolean;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/registrations/${registrationId}/active`, { isActive })
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/registrations/${registrationId}/active`, { isActive })
     .then((r) => r.data);
 }
 
@@ -207,12 +209,12 @@ export function deletePersonRegistration({
   registrationId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/people/${personId}/registrations/${registrationId}`)
+    .delete<SuccessResponse>(`commerce-api/org/people/${personId}/registrations/${registrationId}`)
     .then((r) => r.data);
 }
 
 export function getPersonLicenses(id: string): Promise<PartyLicensesTableResponse> {
-  return axios.get<PartyLicensesTableResponse>(`commerce-api/people/${id}/licenses/table`).then((r) => r.data);
+  return axios.get<PartyLicensesTableResponse>(`commerce-api/org/people/${id}/licenses/table`).then((r) => r.data);
 }
 
 export function createPersonLicense({
@@ -223,7 +225,7 @@ export function createPersonLicense({
   data: PartyLicensePayload;
 }): Promise<PartyLicenseRow> {
   return axios
-    .post<CreateResponse<PartyLicenseRow>>(`commerce-api/people/${personId}/licenses`, data)
+    .post<CreateResponse<PartyLicenseRow>>(`commerce-api/org/people/${personId}/licenses`, data)
     .then((r) => r.data.data);
 }
 
@@ -237,7 +239,7 @@ export function updatePersonLicense({
   data: PartyLicensePayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/licenses/${licenseId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/licenses/${licenseId}`, data)
     .then((r) => r.data);
 }
 
@@ -248,11 +250,13 @@ export function deletePersonLicense({
   personId: string;
   licenseId: string;
 }): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/people/${personId}/licenses/${licenseId}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/org/people/${personId}/licenses/${licenseId}`).then((r) => r.data);
 }
 
 export function getPersonBankAccounts(id: string): Promise<PartyBankAccountsTableResponse> {
-  return axios.get<PartyBankAccountsTableResponse>(`commerce-api/people/${id}/bank-accounts/table`).then((r) => r.data);
+  return axios
+    .get<PartyBankAccountsTableResponse>(`commerce-api/org/people/${id}/bank-accounts/table`)
+    .then((r) => r.data);
 }
 
 export function createPersonBankAccount({
@@ -263,7 +267,7 @@ export function createPersonBankAccount({
   data: PartyBankAccountPayload;
 }): Promise<PartyBankAccountRow> {
   return axios
-    .post<CreateResponse<PartyBankAccountRow>>(`commerce-api/people/${personId}/bank-accounts`, data)
+    .post<CreateResponse<PartyBankAccountRow>>(`commerce-api/org/people/${personId}/bank-accounts`, data)
     .then((r) => r.data.data);
 }
 
@@ -277,7 +281,7 @@ export function updatePersonBankAccount({
   data: PartyBankAccountPayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/bank-accounts/${bankAccountId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/bank-accounts/${bankAccountId}`, data)
     .then((r) => r.data);
 }
 
@@ -289,13 +293,13 @@ export function deletePersonBankAccount({
   bankAccountId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/people/${personId}/bank-accounts/${bankAccountId}`)
+    .delete<SuccessResponse>(`commerce-api/org/people/${personId}/bank-accounts/${bankAccountId}`)
     .then((r) => r.data);
 }
 
 export function getPersonCommunications(id: string): Promise<PartyCommunicationsTableResponse> {
   return axios
-    .get<PartyCommunicationsTableResponse>(`commerce-api/people/${id}/communications/table`)
+    .get<PartyCommunicationsTableResponse>(`commerce-api/org/people/${id}/communications/table`)
     .then((r) => r.data);
 }
 
@@ -307,7 +311,7 @@ export function createPersonCommunication({
   data: PartyCommunicationPayload;
 }): Promise<PartyCommunicationRow> {
   return axios
-    .post<CreateResponse<PartyCommunicationRow>>(`commerce-api/people/${personId}/communications`, data)
+    .post<CreateResponse<PartyCommunicationRow>>(`commerce-api/org/people/${personId}/communications`, data)
     .then((r) => r.data.data);
 }
 
@@ -321,7 +325,7 @@ export function updatePersonCommunication({
   data: PartyCommunicationUpdatePayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/communications/${communicationId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/communications/${communicationId}`, data)
     .then((r) => r.data);
 }
 
@@ -333,13 +337,13 @@ export function deletePersonCommunication({
   communicationId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/people/${personId}/communications/${communicationId}`)
+    .delete<SuccessResponse>(`commerce-api/org/people/${personId}/communications/${communicationId}`)
     .then((r) => r.data);
 }
 
 export function getPersonSocialProfiles(id: string): Promise<PartySocialProfilesTableResponse> {
   return axios
-    .get<PartySocialProfilesTableResponse>(`commerce-api/people/${id}/social-profiles/table`)
+    .get<PartySocialProfilesTableResponse>(`commerce-api/org/people/${id}/social-profiles/table`)
     .then((r) => r.data);
 }
 
@@ -351,7 +355,7 @@ export function createPersonSocialProfile({
   data: PartySocialProfilePayload;
 }): Promise<PartySocialProfileRow> {
   return axios
-    .post<CreateResponse<PartySocialProfileRow>>(`commerce-api/people/${personId}/social-profiles`, data)
+    .post<CreateResponse<PartySocialProfileRow>>(`commerce-api/org/people/${personId}/social-profiles`, data)
     .then((r) => r.data.data);
 }
 
@@ -365,7 +369,7 @@ export function updatePersonSocialProfile({
   data: PartySocialProfilePayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/people/${personId}/social-profiles/${profileId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/people/${personId}/social-profiles/${profileId}`, data)
     .then((r) => r.data);
 }
 
@@ -377,6 +381,6 @@ export function deletePersonSocialProfile({
   profileId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/people/${personId}/social-profiles/${profileId}`)
+    .delete<SuccessResponse>(`commerce-api/org/people/${personId}/social-profiles/${profileId}`)
     .then((r) => r.data);
 }

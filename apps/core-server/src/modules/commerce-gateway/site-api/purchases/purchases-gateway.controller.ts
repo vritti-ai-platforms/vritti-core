@@ -99,7 +99,7 @@ import { PurchasesGatewayService } from './services/purchases-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_PURCHASES.featureCode)
-@Controller('purchases')
+@Controller('site/purchases')
 export class PurchasesGatewayController {
   private readonly logger = new Logger(PurchasesGatewayController.name);
 
@@ -110,7 +110,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.view)
   @ApiGetTable()
   getTable(@UserId() userId: string, @OrgId() orgId: string): Promise<PurchaseTableResponseDto> {
-    this.logger.log('GET /commerce-api/purchases/table');
+    this.logger.log('GET /commerce-api/site/purchases/table');
     return this.service.findForTable(userId, orgId);
   }
 
@@ -120,7 +120,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
   create(@Body() dto: CreatePurchaseDto): Promise<CreateResponseDto<PurchaseResponseDto>> {
-    this.logger.log('POST /commerce-api/purchases');
+    this.logger.log('POST /commerce-api/site/purchases');
     return this.service.create(dto);
   }
 
@@ -129,7 +129,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindById()
   findById(@Param('id', new ParseUUIDPipe()) id: string, @OrgId() orgId: string): Promise<PurchaseHeaderResponseDto> {
-    this.logger.log(`GET /commerce-api/purchases/${id}`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}`);
     return this.service.findById(id, orgId);
   }
 
@@ -138,7 +138,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindItems()
   findItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/purchases/${id}/items`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items`);
     return this.service.findItems(id);
   }
 
@@ -147,7 +147,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindQuotations()
   findQuotations(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseQuotationResponseDto[]> {
-    this.logger.log(`GET /commerce-api/purchases/${id}/quotations`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/quotations`);
     return this.service.findQuotations(id);
   }
 
@@ -156,7 +156,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindSourcingItems()
   findSourcingItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseSourcingItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/purchases/${id}/sourcing/items`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/sourcing/items`);
     return this.service.findSourcingItems(id);
   }
 
@@ -168,7 +168,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @OrgId() orgId: string,
   ): Promise<PurchaseLegResponseDto[]> {
-    this.logger.log(`GET /commerce-api/purchases/${id}/suppliers`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers`);
     return this.service.findSuppliers(id, orgId);
   }
 
@@ -181,7 +181,7 @@ export class PurchasesGatewayController {
     @Query() query: PurchaseEventsQueryDto,
     @OrgId() orgId: string,
   ): Promise<PurchaseEventsPageResponseDto> {
-    this.logger.log(`GET /commerce-api/purchases/${id}/events`);
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/events`);
     return this.service.findEvents(id, query, orgId);
   }
 
@@ -190,7 +190,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.edit)
   @ApiUpdate()
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchases/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/purchases/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -200,7 +200,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiCancel()
   cancel(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: CancelPurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/cancel`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/cancel`);
     return this.service.cancel(id, dto);
   }
 
@@ -209,7 +209,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.delete)
   @ApiDelete()
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchases/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/purchases/${id}`);
     return this.service.delete(id);
   }
 
@@ -222,7 +222,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePurchaseItemDto,
   ): Promise<CreateResponseDto<PurchaseItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/items`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/items`);
     return this.service.createItem(id, dto);
   }
 
@@ -235,7 +235,7 @@ export class PurchasesGatewayController {
     @Param('itemId', new ParseUUIDPipe()) itemId: string,
     @Body() dto: UpdatePurchaseItemDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchases/${id}/items/${itemId}`);
+    this.logger.log(`PATCH /commerce-api/site/purchases/${id}/items/${itemId}`);
     return this.service.updateItem(id, itemId, dto);
   }
 
@@ -247,7 +247,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('itemId', new ParseUUIDPipe()) itemId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchases/${id}/items/${itemId}`);
+    this.logger.log(`DELETE /commerce-api/site/purchases/${id}/items/${itemId}`);
     return this.service.deleteItem(id, itemId);
   }
 
@@ -257,7 +257,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiSubmitItems()
   submitItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/submit-items`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/submit-items`);
     return this.service.submitItems(id);
   }
 
@@ -270,7 +270,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: RequestPurchaseQuotationDto,
   ): Promise<CreateResponseDto<RequestedPurchaseQuotationResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/quotations`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/quotations`);
     return this.service.requestQuotation(id, dto);
   }
 
@@ -280,7 +280,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiCompleteQuotations()
   completeQuotations(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/complete-quotations`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/complete-quotations`);
     return this.service.completeQuotations(id);
   }
 
@@ -293,7 +293,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePurchaseAllocationDto,
   ): Promise<CreateResponseDto<PurchaseAllocationResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/allocations`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/allocations`);
     return this.service.createAllocation(id, dto);
   }
 
@@ -306,7 +306,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePurchaseAllocationsFromQuotationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/allocations/from-quotation`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/allocations/from-quotation`);
     return this.service.createAllocationsFromQuotation(id, dto);
   }
 
@@ -319,7 +319,7 @@ export class PurchasesGatewayController {
     @Param('allocationId', new ParseUUIDPipe()) allocationId: string,
     @Body() dto: UpdatePurchaseAllocationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchases/${id}/allocations/${allocationId}`);
+    this.logger.log(`PATCH /commerce-api/site/purchases/${id}/allocations/${allocationId}`);
     return this.service.updateAllocation(id, allocationId, dto);
   }
 
@@ -331,7 +331,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('allocationId', new ParseUUIDPipe()) allocationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchases/${id}/allocations/${allocationId}`);
+    this.logger.log(`DELETE /commerce-api/site/purchases/${id}/allocations/${allocationId}`);
     return this.service.deleteAllocation(id, allocationId);
   }
 
@@ -341,7 +341,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiSubmit()
   submit(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/submit`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/submit`);
     return this.service.submit(id);
   }
 
@@ -354,7 +354,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('legId', new ParseUUIDPipe()) legId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/submit`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/submit`);
     return this.service.submitSupplier(id, legId);
   }
 
@@ -367,7 +367,7 @@ export class PurchasesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('legId', new ParseUUIDPipe()) legId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/approve`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/approve`);
     return this.service.approveLeg(id, legId);
   }
 
@@ -381,7 +381,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: RejectPurchaseLegDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/reject`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/reject`);
     return this.service.rejectLeg(id, legId, dto);
   }
 
@@ -395,7 +395,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CreateLegPurchaseOrderDto,
   ): Promise<CreateResponseDto<CreatedLegPurchaseOrdersResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/purchase-orders`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/purchase-orders`);
     return this.service.createLegPurchaseOrder(id, legId, dto);
   }
 
@@ -409,7 +409,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Param('purchaseOrderId', new ParseUUIDPipe()) purchaseOrderId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/purchase-orders/${purchaseOrderId}/confirm`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/purchase-orders/${purchaseOrderId}/confirm`);
     return this.service.confirmLegPurchaseOrder(id, legId, purchaseOrderId);
   }
 
@@ -423,7 +423,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CreateLegInboundDeliveryDto,
   ): Promise<CreateResponseDto<CreatedLegInboundDeliveryResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/inbound-deliveries`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/inbound-deliveries`);
     return this.service.createLegInboundDelivery(id, legId, dto);
   }
 
@@ -437,7 +437,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CreateLegGoodsReceiptDto,
   ): Promise<CreateResponseDto<CreatedLegGoodsReceiptResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/goods-receipts`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/goods-receipts`);
     return this.service.createLegGoodsReceipt(id, legId, dto);
   }
 
@@ -451,7 +451,7 @@ export class PurchasesGatewayController {
     @Param('legId', new ParseUUIDPipe()) legId: string,
     @Body() dto: CloseSupplierDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/${id}/legs/${legId}/close`);
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/close`);
     return this.service.closeSupplier(id, legId, dto);
   }
 
@@ -463,7 +463,7 @@ export class PurchasesGatewayController {
   createSupplierInvoice(
     @Body() dto: CreatePurchaseSupplierInvoiceDto,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
-    this.logger.log('POST /commerce-api/purchases/supplier-invoices');
+    this.logger.log('POST /commerce-api/site/purchases/supplier-invoices');
     return this.service.createSupplierInvoice(dto);
   }
 
@@ -474,7 +474,7 @@ export class PurchasesGatewayController {
   findReceiveWithInvoiceOpenLines(
     @Query() query: ReceiveWithInvoiceOpenLinesQueryDto,
   ): Promise<ReceiveWithInvoiceOpenLineResponseDto[]> {
-    this.logger.log('GET /commerce-api/purchases/receive-with-invoices/open-lines');
+    this.logger.log('GET /commerce-api/site/purchases/receive-with-invoices/open-lines');
     return this.service.findReceiveWithInvoiceOpenLines(query);
   }
 
@@ -486,7 +486,7 @@ export class PurchasesGatewayController {
   createReceiveWithInvoice(
     @Body() dto: ReceiveWithInvoiceDto,
   ): Promise<CreateResponseDto<CreatedPurchaseSupplierInvoiceResponseDto>> {
-    this.logger.log('POST /commerce-api/purchases/receive-with-invoices');
+    this.logger.log('POST /commerce-api/site/purchases/receive-with-invoices');
     return this.service.createReceiveWithInvoice(dto);
   }
 
@@ -497,7 +497,7 @@ export class PurchasesGatewayController {
   findReceiveWithInvoiceById(
     @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
   ): Promise<ReceiveWithInvoiceDetailResponseDto> {
-    this.logger.log(`GET /commerce-api/purchases/receive-with-invoices/${invoiceId}`);
+    this.logger.log(`GET /commerce-api/site/purchases/receive-with-invoices/${invoiceId}`);
     return this.service.findReceiveWithInvoiceById(invoiceId);
   }
 
@@ -509,7 +509,7 @@ export class PurchasesGatewayController {
     @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
     @Body() dto: ReceiveWithInvoiceDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PUT /commerce-api/purchases/receive-with-invoices/${invoiceId}`);
+    this.logger.log(`PUT /commerce-api/site/purchases/receive-with-invoices/${invoiceId}`);
     return this.service.updateReceiveWithInvoice(invoiceId, dto);
   }
 
@@ -519,7 +519,7 @@ export class PurchasesGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiPostReceiveWithInvoice()
   postReceiveWithInvoice(@Param('invoiceId', new ParseUUIDPipe()) invoiceId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchases/receive-with-invoices/${invoiceId}/post`);
+    this.logger.log(`POST /commerce-api/site/purchases/receive-with-invoices/${invoiceId}/post`);
     return this.service.postReceiveWithInvoice(invoiceId);
   }
 
@@ -528,7 +528,7 @@ export class PurchasesGatewayController {
   @RequirePermission(SITE_PURCHASES.receive)
   @ApiDiscardReceiveWithInvoice()
   discardReceiveWithInvoice(@Param('invoiceId', new ParseUUIDPipe()) invoiceId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchases/receive-with-invoices/${invoiceId}`);
+    this.logger.log(`DELETE /commerce-api/site/purchases/receive-with-invoices/${invoiceId}`);
     return this.service.discardReceiveWithInvoice(invoiceId);
   }
 }

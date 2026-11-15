@@ -39,7 +39,7 @@ import { CategoriesGatewayService } from './services/categories-gateway.service'
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_CATEGORIES.featureCode)
-@Controller('categories')
+@Controller('org/categories')
 export class CategoriesGatewayController {
   private readonly logger = new Logger(CategoriesGatewayController.name);
 
@@ -49,7 +49,7 @@ export class CategoriesGatewayController {
   @Get('count')
   @RequirePermission(ORG_CATEGORIES.view)
   async count(): Promise<CategoryCountResponseDto> {
-    this.logger.log('GET /commerce-api/categories/count');
+    this.logger.log('GET /commerce-api/org/categories/count');
     return this.categoriesGatewayService.count();
   }
 
@@ -57,7 +57,7 @@ export class CategoriesGatewayController {
   @Get('tree')
   @RequirePermission(ORG_CATEGORIES.view)
   async findTree(@Query('search') search?: string): Promise<CategoryTreeResponseDto[]> {
-    this.logger.log('GET /commerce-api/categories/tree');
+    this.logger.log('GET /commerce-api/org/categories/tree');
     return this.categoriesGatewayService.findTree(search);
   }
 
@@ -68,7 +68,7 @@ export class CategoriesGatewayController {
     @Param('parentId', new ParseUUIDPipe()) parentId: string,
     @UserId() userId: string,
   ): Promise<CategoryChildrenTableResponseDto> {
-    this.logger.log(`GET /commerce-api/categories/${parentId}/children/table`);
+    this.logger.log(`GET /commerce-api/org/categories/${parentId}/children/table`);
     return this.categoriesGatewayService.findChildrenForTable(userId, parentId);
   }
 
@@ -80,7 +80,7 @@ export class CategoriesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<CategoryItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/categories/${id}/items/table`);
+    this.logger.log(`GET /commerce-api/org/categories/${id}/items/table`);
     return this.categoriesGatewayService.findItemsForTable(userId, id);
   }
 
@@ -88,7 +88,7 @@ export class CategoriesGatewayController {
   @Post('reorder')
   @RequirePermission(ORG_CATEGORIES.edit)
   reorder(@Body() dto: ReorderCategoriesDto): Promise<SuccessResponseDto> {
-    this.logger.log('POST /commerce-api/categories/reorder');
+    this.logger.log('POST /commerce-api/org/categories/reorder');
     return this.categoriesGatewayService.reorder(dto);
   }
 

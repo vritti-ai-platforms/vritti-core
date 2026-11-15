@@ -20,7 +20,7 @@ import { UomGatewayService } from './services/uom-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_UOM.featureCode)
-@Controller('uom')
+@Controller('org/uom')
 export class UomGatewayController {
   private readonly logger = new Logger(UomGatewayController.name);
 
@@ -30,7 +30,7 @@ export class UomGatewayController {
   @Get('dimension/:dimensionId/table')
   @RequirePermission(ORG_UOM.view)
   findForTable(@Param('dimensionId') dimensionId: string, @UserId() userId: string): Promise<UomTableResponseDto> {
-    this.logger.log(`GET /commerce-api/uom/dimension/${dimensionId}/table`);
+    this.logger.log(`GET /commerce-api/org/uom/dimension/${dimensionId}/table`);
     return this.uomGatewayService.findForTable(userId, dimensionId);
   }
 
@@ -38,14 +38,14 @@ export class UomGatewayController {
   @Get('dimensions')
   @RequirePermission(ORG_UOM.dim.view)
   listDimensions(@Query() query: UomDimensionsQueryDto): Promise<UomDimensionResponseDto[]> {
-    this.logger.log('GET /commerce-api/uom/dimensions');
+    this.logger.log('GET /commerce-api/org/uom/dimensions');
     return this.uomGatewayService.listDimensions(query.search);
   }
 
   // Returns total UOM dimension count
   @Get('dimensions/count')
   countDimensions(): Promise<UomDimensionCountResponseDto> {
-    this.logger.log('GET /commerce-api/uom/dimensions/count');
+    this.logger.log('GET /commerce-api/org/uom/dimensions/count');
     return this.uomGatewayService.countDimensions();
   }
 
@@ -53,7 +53,7 @@ export class UomGatewayController {
   @Get('dimensions/:id')
   @RequirePermission(ORG_UOM.dim.view)
   findDimensionById(@Param('id') id: string): Promise<UomDimensionResponseDto> {
-    this.logger.log(`GET /commerce-api/uom/dimensions/${id}`);
+    this.logger.log(`GET /commerce-api/org/uom/dimensions/${id}`);
     return this.uomGatewayService.findDimensionById(id);
   }
 
@@ -62,7 +62,7 @@ export class UomGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_UOM.dim.add)
   createDimension(@Body() dto: CreateUomDimensionDto): Promise<CreateResponseDto<UomDimensionResponseDto>> {
-    this.logger.log('POST /commerce-api/uom/dimensions');
+    this.logger.log('POST /commerce-api/org/uom/dimensions');
     return this.uomGatewayService.createDimension(dto);
   }
 
@@ -70,7 +70,7 @@ export class UomGatewayController {
   @Patch('dimensions/:id')
   @RequirePermission(ORG_UOM.dim.edit)
   updateDimension(@Param('id') id: string, @Body() dto: UpdateUomDimensionDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/uom/dimensions/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/uom/dimensions/${id}`);
     return this.uomGatewayService.updateDimension(id, dto);
   }
 
@@ -78,7 +78,7 @@ export class UomGatewayController {
   @Delete('dimensions/:id')
   @RequirePermission(ORG_UOM.dim.delete)
   deleteDimension(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/uom/dimensions/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/uom/dimensions/${id}`);
     return this.uomGatewayService.deleteDimension(id);
   }
 
@@ -87,7 +87,7 @@ export class UomGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_UOM.add)
   async create(@Body() dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
-    this.logger.log('POST /commerce-api/uom');
+    this.logger.log('POST /commerce-api/org/uom');
     return this.uomGatewayService.create(dto);
   }
 
@@ -95,7 +95,7 @@ export class UomGatewayController {
   @Patch(':id')
   @RequirePermission(ORG_UOM.edit)
   update(@Param('id') id: string, @Body() dto: UpdateUomDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/uom/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/uom/${id}`);
     return this.uomGatewayService.update(id, dto);
   }
 
@@ -103,7 +103,7 @@ export class UomGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_UOM.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/uom/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/uom/${id}`);
     return this.uomGatewayService.delete(id);
   }
 }

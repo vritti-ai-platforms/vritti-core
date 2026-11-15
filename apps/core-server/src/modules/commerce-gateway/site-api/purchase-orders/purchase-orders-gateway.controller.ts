@@ -69,7 +69,7 @@ import { PurchaseOrdersGatewayService } from './services/purchase-orders-gateway
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_PURCHASE_ORDERS.featureCode)
-@Controller('purchase-orders')
+@Controller('site/purchase-orders')
 export class PurchaseOrdersGatewayController {
   private readonly logger = new Logger(PurchaseOrdersGatewayController.name);
 
@@ -80,7 +80,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiGetTable()
   getTable(@UserId() userId: string): Promise<PurchaseOrderTableResponseDto> {
-    this.logger.log('GET /commerce-api/purchase-orders/table');
+    this.logger.log('GET /commerce-api/site/purchase-orders/table');
     return this.service.findForTable(userId);
   }
 
@@ -90,7 +90,7 @@ export class PurchaseOrdersGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
   create(@Body() dto: CreatePurchaseOrderDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
-    this.logger.log('POST /commerce-api/purchase-orders');
+    this.logger.log('POST /commerce-api/site/purchase-orders');
     return this.service.create(dto);
   }
 
@@ -99,7 +99,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiDownloadPdf()
   async downloadPdf(@Param('id') id: string, @Res() reply: FastifyReply): Promise<void> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/pdf`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/pdf`);
     const { buffer, filename } = await this.service.downloadPdf(id);
     void reply
       .header('Content-Type', 'application/pdf')
@@ -112,7 +112,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiFindById()
   findById(@Param('id') id: string): Promise<PurchaseOrderResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}`);
     return this.service.findById(id);
   }
 
@@ -121,7 +121,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiFindItemIds()
   findItemIds(@Param('id') id: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/items/ids`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/items/ids`);
     return this.service.findItemIds(id);
   }
 
@@ -130,7 +130,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiFindItemsTable()
   findItemsTable(@Param('id') id: string, @UserId() userId: string): Promise<PurchaseOrderItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/items/table`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/items/table`);
     return this.service.findItemsTable(id, userId);
   }
 
@@ -139,7 +139,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiFindGoodsReceiptTable()
   findGoodsReceiptTable(@Param('id') id: string, @UserId() userId: string): Promise<GoodsReceiptTableResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/goods-receipts/table`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/goods-receipts/table`);
     return this.service.findGoodsReceiptTable(id, userId);
   }
 
@@ -151,7 +151,7 @@ export class PurchaseOrdersGatewayController {
     @Param('id') id: string,
     @UserId() userId: string,
   ): Promise<InboundDeliveryTableResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/inbound-deliveries/table`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/inbound-deliveries/table`);
     return this.service.findInboundDeliveryTable(id, userId);
   }
 
@@ -160,7 +160,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.view)
   @ApiFindProblems()
   findProblems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderProblemsResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/problems`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/problems`);
     return this.service.findProblems(id);
   }
 
@@ -173,7 +173,7 @@ export class PurchaseOrdersGatewayController {
     @Param('id') id: string,
     @Body() dto: AddPurchaseOrderItemDto,
   ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
-    this.logger.log(`POST /commerce-api/purchase-orders/${id}/items`);
+    this.logger.log(`POST /commerce-api/site/purchase-orders/${id}/items`);
     return this.service.addItem(id, dto);
   }
 
@@ -186,7 +186,7 @@ export class PurchaseOrdersGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: UpdatePurchaseOrderItemDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/items/${itemId}`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/items/${itemId}`);
     return this.service.updateItem(id, itemId, dto);
   }
 
@@ -195,7 +195,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.edit)
   @ApiRemoveItem()
   removeItem(@Param('id') id: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchase-orders/${id}/items/${itemId}`);
+    this.logger.log(`DELETE /commerce-api/site/purchase-orders/${id}/items/${itemId}`);
     return this.service.removeItem(id, itemId);
   }
 
@@ -204,7 +204,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.edit)
   @ApiUpdateNotes()
   updateNotes(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderNotesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/notes`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/notes`);
     return this.service.updateNotes(id, dto);
   }
 
@@ -213,7 +213,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.edit)
   @ApiUpdateTaxDate()
   updateTaxDate(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderTaxDateDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/tax-date`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/tax-date`);
     return this.service.updateTaxDate(id, dto);
   }
 
@@ -222,7 +222,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.edit)
   @ApiChangeSupplier()
   changeSupplier(@Param('id') id: string, @Body() dto: ChangePurchaseOrderSupplierDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/supplier`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/supplier`);
     return this.service.changeSupplier(id, dto);
   }
 
@@ -234,7 +234,7 @@ export class PurchaseOrdersGatewayController {
     @Param('id') id: string,
     @Body() dto: ChangePurchaseOrderExchangeRateDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/exchange-rate`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/exchange-rate`);
     return this.service.changeExchangeRate(id, dto);
   }
 
@@ -246,7 +246,7 @@ export class PurchaseOrdersGatewayController {
     @Param('id') id: string,
     @Body() dto: SetPurchaseOrderConversionRateDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/conversion-rates`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/conversion-rates`);
     return this.service.setConversionRate(id, dto);
   }
 
@@ -255,7 +255,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.edit)
   @ApiCompleteDelivery()
   completeDelivery(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/complete-delivery`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/complete-delivery`);
     return this.service.completeDelivery(id);
   }
 
@@ -265,7 +265,7 @@ export class PurchaseOrdersGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiUpdateStatus()
   updateStatus(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/purchase-orders/${id}/status`);
+    this.logger.log(`PATCH /commerce-api/site/purchase-orders/${id}/status`);
     return this.service.updateStatus(id, dto.status);
   }
 
@@ -275,7 +275,7 @@ export class PurchaseOrdersGatewayController {
   @HttpCode(HttpStatus.OK)
   @ApiSendEmail()
   sendEmail(@Param('id') id: string, @Body() dto: SendPurchaseOrderEmailDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/purchase-orders/${id}/send-email`);
+    this.logger.log(`POST /commerce-api/site/purchase-orders/${id}/send-email`);
     return this.service.sendEmail(id, dto);
   }
 
@@ -284,7 +284,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.delete)
   @ApiDelete()
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/purchase-orders/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/purchase-orders/${id}`);
     return this.service.delete(id);
   }
 
@@ -297,7 +297,7 @@ export class PurchaseOrdersGatewayController {
     @UserId() userId: string,
     @OrgId() orgId: string,
   ): Promise<SupplierInvoiceTableResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/invoices/table`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/invoices/table`);
     return this.service.findInvoicesTable(id, userId, orgId);
   }
 
@@ -306,7 +306,7 @@ export class PurchaseOrdersGatewayController {
   @RequirePermission(SITE_PURCHASE_ORDERS.invoices.view)
   @ApiFindPurchaseOrderInvoicesSummary()
   getInvoicesSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
-    this.logger.log(`GET /commerce-api/purchase-orders/${id}/invoices/summary`);
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/invoices/summary`);
     return this.service.findInvoicesSummary(id);
   }
 }

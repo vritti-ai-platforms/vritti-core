@@ -22,35 +22,35 @@ export interface UpdateTaxClassPayload {
 // saved table state
 export function getTaxClassesTable(): Promise<TaxClassesTableResponse> {
   return axios
-    .get<TaxClassesTableResponse>('commerce-api/tax-classes/table', { showSuccessToast: false })
+    .get<TaxClassesTableResponse>('commerce-api/org/tax-classes/table', { showSuccessToast: false })
     .then((r) => r.data);
 }
 
 export function getTaxClass(id: string): Promise<TaxClassData> {
-  return axios.get<TaxClassData>(`commerce-api/tax-classes/${id}`, { showSuccessToast: false }).then((r) => r.data);
+  return axios.get<TaxClassData>(`commerce-api/org/tax-classes/${id}`, { showSuccessToast: false }).then((r) => r.data);
 }
 
 export function createTaxClass(data: CreateTaxClassPayload): Promise<TaxClassData> {
-  return axios.post<CreateResponse<TaxClassData>>('commerce-api/tax-classes', data).then((r) => r.data.data);
+  return axios.post<CreateResponse<TaxClassData>>('commerce-api/org/tax-classes', data).then((r) => r.data.data);
 }
 
 export function updateTaxClass({ id, data }: { id: string; data: UpdateTaxClassPayload }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/tax-classes/${id}`, data).then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/org/tax-classes/${id}`, data).then((r) => r.data);
 }
 
 // Activates or deactivates a tax class
 export function setTaxClassActive({ id, isActive }: { id: string; isActive: boolean }): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`commerce-api/tax-classes/${id}/active`, { isActive }).then((r) => r.data);
+  return axios.patch<SuccessResponse>(`commerce-api/org/tax-classes/${id}/active`, { isActive }).then((r) => r.data);
 }
 
 export function deleteTaxClass(id: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`commerce-api/tax-classes/${id}`).then((r) => r.data);
+  return axios.delete<SuccessResponse>(`commerce-api/org/tax-classes/${id}`).then((r) => r.data);
 }
 
 // Fetches the current page of a tax class's group mappings; the country comes from the saved table state
 export function getTaxClassGroupsTable(taxClassId: string): Promise<TaxClassGroupsTableResponse> {
   return axios
-    .get<TaxClassGroupsTableResponse>(`commerce-api/tax-classes/${taxClassId}/groups/table`)
+    .get<TaxClassGroupsTableResponse>(`commerce-api/org/tax-classes/${taxClassId}/groups/table`)
     .then((r) => r.data);
 }
 
@@ -63,7 +63,7 @@ export function createTaxClassGroupMapping({
   data: CreateTaxClassGroupMappingPayload;
 }): Promise<CreateResponse<TaxClassGroupData>> {
   return axios
-    .post<CreateResponse<TaxClassGroupData>>(`commerce-api/tax-classes/${taxClassId}/groups`, data)
+    .post<CreateResponse<TaxClassGroupData>>(`commerce-api/org/tax-classes/${taxClassId}/groups`, data)
     .then((r) => r.data);
 }
 
@@ -78,7 +78,7 @@ export function updateTaxClassGroupMapping({
   data: UpdateTaxClassGroupMappingPayload;
 }): Promise<SuccessResponse> {
   return axios
-    .patch<SuccessResponse>(`commerce-api/tax-classes/${taxClassId}/groups/${mappingId}`, data)
+    .patch<SuccessResponse>(`commerce-api/org/tax-classes/${taxClassId}/groups/${mappingId}`, data)
     .then((r) => r.data);
 }
 
@@ -91,6 +91,6 @@ export function deleteTaxClassGroupMapping({
   mappingId: string;
 }): Promise<SuccessResponse> {
   return axios
-    .delete<SuccessResponse>(`commerce-api/tax-classes/${taxClassId}/groups/${mappingId}`)
+    .delete<SuccessResponse>(`commerce-api/org/tax-classes/${taxClassId}/groups/${mappingId}`)
     .then((r) => r.data);
 }

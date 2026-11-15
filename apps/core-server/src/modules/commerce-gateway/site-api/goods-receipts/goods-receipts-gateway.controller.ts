@@ -60,7 +60,7 @@ import { GoodsReceiptsGatewayService } from './services/goods-receipts-gateway.s
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_GOODS_RECEIPTS.featureCode)
-@Controller('goods-receipts')
+@Controller('site/goods-receipts')
 export class GoodsReceiptsGatewayController {
   private readonly logger = new Logger(GoodsReceiptsGatewayController.name);
 
@@ -74,7 +74,7 @@ export class GoodsReceiptsGatewayController {
   createFromDelivery(
     @Body() dto: CreateGoodsReceiptFromDeliveryDto,
   ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
-    this.logger.log('POST /commerce-api/goods-receipts/from-delivery');
+    this.logger.log('POST /commerce-api/site/goods-receipts/from-delivery');
     return this.service.createFromDelivery(dto);
   }
 
@@ -83,7 +83,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiFindForTable()
   findForTable(@UserId() userId: string): Promise<GoodsReceiptTableResponseDto> {
-    this.logger.log('GET /commerce-api/goods-receipts/table');
+    this.logger.log('GET /commerce-api/site/goods-receipts/table');
     return this.service.findForTable(userId);
   }
 
@@ -92,7 +92,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiFindById()
   findById(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${id}`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${id}`);
     return this.service.findById(id);
   }
 
@@ -101,7 +101,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.edit)
   @ApiUpdate()
   update(@Param('id') id: string, @Body() dto: UpdateGoodsReceiptDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/goods-receipts/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -110,7 +110,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiTree()
   tree(@Param('id') id: string): Promise<GoodsReceiptTreeNodeResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${id}/tree`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${id}/tree`);
     return this.service.findTree(id);
   }
 
@@ -119,7 +119,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.post)
   @ApiPost()
   post(@Param('id') id: string): Promise<GoodsReceiptResponseDto> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${id}/post`);
+    this.logger.log(`POST /commerce-api/site/goods-receipts/${id}/post`);
     return this.service.post(id);
   }
 
@@ -128,7 +128,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.delete)
   @ApiDelete()
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/goods-receipts/${id}`);
     return this.service.delete(id);
   }
 
@@ -137,7 +137,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiInventoryItemIds()
   inventoryItemIds(@Param('id') goodsReceiptId: string): Promise<string[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/inventory-item-ids`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/inventory-item-ids`);
     return this.service.findInventoryItemIds(goodsReceiptId);
   }
 
@@ -146,7 +146,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiItemsTable()
   itemsTable(@Param('id') goodsReceiptId: string, @UserId() userId: string): Promise<GoodsReceiptItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/table`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/table`);
     return this.service.findItemsTable(goodsReceiptId, userId);
   }
 
@@ -155,7 +155,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiItemsCost()
   itemsCost(@Param('id') goodsReceiptId: string): Promise<GoodsReceiptItemsCostResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/cost`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/cost`);
     return this.service.findItemsCost(goodsReceiptId);
   }
 
@@ -167,7 +167,7 @@ export class GoodsReceiptsGatewayController {
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
   ): Promise<GoodsReceiptItemQuantsResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/quants`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/quants`);
     return this.service.findItemQuants(goodsReceiptId, itemId);
   }
 
@@ -179,7 +179,7 @@ export class GoodsReceiptsGatewayController {
     @Param('id') goodsReceiptId: string,
     @Param('itemId') itemId: string,
   ): Promise<GoodsReceiptItemResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/detail`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/detail`);
     return this.service.findItemById(goodsReceiptId, itemId);
   }
 
@@ -192,7 +192,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: UpdateGoodsReceiptItemDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}`);
+    this.logger.log(`PATCH /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}`);
     return this.service.updateItem(goodsReceiptId, itemId, dto);
   }
 
@@ -201,7 +201,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.edit)
   @ApiRemoveItem()
   removeItem(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}`);
+    this.logger.log(`DELETE /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}`);
     return this.service.removeItem(goodsReceiptId, itemId);
   }
 
@@ -210,7 +210,7 @@ export class GoodsReceiptsGatewayController {
   @RequirePermission(SITE_GOODS_RECEIPTS.view)
   @ApiLots()
   lots(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
     return this.service.findLots(goodsReceiptId, itemId);
   }
 
@@ -224,7 +224,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: AddGoodsReceiptLotDto,
   ): Promise<CreateResponseDto<GoodsReceiptLotResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
+    this.logger.log(`POST /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
     return this.service.addLot(goodsReceiptId, itemId, dto);
   }
 
@@ -238,7 +238,7 @@ export class GoodsReceiptsGatewayController {
     @Param('lotId') lotId: string,
     @Body() dto: UpdateGoodsReceiptLotDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
+    this.logger.log(`PATCH /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
     return this.service.updateLot(goodsReceiptId, itemId, lotId, dto);
   }
 
@@ -251,7 +251,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Param('lotId') lotId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
+    this.logger.log(`DELETE /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}`);
     return this.service.removeLot(goodsReceiptId, itemId, lotId);
   }
 
@@ -264,7 +264,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @UserId() userId: string,
   ): Promise<GoodsReceiptLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/table`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/table`);
     return this.service.findLinesTable(goodsReceiptId, itemId, userId);
   }
 
@@ -278,7 +278,9 @@ export class GoodsReceiptsGatewayController {
     @Param('lotId') lotId: string,
     @UserId() userId: string,
   ): Promise<GoodsReceiptLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}/lines/table`);
+    this.logger.log(
+      `GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots/${lotId}/lines/table`,
+    );
     return this.service.findLinesByLotTable(goodsReceiptId, itemId, lotId, userId);
   }
 
@@ -291,7 +293,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Param('lineId') lineId: string,
   ): Promise<GoodsReceiptLineResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
     return this.service.findLineById(goodsReceiptId, itemId, lineId);
   }
 
@@ -305,7 +307,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Body() dto: AddGoodsReceiptLineDto,
   ): Promise<CreateResponseDto<GoodsReceiptLineResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines`);
+    this.logger.log(`POST /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines`);
     return this.service.addLine(goodsReceiptId, itemId, dto);
   }
 
@@ -319,7 +321,7 @@ export class GoodsReceiptsGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: UpdateGoodsReceiptLineDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    this.logger.log(`PATCH /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
     return this.service.updateLine(goodsReceiptId, itemId, lineId, dto);
   }
 
@@ -332,7 +334,7 @@ export class GoodsReceiptsGatewayController {
     @Param('itemId') itemId: string,
     @Param('lineId') lineId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
+    this.logger.log(`DELETE /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}`);
     return this.service.removeLine(goodsReceiptId, itemId, lineId);
   }
 
@@ -346,7 +348,9 @@ export class GoodsReceiptsGatewayController {
     @Param('lineId') lineId: string,
     @UserId() userId: string,
   ): Promise<GoodsReceiptLineItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/table`);
+    this.logger.log(
+      `GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/table`,
+    );
     return this.service.findLineItemsTable(goodsReceiptId, itemId, lineId, userId);
   }
 
@@ -361,7 +365,7 @@ export class GoodsReceiptsGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: AddGoodsReceiptLineItemDto,
   ): Promise<CreateResponseDto<GoodsReceiptLineItemResponseDto>> {
-    this.logger.log(`POST /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
+    this.logger.log(`POST /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items`);
     return this.service.addLineItem(goodsReceiptId, itemId, lineId, dto);
   }
 
@@ -376,7 +380,7 @@ export class GoodsReceiptsGatewayController {
     @Param('subItemId') subItemId: string,
   ): Promise<SuccessResponseDto> {
     this.logger.log(
-      `DELETE /commerce-api/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
+      `DELETE /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lines/${lineId}/items/${subItemId}`,
     );
     return this.service.removeLineItem(goodsReceiptId, itemId, lineId, subItemId);
   }

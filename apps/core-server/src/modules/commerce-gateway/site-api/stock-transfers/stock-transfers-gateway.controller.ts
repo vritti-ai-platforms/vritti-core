@@ -12,7 +12,7 @@ import { StockTransfersGatewayService } from './services/stock-transfers-gateway
 @ApiTags('Commerce - Stock Transfers')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@Controller('stock-transfers')
+@Controller('site/stock-transfers')
 export class StockTransfersGatewayController {
   constructor(private readonly service: StockTransfersGatewayService) {}
 

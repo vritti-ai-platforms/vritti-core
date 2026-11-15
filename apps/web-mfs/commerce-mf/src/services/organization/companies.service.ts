@@ -37,7 +37,7 @@ import type {
   PartySocialProfilesTableResponse,
 } from '@/schemas/party-social-profiles';
 
-const BASE = 'commerce-api/companies';
+const BASE = 'commerce-api/org/companies';
 
 export function getCompaniesTable(): Promise<CompaniesTableResponse> {
   return axios.get<CompaniesTableResponse>(`${BASE}/table`).then((r) => r.data);

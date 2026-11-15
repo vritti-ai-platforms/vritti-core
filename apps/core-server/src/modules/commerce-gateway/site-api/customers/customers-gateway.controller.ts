@@ -12,7 +12,7 @@ import { CustomersGatewayService } from './services/customers-gateway.service';
 @ApiTags('Commerce - Customers')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@Controller('customers')
+@Controller('site/customers')
 export class CustomersGatewayController {
   private readonly logger = new Logger(CustomersGatewayController.name);
 
@@ -21,7 +21,7 @@ export class CustomersGatewayController {
   // Returns paginated customers for the data table with server-stored state
   @Get('table')
   getCustomerTable(@UserId() userId: string): Promise<CustomerTableResponseDto> {
-    this.logger.log('GET /commerce-api/customers/table');
+    this.logger.log('GET /commerce-api/site/customers/table');
     return this.customersGatewayService.findForTable(userId);
   }
 
@@ -29,28 +29,28 @@ export class CustomersGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateCustomerDto): Promise<CustomerResponseDto> {
-    this.logger.log('POST /commerce-api/customers');
+    this.logger.log('POST /commerce-api/site/customers');
     return this.customersGatewayService.create(dto);
   }
 
   // Returns a single customer by ID
   @Get(':id')
   findById(@Param('id') id: string): Promise<CustomerResponseDto> {
-    this.logger.log(`GET /commerce-api/customers/${id}`);
+    this.logger.log(`GET /commerce-api/site/customers/${id}`);
     return this.customersGatewayService.findById(id);
   }
 
   // Updates a customer by ID
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateCustomerDto): Promise<CustomerResponseDto> {
-    this.logger.log(`PATCH /commerce-api/customers/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/customers/${id}`);
     return this.customersGatewayService.update(id, dto);
   }
 
   // Deletes a customer by ID
   @Delete(':id')
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/customers/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/customers/${id}`);
     return this.customersGatewayService.delete(id);
   }
 }

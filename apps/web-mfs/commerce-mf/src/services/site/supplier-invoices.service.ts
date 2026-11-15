@@ -94,6 +94,6 @@ export function releaseSupplierInvoiceHold({
 // Fetches the invoices with a line on a purchase order of the session site
 export function getPurchaseOrderInvoicesTable(purchaseOrderId: string): Promise<SupplierInvoicesTableResponse> {
   return axios
-    .get<SupplierInvoicesTableResponse>(`commerce-api/purchase-orders/${purchaseOrderId}/invoices/table`)
+    .get<SupplierInvoicesTableResponse>(`commerce-api/site/purchase-orders/${purchaseOrderId}/invoices/table`)
     .then((r) => r.data);
 }

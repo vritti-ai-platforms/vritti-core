@@ -19,7 +19,7 @@ import { OrdersGatewayService } from './services/orders-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_ORDERS.featureCode)
-@Controller('orders')
+@Controller('site/orders')
 export class OrdersGatewayController {
   constructor(private readonly ordersGatewayService: OrdersGatewayService) {}
 

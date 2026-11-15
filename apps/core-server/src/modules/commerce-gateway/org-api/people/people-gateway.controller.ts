@@ -60,7 +60,7 @@ const DEFAULT_CURRENCY = 'INR';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_PEOPLE.featureCode)
-@Controller('people')
+@Controller('org/people')
 export class PeopleGatewayController {
   private readonly logger = new Logger(PeopleGatewayController.name);
 
@@ -70,7 +70,7 @@ export class PeopleGatewayController {
   @Get('table')
   @RequirePermission(ORG_PEOPLE.view)
   getTable(@UserId() userId: string): Promise<PersonTableResponseDto> {
-    this.logger.log('GET /commerce-api/people/table');
+    this.logger.log('GET /commerce-api/org/people/table');
     return this.service.findForTable(userId);
   }
 
@@ -79,7 +79,7 @@ export class PeopleGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_PEOPLE.add)
   create(@Body() dto: CreatePersonDto): Promise<CreateResponseDto<PersonResponseDto>> {
-    this.logger.log('POST /commerce-api/people');
+    this.logger.log('POST /commerce-api/org/people');
     return this.service.create(dto);
   }
 
@@ -90,7 +90,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyIdentifierTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/identifiers/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/identifiers/table`);
     return this.service.listIdentifiers(id, userId);
   }
 
@@ -101,7 +101,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PersonCompanyTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/companies/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/companies/table`);
     return this.service.findCompaniesForTable(id, userId);
   }
 
@@ -113,7 +113,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPersonIdentifierDto,
   ): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/identifiers`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/identifiers`);
     return this.service.addIdentifier(id, dto);
   }
 
@@ -124,7 +124,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/identifiers/${identifierId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/identifiers/${identifierId}`);
     return this.service.removeIdentifier(identifierId);
   }
 
@@ -135,7 +135,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyAddressTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/addresses/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/addresses/table`);
     return this.service.listAddresses(id, userId);
   }
 
@@ -147,7 +147,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddPersonAddressDto,
   ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/addresses`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/addresses`);
     return this.service.addAddress(id, dto);
   }
 
@@ -159,7 +159,7 @@ export class PeopleGatewayController {
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
     @Body() dto: UpdatePersonAddressDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/addresses/${addressId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/addresses/${addressId}`);
     return this.service.updateAddress(addressId, dto);
   }
 
@@ -170,7 +170,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/addresses/${addressId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/addresses/${addressId}`);
     return this.service.removeAddress(addressId);
   }
 
@@ -181,7 +181,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PersonRegistrationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/registrations/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/registrations/table`);
     return this.service.listRegistrations(id, userId);
   }
 
@@ -193,7 +193,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePersonRegistrationDto,
   ): Promise<CreateResponseDto<PersonRegistrationResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/registrations`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/registrations`);
     return this.service.createRegistration(id, dto);
   }
 
@@ -205,7 +205,7 @@ export class PeopleGatewayController {
     @Param('registrationId', new ParseUUIDPipe()) registrationId: string,
     @Body() dto: UpdatePersonRegistrationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/registrations/${registrationId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/registrations/${registrationId}`);
     return this.service.updateRegistration(registrationId, dto);
   }
 
@@ -217,7 +217,7 @@ export class PeopleGatewayController {
     @Param('registrationId', new ParseUUIDPipe()) registrationId: string,
     @Body() dto: SetRegistrationActiveDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/registrations/${registrationId}/active`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/registrations/${registrationId}/active`);
     return this.service.setRegistrationActive(registrationId, dto.isActive);
   }
 
@@ -228,7 +228,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('registrationId', new ParseUUIDPipe()) registrationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/registrations/${registrationId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/registrations/${registrationId}`);
     return this.service.deleteRegistration(registrationId);
   }
 
@@ -239,7 +239,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyLicenseTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/licenses/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/licenses/table`);
     return this.service.listLicenses(id, userId);
   }
 
@@ -251,7 +251,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePersonLicenseDto,
   ): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/licenses`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/licenses`);
     return this.service.createLicense(id, dto);
   }
 
@@ -263,7 +263,7 @@ export class PeopleGatewayController {
     @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
     @Body() dto: UpdatePersonLicenseDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/licenses/${licenseId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/licenses/${licenseId}`);
     return this.service.updateLicense(licenseId, dto);
   }
 
@@ -274,7 +274,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/licenses/${licenseId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/licenses/${licenseId}`);
     return this.service.deleteLicense(licenseId);
   }
 
@@ -285,7 +285,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyBankAccountTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/bank-accounts/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/bank-accounts/table`);
     return this.service.listBankAccounts(id, userId);
   }
 
@@ -297,7 +297,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePersonBankAccountDto,
   ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/bank-accounts`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/bank-accounts`);
     return this.service.createBankAccount(id, dto);
   }
 
@@ -309,7 +309,7 @@ export class PeopleGatewayController {
     @Param('accountId', new ParseUUIDPipe()) accountId: string,
     @Body() dto: UpdatePersonBankAccountDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/bank-accounts/${accountId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/bank-accounts/${accountId}`);
     return this.service.updateBankAccount(accountId, dto);
   }
 
@@ -320,7 +320,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('accountId', new ParseUUIDPipe()) accountId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/bank-accounts/${accountId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/bank-accounts/${accountId}`);
     return this.service.deleteBankAccount(accountId);
   }
 
@@ -331,7 +331,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyCommunicationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/communications/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/communications/table`);
     return this.service.listCommunications(id, userId);
   }
 
@@ -343,7 +343,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePersonCommunicationDto,
   ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/communications`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/communications`);
     return this.service.createCommunication(id, dto);
   }
 
@@ -355,7 +355,7 @@ export class PeopleGatewayController {
     @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
     @Body() dto: UpdatePersonCommunicationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/communications/${communicationId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/communications/${communicationId}`);
     return this.service.updateCommunication(communicationId, dto);
   }
 
@@ -366,7 +366,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/communications/${communicationId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/communications/${communicationId}`);
     return this.service.deleteCommunication(communicationId);
   }
 
@@ -377,7 +377,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartySocialProfileTableResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}/social-profiles/table`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/social-profiles/table`);
     return this.service.listSocialProfiles(id, userId);
   }
 
@@ -389,7 +389,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePersonSocialProfileDto,
   ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
-    this.logger.log(`POST /commerce-api/people/${id}/social-profiles`);
+    this.logger.log(`POST /commerce-api/org/people/${id}/social-profiles`);
     return this.service.createSocialProfile(id, dto);
   }
 
@@ -401,7 +401,7 @@ export class PeopleGatewayController {
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
     @Body() dto: UpdatePersonSocialProfileDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}/social-profiles/${profileId}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}/social-profiles/${profileId}`);
     return this.service.updateSocialProfile(profileId, dto);
   }
 
@@ -412,7 +412,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}/social-profiles/${profileId}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}/social-profiles/${profileId}`);
     return this.service.deleteSocialProfile(profileId);
   }
 
@@ -420,7 +420,7 @@ export class PeopleGatewayController {
   @Get(':id')
   @RequirePermission(ORG_PEOPLE.view)
   findById(@Param('id') id: string): Promise<PersonResponseDto> {
-    this.logger.log(`GET /commerce-api/people/${id}`);
+    this.logger.log(`GET /commerce-api/org/people/${id}`);
     return this.service.findById(id);
   }
 
@@ -428,7 +428,7 @@ export class PeopleGatewayController {
   @Patch(':id')
   @RequirePermission(ORG_PEOPLE.edit)
   update(@Param('id') id: string, @Body() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/people/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/people/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -436,7 +436,7 @@ export class PeopleGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_PEOPLE.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/people/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/people/${id}`);
     return this.service.delete(id);
   }
 
@@ -447,7 +447,7 @@ export class PeopleGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Query() query: PeopleShopperQueryDto,
   ): Promise<StaffWishlistItemRow[]> {
-    this.logger.log(`GET /commerce-api/people/${id}/wishlist`);
+    this.logger.log(`GET /commerce-api/org/people/${id}/wishlist`);
     return this.service.listWishlist(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 }

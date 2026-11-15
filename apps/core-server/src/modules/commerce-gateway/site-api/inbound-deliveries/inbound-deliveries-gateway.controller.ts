@@ -31,7 +31,7 @@ import { InboundDeliveriesGatewayService } from './services/inbound-deliveries-g
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_INBOUND_DELIVERIES.featureCode)
-@Controller('inbound-deliveries')
+@Controller('site/inbound-deliveries')
 export class InboundDeliveriesGatewayController {
   private readonly logger = new Logger(InboundDeliveriesGatewayController.name);
 
@@ -42,7 +42,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.view)
   @ApiFindForTable()
   findForTable(@UserId() userId: string): Promise<InboundDeliveryTableResponseDto> {
-    this.logger.log('GET /commerce-api/inbound-deliveries/table');
+    this.logger.log('GET /commerce-api/site/inbound-deliveries/table');
     return this.service.findForTable(userId);
   }
 
@@ -52,7 +52,7 @@ export class InboundDeliveriesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
   create(@Body() dto: CreateInboundDeliveryDto): Promise<CreateResponseDto<InboundDeliveryResponseDto>> {
-    this.logger.log('POST /commerce-api/inbound-deliveries');
+    this.logger.log('POST /commerce-api/site/inbound-deliveries');
     return this.service.create(dto);
   }
 
@@ -61,7 +61,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.view)
   @ApiFindById()
   findById(@Param('id') id: string): Promise<InboundDeliveryResponseDto> {
-    this.logger.log(`GET /commerce-api/inbound-deliveries/${id}`);
+    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}`);
     return this.service.findById(id);
   }
 
@@ -70,7 +70,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
   @ApiUpdate()
   update(@Param('id') id: string, @Body() dto: UpdateInboundDeliveryDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/inbound-deliveries/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -79,7 +79,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
   @ApiSetStatus()
   setStatus(@Param('id') id: string, @Body() dto: SetInboundDeliveryStatusDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/inbound-deliveries/${id}/status`);
+    this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}/status`);
     return this.service.setStatus(id, dto);
   }
 
@@ -88,7 +88,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.delete)
   @ApiDelete()
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/inbound-deliveries/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/inbound-deliveries/${id}`);
     return this.service.delete(id);
   }
 
@@ -97,7 +97,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.view)
   @ApiLinesTable()
   linesTable(@Param('id') id: string, @UserId() userId: string): Promise<InboundDeliveryLineTableResponseDto> {
-    this.logger.log(`GET /commerce-api/inbound-deliveries/${id}/lines/table`);
+    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}/lines/table`);
     return this.service.findLinesTable(id, userId);
   }
 
@@ -107,7 +107,7 @@ export class InboundDeliveriesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @ApiAddLines()
   addLines(@Param('id') id: string, @Body() dto: AddInboundDeliveryLinesDto): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/inbound-deliveries/${id}/lines`);
+    this.logger.log(`POST /commerce-api/site/inbound-deliveries/${id}/lines`);
     return this.service.addLines(id, dto);
   }
 
@@ -120,7 +120,7 @@ export class InboundDeliveriesGatewayController {
     @Param('lineId') lineId: string,
     @Body() dto: UpdateInboundDeliveryLineDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/inbound-deliveries/${id}/lines/${lineId}`);
+    this.logger.log(`PATCH /commerce-api/site/inbound-deliveries/${id}/lines/${lineId}`);
     return this.service.updateLine(id, lineId, dto);
   }
 
@@ -129,7 +129,7 @@ export class InboundDeliveriesGatewayController {
   @RequirePermission(SITE_INBOUND_DELIVERIES.edit)
   @ApiRemoveLine()
   removeLine(@Param('id') id: string, @Param('lineId') lineId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/inbound-deliveries/${id}/lines/${lineId}`);
+    this.logger.log(`DELETE /commerce-api/site/inbound-deliveries/${id}/lines/${lineId}`);
     return this.service.removeLine(id, lineId);
   }
 }

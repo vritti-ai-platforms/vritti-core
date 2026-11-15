@@ -59,7 +59,7 @@ import { CompaniesGatewayService } from './services/companies-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_COMPANIES.featureCode)
-@Controller('companies')
+@Controller('org/companies')
 export class CompaniesGatewayController {
   private readonly logger = new Logger(CompaniesGatewayController.name);
 
@@ -69,7 +69,7 @@ export class CompaniesGatewayController {
   @Get('table')
   @RequirePermission(ORG_COMPANIES.view)
   getTable(@UserId() userId: string): Promise<CompanyTableResponseDto> {
-    this.logger.log('GET /commerce-api/companies/table');
+    this.logger.log('GET /commerce-api/org/companies/table');
     return this.service.findForTable(userId);
   }
 
@@ -78,7 +78,7 @@ export class CompaniesGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_COMPANIES.add)
   create(@Body() dto: CreateCompanyDto): Promise<CreateResponseDto<CompanyResponseDto>> {
-    this.logger.log('POST /commerce-api/companies');
+    this.logger.log('POST /commerce-api/org/companies');
     return this.service.create(dto);
   }
 
@@ -89,7 +89,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<CompanyPersonTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/people/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/people/table`);
     return this.service.listPeople(id, userId);
   }
 
@@ -101,7 +101,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddCompanyPersonDto,
   ): Promise<CreateResponseDto<CompanyPersonResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/people`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/people`);
     return this.service.addPerson(id, dto);
   }
 
@@ -113,7 +113,7 @@ export class CompaniesGatewayController {
     @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
     @Body() dto: UpdateCompanyPersonDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/people/${relationshipId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/people/${relationshipId}`);
     return this.service.updatePerson(relationshipId, dto);
   }
 
@@ -124,7 +124,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('relationshipId', new ParseUUIDPipe()) relationshipId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/people/${relationshipId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/people/${relationshipId}`);
     return this.service.removePerson(relationshipId);
   }
 
@@ -135,7 +135,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<CompanyRegistrationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/registrations/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/registrations/table`);
     return this.service.listRegistrations(id, userId);
   }
 
@@ -147,7 +147,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanyRegistrationDto,
   ): Promise<CreateResponseDto<CompanyRegistrationResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/registrations`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/registrations`);
     return this.service.createRegistration(id, dto);
   }
 
@@ -159,7 +159,7 @@ export class CompaniesGatewayController {
     @Param('regId', new ParseUUIDPipe()) regId: string,
     @Body() dto: UpdateCompanyRegistrationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/registrations/${regId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}`);
     return this.service.updateRegistration(regId, dto);
   }
 
@@ -171,7 +171,7 @@ export class CompaniesGatewayController {
     @Param('regId', new ParseUUIDPipe()) regId: string,
     @Body() dto: SetRegistrationActiveDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/registrations/${regId}/active`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/registrations/${regId}/active`);
     return this.service.setRegistrationActive(regId, dto.isActive);
   }
 
@@ -182,7 +182,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('regId', new ParseUUIDPipe()) regId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/registrations/${regId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/registrations/${regId}`);
     return this.service.deleteRegistration(regId);
   }
 
@@ -193,7 +193,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyIdentifierTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/identifiers/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/identifiers/table`);
     return this.service.listIdentifiers(id, userId);
   }
 
@@ -205,7 +205,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddCompanyIdentifierDto,
   ): Promise<CreateResponseDto<PartyIdentifierResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/identifiers`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/identifiers`);
     return this.service.addIdentifier(id, dto);
   }
 
@@ -216,7 +216,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('identifierId', new ParseUUIDPipe()) identifierId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/identifiers/${identifierId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/identifiers/${identifierId}`);
     return this.service.removeIdentifier(identifierId);
   }
 
@@ -227,7 +227,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyAddressTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/addresses/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/addresses/table`);
     return this.service.listAddresses(id, userId);
   }
 
@@ -239,7 +239,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: AddCompanyAddressDto,
   ): Promise<CreateResponseDto<PartyAddressResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/addresses`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/addresses`);
     return this.service.addAddress(id, dto);
   }
 
@@ -251,7 +251,7 @@ export class CompaniesGatewayController {
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
     @Body() dto: UpdateCompanyAddressDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/addresses/${addressId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/addresses/${addressId}`);
     return this.service.updateAddress(addressId, dto);
   }
 
@@ -262,7 +262,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('addressId', new ParseUUIDPipe()) addressId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/addresses/${addressId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/addresses/${addressId}`);
     return this.service.removeAddress(addressId);
   }
 
@@ -273,7 +273,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyLicenseTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/licenses/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/licenses/table`);
     return this.service.listLicenses(id, userId);
   }
 
@@ -285,7 +285,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanyLicenseDto,
   ): Promise<CreateResponseDto<PartyLicenseResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/licenses`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/licenses`);
     return this.service.createLicense(id, dto);
   }
 
@@ -297,7 +297,7 @@ export class CompaniesGatewayController {
     @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
     @Body() dto: UpdateCompanyLicenseDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/licenses/${licenseId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/licenses/${licenseId}`);
     return this.service.updateLicense(licenseId, dto);
   }
 
@@ -308,7 +308,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('licenseId', new ParseUUIDPipe()) licenseId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/licenses/${licenseId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/licenses/${licenseId}`);
     return this.service.deleteLicense(licenseId);
   }
 
@@ -319,7 +319,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyBankAccountTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/bank-accounts/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/bank-accounts/table`);
     return this.service.listBankAccounts(id, userId);
   }
 
@@ -331,7 +331,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanyBankAccountDto,
   ): Promise<CreateResponseDto<PartyBankAccountResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/bank-accounts`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/bank-accounts`);
     return this.service.createBankAccount(id, dto);
   }
 
@@ -343,7 +343,7 @@ export class CompaniesGatewayController {
     @Param('accountId', new ParseUUIDPipe()) accountId: string,
     @Body() dto: UpdateCompanyBankAccountDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/bank-accounts/${accountId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
     return this.service.updateBankAccount(accountId, dto);
   }
 
@@ -354,7 +354,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('accountId', new ParseUUIDPipe()) accountId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/bank-accounts/${accountId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/bank-accounts/${accountId}`);
     return this.service.deleteBankAccount(accountId);
   }
 
@@ -365,7 +365,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartyCommunicationTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/communications/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/communications/table`);
     return this.service.listCommunications(id, userId);
   }
 
@@ -377,7 +377,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanyCommunicationDto,
   ): Promise<CreateResponseDto<PartyCommunicationResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/communications`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/communications`);
     return this.service.createCommunication(id, dto);
   }
 
@@ -389,7 +389,7 @@ export class CompaniesGatewayController {
     @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
     @Body() dto: UpdateCompanyCommunicationDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/communications/${communicationId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/communications/${communicationId}`);
     return this.service.updateCommunication(communicationId, dto);
   }
 
@@ -400,7 +400,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('communicationId', new ParseUUIDPipe()) communicationId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/communications/${communicationId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/communications/${communicationId}`);
     return this.service.deleteCommunication(communicationId);
   }
 
@@ -411,7 +411,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
   ): Promise<PartySocialProfileTableResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}/social-profiles/table`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}/social-profiles/table`);
     return this.service.listSocialProfiles(id, userId);
   }
 
@@ -423,7 +423,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateCompanySocialProfileDto,
   ): Promise<CreateResponseDto<PartySocialProfileResponseDto>> {
-    this.logger.log(`POST /commerce-api/companies/${id}/social-profiles`);
+    this.logger.log(`POST /commerce-api/org/companies/${id}/social-profiles`);
     return this.service.createSocialProfile(id, dto);
   }
 
@@ -435,7 +435,7 @@ export class CompaniesGatewayController {
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
     @Body() dto: UpdateCompanySocialProfileDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}/social-profiles/${profileId}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}/social-profiles/${profileId}`);
     return this.service.updateSocialProfile(profileId, dto);
   }
 
@@ -446,7 +446,7 @@ export class CompaniesGatewayController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('profileId', new ParseUUIDPipe()) profileId: string,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}/social-profiles/${profileId}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}/social-profiles/${profileId}`);
     return this.service.deleteSocialProfile(profileId);
   }
 
@@ -454,7 +454,7 @@ export class CompaniesGatewayController {
   @Get(':id')
   @RequirePermission(ORG_COMPANIES.view)
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<CompanyResponseDto> {
-    this.logger.log(`GET /commerce-api/companies/${id}`);
+    this.logger.log(`GET /commerce-api/org/companies/${id}`);
     return this.service.findById(id);
   }
 
@@ -462,7 +462,7 @@ export class CompaniesGatewayController {
   @Patch(':id')
   @RequirePermission(ORG_COMPANIES.edit)
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateCompanyDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/companies/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/companies/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -470,7 +470,7 @@ export class CompaniesGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_COMPANIES.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/companies/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/companies/${id}`);
     return this.service.delete(id);
   }
 }

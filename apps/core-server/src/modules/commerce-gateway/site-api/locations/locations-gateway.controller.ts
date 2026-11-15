@@ -34,7 +34,7 @@ import { LocationsGatewayService } from './services/locations-gateway.service';
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(SITE_LOCATIONS.featureCode)
-@Controller('locations')
+@Controller('site/locations')
 export class LocationsGatewayController {
   private readonly logger = new Logger(LocationsGatewayController.name);
 
@@ -43,7 +43,7 @@ export class LocationsGatewayController {
   // Returns total storage location count
   @Get('count')
   count(): Promise<LocationCountResponseDto> {
-    this.logger.log('GET /commerce-api/locations/count');
+    this.logger.log('GET /commerce-api/site/locations/count');
     return this.locationsGatewayService.count();
   }
 
@@ -51,7 +51,7 @@ export class LocationsGatewayController {
   @Get('tree')
   @RequirePermission(SITE_LOCATIONS.view)
   findTree(@Query('search') search?: string): Promise<LocationTreeResponseDto[]> {
-    this.logger.log('GET /commerce-api/locations/tree');
+    this.logger.log('GET /commerce-api/site/locations/tree');
     return this.locationsGatewayService.findTree(search);
   }
 
@@ -62,7 +62,7 @@ export class LocationsGatewayController {
     @Param('parentId', new ParseUUIDPipe()) parentId: string,
     @UserId() userId: string,
   ): Promise<LocationChildrenTableResponseDto> {
-    this.logger.log(`GET /commerce-api/locations/${parentId}/children/table`);
+    this.logger.log(`GET /commerce-api/site/locations/${parentId}/children/table`);
     return this.locationsGatewayService.findChildrenForTable(userId, parentId);
   }
 
@@ -70,7 +70,7 @@ export class LocationsGatewayController {
   @Post('reorder')
   @RequirePermission(SITE_LOCATIONS.edit)
   reorder(@Body() dto: ReorderLocationsDto): Promise<SuccessResponseDto> {
-    this.logger.log('POST /commerce-api/locations/reorder');
+    this.logger.log('POST /commerce-api/site/locations/reorder');
     return this.locationsGatewayService.reorder(dto);
   }
 
@@ -82,7 +82,7 @@ export class LocationsGatewayController {
     @Param('locationId', new ParseUUIDPipe()) locationId: string,
     @UserId() userId: string,
   ): Promise<LocationItemTableResponseDto> {
-    this.logger.log(`GET /commerce-api/locations/${locationId}/items/table`);
+    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/table`);
     return this.locationsGatewayService.findItemsForTable(userId, locationId);
   }
 
@@ -94,7 +94,7 @@ export class LocationsGatewayController {
     @Param('locationId', new ParseUUIDPipe()) locationId: string,
     @Param('itemId', new ParseUUIDPipe()) itemId: string,
   ): Promise<LocationItemQuantResponseDto[]> {
-    this.logger.log(`GET /commerce-api/locations/${locationId}/items/${itemId}/quants`);
+    this.logger.log(`GET /commerce-api/site/locations/${locationId}/items/${itemId}/quants`);
     return this.locationsGatewayService.findItemQuants(locationId, itemId);
   }
 
@@ -102,7 +102,7 @@ export class LocationsGatewayController {
   @Get(':id')
   @RequirePermission(SITE_LOCATIONS.view)
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<LocationResponseDto> {
-    this.logger.log(`GET /commerce-api/locations/${id}`);
+    this.logger.log(`GET /commerce-api/site/locations/${id}`);
     return this.locationsGatewayService.findById(id);
   }
 
@@ -111,7 +111,7 @@ export class LocationsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_LOCATIONS.add)
   async create(@Body() dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
-    this.logger.log('POST /commerce-api/locations');
+    this.logger.log('POST /commerce-api/site/locations');
     return this.locationsGatewayService.create(dto);
   }
 
@@ -119,7 +119,7 @@ export class LocationsGatewayController {
   @Patch(':id')
   @RequirePermission(SITE_LOCATIONS.edit)
   update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateLocationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/locations/${id}`);
+    this.logger.log(`PATCH /commerce-api/site/locations/${id}`);
     return this.locationsGatewayService.update(id, dto);
   }
 
@@ -127,7 +127,7 @@ export class LocationsGatewayController {
   @Delete(':id')
   @RequirePermission(SITE_LOCATIONS.delete)
   delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/locations/${id}`);
+    this.logger.log(`DELETE /commerce-api/site/locations/${id}`);
     return this.locationsGatewayService.delete(id);
   }
 }

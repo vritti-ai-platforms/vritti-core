@@ -16,7 +16,7 @@ import { TaxComponentsGatewayService } from './services/tax-components-gateway.s
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
 @RequireFeature(ORG_TAX_COMPONENTS.featureCode)
-@Controller('tax-components')
+@Controller('org/tax-components')
 export class TaxComponentsGatewayController {
   private readonly logger = new Logger(TaxComponentsGatewayController.name);
 
@@ -26,7 +26,7 @@ export class TaxComponentsGatewayController {
   @Get('table')
   @RequirePermission(ORG_TAX_COMPONENTS.view)
   getTable(@UserId() userId: string): Promise<TaxComponentTableResponseDto> {
-    this.logger.log('GET /commerce-api/tax-components/table');
+    this.logger.log('GET /commerce-api/org/tax-components/table');
     return this.service.findForTable(userId);
   }
 
@@ -35,7 +35,7 @@ export class TaxComponentsGatewayController {
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_TAX_COMPONENTS.add)
   create(@Body() dto: CreateTaxComponentDto): Promise<CreateResponseDto<TaxComponentResponseDto>> {
-    this.logger.log('POST /commerce-api/tax-components');
+    this.logger.log('POST /commerce-api/org/tax-components');
     return this.service.create(dto);
   }
 
@@ -43,7 +43,7 @@ export class TaxComponentsGatewayController {
   @Get(':id')
   @RequirePermission(ORG_TAX_COMPONENTS.view)
   findById(@Param('id') id: string): Promise<TaxComponentResponseDto> {
-    this.logger.log(`GET /commerce-api/tax-components/${id}`);
+    this.logger.log(`GET /commerce-api/org/tax-components/${id}`);
     return this.service.findById(id);
   }
 
@@ -51,7 +51,7 @@ export class TaxComponentsGatewayController {
   @Patch(':id')
   @RequirePermission(ORG_TAX_COMPONENTS.edit)
   update(@Param('id') id: string, @Body() dto: UpdateTaxComponentDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-components/${id}`);
+    this.logger.log(`PATCH /commerce-api/org/tax-components/${id}`);
     return this.service.update(id, dto);
   }
 
@@ -59,7 +59,7 @@ export class TaxComponentsGatewayController {
   @Patch(':id/active')
   @RequirePermission(ORG_TAX_COMPONENTS.toggle)
   setActive(@Param('id') id: string, @Body() dto: SetTaxComponentActiveDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/tax-components/${id}/active`);
+    this.logger.log(`PATCH /commerce-api/org/tax-components/${id}/active`);
     return this.service.setActive(id, dto.isActive);
   }
 
@@ -67,7 +67,7 @@ export class TaxComponentsGatewayController {
   @Delete(':id')
   @RequirePermission(ORG_TAX_COMPONENTS.delete)
   delete(@Param('id') id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/tax-components/${id}`);
+    this.logger.log(`DELETE /commerce-api/org/tax-components/${id}`);
     return this.service.delete(id);
   }
 }

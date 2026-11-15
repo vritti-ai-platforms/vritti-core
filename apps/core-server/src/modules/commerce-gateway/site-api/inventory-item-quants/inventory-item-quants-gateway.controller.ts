@@ -8,7 +8,7 @@ import { InventoryItemQuantsGatewayService } from './services/inventory-item-qua
 @ApiTags('Commerce - Inventory Item Batches')
 @ApiBearerAuth()
 @Require(AuthType.Session, SessionTypeValues.WEB)
-@Controller('inventory-item-quants')
+@Controller('site/inventory-item-quants')
 export class InventoryItemQuantsGatewayController {
   private readonly logger = new Logger(InventoryItemQuantsGatewayController.name);
 
@@ -16,7 +16,7 @@ export class InventoryItemQuantsGatewayController {
 
   @Get(':id')
   findById(@Param('id') id: string): Promise<InventoryBatchResponseDto> {
-    this.logger.log(`GET /commerce-api/inventory-item-quants/${id}`);
+    this.logger.log(`GET /commerce-api/site/inventory-item-quants/${id}`);
     return this.service.findById(id);
   }
 }

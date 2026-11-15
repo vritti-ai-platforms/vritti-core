@@ -13,7 +13,7 @@ import type {
   UpdatePaymentTermPayload,
 } from '@/schemas/payment-terms';
 
-const BASE = 'commerce-api/payment-terms';
+const BASE = 'commerce-api/org/payment-terms';
 
 export function getPaymentTermsTable(): Promise<PaymentTermsTableResponse> {
   return axios.get<PaymentTermsTableResponse>(`${BASE}/table`, { showSuccessToast: false }).then((r) => r.data);
