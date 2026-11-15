@@ -279,9 +279,18 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   private tableColumns() {
     return {
       ...getColumns(inventoryItems),
-      uomSymbol: sql<string | null>`(SELECT u.symbol FROM ${uom} u WHERE u.id = ${inventoryItems.uomId})`,
-      categoryName: sql<string | null>`(SELECT c.name FROM ${categories} c WHERE c.id = ${inventoryItems.categoryId})`,
-      taxClassName: sql<string | null>`(SELECT t.name FROM ${taxClasses} t WHERE t.id = ${inventoryItems.taxClassId})`,
+      uomSymbol: sql<string | null>`(${this.db
+        .select({ symbol: uom.symbol })
+        .from(uom)
+        .where(eq(uom.id, inventoryItems.uomId))})`,
+      categoryName: sql<string | null>`(${this.db
+        .select({ name: categories.name })
+        .from(categories)
+        .where(eq(categories.id, inventoryItems.categoryId))})`,
+      taxClassName: sql<string | null>`(${this.db
+        .select({ name: taxClasses.name })
+        .from(taxClasses)
+        .where(eq(taxClasses.id, inventoryItems.taxClassId))})`,
     };
   }
 
