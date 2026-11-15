@@ -11,6 +11,7 @@ import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items
 import { SupplierQuotationsDomainModule } from '@domain/supplier-quotations/supplier-quotations.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { Module } from '@nestjs/common';
+import { LeSuppliersModule } from '@/modules/legal-entity/suppliers/suppliers.module';
 import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/purchase-progress.module';
 import { SiteSupplierInvoiceHoldsController } from './invoices/holds/site-supplier-invoice-holds.controller';
 import { SupplierInvoiceLinesService } from './invoices/lines/services/supplier-invoice-lines.service';
@@ -18,6 +19,7 @@ import { SiteSupplierInvoiceLinesController } from './invoices/lines/site-suppli
 import { SupplierInvoiceRecostingService } from './invoices/root/services/supplier-invoice-recosting.service';
 import { SupplierInvoicesService } from './invoices/root/services/supplier-invoices.service';
 import { SiteSupplierInvoicesController } from './invoices/root/site-supplier-invoices.controller';
+import { SiteSupplierQuotationsService } from './quotations/services/site-supplier-quotations.service';
 import { SiteSupplierQuotationsController } from './quotations/site-supplier-quotations.controller';
 import { SiteSuppliersController } from './root/site-suppliers.controller';
 import { SiteSupplierSiteItemPricesController } from './site-items/prices/site-supplier-site-item-prices.controller';
@@ -38,6 +40,7 @@ import { SiteSupplierSiteItemsController } from './site-items/root/site-supplier
     InventoryItemQuantsDomainModule,
     PurchasesDomainModule,
     SitePurchaseProgressModule,
+    LeSuppliersModule,
   ],
   controllers: [
     SiteSuppliersController,
@@ -49,6 +52,8 @@ import { SiteSupplierSiteItemsController } from './site-items/root/site-supplier
     SiteSupplierInvoiceHoldsController,
   ],
   providers: [
+    // Quotations
+    SiteSupplierQuotationsService,
     // Invoices
     SupplierInvoicesService,
     SupplierInvoiceRecostingService,

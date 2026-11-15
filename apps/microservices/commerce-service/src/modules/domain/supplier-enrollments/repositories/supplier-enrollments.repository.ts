@@ -100,6 +100,7 @@ export type SupplierEnrollmentRowRecord = {
   partyName: string;
   partyType: PartyType;
   currencyCode: string;
+  currencyCodes: string[];
   defaultPaymentTermId: string;
   isActive: boolean | null;
   isSupplierActive: boolean;

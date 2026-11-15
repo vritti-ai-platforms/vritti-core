@@ -58,12 +58,11 @@ export const supplierQuotations = commerceSchema.table(
     index('idx_supplier_quotations_supplier').on(table.supplierId, table.validFrom),
     index('idx_supplier_quotations_purchase').on(table.purchaseId),
     check('supplier_quotations_validity_chk', sql`${table.validTo} IS NULL OR ${table.validTo} >= ${table.validFrom}`),
-    // A site sees the legal entity's quotations posted to it and those requested for its own purchases
+    // A site writes its own quotations and reads those posted to it or to the legal entity, whoever owns them; the
+    // legal entity reads and writes every quotation of its sites
     ...workspaceHierarchyPolicies({
-      sharedThrough: [
-        { table: supplierQuotationSites, fk: (sites) => sites.quotationId, id: table.id },
-        { table: purchases, fk: (purchase) => purchase.id, id: table.purchaseId },
-      ],
+      sharedThrough: [{ table: supplierQuotationSites, fk: (sites) => sites.quotationId, id: table.id }],
+      legalEntityWritesSites: true,
     }),
   ],
 );
@@ -108,14 +107,15 @@ export const supplierQuotationItems = commerceSchema.table(
       'supplier_quotation_items_scheme_chk',
       sql`(${table.schemeBuyQty} IS NULL) = (${table.schemeFreeQty} IS NULL)`,
     ),
-    ...scopeFromOwnerPolicies({ owner: supplierQuotations, fk: table.quotationId }),
+    ...scopeFromOwnerPolicies({ owner: supplierQuotations, fk: table.quotationId, ownerIs: 'legalEntityWritesSites' }),
   ],
 );
 
 export type SupplierQuotationItem = typeof supplierQuotationItems.$inferSelect;
 export type NewSupplierQuotationItem = typeof supplierQuotationItems.$inferInsert;
 
-// A site the quotation is posted to; its price rows point back here and leave with it — a site reads only its own
+// A site the quotation is posted to; its price rows point back here and leave with it — a site reads its own, the
+// legal entity's, and every posting of a quotation it owns
 export const supplierQuotationSites = commerceSchema.table(
   'supplier_quotation_sites',
   {
@@ -127,13 +127,15 @@ export const supplierQuotationSites = commerceSchema.table(
       .references((): AnyPgColumn => supplierQuotations.id, { onDelete: 'cascade' }),
     // Empty when the quotation is posted to the whole legal entity
     siteId: uuid('site_id'),
+    ownerSiteId: uuid('owner_site_id'),
     postedBy: uuid('posted_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     uniqueIndex('uq_supplier_quotation_sites_site').on(table.quotationId, siteStratum(table.siteId)),
     index('idx_supplier_quotation_sites_site').on(table.siteId),
-    ...siteDocumentPolicies({ legalEntityRows: true }),
+    index('idx_supplier_quotation_sites_owner_site').on(table.ownerSiteId),
+    ...siteDocumentPolicies({ legalEntityRows: true, readByOwnerSite: table.ownerSiteId }),
   ],
 );
 

@@ -60,6 +60,13 @@ export class SupplierEnrollmentRowResponseDto {
   @ApiProperty({ description: 'Default supplier currency code (ISO 4217)', example: 'INR' })
   currencyCode: string;
 
+  @ApiProperty({
+    description: 'Every currency the supplier trades in (ISO 4217)',
+    type: [String],
+    example: ['INR', 'USD'],
+  })
+  currencyCodes: string[];
+
   @ApiProperty({ description: 'Payment term new enrollments start from' })
   defaultPaymentTermId: string;
 

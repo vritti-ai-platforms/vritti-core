@@ -11,6 +11,22 @@ export class SupplierQuotationResponseDto {
   @ApiProperty({ description: 'Supplier ID' })
   supplierId: string;
 
+  @ApiPropertyOptional({ description: 'Legal entity that owns it', type: String, nullable: true })
+  legalEntityId: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Site that owns it; empty when the legal entity does',
+    type: String,
+    nullable: true,
+  })
+  siteId: string | null;
+
+  @ApiProperty({ description: 'Workspace that owns it', enum: ['ORG', 'LE', 'SITE'] })
+  ownerScope: string;
+
+  @ApiProperty({ description: 'Name of the legal entity or site that owns it', example: 'Kompally Warehouse' })
+  ownerName: string;
+
   @ApiProperty({ description: "The supplier's quotation reference", example: 'SBD-Q-0411' })
   quotationNumber: string;
 
@@ -40,6 +56,11 @@ export class SupplierQuotationResponseDto {
 
   @ApiProperty({ description: 'Number of sites it is posted to' })
   siteCount: number;
+
+  @ApiProperty({
+    description: "Whether the caller's workspace can change it: its owner, or the legal entity for its sites'",
+  })
+  canWrite: boolean;
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
@@ -104,6 +125,11 @@ export class SupplierQuotationSiteResponseDto {
 
   @ApiProperty({ description: 'ISO timestamp it was posted' })
   postedAt: string;
+
+  @ApiProperty({
+    description: "Whether the caller's workspace can remove it: the site it is posted to, or the legal entity",
+  })
+  canRemove: boolean;
 }
 
 export class SupplierQuotationDetailResponseDto extends SupplierQuotationResponseDto {

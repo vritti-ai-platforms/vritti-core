@@ -327,9 +327,10 @@ export class SuppliersGatewayController {
   getEnrollmentQuotationsTable(
     @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
     @UserId() userId: string,
+    @OrgId() orgId: string,
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/quotations/table`);
-    return this.quotationsGatewayService.findEnrollmentQuotationsTable(supplierId, siteId, userId);
+    return this.quotationsGatewayService.findEnrollmentQuotationsTable(supplierId, siteId, userId, orgId);
   }
 
   // Returns the site items of a supplier item for the table

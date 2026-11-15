@@ -25,6 +25,7 @@ export class SupplierEnrollmentRowDto {
   purchasingBlocked: boolean;
   paymentBlocked: boolean;
   currencyCode: string;
+  currencyCodes: string[];
   defaultPaymentTermId: string;
   paymentTermId: string | null;
   paymentTermName: string | null;
@@ -63,6 +64,7 @@ export class SupplierEnrollmentRowDto {
     dto.purchasingBlocked = row.purchasingBlocked;
     dto.paymentBlocked = row.paymentBlocked;
     dto.currencyCode = row.currencyCode;
+    dto.currencyCodes = row.currencyCodes;
     dto.defaultPaymentTermId = row.defaultPaymentTermId;
     dto.paymentTermId = row.paymentTermId ?? null;
     dto.paymentTermName = row.paymentTermName ?? null;

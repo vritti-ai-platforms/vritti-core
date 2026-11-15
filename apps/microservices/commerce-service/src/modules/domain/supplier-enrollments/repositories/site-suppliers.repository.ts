@@ -144,6 +144,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
       partyName: parties.displayName,
       partyType: parties.partyType,
       currencyCode: suppliers.currencyCode,
+      currencyCodes: suppliers.currencyCodes,
       defaultPaymentTermId: suppliers.defaultPaymentTermId,
       isActive: supplierEnrollments.isActive,
       isSupplierActive: suppliers.isActive,

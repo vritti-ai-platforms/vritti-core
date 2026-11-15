@@ -1,7 +1,9 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { SupplierQuotation, SupplierQuotationSite } from '@/db/schema';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 import type {
   SupplierQuotationItemRow,
+  SupplierQuotationRow,
+  SupplierQuotationSiteRow,
   SupplierQuotationTableRow,
 } from '../../repositories/supplier-quotations.repository';
 
@@ -15,6 +17,9 @@ export type SupplierQuotationStatus =
 export class SupplierQuotationDto {
   id: string;
   supplierId: string;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: WorkspaceScope;
   quotationNumber: string;
   quotationDate: string;
   currencyCode: string;
@@ -25,6 +30,8 @@ export class SupplierQuotationDto {
   status: SupplierQuotationStatus;
   itemCount: number;
   siteCount: number;
+  // Whether the caller's workspace changes it: its owner, or the legal entity for its sites' quotations
+  canWrite: boolean;
   createdAt: string;
   updatedAt: string;
 
@@ -32,6 +39,9 @@ export class SupplierQuotationDto {
     const dto = new SupplierQuotationDto();
     dto.id = row.id;
     dto.supplierId = row.supplierId;
+    dto.legalEntityId = row.legalEntityId;
+    dto.siteId = row.siteId;
+    dto.ownerScope = workspaceScopeOf(row);
     dto.quotationNumber = row.quotationNumber;
     dto.quotationDate = row.quotationDate;
     dto.currencyCode = row.currencyCode;
@@ -40,6 +50,7 @@ export class SupplierQuotationDto {
     dto.note = row.note ?? null;
     dto.itemCount = row.itemCount;
     dto.siteCount = row.siteCount;
+    dto.canWrite = row.canWrite;
     dto.status = row.siteCount > 0 ? SupplierQuotationStatusValues.POSTED : SupplierQuotationStatusValues.DRAFT;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
@@ -84,11 +95,14 @@ export class SupplierQuotationSiteDto {
   siteId: string | null;
   postedBy: string | null;
   postedAt: string;
+  // Whether the caller's workspace removes it: the site it is posted to, or the legal entity
+  canRemove: boolean;
 
-  static from(entity: SupplierQuotationSite): SupplierQuotationSiteDto {
+  static from(entity: SupplierQuotationSiteRow): SupplierQuotationSiteDto {
     const dto = new SupplierQuotationSiteDto();
     dto.id = entity.id;
     dto.siteId = entity.siteId;
+    dto.canRemove = entity.canRemove;
     dto.postedBy = entity.postedBy ?? null;
     dto.postedAt = entity.createdAt.toISOString();
     return dto;
@@ -100,9 +114,9 @@ export class SupplierQuotationDetailDto extends SupplierQuotationDto {
   sites: SupplierQuotationSiteDto[];
 
   static fromDetail(
-    entity: SupplierQuotation,
+    entity: SupplierQuotationRow,
     items: SupplierQuotationItemRow[],
-    sites: SupplierQuotationSite[],
+    sites: SupplierQuotationSiteRow[],
   ): SupplierQuotationDetailDto {
     const dto = new SupplierQuotationDetailDto();
     Object.assign(dto, SupplierQuotationDto.from({ ...entity, itemCount: items.length, siteCount: sites.length }));

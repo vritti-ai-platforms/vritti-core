@@ -17,6 +17,9 @@ export class CreatePurchaseQuotationDraftDto {
   @IsUUID('7')
   purchaseId: string;
 
+  @IsUUID('7')
+  siteId: string;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)

@@ -110,7 +110,7 @@ export class LeSupplierQuotationsService {
       });
     }
     const posted = await this.database.runInTransaction(async () => {
-      const site = await this.quotations.recordSite(quotationId, siteId, userId);
+      const site = await this.quotations.recordSite(quotation, siteId, userId);
       // Each line's item becomes the supplier's at the site first, then the line is priced there
       const lines: QuotationPriceLine[] = [];
       for (const item of items) {

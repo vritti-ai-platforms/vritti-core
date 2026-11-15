@@ -4,6 +4,7 @@ import type {
 } from '@domain/supplier-quotations/dto/entity/purchase-quotation.dto';
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto, majorToMinor } from '@vritti/api-sdk/money';
+import type { WorkspaceScope } from '@/db/schema';
 
 export class PurchaseDetailQuotationItemDto {
   id: string;
@@ -41,6 +42,9 @@ export class PurchaseDetailQuotationItemDto {
 
 export class PurchaseDetailQuotationDto {
   id: string;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: WorkspaceScope;
   quotationNumber: string;
   supplierId: string;
   supplierName: string;
@@ -61,6 +65,9 @@ export class PurchaseDetailQuotationDto {
   static from(quotation: PurchaseQuotationDto, primaryPerUnit: Map<string, number>): PurchaseDetailQuotationDto {
     const dto = new PurchaseDetailQuotationDto();
     dto.id = quotation.id;
+    dto.legalEntityId = quotation.legalEntityId;
+    dto.siteId = quotation.siteId;
+    dto.ownerScope = quotation.ownerScope;
     dto.quotationNumber = quotation.quotationNumber;
     dto.supplierId = quotation.supplierId;
     dto.supplierName = quotation.supplierName;

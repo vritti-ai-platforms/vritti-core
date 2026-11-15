@@ -72,6 +72,7 @@ interface SupplierEnrollmentRowBase extends SupplierEnrollmentKey {
   siteName: string;
   siteCode: string;
   currencyCode: string;
+  currencyCodes: string[];
   defaultPaymentTermId: string;
   isSupplierActive: boolean;
   purchasingBlocked: boolean;

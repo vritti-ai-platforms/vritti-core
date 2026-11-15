@@ -1,4 +1,3 @@
-import { LE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { Button } from '@vritti/quantum-ui/Button';
 import { CurrencyField } from '@vritti/quantum-ui/CurrencyField';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
@@ -10,7 +9,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { useAddSupplierQuotationItem, useUpdateSupplierQuotationItem } from '@/hooks/legal-entity/supplier-quotations';
+import type { SupplierQuotationAuthoring } from '@/components/suppliers/bindings';
 import {
   type AddSupplierQuotationItemFormData,
   addSupplierQuotationItemSchema,
@@ -21,6 +20,7 @@ import { InventoryItemSelector } from '@/selectors/inventory-item';
 import { UomSelector } from '@/selectors/uom';
 
 interface QuotationItemDialogProps {
+  authoring: SupplierQuotationAuthoring;
   supplierId: string;
   quotationId: string;
   currencyCode: string;
@@ -31,6 +31,7 @@ interface QuotationItemDialogProps {
 }
 
 export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
+  authoring,
   supplierId,
   quotationId,
   currencyCode,
@@ -57,9 +58,9 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
   const [unitLabel, setUnitLabel] = useState<string | undefined>(item?.uomSymbol ?? undefined);
 
-  const addMutation = useAddSupplierQuotationItem(supplierId, quotationId, { onSuccess });
-  const updateMutation = useUpdateSupplierQuotationItem(supplierId, quotationId, { onSuccess });
-  const canSetMrp = usePermission(LE_INVENTORY_ITEMS.mrp.edit).available;
+  const addMutation = authoring.useAddItem(supplierId, quotationId, { onSuccess });
+  const updateMutation = authoring.useUpdateItem(supplierId, quotationId, { onSuccess });
+  const canSetMrp = usePermission(authoring.permissions.mrpEdit).available;
 
   // The schema has already rejected an empty price by the time the form submits
   const toPayload = (data: AddSupplierQuotationItemFormData): SupplierQuotationItemPayload => ({
@@ -107,7 +108,7 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
           />
           <CurrencyField
             name="mrp"
-            permission={LE_INVENTORY_ITEMS.mrp.edit}
+            permission={authoring.permissions.mrpEdit}
             label={unitLabel ? `MRP per ${unitLabel} (optional)` : 'MRP (optional)'}
             currencyCode={currencyCode}
             description="As printed on the pack; added to the item's MRPs if new"

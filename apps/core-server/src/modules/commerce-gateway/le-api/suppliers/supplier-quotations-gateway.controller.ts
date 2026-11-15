@@ -111,9 +111,13 @@ export class SupplierQuotationsGatewayController {
   // Returns a supplier's quotations for the data table
   @Get('table')
   @RequirePermission(LE_SUPPLIERS.quotations.view)
-  getTable(@Param('id') supplierId: string, @UserId() userId: string): Promise<SupplierQuotationTableResponseDto> {
+  getTable(
+    @Param('id') supplierId: string,
+    @UserId() userId: string,
+    @OrgId() orgId: string,
+  ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/quotations/table`);
-    return this.service.findForTable(supplierId, userId);
+    return this.service.findForTable(supplierId, userId, orgId);
   }
 
   // Deletes a quotation, removing it from every site first

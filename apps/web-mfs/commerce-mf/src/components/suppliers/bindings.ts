@@ -1,18 +1,21 @@
 import type { FilterCondition } from '@vritti/quantum-ui/types/conditions';
 import type { ComponentType } from 'react';
 import type { SupplierEnrollmentKey, SupplierEnrollmentRow } from '@/schemas/supplier-enrollments';
+import type { SupplierQuotationDetail } from '@/schemas/supplier-quotations';
 import type {
   QuotationPath,
   QuotationRef,
-  QuotationSlotProps,
   SupplierEnrollmentPermissions,
   SupplierEnrollmentRef,
   SupplierItemPricesPermissions,
   SupplierSiteItemPagePermissions,
+  UseAddQuotationItem,
   UseAddSitePrice,
   UseCreateEnrollment,
+  UseCreateQuotation,
   UseDeleteEnrollment,
   UseDeletePrice,
+  UseDeleteQuotation,
   UseEnrollment,
   UseEnrollmentPurchasing,
   UseEnrollmentRef,
@@ -21,14 +24,19 @@ import type {
   UsePriceHistoryQuery,
   UsePricesTable,
   UseQuotation,
+  UseQuotationPosting,
   UseQuotationsTable,
+  UseRemoveQuotationItem,
   UseSetEnrollmentActive,
   UseSiteItem,
   UseSiteItemsTable,
+  UseSupplierCurrencies,
   UseSupplierParty,
   UseUpdateEnrollment,
   UseUpdateEnrollmentPurchasing,
   UseUpdatePrice,
+  UseUpdateQuotation,
+  UseUpdateQuotationItem,
   UseUpdateSiteItem,
 } from './types';
 
@@ -119,8 +127,8 @@ export interface SupplierEnrollmentInvoicesBinding {
   Tab: ComponentType<{ supplierId: string }>;
 }
 
-// A supplier's quotations — the list, a supplier's or those posted to one site, and a quotation's page. A site workspace
-// only reads them; the legal entity also records, edits and posts them through `authoring`.
+// A supplier's quotations — the list, a supplier's or those posted to one site, and a quotation's page. `authoring`
+// records, edits and posts them: the legal entity any of its quotations, a site its own.
 export interface SupplierQuotationsBinding {
   // view: a supplier's quotations; siteView: those posted to a site; mrpView: the MRP column on a quotation's lines
   permissions: { view: string; siteView: string; mrpView: string };
@@ -137,12 +145,40 @@ export interface SupplierQuotationsBinding {
   authoring?: SupplierQuotationAuthoring;
 }
 
-// Recording a supplier's quotations, editing their lines and posting them to sites — the legal entity's alone
+// Recording a supplier's quotations, editing them and their lines, posting them and deleting them. A quotation the
+// workspace does not write (`canWrite`) stays read-only; a posting it does not remove (`canRemove`) stays put.
 export interface SupplierQuotationAuthoring {
-  // The list's toolbar action: a new quotation on a supplier's list, the way to it from a site's list
-  ListAction: ComponentType<{ supplierId: string; siteId?: string; quotationPath: QuotationPath }>;
-  HeaderActions: ComponentType<QuotationSlotProps>;
-  LinesTab: ComponentType<QuotationSlotProps>;
-  SitesTab: ComponentType<QuotationSlotProps>;
-  DeleteZone: ComponentType<QuotationSlotProps>;
+  permissions: { add: string; edit: string; delete: string; mrpEdit: string };
+  useCurrencies: UseSupplierCurrencies;
+  useCreate: UseCreateQuotation;
+  useUpdate: UseUpdateQuotation;
+  useDelete: UseDeleteQuotation;
+  useAddItem: UseAddQuotationItem;
+  useUpdateItem: UseUpdateQuotationItem;
+  useRemoveItem: UseRemoveQuotationItem;
+  posting: QuotationPostingBinding;
+}
+
+// Where a quotation is posted: the legal entity picks any enrolled site, or none for all its sites; a site posts its own
+// to itself
+export type QuotationPostingBinding =
+  | {
+      to: 'anySite';
+      permissions: { post: string; remove: string };
+      usePost: UseQuotationPosting<string | null>;
+      useRemove: UseQuotationPosting<string | null>;
+    }
+  | {
+      to: 'ownSite';
+      permissions: { post: string; remove: string };
+      usePost: UseQuotationPosting<void>;
+      useRemove: UseQuotationPosting<void>;
+    };
+
+// What an authoring piece on a quotation's page works on
+export interface QuotationSlotProps {
+  binding: SupplierQuotationsBinding;
+  authoring: SupplierQuotationAuthoring;
+  supplierId: string;
+  quotation: SupplierQuotationDetail;
 }

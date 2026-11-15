@@ -267,9 +267,14 @@ export class LePurchasesGatewayService {
   }
 
   // Returns the quotations linked to a purchase, read in the legal entity's context
-  findQuotations(id: string): Promise<PurchaseQuotationResponseDto[]> {
+  async findQuotations(id: string, orgId: string): Promise<PurchaseQuotationResponseDto[]> {
     this.logger.log(`le.purchases.quotations.findByPurchase — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.quotations.findByPurchase', { id });
+    const quotations = await this.nats.send<Omit<PurchaseQuotationResponseDto, 'ownerName'>[]>(
+      'commerce',
+      'le.purchases.quotations.findByPurchase',
+      { id },
+    );
+    return this.ownerNames.resolve(orgId, quotations);
   }
 
   // Returns a purchase's items with their allocations across every leg

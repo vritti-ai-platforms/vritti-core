@@ -437,9 +437,12 @@ export class PurchasesGatewayController {
   @Get(':id/quotations')
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindQuotations()
-  findQuotations(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseQuotationResponseDto[]> {
+  findQuotations(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @OrgId() orgId: string,
+  ): Promise<PurchaseQuotationResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/purchases/${id}/quotations`);
-    return this.service.findQuotations(id);
+    return this.service.findQuotations(id, orgId);
   }
 
   // Returns a purchase's items with their allocations across every leg

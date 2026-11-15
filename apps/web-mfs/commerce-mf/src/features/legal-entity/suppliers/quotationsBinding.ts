@@ -10,16 +10,19 @@ import {
   SUPPLIER_ENROLLMENT_QUOTATIONS_TABLE_KEY,
   SUPPLIER_QUOTATION_KEY,
   SUPPLIER_QUOTATIONS_TABLE_KEY,
+  useAddSupplierQuotationItem,
+  useCreateSupplierQuotation,
+  useDeleteSupplierQuotation,
+  usePostSupplierQuotationToSite,
+  useRemoveSupplierQuotationFromSite,
+  useRemoveSupplierQuotationItem,
   useSupplierEnrollmentQuotationsTable,
   useSupplierQuotation,
   useSupplierQuotationsTable,
+  useUpdateSupplierQuotation,
+  useUpdateSupplierQuotationItem,
 } from '@/hooks/legal-entity/supplier-quotations';
 import { useSupplier } from '@/hooks/legal-entity/suppliers';
-import { QuotationDeleteZone } from './tabs/quotations/QuotationDeleteZone';
-import { QuotationHeaderActions } from './tabs/quotations/QuotationHeaderActions';
-import { QuotationListAction } from './tabs/quotations/QuotationListAction';
-import { ItemsTab } from './tabs/quotations/tabs/items/ItemsTab';
-import { SitesTab } from './tabs/quotations/tabs/sites/SitesTab';
 
 // A supplier's quotations, or those posted to the enrollment's site
 function useQuotationsTable(supplierId: string, siteId: string | undefined) {
@@ -50,6 +53,11 @@ function useSupplierName(supplierId: string): string {
   return useSupplier(supplierId).data.partyName;
 }
 
+function useSupplierCurrencies(supplierId: string) {
+  const { currencyCode, currencyCodes } = useSupplier(supplierId).data;
+  return { currencyCode, currencyCodes };
+}
+
 export const quotationsBinding: SupplierQuotationsBinding = {
   permissions: {
     view: LE_SUPPLIERS.quotations.view,
@@ -78,11 +86,26 @@ export const quotationsBinding: SupplierQuotationsBinding = {
   useQuotation: useSupplierQuotation,
   quotationKey: SUPPLIER_QUOTATION_KEY,
   useSupplierName,
+  // The legal entity writes every quotation of its own and its sites', and posts any of them to any enrolled site
   authoring: {
-    ListAction: QuotationListAction,
-    HeaderActions: QuotationHeaderActions,
-    LinesTab: ItemsTab,
-    SitesTab,
-    DeleteZone: QuotationDeleteZone,
+    permissions: {
+      add: LE_SUPPLIERS.quotations.add,
+      edit: LE_SUPPLIERS.quotations.edit,
+      delete: LE_SUPPLIERS.quotations.delete,
+      mrpEdit: LE_INVENTORY_ITEMS.mrp.edit,
+    },
+    useCurrencies: useSupplierCurrencies,
+    useCreate: useCreateSupplierQuotation,
+    useUpdate: useUpdateSupplierQuotation,
+    useDelete: useDeleteSupplierQuotation,
+    useAddItem: useAddSupplierQuotationItem,
+    useUpdateItem: useUpdateSupplierQuotationItem,
+    useRemoveItem: useRemoveSupplierQuotationItem,
+    posting: {
+      to: 'anySite',
+      permissions: { post: LE_SUPPLIERS.sites.quotations.add, remove: LE_SUPPLIERS.sites.quotations.delete },
+      usePost: usePostSupplierQuotationToSite,
+      useRemove: useRemoveSupplierQuotationFromSite,
+    },
   },
 };

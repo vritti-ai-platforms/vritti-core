@@ -16,6 +16,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   currentSiteId,
   inventoryItemMrps,
@@ -25,14 +26,20 @@ import {
   type SupplierQuotation,
   type SupplierQuotationItem,
   type SupplierQuotationSite,
+  siteDocumentWithLegalEntityRowsWritableExpression,
   supplierQuotationItems,
   supplierQuotationSites,
   supplierQuotations,
   suppliers,
   uom,
+  writableWithLegalEntitySitesExpression,
 } from '@/db/schema';
 
-export type SupplierQuotationTableRow = SupplierQuotation & { itemCount: number; siteCount: number };
+export type SupplierQuotationTableRow = SupplierQuotation & { itemCount: number; siteCount: number; canWrite: boolean };
+
+export type SupplierQuotationRow = SupplierQuotation & { canWrite: boolean };
+
+export type SupplierQuotationSiteRow = SupplierQuotationSite & { canRemove: boolean };
 
 export type SupplierQuotationItemRow = SupplierQuotationItem & {
   inventoryItemName: string;
@@ -43,6 +50,8 @@ export type SupplierQuotationItemRow = SupplierQuotationItem & {
 
 export type PurchaseQuotationRow = {
   id: string;
+  legalEntityId: string | null;
+  siteId: string | null;
   quotationNumber: string;
   supplierId: string;
   supplierName: string;
@@ -85,19 +94,20 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     super(database, supplierQuotations);
   }
 
-  // Returns a supplier's quotations with their line and posted-site counts: only those posted to the named site, else in
-  // a site workspace only those posted to the request's site, else every one
+  // Returns a supplier's quotations with their line and posted-site counts, only those posted to the named site when one
+  // is named; RLS keeps a site workspace to its own quotations and those posted to it or to the legal entity
   findForSupplierTable(
     supplierId: string,
     options: { siteId?: string; where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
   ): Promise<{ result: SupplierQuotationTableRow[]; count: number }> {
-    const postedTo = (site: string | SQL) => sql`EXISTS (
-      SELECT 1 FROM ${supplierQuotationSites} qs
-      WHERE qs.quotation_id = ${supplierQuotations}.id AND qs.site_id = ${site}
-    )`;
     const scope = and(
       eq(supplierQuotations.supplierId, supplierId),
-      options.siteId ? postedTo(options.siteId) : sql`(${currentSiteId()} is null or ${postedTo(currentSiteId())})`,
+      options.siteId
+        ? sql`EXISTS (
+            SELECT 1 FROM ${supplierQuotationSites} qs
+            WHERE qs.quotation_id = ${supplierQuotations}.id AND qs.site_id = ${options.siteId}
+          )`
+        : undefined,
     );
     return this.findAllAndCount<SupplierQuotationTableRow>({
       select: {
@@ -108,6 +118,7 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
         siteCount: sql<number>`(
           SELECT count(*)::int FROM ${supplierQuotationSites} qs WHERE qs.quotation_id = ${supplierQuotations}.id
         )`.mapWith(Number),
+        canWrite: writableWithLegalEntitySitesExpression(supplierQuotations),
       },
       where: options.where ? and(scope, options.where) : scope,
       orderBy: options.orderBy?.length ? options.orderBy : [desc(supplierQuotations.validFrom)],
@@ -116,34 +127,52 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     });
   }
 
-  // Loads a supplier's quotation only when it is posted to the named site, else to the request's site
-  async findPostedToSite(
-    supplierId: string,
-    quotationId: string,
-    siteId?: string,
-  ): Promise<SupplierQuotation | undefined> {
+  // Loads one of a supplier's quotations the request can read, with whether the request can change it
+  async findForSupplier(supplierId: string, quotationId: string): Promise<SupplierQuotationRow | undefined> {
+    const [row] = await this.findAllWithSelect<SupplierQuotationRow>({
+      select: this.rowSelection(),
+      where: and(eq(supplierQuotations.id, quotationId), eq(supplierQuotations.supplierId, supplierId)),
+    });
+    return row;
+  }
+
+  // Loads a quotation the request can read, with whether the request can change it
+  async findRow(quotationId: string): Promise<SupplierQuotationRow | undefined> {
+    const [row] = await this.findAllWithSelect<SupplierQuotationRow>({
+      select: this.rowSelection(),
+      where: eq(supplierQuotations.id, quotationId),
+    });
+    return row;
+  }
+
+  // Selects a quotation with whether the request can change it: its owner, or the legal entity for its sites'
+  private rowSelection() {
+    return { ...getColumns(supplierQuotations), canWrite: writableWithLegalEntitySitesExpression(supplierQuotations) };
+  }
+
+  // Rejects changing a quotation the request's site does not own — one another site posted to it
+  async assertOwnedByRequestSite(quotationId: string): Promise<void> {
+    const owned = await this.exists(
+      and(eq(supplierQuotations.id, quotationId), eq(supplierQuotations.siteId, currentSiteId())) as SQL,
+    );
+    if (owned) return;
+    throw new BadRequestException({
+      label: 'Quotation of Another Site',
+      detail: 'This quotation is posted to this site from elsewhere. Only its owner and the legal entity change it.',
+    });
+  }
+
+  // The quotation's posting to the request's site, throwing when it is not posted here
+  async findPostingAtRequestSiteOrThrow(quotationId: string): Promise<SupplierQuotationSite> {
     const [row] = await this.db
       .select()
-      .from(supplierQuotations)
+      .from(supplierQuotationSites)
       .where(
-        and(
-          eq(supplierQuotations.id, quotationId),
-          eq(supplierQuotations.supplierId, supplierId),
-          exists(
-            this.db
-              .select({ one: sql`1` })
-              .from(supplierQuotationSites)
-              .where(
-                and(
-                  eq(supplierQuotationSites.quotationId, supplierQuotations.id),
-                  eq(supplierQuotationSites.siteId, siteId ?? currentSiteId()),
-                ),
-              ),
-          ),
-        ),
+        and(eq(supplierQuotationSites.quotationId, quotationId), eq(supplierQuotationSites.siteId, currentSiteId())),
       )
       .limit(1);
-    return row as SupplierQuotation | undefined;
+    if (!row) throw new NotFoundException('The quotation is not posted to this site.');
+    return row as SupplierQuotationSite;
   }
 
   // Returns the supplier's quotation numbers that start with the prefix
@@ -160,6 +189,8 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     return this.findAllWithSelect<PurchaseQuotationRow>({
       select: {
         id: supplierQuotations.id,
+        legalEntityId: supplierQuotations.legalEntityId,
+        siteId: supplierQuotations.siteId,
         quotationNumber: supplierQuotations.quotationNumber,
         supplierId: supplierQuotations.supplierId,
         supplierName: parties.displayName,
@@ -334,13 +365,17 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     await this.db.delete(supplierQuotationItems).where(eq(supplierQuotationItems.id, id));
   }
 
-  async findSites(quotationId: string): Promise<SupplierQuotationSite[]> {
+  // The quotation's postings the request can read, each with whether the request can remove it
+  async findSites(quotationId: string): Promise<SupplierQuotationSiteRow[]> {
     const rows = await this.db
-      .select()
+      .select({
+        ...getColumns(supplierQuotationSites),
+        canRemove: siteDocumentWithLegalEntityRowsWritableExpression(supplierQuotationSites),
+      })
       .from(supplierQuotationSites)
       .where(eq(supplierQuotationSites.quotationId, quotationId))
       .orderBy(asc(supplierQuotationSites.createdAt));
-    return rows as SupplierQuotationSite[];
+    return rows as SupplierQuotationSiteRow[];
   }
 
   // The quotation's posting to a site, or to the whole legal entity when the site is empty
@@ -369,6 +404,7 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
   async insertSite(data: {
     quotationId: string;
     siteId: string | null;
+    ownerSiteId: string | null;
     postedBy: string | null;
   }): Promise<SupplierQuotationSite> {
     const [row] = await this.db.insert(supplierQuotationSites).values(data).returning();

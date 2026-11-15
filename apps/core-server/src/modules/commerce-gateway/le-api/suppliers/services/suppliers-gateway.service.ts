@@ -313,6 +313,7 @@ export class SuppliersGatewayService {
         purchasingBlocked: supplier.purchasingBlocked,
         paymentBlocked: supplier.paymentBlocked,
         currencyCode: supplier.currencyCode,
+        currencyCodes: supplier.currencyCodes,
         defaultPaymentTermId: supplier.defaultPaymentTermId,
         paymentTermId: enrollment?.paymentTermId ?? null,
         paymentTermName: enrollment?.paymentTermName ?? null,

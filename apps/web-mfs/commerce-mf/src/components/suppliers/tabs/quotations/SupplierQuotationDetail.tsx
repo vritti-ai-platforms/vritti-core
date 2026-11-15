@@ -3,6 +3,10 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
 import { useState } from 'react';
 import type { SupplierQuotationsBinding } from '../../bindings';
+import { QuotationDeleteZone } from './authoring/QuotationDeleteZone';
+import { QuotationHeaderActions } from './authoring/QuotationHeaderActions';
+import { QuotationLinesTab } from './authoring/QuotationLinesTab';
+import { QuotationSitesTab } from './authoring/QuotationSitesTab';
 import { QuotationItemsTable } from './QuotationItemsTable';
 import { QuotationOverview } from './QuotationOverview';
 import { QuotationStatusBadge } from './QuotationStatusBadge';
@@ -20,6 +24,7 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
   const [activeTab, setActiveTab] = useState('overview');
   const authoring = binding.authoring;
   const { view, mrpView } = binding.permissions;
+  const slot = authoring && { binding, authoring, supplierId, quotation };
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,7 +32,7 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
         title={quotation.quotationNumber}
         titleSlot={<QuotationStatusBadge status={quotation.status} />}
         description={supplierName}
-        actions={authoring && <authoring.HeaderActions supplierId={supplierId} quotation={quotation} />}
+        actions={slot && <QuotationHeaderActions {...slot} />}
       />
 
       <Tabs
@@ -36,16 +41,14 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
             value: 'overview',
             label: 'Overview',
             permission: view,
-            content: (
-              <QuotationOverview quotation={quotation} supplierName={supplierName} showPostedSites={!!authoring} />
-            ),
+            content: <QuotationOverview quotation={quotation} supplierName={supplierName} showPostedSites={!!slot} />,
           },
           {
             value: 'items',
             label: `Items (${quotation.items.length})`,
             permission: view,
-            content: authoring ? (
-              <authoring.LinesTab supplierId={supplierId} quotation={quotation} />
+            content: slot ? (
+              <QuotationLinesTab {...slot} />
             ) : (
               <QuotationItemsTable
                 quotation={quotation}
@@ -56,13 +59,13 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
               />
             ),
           },
-          ...(authoring
+          ...(slot
             ? [
                 {
                   value: 'sites',
                   label: `Sites (${quotation.sites.length})`,
                   permission: view,
-                  content: <authoring.SitesTab supplierId={supplierId} quotation={quotation} />,
+                  content: <QuotationSitesTab {...slot} />,
                 },
               ]
             : []),
@@ -71,7 +74,7 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
         onValueChange={setActiveTab}
       />
 
-      {authoring && <authoring.DeleteZone supplierId={supplierId} quotation={quotation} />}
+      {slot && <QuotationDeleteZone {...slot} />}
     </div>
   );
 };

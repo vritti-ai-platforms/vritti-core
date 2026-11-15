@@ -23,8 +23,16 @@ import {
 import {
   SITE_SUPPLIER_QUOTATION_KEY,
   SITE_SUPPLIER_QUOTATIONS_TABLE_KEY,
+  useAddSupplierQuotationItem,
+  useCreateSupplierQuotation,
+  useDeleteSupplierQuotation,
+  usePostSupplierQuotation,
+  useRemoveSupplierQuotationItem,
+  useRemoveSupplierQuotationPosting,
   useSupplierQuotation,
   useSupplierQuotationsTable,
+  useUpdateSupplierQuotation,
+  useUpdateSupplierQuotationItem,
 } from '@/hooks/site/supplier-quotations';
 import {
   SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
@@ -66,6 +74,12 @@ function useQuotationRef(): QuotationRef {
 
 function useSupplierName(supplierId: string): string {
   return useSupplierEnrollment({ supplierId, siteId: useSiteId() }).data.partyName;
+}
+
+// The supplier's currencies as the site's enrollment carries them
+function useSupplierCurrencies(supplierId: string) {
+  const { currencyCode, currencyCodes } = useSupplierEnrollment({ supplierId, siteId: useSiteId() }).data;
+  return { currencyCode, currencyCodes };
 }
 
 // Back to the site's suppliers list after the supplier is unenrolled from the site
@@ -122,7 +136,7 @@ export const siteItemPage: SupplierSiteItemPageBinding = {
   useAddSitePrice: useAddSupplierSiteItemPrice,
 };
 
-// The supplier's quotations posted to this site, read-only; the legal entity records and posts them
+// The supplier's quotations the site reads: its own, which it records and posts to itself, and those posted to it
 export const quotationsBinding: SupplierQuotationsBinding = {
   permissions: {
     view: SITE_SUPPLIERS.quotations.view,
@@ -135,12 +149,33 @@ export const quotationsBinding: SupplierQuotationsBinding = {
   useQuotationPath: () => quotationPath,
   emptyState: () => ({
     title: 'No quotations',
-    description: "None of the supplier's quotations is posted to this site yet.",
+    description: "Record the supplier's quotation, add its lines, then post it to make them this site's prices.",
   }),
   useQuotationRef,
   useQuotation: useSupplierQuotation,
   quotationKey: SITE_SUPPLIER_QUOTATION_KEY,
   useSupplierName,
+  authoring: {
+    permissions: {
+      add: SITE_SUPPLIERS.quotations.add,
+      edit: SITE_SUPPLIERS.quotations.edit,
+      delete: SITE_SUPPLIERS.quotations.delete,
+      mrpEdit: SITE_INVENTORY_ITEMS.mrp.edit,
+    },
+    useCurrencies: useSupplierCurrencies,
+    useCreate: useCreateSupplierQuotation,
+    useUpdate: useUpdateSupplierQuotation,
+    useDelete: useDeleteSupplierQuotation,
+    useAddItem: useAddSupplierQuotationItem,
+    useUpdateItem: useUpdateSupplierQuotationItem,
+    useRemoveItem: useRemoveSupplierQuotationItem,
+    posting: {
+      to: 'ownSite',
+      permissions: { post: SITE_SUPPLIERS.quotations.post, remove: SITE_SUPPLIERS.quotations.remove },
+      usePost: usePostSupplierQuotation,
+      useRemove: useRemoveSupplierQuotationPosting,
+    },
+  },
 };
 
 export const binding: SupplierEnrollmentBinding = {

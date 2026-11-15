@@ -1,7 +1,6 @@
 import { RequestPurchaseQuotationDto } from '@domain/purchases/dto/request/request-purchase-quotation.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseDetailQuotationDto } from './dto/entity/purchase-detail-quotation.dto';
 import { PurchasesQuotationsService } from './services/purchases-quotations.service';
@@ -14,12 +13,9 @@ export class PurchasesQuotationsController {
 
   // Creates a draft legal-entity quotation from a supplier for the purchase's items
   @MessagePattern({ cmd: 'site.purchases.quotations.request' })
-  request(
-    @Payload() dto: RequestPurchaseQuotationDto,
-    @RpcNatsHeaders() headers: NatsHeaders,
-  ): Promise<CreateResponseDto<{ quotationId: string }>> {
+  request(@Payload() dto: RequestPurchaseQuotationDto): Promise<CreateResponseDto<{ quotationId: string }>> {
     this.logger.log(`site.purchases.quotations.request — id: ${dto.id}, supplier: ${dto.supplierId}`);
-    return this.service.request(dto, headers);
+    return this.service.request(dto);
   }
 
   // Completes quotations, moving the purchase to sourcing

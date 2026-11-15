@@ -9,6 +9,7 @@ import { SupplierQuotationsDomainService } from './supplier-quotations.service';
 
 const draft: CreatePurchaseQuotationDraftDto = {
   purchaseId: 'pur-1',
+  siteId: 'site-1',
   purchaseNumber: 'PUR-0007',
   supplierId: 'sup-1',
   currencyCode: 'INR',
@@ -75,11 +76,11 @@ function setup(takenNumbers: string[] = [], items: PurchaseQuotationItemRow[] = 
 beforeAll(() => Logger.overrideLogger(false));
 
 describe('SupplierQuotationsDomainService draft for a purchase', () => {
-  it('records an LE-owned draft numbered after the purchase with one unpriced line per purchase item', async () => {
+  it("records a draft the purchase's site owns, numbered after the purchase with one unpriced line per purchase item", async () => {
     const { service, create, insertItems } = setup();
     await expect(service.createDraftForPurchase(draft)).resolves.toEqual({ quotationId: 'q-new' });
     expect(create).toHaveBeenCalledWith({
-      siteId: null,
+      siteId: 'site-1',
       supplierId: 'sup-1',
       purchaseId: 'pur-1',
       quotationNumber: 'PUR-0007',

@@ -53,47 +53,48 @@ export class SupplierQuotationsGatewayService {
     return this.nats.send('commerce', 'le.suppliers.quotations.legalEntity.post', { quotationId });
   }
 
-  // Returns a quotation with its lines and the sites it is posted to, named
+  // Returns a quotation with its lines and the sites it is posted to, its owner and sites named
   async findById(id: string, orgId: string): Promise<SupplierQuotationDetailResponseDto> {
-    const quotation = await this.nats.send<SupplierQuotationDetailResponseDto>(
+    const quotation = await this.nats.send<Omit<SupplierQuotationDetailResponseDto, 'ownerName'>>(
       'commerce',
       'le.suppliers.quotations.findById',
       { id },
     );
-    return { ...quotation, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
+    const [named] = await this.ownerNames.resolve(orgId, [quotation]);
+    return { ...named, sites: await this.ownerNames.withOptionalSiteNames(orgId, quotation.sites) };
   }
 
-  async findForTable(supplierId: string, userId: string): Promise<SupplierQuotationTableResponseDto> {
+  // Returns the supplier's quotations of the legal entity and its sites, each owner named
+  async findForTable(supplierId: string, userId: string, orgId: string): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`le.suppliers.quotations.table — supplierId: ${supplierId}`);
     const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-quotations`,
     );
-    const { result, count } = await this.nats.send<{ result: SupplierQuotationResponseDto[]; count: number }>(
-      'commerce',
-      'le.suppliers.quotations.table',
-      { supplierId, ...state },
-    );
-    return { result, count, state, activeViewId };
+    const { result, count } = await this.nats.send<{
+      result: Omit<SupplierQuotationResponseDto, 'ownerName'>[];
+      count: number;
+    }>('commerce', 'le.suppliers.quotations.table', { supplierId, ...state });
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
   }
 
-  // Returns a supplier's quotations posted to one of the LE's sites, for the site view's table
+  // Returns a supplier's quotations posted to one of the LE's sites, each owner named, for the site view's table
   async findEnrollmentQuotationsTable(
     supplierId: string,
     siteId: string,
     userId: string,
+    orgId: string,
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`le.suppliers.enrollments.quotations.table — supplierId: ${supplierId}, siteId: ${siteId}`);
     const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-le-supplier-${supplierId}-site-${siteId}-quotations`,
     );
-    const { result, count } = await this.nats.send<{ result: SupplierQuotationResponseDto[]; count: number }>(
-      'commerce',
-      'le.suppliers.enrollments.quotations.table',
-      { supplierId, siteId, ...state },
-    );
-    return { result, count, state, activeViewId };
+    const { result, count } = await this.nats.send<{
+      result: Omit<SupplierQuotationResponseDto, 'ownerName'>[];
+      count: number;
+    }>('commerce', 'le.suppliers.enrollments.quotations.table', { supplierId, siteId, ...state });
+    return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
   }
 
   delete(id: string): Promise<SuccessResponseDto> {

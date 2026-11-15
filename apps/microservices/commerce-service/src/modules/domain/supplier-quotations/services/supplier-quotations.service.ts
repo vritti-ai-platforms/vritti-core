@@ -47,11 +47,10 @@ export class SupplierQuotationsDomainService {
       note: data.note,
     });
     this.logger.log(`Created supplier quotation ${entity.quotationNumber} (${entity.id})`);
-    return SupplierQuotationDto.from({ ...entity, itemCount: 0, siteCount: 0 });
+    return SupplierQuotationDto.from({ ...entity, itemCount: 0, siteCount: 0, canWrite: true });
   }
 
-  // Records a draft quotation the legal entity owns for a purchase, one unpriced line per purchase item, numbered after the
-  // purchase; the caller runs it in the legal entity's workspace, which RLS requires for an LE-owned row
+  // Records a draft quotation the purchase's site owns, one unpriced line per purchase item, numbered after the purchase
   async createDraftForPurchase(input: CreatePurchaseQuotationDraftDto): Promise<{ quotationId: string }> {
     if (input.lines.length === 0) {
       throw new BadRequestException({
@@ -65,7 +64,7 @@ export class SupplierQuotationsDomainService {
     );
     const quotation = await this.repository.transaction(async () => {
       const created = await this.repository.create({
-        siteId: null,
+        siteId: input.siteId,
         supplierId: input.supplierId,
         purchaseId: input.purchaseId,
         quotationNumber,
@@ -157,12 +156,15 @@ export class SupplierQuotationsDomainService {
     });
   }
 
-  recordSite(quotationId: string, siteId: string | null, postedBy: string | null): Promise<SupplierQuotationSite> {
-    return this.repository.insertSite({ quotationId, siteId, postedBy });
+  recordSite(
+    quotation: SupplierQuotation,
+    siteId: string | null,
+    postedBy: string | null,
+  ): Promise<SupplierQuotationSite> {
+    return this.repository.insertSite({ quotationId: quotation.id, siteId, ownerSiteId: quotation.siteId, postedBy });
   }
 
-  // Returns a supplier's quotations for the data table: only those posted to the named site, else in a site workspace
-  // only those posted to the request's site, else every one
+  // Returns a supplier's quotations for the data table, only those posted to the named site when one is named
   async findForSupplierTable(
     supplierId: string,
     state: TableState,
@@ -185,18 +187,15 @@ export class SupplierQuotationsDomainService {
 
   // Returns a quotation with its lines and the sites it is posted to
   async findDetail(id: string): Promise<SupplierQuotationDetailDto> {
-    const quotation = await this.requireQuotation(id);
+    const quotation = await this.repository.findRow(id);
+    if (!quotation) throw new NotFoundException('Quotation not found.');
     const [items, sites] = await Promise.all([this.repository.findItems(id), this.repository.findSites(id)]);
     return SupplierQuotationDetailDto.fromDetail(quotation, items, sites);
   }
 
-  // Returns a supplier's quotation with its lines and sites, only when it is posted to the given site
-  async findDetailAtSite(
-    supplierId: string,
-    quotationId: string,
-    siteId?: string,
-  ): Promise<SupplierQuotationDetailDto> {
-    const quotation = await this.repository.findPostedToSite(supplierId, quotationId, siteId);
+  // Returns one of a supplier's quotations the request can read, with its lines and the sites it is posted to
+  async findDetailOfSupplier(supplierId: string, quotationId: string): Promise<SupplierQuotationDetailDto> {
+    const quotation = await this.repository.findForSupplier(supplierId, quotationId);
     if (!quotation) throw new NotFoundException('Quotation not found.');
     const [items, sites] = await Promise.all([
       this.repository.findItems(quotationId),
@@ -266,6 +265,16 @@ export class SupplierQuotationsDomainService {
 
   findSite(quotationId: string, siteId: string | null): Promise<SupplierQuotationSite | undefined> {
     return this.repository.findSite(quotationId, siteId);
+  }
+
+  // Rejects changing a quotation the request's site does not own
+  assertOwnedByRequestSite(quotationId: string): Promise<void> {
+    return this.repository.assertOwnedByRequestSite(quotationId);
+  }
+
+  // The quotation's posting to the request's site, throwing when it is not posted here
+  findPostingAtRequestSiteOrThrow(quotationId: string): Promise<SupplierQuotationSite> {
+    return this.repository.findPostingAtRequestSiteOrThrow(quotationId);
   }
 
   findSites(quotationId: string): Promise<SupplierQuotationSite[]> {

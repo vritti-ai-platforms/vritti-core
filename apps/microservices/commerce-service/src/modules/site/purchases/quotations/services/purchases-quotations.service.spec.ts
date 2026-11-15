@@ -10,13 +10,9 @@ import type { SupplierQuotationsDomainService } from '@domain/supplier-quotation
 import type { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import type { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Logger } from '@nestjs/common';
-import type { PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { PurchasesQuotationsService } from './purchases-quotations.service';
 
 beforeAll(() => Logger.overrideLogger(false));
-
-const headers = { userId: 'user-1', legalEntityId: 'le-1', siteId: 'site-1' } as NatsHeaders;
 
 function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, string> } = {}) {
   const purchasesService = new PurchasesDomainService({} as PurchasesDomainRepository);
@@ -28,9 +24,7 @@ function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, s
     step: 'QUOTING',
   } as PurchaseRow);
   const createDraftForPurchase = jest.fn().mockResolvedValue({ quotationId: 'q-1' });
-  const runWithRlsContext = jest.fn((_context: unknown, run: () => Promise<unknown>) => run());
   const service = new PurchasesQuotationsService(
-    { runWithRlsContext } as unknown as PrimaryDatabaseService,
     purchasesService,
     {
       findByPurchaseId: jest.fn().mockResolvedValue([
@@ -61,22 +55,19 @@ function setup(options: { purchasingBlocked?: boolean; siteUnits?: Map<string, s
     { createDraftForPurchase } as unknown as SupplierQuotationsDomainService,
     {} as UomConversionsDomainService,
   );
-  return { service, createDraftForPurchase, runWithRlsContext };
+  return { service, createDraftForPurchase };
 }
 
 const dto = { id: 'pur-1', supplierId: 'sup-1' };
 
 describe('PurchasesQuotationsService.request', () => {
-  it("drafts the quotation in the legal entity's workspace with the items the supplier supplies at the site", async () => {
-    const { service, createDraftForPurchase, runWithRlsContext } = setup();
-    const result = await service.request(dto, headers);
-    expect(runWithRlsContext).toHaveBeenCalledWith(
-      expect.objectContaining({ siteId: '', siteTimezone: '', legalEntityId: 'le-1' }),
-      expect.any(Function),
-    );
+  it("drafts a quotation the purchase's site owns with the items the supplier supplies there", async () => {
+    const { service, createDraftForPurchase } = setup();
+    const result = await service.request(dto);
     expect(createDraftForPurchase).toHaveBeenCalledWith(
       expect.objectContaining({
         purchaseId: 'pur-1',
+        siteId: 'site-1',
         currencyCode: 'INR',
         lines: [{ purchaseItemId: 'pi-1', inventoryItemId: 'item-1', uomId: 'uom-strip' }],
       }),
@@ -86,7 +77,7 @@ describe('PurchasesQuotationsService.request', () => {
 
   it('refuses a supplier blocked from purchasing', async () => {
     const { service, createDraftForPurchase } = setup({ purchasingBlocked: true });
-    await expect(service.request(dto, headers)).rejects.toMatchObject({
+    await expect(service.request(dto)).rejects.toMatchObject({
       response: expect.objectContaining({
         label: 'Supplier Blocked',
         errors: [{ field: 'supplierId', message: 'Blocked from purchasing' }],
@@ -97,7 +88,7 @@ describe('PurchasesQuotationsService.request', () => {
 
   it('refuses a supplier that supplies none of the items at the site', async () => {
     const { service, createDraftForPurchase } = setup({ siteUnits: new Map() });
-    await expect(service.request(dto, headers)).rejects.toMatchObject({
+    await expect(service.request(dto)).rejects.toMatchObject({
       response: expect.objectContaining({ label: 'Nothing To Quote' }),
     });
     expect(createDraftForPurchase).not.toHaveBeenCalled();

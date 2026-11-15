@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import {
   type ColumnDef,
   DataTable,
@@ -50,6 +51,11 @@ export const QuotationsTable: React.FC<QuotationsTableProps> = ({
         header: 'Quotation',
         cell: ({ row }) => <StringCell value={row.original.quotationNumber} mono />,
         enableSorting: true,
+      },
+      {
+        accessorKey: 'ownerName',
+        header: 'Owner',
+        cell: ({ row }) => <Badge variant="secondary">{row.original.ownerName}</Badge>,
       },
       {
         accessorKey: 'quotationDate',

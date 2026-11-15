@@ -10,9 +10,7 @@ import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/ser
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
-import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
-import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
@@ -28,7 +26,6 @@ export class PurchasesQuotationsService {
   private readonly logger = new Logger(PurchasesQuotationsService.name);
 
   constructor(
-    private readonly database: PrimaryDatabaseService,
     private readonly purchasesService: PurchasesDomainService,
     private readonly itemsService: PurchaseItemsDomainService,
     private readonly legsService: PurchaseSuppliersDomainService,
@@ -39,13 +36,10 @@ export class PurchasesQuotationsService {
     private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
-  // Requests a quotation from a supplier enrolled at the purchase's site: a legal-entity draft linked to the purchase
+  // Requests a quotation from a supplier enrolled at the purchase's site: a draft the site owns, linked to the purchase,
   // with one line per purchase item the supplier supplies at the site, in its unit there; items it does not supply there
   // are left out
-  async request(
-    dto: RequestPurchaseQuotationDto,
-    headers: NatsHeaders,
-  ): Promise<CreateResponseDto<{ quotationId: string }>> {
+  async request(dto: RequestPurchaseQuotationDto): Promise<CreateResponseDto<{ quotationId: string }>> {
     const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
     this.purchasesService.assertCollectingQuotations(purchase);
     const supplier = await this.suppliersService.findByIdOrThrow(dto.supplierId);
@@ -70,16 +64,15 @@ export class PurchasesQuotationsService {
       });
     }
 
-    const { quotationId } = await this.inLegalEntityWorkspace(headers, () =>
-      this.supplierQuotationsService.createDraftForPurchase({
-        purchaseId: purchase.id,
-        purchaseNumber: purchase.purchaseNumber,
-        supplierId: supplier.id,
-        currencyCode: supplier.currencyCode,
-        validFrom: formatISO(new Date(), { representation: 'date' }),
-        lines,
-      }),
-    );
+    const { quotationId } = await this.supplierQuotationsService.createDraftForPurchase({
+      purchaseId: purchase.id,
+      siteId: purchase.siteId,
+      purchaseNumber: purchase.purchaseNumber,
+      supplierId: supplier.id,
+      currencyCode: supplier.currencyCode,
+      validFrom: formatISO(new Date(), { representation: 'date' }),
+      lines,
+    });
 
     const leftOutCount = items.length - lines.length;
     this.logger.log(`purchases.quotations.request — ${purchase.purchaseNumber}, supplier: ${supplier.id}`);
@@ -123,11 +116,6 @@ export class PurchasesQuotationsService {
         purchase.siteId,
       ),
     };
-  }
-
-  // Runs a step in the legal entity's own workspace, which RLS requires to write or read its draft quotations
-  inLegalEntityWorkspace<T>(headers: NatsHeaders, run: () => Promise<T>): Promise<T> {
-    return this.database.runWithRlsContext({ ...headers, siteId: '', siteTimezone: '' }, run);
   }
 
   // Works out once per item and unit how many primary units one unit of a quotation line holds

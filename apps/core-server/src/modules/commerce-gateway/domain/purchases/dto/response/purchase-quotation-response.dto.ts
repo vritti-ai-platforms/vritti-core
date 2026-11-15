@@ -37,6 +37,22 @@ export class PurchaseQuotationResponseDto {
   @ApiProperty({ description: 'Supplier quotation ID' })
   id: string;
 
+  @ApiPropertyOptional({ description: 'Legal entity that owns it', type: String, nullable: true })
+  legalEntityId: string | null;
+
+  @ApiPropertyOptional({
+    description: 'Site that owns it; empty when the legal entity does',
+    type: String,
+    nullable: true,
+  })
+  siteId: string | null;
+
+  @ApiProperty({ description: 'Workspace that owns it', enum: ['ORG', 'LE', 'SITE'] })
+  ownerScope: string;
+
+  @ApiProperty({ description: 'Name of the legal entity or site that owns it', example: 'Kompally Warehouse' })
+  ownerName: string;
+
   @ApiProperty({ description: 'Quotation number' })
   quotationNumber: string;
 

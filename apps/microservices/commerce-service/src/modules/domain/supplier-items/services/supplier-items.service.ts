@@ -556,6 +556,31 @@ export class SupplierItemsDomainService {
     return leadTimes;
   }
 
+  // Rejects quoted lines the supplier has no item for in their unit, naming them; only the legal entity adds a supplier's
+  // items, so a site posts only quotations of items the supplier already has
+  async assertHasItemsFor(
+    supplierId: string,
+    lines: { inventoryItemId: string; uomId: string; inventoryItemName: string; uomSymbol: string | null }[],
+  ): Promise<void> {
+    const missing: string[] = [];
+    for (const line of lines) {
+      const item = await this.repository.findItemBySupplierInventoryItemAndUom(
+        supplierId,
+        line.inventoryItemId,
+        line.uomId,
+      );
+      if (!item)
+        missing.push(
+          line.uomSymbol ? `"${line.inventoryItemName}" (${line.uomSymbol})` : `"${line.inventoryItemName}"`,
+        );
+    }
+    if (missing.length === 0) return;
+    throw new BadRequestException({
+      label: 'Items Not With Supplier',
+      detail: `The supplier has no item for ${missing.join(', ')}. Ask the legal entity to add them to the supplier before posting.`,
+    });
+  }
+
   // Rejects items the supplier does not supply at the site, naming them
   async assertSuppliedAt(supplierId: string, siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
     if (inventoryItemIds.length === 0) return;

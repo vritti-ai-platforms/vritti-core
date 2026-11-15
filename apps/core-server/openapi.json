@@ -30041,7 +30041,119 @@
         ]
       }
     },
+    "/commerce-api/site/suppliers/{id}/quotations": {
+      "post": {
+        "operationId": "SiteSupplierQuotationsGatewayController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplierQuotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/quotations/{quotationId}/items": {
+      "post": {
+        "operationId": "SiteSupplierQuotationsGatewayController_addItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSupplierQuotationItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      }
+    },
     "/commerce-api/site/suppliers/{id}/quotations/{quotationId}": {
+      "patch": {
+        "operationId": "SiteSupplierQuotationsGatewayController_update",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSupplierQuotationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      },
       "get": {
         "operationId": "SiteSupplierQuotationsGatewayController_findById",
         "parameters": [
@@ -30053,6 +30165,166 @@
               "type": "string"
             }
           },
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      },
+      "delete": {
+        "operationId": "SiteSupplierQuotationsGatewayController_delete",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/quotations/{quotationId}/items/{itemId}": {
+      "patch": {
+        "operationId": "SiteSupplierQuotationsGatewayController_updateItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierQuotationItemFieldsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      },
+      "delete": {
+        "operationId": "SiteSupplierQuotationsGatewayController_removeItem",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/quotations/{quotationId}/posting": {
+      "post": {
+        "operationId": "SiteSupplierQuotationsGatewayController_post",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      },
+      "delete": {
+        "operationId": "SiteSupplierQuotationsGatewayController_remove",
+        "parameters": [
           {
             "name": "quotationId",
             "required": true,
@@ -68527,6 +68799,30 @@
             "type": "string",
             "description": "Supplier quotation ID"
           },
+          "legalEntityId": {
+            "type": "string",
+            "description": "Legal entity that owns it",
+            "nullable": true
+          },
+          "siteId": {
+            "type": "string",
+            "description": "Site that owns it; empty when the legal entity does",
+            "nullable": true
+          },
+          "ownerScope": {
+            "type": "string",
+            "description": "Workspace that owns it",
+            "enum": [
+              "ORG",
+              "LE",
+              "SITE"
+            ]
+          },
+          "ownerName": {
+            "type": "string",
+            "description": "Name of the legal entity or site that owns it",
+            "example": "Kompally Warehouse"
+          },
           "quotationNumber": {
             "type": "string",
             "description": "Quotation number"
@@ -68575,6 +68871,8 @@
         },
         "required": [
           "id",
+          "ownerScope",
+          "ownerName",
           "quotationNumber",
           "supplierId",
           "supplierName",
@@ -73190,6 +73488,13 @@
             "items": {
               "$ref": "#/components/schemas/PartyCommunicationAppDto"
             }
+          },
+          "functions": {
+            "description": "Functions this value handles (ordering only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
           }
         },
         "required": [
@@ -73431,6 +73736,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          },
+          "functions": {
+            "description": "Full set of functions this value handles (ordering only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
             }
           }
         }
@@ -73884,6 +74196,13 @@
             "items": {
               "$ref": "#/components/schemas/PartyCommunicationAppDto"
             }
+          },
+          "functions": {
+            "description": "Functions this value handles (ordering only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
+            }
           }
         },
         "required": [
@@ -74168,6 +74487,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PartyCommunicationAppDto"
+            }
+          },
+          "functions": {
+            "description": "Full set of functions this value handles (ordering only)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartyFunctionAssignmentDto"
             }
           }
         }

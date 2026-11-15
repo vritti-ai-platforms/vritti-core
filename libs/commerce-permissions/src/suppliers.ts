@@ -75,8 +75,14 @@ export const SITE_SUPPLIERS = {
       delete: 'site.suppliers.site-items.prices.delete',
     },
   },
+  // The site's own quotations, and those posted to it: it posts its own here and removes any posted here
   quotations: {
     view: 'site.suppliers.quotations.view',
+    add: 'site.suppliers.quotations.add',
+    edit: 'site.suppliers.quotations.edit',
+    delete: 'site.suppliers.quotations.delete',
+    post: 'site.suppliers.quotations.post',
+    remove: 'site.suppliers.quotations.remove',
   },
   // The supplier's invoices for this site, entered and edited from the supplier
   invoices: {

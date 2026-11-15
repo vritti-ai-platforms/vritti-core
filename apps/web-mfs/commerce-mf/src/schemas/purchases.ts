@@ -401,6 +401,11 @@ export interface PurchaseQuotationItem {
 
 export interface PurchaseQuotation {
   id: string;
+  // The site that requested it, or the legal entity, owns it
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: 'ORG' | 'LE' | 'SITE';
+  ownerName: string;
   quotationNumber: string;
   supplierId: string;
   supplierName: string;

@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import { type WorkspaceScope, workspaceScopeOf } from '@/db/schema';
 import type { PurchaseQuotationItemRow, PurchaseQuotationRow } from '../../repositories/supplier-quotations.repository';
 
 export class PurchaseQuotationItemDto {
@@ -30,6 +31,9 @@ export class PurchaseQuotationItemDto {
 
 export class PurchaseQuotationDto {
   id: string;
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: WorkspaceScope;
   quotationNumber: string;
   supplierId: string;
   supplierName: string;
@@ -46,6 +50,9 @@ export class PurchaseQuotationDto {
   static from(row: PurchaseQuotationRow, items: PurchaseQuotationItemRow[]): PurchaseQuotationDto {
     const dto = new PurchaseQuotationDto();
     dto.id = row.id;
+    dto.legalEntityId = row.legalEntityId;
+    dto.siteId = row.siteId;
+    dto.ownerScope = workspaceScopeOf(row);
     dto.quotationNumber = row.quotationNumber;
     dto.supplierId = row.supplierId;
     dto.supplierName = row.supplierName;

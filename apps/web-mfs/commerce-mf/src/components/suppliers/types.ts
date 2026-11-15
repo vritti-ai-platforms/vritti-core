@@ -17,6 +17,8 @@ import type {
 import type {
   SupplierQuotationData,
   SupplierQuotationDetail,
+  SupplierQuotationItemPayload,
+  SupplierQuotationPayload,
   SupplierQuotationsTableResponse,
 } from '@/schemas/supplier-quotations';
 import type {
@@ -131,14 +133,50 @@ export type UseQuotationsTable = (
 export type UseQuotation = (supplierId: string, quotationId: string) => { data: SupplierQuotationDetail };
 export type QuotationPath = (quotation: Pick<SupplierQuotationData, 'id' | 'quotationNumber'>) => string;
 
+// The supplier's default currency and every currency it trades in, which a quotation is priced in one of
+export type UseSupplierCurrencies = (supplierId: string) => { currencyCode: string; currencyCodes: string[] };
+export type AddQuotationItemVars = SupplierQuotationItemPayload & { inventoryItemId: string; uomId: string };
+export interface UpdateQuotationItemVars {
+  itemId: string;
+  data: SupplierQuotationItemPayload;
+}
+export type UseCreateQuotation = (
+  supplierId: string,
+  options?: MutationOptions<SupplierQuotationData, SupplierQuotationPayload>,
+) => MutationResult<SupplierQuotationData, SupplierQuotationPayload>;
+export type UseUpdateQuotation = (
+  supplierId: string,
+  quotationId: string,
+  options?: MutationOptions<SuccessResponse, Partial<SupplierQuotationPayload>>,
+) => MutationResult<SuccessResponse, Partial<SupplierQuotationPayload>>;
+export type UseDeleteQuotation = (
+  supplierId: string,
+  options?: MutationOptions<SuccessResponse, string>,
+) => MutationResult<SuccessResponse, string>;
+export type UseAddQuotationItem = (
+  supplierId: string,
+  quotationId: string,
+  options?: MutationOptions<SuccessResponse, AddQuotationItemVars>,
+) => MutationResult<SuccessResponse, AddQuotationItemVars>;
+export type UseUpdateQuotationItem = (
+  supplierId: string,
+  quotationId: string,
+  options?: MutationOptions<SuccessResponse, UpdateQuotationItemVars>,
+) => MutationResult<SuccessResponse, UpdateQuotationItemVars>;
+export type UseRemoveQuotationItem = (
+  supplierId: string,
+  quotationId: string,
+  options?: MutationOptions<SuccessResponse, string>,
+) => MutationResult<SuccessResponse, string>;
+// Posts a quotation, or removes a posting; `TSite` names the site where the workspace picks one
+export type UseQuotationPosting<TSite> = (
+  supplierId: string,
+  quotationId: string,
+  options?: MutationOptions<SuccessResponse, TSite>,
+) => MutationResult<SuccessResponse, TSite>;
+
 // The quotation a page is about
 export interface QuotationRef {
   supplierId: string;
   quotationId: string;
-}
-
-// What an authoring slot on a quotation's page works on
-export interface QuotationSlotProps {
-  supplierId: string;
-  quotation: SupplierQuotationDetail;
 }

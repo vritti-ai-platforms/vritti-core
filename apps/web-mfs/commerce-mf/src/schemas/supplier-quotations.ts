@@ -60,6 +60,13 @@ export type PostSupplierQuotationSiteFormData = z.infer<typeof postSupplierQuota
 export interface SupplierQuotationData {
   id: string;
   supplierId: string;
+  // The legal entity, or the site with it, that owns the quotation
+  legalEntityId: string | null;
+  siteId: string | null;
+  ownerScope: 'ORG' | 'LE' | 'SITE';
+  ownerName: string;
+  // Whether this workspace changes it: its owner, or the legal entity for its sites' quotations
+  canWrite: boolean;
   quotationNumber: string;
   quotationDate: string;
   // One of the supplier's currencies; every line's price and MRP is in it
@@ -94,6 +101,8 @@ export type SupplierQuotationSiteData = {
   id: string;
   postedBy: string | null;
   postedAt: string;
+  // Whether this workspace removes it: the site it is posted to, or the legal entity
+  canRemove: boolean;
 } & ({ siteId: string; siteName: string; siteCode: string } | { siteId: null; siteName: null; siteCode: null });
 
 export interface SupplierQuotationDetail extends SupplierQuotationData {

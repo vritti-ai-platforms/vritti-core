@@ -58,6 +58,11 @@ export const QuotingView: React.FC<QuotingViewProps> = ({ binding, purchase, rea
       },
       { accessorKey: 'supplierName', header: 'Supplier', meta: { grow: true } },
       {
+        accessorKey: 'ownerName',
+        header: 'Owner',
+        cell: ({ row }) => <Badge variant="secondary">{row.original.ownerName}</Badge>,
+      },
+      {
         accessorKey: 'isPosted',
         header: 'Status',
         cell: ({ row }) =>

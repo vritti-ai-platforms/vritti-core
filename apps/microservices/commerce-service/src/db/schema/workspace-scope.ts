@@ -18,6 +18,25 @@ const columnNames = (table?: string) => ({
   site: table ? `${table}.site_id` : 'site_id',
 });
 
+// Any of the tests passes
+const anyOf = (...tests: string[]) => tests.map((test) => `(${test})`).join(' or ');
+
+// A test that denies rather than passes an unset comparison through as NULL
+const orFalse = (test: string) => `coalesce(${test}, false)`;
+
+// The rows a site sees of its legal entity: the LE's own, or — shared through a link — any row of the LE the link
+// passes for, the LE's or another site's
+const legalEntityRowsForSiteSql = (table?: string, sharedWithSite?: string) => {
+  const { le, site } = columnNames(table);
+  return sharedWithSite ? `(${le} = ${LE_GUC} and ${sharedWithSite})` : `(${site} is null and ${le} = ${LE_GUC})`;
+};
+
+// A site reads the rows the column names it on, whatever their owner columns say
+const namedSiteSql = (column: string) => `(${SITE_GUC} is not null and ${column} = ${SITE_GUC})`;
+
+// The test applies to the rows that stand for the whole legal entity (no site)
+const legalEntityRowSql = (test: string, table?: string) => `${columnNames(table).site} is null and (${test})`;
+
 // Reach, upward only: this workspace and every workspace above it.
 const ancestorOrSelfSql = (table?: string) => {
   const { le, site } = columnNames(table);
@@ -36,15 +55,15 @@ const ancestorOrSelfSql = (table?: string) => {
 };
 
 // Reach, both directions: everything ancestorOrSelf allows, plus the rows owned BELOW this workspace — the org
-// workspace sees the whole organization, an LE workspace also sees its sites' rows. `sharedWithSite` narrows the LE's
-// rows a site sees to those the test passes for, e.g. the ones posted to it.
+// workspace sees the whole organization, an LE workspace also sees its sites' rows. With `sharedWithSite`, a site sees
+// its LE's rows — the LE's own and its other sites' — only when the test passes for them, e.g. the ones posted to it.
 const anywhereInWorkspaceTreeSql = (table?: string, sharedWithSite?: string) => {
   const { le, site } = columnNames(table);
   return `
   case
     -- a site: org-owned rows, its own LE's rows, its own rows
     when ${SITE_GUC} is not null then (${le} is null and ${site} is null)
-      or (${site} is null and ${le} = ${LE_GUC}${sharedWithSite ? ` and ${sharedWithSite}` : ''})
+      or ${legalEntityRowsForSiteSql(table, sharedWithSite)}
       or (${site} = ${SITE_GUC})
     -- a site group: org-owned rows plus whatever its member sites own, and nothing else
     when ${SITE_GROUP_GUC} is not null then (${le} is null and ${site} is null)
@@ -100,6 +119,11 @@ const siteDocumentWriteSql = (table?: string) => {
   end`;
 };
 
+// Writes where the LE also writes its sites' rows: each workspace writes exactly its own rows, and an LE also those of
+// its sites (narrowed like siteDocumentWriteSql)
+const legalEntityWritesSitesSql = (table?: string) =>
+  anyOf(exactlyThisWorkspaceSql(table), siteDocumentWriteSql(table));
+
 // LE-owned reach, for a table with legal_entity_id and no site_id: an LE and its sites read the LE's rows; a site group
 // and the org read every LE's rows, since the request does not carry which LEs a group spans.
 const legalEntityReadSql = (table?: string) => {
@@ -126,6 +150,13 @@ const legalEntityWriteSql = (table?: string) => {
   end`;
 };
 
+// Site documents whose rows may also stand for the whole legal entity: a site's rows as siteDocument*, the LE's rows as
+// legalEntity*
+const siteDocumentWithLegalEntityRowsReadSql = (table?: string) =>
+  anyOf(siteDocumentReadSql(table), legalEntityRowSql(legalEntityReadSql(table), table));
+const siteDocumentWithLegalEntityRowsWriteSql = (table?: string) =>
+  anyOf(siteDocumentWriteSql(table), legalEntityRowSql(legalEntityWriteSql(table), table));
+
 // The ownership test for an owner table: the LE-only test when the table has no site_id, the full pair test otherwise
 const ownedSqlFor = (table: PgTable, alias: string) => {
   const hasSite = getTableConfig(table).columns.some((column) => column.name === columnNames().site);
@@ -147,10 +178,21 @@ const resolveHop = <TTable extends PgTable>(hop: { table: TTable; fk: (table: TT
   column: hop.fk(hop.table).name,
 });
 
-// The ownership test as a selectable boolean — the table qualifies the owner columns, which a query with a
-// second scoped table in its FROM needs and a policy body never does
-export const ownedByWorkspaceExpression = (table: PgTable) =>
-  sql<boolean>`coalesce(${sql.raw(exactlyThisWorkspaceSql(qualifiedName(table)))}, false)`;
+// A policy test as a selectable boolean — the table qualifies the owner columns, which a query with a second scoped
+// table in its FROM needs and a policy body never does
+const selectableTest = (table: PgTable, test: (table?: string) => string) =>
+  sql<boolean>`${sql.raw(orFalse(test(qualifiedName(table))))}`;
+
+// The write test of workspaceScopePolicies / workspaceHierarchyPolicies
+export const ownedByWorkspaceExpression = (table: PgTable) => selectableTest(table, exactlyThisWorkspaceSql);
+
+// The write test of workspaceHierarchyPolicies({ legalEntityWritesSites })
+export const writableWithLegalEntitySitesExpression = (table: PgTable) =>
+  selectableTest(table, legalEntityWritesSitesSql);
+
+// The write test of siteDocumentPolicies({ legalEntityRows: true })
+export const siteDocumentWithLegalEntityRowsWritableExpression = (table: PgTable) =>
+  selectableTest(table, siteDocumentWithLegalEntityRowsWriteSql);
 
 export const WorkspaceScopeValues = {
   ORG: 'ORG',
@@ -203,8 +245,8 @@ export const orgIsolationPolicy = () =>
 
 // For a table that OWNS its workspace columns and whose rows should only ever be read upward.
 export const workspaceScopePolicies = (name: string) => {
-  const reach = sql.raw(`coalesce(${ancestorOrSelfSql()}, false)`);
-  const owned = sql.raw(`coalesce(${exactlyThisWorkspaceSql()}, false)`);
+  const reach = sql.raw(orFalse(ancestorOrSelfSql()));
+  const owned = sql.raw(orFalse(exactlyThisWorkspaceSql()));
 
   return [
     orgIsolationPolicy(),
@@ -222,11 +264,17 @@ export const workspaceScopePolicies = (name: string) => {
   ];
 };
 
+// The owner's write test a child of it inherits, named after the policies the owner uses
+const OWNER_WRITE_TESTS = {
+  siteDocument: siteDocumentWriteSql,
+  legalEntityWritesSites: legalEntityWritesSitesSql,
+} as const;
+
 export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>(options: {
   owner: PgTable;
   fk: AnyPgColumn;
   through?: ScopeHops<TTables>;
-  ownerIs?: 'siteDocument';
+  ownerIs?: keyof typeof OWNER_WRITE_TESTS;
 }) => {
   const fk = options.fk.name;
   const owner = qualifiedName(options.owner);
@@ -245,10 +293,9 @@ export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>
     .join('');
 
   const reachable = sql.raw(`exists (select 1 from ${from} where ${match})`);
-  const ownership =
-    options.ownerIs === 'siteDocument'
-      ? `coalesce(${siteDocumentWriteSql('o')}, false)`
-      : ownedSqlFor(options.owner, 'o');
+  const ownership = options.ownerIs
+    ? orFalse(OWNER_WRITE_TESTS[options.ownerIs]('o'))
+    : ownedSqlFor(options.owner, 'o');
   const owned = sql.raw(`exists (select 1 from ${from}${joins} where ${match} and ${ownership})`);
 
   return [
@@ -267,13 +314,17 @@ export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>
 type SharedLink<TLink extends PgTable> = { table: TLink; fk: (table: TLink) => AnyPgColumn; id: AnyPgColumn };
 
 // For a table that OWNS its workspace columns and whose rows a parent workspace must also see — the same write rules as
-// workspaceScopePolicies, but reach runs in both directions. With `sharedThrough`, a site sees its LE's rows only when
-// a row of one of the link tables points at them; each link table's own policies must narrow it to the site's rows and
-// must not read this table back, or Postgres reports infinite recursion.
+// workspaceScopePolicies, but reach runs in both directions. With `sharedThrough`, a site sees its LE's rows — the LE's
+// own and its other sites' — only when a row of one of the link tables points at them; each link table's own policies
+// must narrow it to the site's rows and must not read this table back, or Postgres reports infinite recursion. With
+// `legalEntityWritesSites`, the LE also writes its sites' rows, which each site still writes alone among sites.
 export const workspaceHierarchyPolicies = <TLinks extends PgTable[]>(options?: {
-  sharedThrough: { [K in keyof TLinks]: SharedLink<TLinks[K]> };
+  sharedThrough?: { [K in keyof TLinks]: SharedLink<TLinks[K]> };
+  legalEntityWritesSites?: boolean;
 }) => {
-  const owned = sql.raw(exactlyThisWorkspaceSql());
+  const owned = sql.raw(
+    options?.legalEntityWritesSites ? orFalse(legalEntityWritesSitesSql()) : exactlyThisWorkspaceSql(),
+  );
   const links = options?.sharedThrough;
   const shared = links
     ? `(${links
@@ -301,14 +352,14 @@ export const workspaceHierarchyPolicies = <TLinks extends PgTable[]>(options?: {
 
 // For a table owned by a legal entity (legal_entity_id set, no site_id): the LE writes, everything else only reads.
 export const legalEntityOwnedPolicies = () => {
-  const write = sql.raw(`coalesce(${legalEntityWriteSql()}, false)`);
+  const write = sql.raw(orFalse(legalEntityWriteSql()));
 
   return [
     orgIsolationPolicy(),
     pgPolicy('reach_read', {
       as: 'restrictive',
       for: 'select',
-      using: sql.raw(`coalesce(${legalEntityReadSql()}, false)`),
+      using: sql.raw(orFalse(legalEntityReadSql())),
     }),
     pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: write }),
     pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: write, withCheck: write }),
@@ -319,19 +370,20 @@ export const legalEntityOwnedPolicies = () => {
 // For a site-owned document table (both owner columns always set): sites write their own rows, an LE writes for its
 // sites, a site group and the org only read.
 // With `legalEntityRows`, a row may also leave site_id empty to stand for the whole legal entity: the LE writes it, and
-// every workspace that reads the LE's rows reads it too, so each of its sites sees it beside its own.
-export const siteDocumentPolicies = (options?: { legalEntityRows?: boolean }) => {
-  const { site } = columnNames();
-  const orLegalEntityRow = (siteSql: string, legalEntitySql: string) =>
-    options?.legalEntityRows ? `(${siteSql}) or (${site} is null and (${legalEntitySql}))` : siteSql;
-  const write = sql.raw(`coalesce(${orLegalEntityRow(siteDocumentWriteSql(), legalEntityWriteSql())}, false)`);
+// every workspace that reads the LE's rows reads it too, so each of its sites sees it beside its own. With
+// `readByOwnerSite`, a site also reads — but does not write — the rows whose column names it.
+export const siteDocumentPolicies = (options?: { legalEntityRows?: boolean; readByOwnerSite?: AnyPgColumn }) => {
+  const read = orFalse(options?.legalEntityRows ? siteDocumentWithLegalEntityRowsReadSql() : siteDocumentReadSql());
+  const write = sql.raw(
+    orFalse(options?.legalEntityRows ? siteDocumentWithLegalEntityRowsWriteSql() : siteDocumentWriteSql()),
+  );
 
   return [
     orgIsolationPolicy(),
     pgPolicy('reach_read', {
       as: 'restrictive',
       for: 'select',
-      using: sql.raw(`coalesce(${orLegalEntityRow(siteDocumentReadSql(), legalEntityReadSql())}, false)`),
+      using: sql.raw(options?.readByOwnerSite ? `${read} or ${namedSiteSql(options.readByOwnerSite.name)}` : read),
     }),
     pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: write }),
     pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: write, withCheck: write }),

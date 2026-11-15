@@ -7,7 +7,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { useCreateSupplierQuotation, useUpdateSupplierQuotation } from '@/hooks/legal-entity/supplier-quotations';
+import type { SupplierQuotationAuthoring } from '@/components/suppliers/bindings';
 import {
   type SupplierQuotationData,
   type SupplierQuotationFormData,
@@ -16,6 +16,7 @@ import {
 import { CurrencySelector } from '@/selectors/currency';
 
 interface SupplierQuotationDialogProps {
+  authoring: SupplierQuotationAuthoring;
   supplierId: string;
   // The supplier's default currency and every currency it trades in
   currencyCode: string;
@@ -27,6 +28,7 @@ interface SupplierQuotationDialogProps {
 }
 
 export const SupplierQuotationDialog: React.FC<SupplierQuotationDialogProps> = ({
+  authoring,
   supplierId,
   currencyCode,
   currencyCodes,
@@ -51,8 +53,8 @@ export const SupplierQuotationDialog: React.FC<SupplierQuotationDialogProps> = (
       : { quotationNumber: '', currencyCode, note: '' },
   });
 
-  const createMutation = useCreateSupplierQuotation(supplierId, { onSuccess: (created) => onSuccess(created) });
-  const updateMutation = useUpdateSupplierQuotation(supplierId, quotation?.id ?? '', { onSuccess: () => onSuccess() });
+  const createMutation = authoring.useCreate(supplierId, { onSuccess: (created) => onSuccess(created) });
+  const updateMutation = authoring.useUpdate(supplierId, quotation?.id ?? '', { onSuccess: () => onSuccess() });
 
   const toPayload = (data: SupplierQuotationFormData) => ({
     quotationNumber: data.quotationNumber,

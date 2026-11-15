@@ -4,11 +4,12 @@ import { Form } from '@vritti/quantum-ui/Form';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { usePostSupplierQuotationToSite } from '@/hooks/legal-entity/supplier-quotations';
+import type { UseQuotationPosting } from '@/components/suppliers/types';
 import { type PostSupplierQuotationSiteFormData, postSupplierQuotationSiteSchema } from '@/schemas/supplier-quotations';
 import { EnrolledSiteSelector } from '@/selectors/enrolled-site';
 
 interface PostQuotationSiteDialogProps {
+  usePost: UseQuotationPosting<string | null>;
   supplierId: string;
   quotationId: string;
   onSuccess: () => void;
@@ -16,13 +17,14 @@ interface PostQuotationSiteDialogProps {
 }
 
 export const PostQuotationSiteDialog: React.FC<PostQuotationSiteDialogProps> = ({
+  usePost,
   supplierId,
   quotationId,
   onSuccess,
   onCancel,
 }) => {
   const form = useForm<PostSupplierQuotationSiteFormData>({ resolver: zodResolver(postSupplierQuotationSiteSchema) });
-  const postMutation = usePostSupplierQuotationToSite(supplierId, quotationId, { onSuccess });
+  const postMutation = usePost(supplierId, quotationId, { onSuccess });
 
   return (
     <Form

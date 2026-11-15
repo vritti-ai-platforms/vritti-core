@@ -6,7 +6,7 @@ import type { SupplierQuotationDetail, SupplierQuotationsTableResponse } from '@
 import { getSupplierQuotation, getSupplierQuotationsTable } from '@/services/site/supplier-quotations.service';
 import { SITE_SUPPLIER_QUOTATION_KEY, SITE_SUPPLIER_QUOTATIONS_TABLE_KEY } from './keys';
 
-// Fetches the supplier's quotations posted to the session site; self-gates on the quotations view permission
+// Fetches the supplier's quotations the session site reads; self-gates on the quotations view permission
 export function useSupplierQuotationsTable(supplierId: string) {
   const { available } = usePermission(SITE_SUPPLIERS.quotations.view);
   return useQuery<SupplierQuotationsTableResponse, AxiosError>({
@@ -16,7 +16,7 @@ export function useSupplierQuotationsTable(supplierId: string) {
   });
 }
 
-// Fetches a quotation posted to the session site, for its page
+// Fetches a quotation the session site reads, for its page
 export function useSupplierQuotation(supplierId: string, quotationId: string) {
   return useSuspenseQuery<SupplierQuotationDetail, AxiosError>({
     queryKey: SITE_SUPPLIER_QUOTATION_KEY(supplierId, quotationId),
