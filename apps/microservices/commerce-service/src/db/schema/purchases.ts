@@ -11,7 +11,7 @@ import {
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
-import { purchaseStatusEnum, purchaseStepEnum } from './enums';
+import { purchaseStatusEnum } from './enums';
 import { organizationIdColumn, siteDocumentColumns, siteDocumentPolicies } from './workspace-scope';
 
 export const purchases = commerceSchema.table(
@@ -23,7 +23,6 @@ export const purchases = commerceSchema.table(
     purchaseNumber: varchar('purchase_number', { length: 50 }).notNull(),
     quotationsRequired: boolean('quotations_required').notNull().default(false),
     minQuotations: smallint('min_quotations').notNull().default(1),
-    step: purchaseStepEnum('step').notNull().default('REQUESTING'),
     status: purchaseStatusEnum('status').notNull().default('OPEN'),
     notes: text('notes'),
     submittedAt: timestamp('submitted_at', { withTimezone: true }),

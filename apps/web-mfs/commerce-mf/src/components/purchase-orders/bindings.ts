@@ -15,6 +15,7 @@ import type {
   UsePurchaseOrder,
   UsePurchaseOrderGoodsReceiptsTable,
   UsePurchaseOrderInboundDeliveriesTable,
+  UsePurchaseOrderItemDefaults,
   UsePurchaseOrderItemIds,
   UsePurchaseOrderItemsTable,
   UsePurchaseOrderProblems,
@@ -29,7 +30,7 @@ import type {
 } from './types';
 
 export interface PurchaseOrderSuppliersBinding {
-  Selector: ComponentType<Omit<SelectProps, 'optionsEndpoint'>>;
+  Selector: ComponentType<DistributiveOmit<SelectProps, 'optionsEndpoint'>>;
   Filter: ComponentType<DistributiveOmit<SelectFilterProps, 'optionsEndpoint' | 'name'> & { name?: string }>;
 }
 
@@ -57,6 +58,7 @@ export interface PurchaseOrdersBinding {
   useTable: UsePurchaseOrdersTable;
   usePurchaseOrder: UsePurchaseOrder;
   useItemIds: UsePurchaseOrderItemIds;
+  useItemDefaults: UsePurchaseOrderItemDefaults;
   useItemsTable: UsePurchaseOrderItemsTable;
   useGoodsReceiptsTable: UsePurchaseOrderGoodsReceiptsTable;
   useInboundDeliveriesTable: UsePurchaseOrderInboundDeliveriesTable;

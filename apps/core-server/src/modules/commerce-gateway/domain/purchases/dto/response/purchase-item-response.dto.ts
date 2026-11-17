@@ -14,8 +14,8 @@ export class PurchaseItemResponseDto {
   @ApiProperty({ description: 'Inventory item code' })
   inventoryItemCode: string;
 
-  @ApiPropertyOptional({ description: "Symbol of the item's primary unit", type: String, nullable: true })
-  primaryUomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the item's primary unit" })
+  primaryUomSymbol: string;
 
   @ApiProperty({ description: "Quantity needed, in the item's primary unit" })
   primaryQty: number;

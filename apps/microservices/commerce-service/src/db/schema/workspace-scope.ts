@@ -1,4 +1,4 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { getColumnTable, getTableName, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type AnyPgColumn, getTableConfig, type PgTable, pgPolicy, uuid } from '@vritti/api-sdk/drizzle-pg-core';
 
 // Every commerce table is guarded by the same five policies, built by the three factories at the bottom of this file.
@@ -104,20 +104,35 @@ const siteDocumentReadSql = (table?: string) => {
   end`;
 };
 
-// Site-document writes: a site writes its own rows; an LE writes rows of its sites, narrowed to the sites on the user's
-// LE role assignment once app.le_site_ids is sent (every site of the LE until then); a site group and the org never
-// write.
+// A row of one of the LE's sites, narrowed to the sites on the user's LE role assignment once app.le_site_ids is sent
+// (every site of the LE until then)
+const legalEntitySiteRowSql = (table?: string) => {
+  const { le, site } = columnNames(table);
+  return `${le} = ${LE_GUC} and ${site} is not null
+      and (${LE_SITE_IDS} is null or ${site} = any(${LE_SITE_IDS}))`;
+};
+
+// Site-document writes: a site writes its own rows; an LE writes rows of its sites; a site group and the org never write.
 const siteDocumentWriteSql = (table?: string) => {
   const { le, site } = columnNames(table);
   return `
   case
     when ${SITE_GUC} is not null then ${site} = ${SITE_GUC} and ${le} = ${LE_GUC}
     when ${SITE_GROUP_GUC} is not null then false
-    when ${LE_GUC} is not null then ${le} = ${LE_GUC} and ${site} is not null
-      and (${LE_SITE_IDS} is null or ${site} = any(${LE_SITE_IDS}))
+    when ${LE_GUC} is not null then ${legalEntitySiteRowSql(table)}
     else false
   end`;
 };
+
+// Site-document writes kept to the legal entity: an LE writes rows of its sites as siteDocumentWriteSql; the site the
+// row belongs to, a site group and the org only read
+const legalEntityWritesSiteRowsSql = (table?: string) => `
+  case
+    when ${SITE_GUC} is not null then false
+    when ${SITE_GROUP_GUC} is not null then false
+    when ${LE_GUC} is not null then ${legalEntitySiteRowSql(table)}
+    else false
+  end`;
 
 // Writes where the LE also writes its sites' rows: each workspace writes exactly its own rows, and an LE also those of
 // its sites (narrowed like siteDocumentWriteSql)
@@ -270,11 +285,43 @@ const OWNER_WRITE_TESTS = {
   legalEntityWritesSites: legalEntityWritesSitesSql,
 } as const;
 
-export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>(options: {
+type SiteInsertLink<TLink extends PgTable> = {
+  table: TLink;
+  fk: (table: TLink) => AnyPgColumn;
+  active: (table: TLink) => AnyPgColumn;
+  unlessFlagged?: SiteFlag[];
+};
+
+type SiteFlag = { flag: AnyPgColumn; item?: { column: AnyPgColumn; childColumn: AnyPgColumn } };
+
+// A site inserting a child whose owner an active link row at that site points at, unless a site flag takes that away
+const linkedAtThisSiteSql = <TLink extends PgTable>(childFk: AnyPgColumn, link: SiteInsertLink<TLink>) => {
+  const { site } = columnNames('l');
+  const linked = `${SITE_GUC} is not null and exists (select 1 from ${qualifiedName(link.table)} l
+    where l.${link.fk(link.table).name} = ${childColumnSql(childFk)} and ${site} = ${SITE_GUC} and l.${link.active(link.table).name})`;
+  return orFalse([linked, ...(link.unlessFlagged ?? []).map(notFlaggedAtThisSiteSql)].join(' and '));
+};
+
+// A child column as a policy body names it, qualified by its table since a subquery may carry a column of the same name
+const childColumnSql = (column: AnyPgColumn) => `${getTableName(getColumnTable(column))}.${column.name}`;
+
+// No row of the flag's site table at this site has the flag on — for the child's item when the flag is per item
+const notFlaggedAtThisSiteSql = ({ flag, item }: SiteFlag) => {
+  const { site } = columnNames('f');
+  const forItem = item ? ` and f.${item.column.name} = ${childColumnSql(item.childColumn)}` : '';
+  return `not exists (select 1 from ${qualifiedName(getColumnTable(flag) as PgTable)} f
+    where ${site} = ${SITE_GUC} and f.${flag.name}${forItem})`;
+};
+
+export const scopeFromOwnerPolicies = <
+  const TTables extends readonly PgTable[],
+  TLink extends PgTable = PgTable,
+>(options: {
   owner: PgTable;
   fk: AnyPgColumn;
   through?: ScopeHops<TTables>;
   ownerIs?: keyof typeof OWNER_WRITE_TESTS;
+  siteInsertsThrough?: SiteInsertLink<TLink>;
 }) => {
   const fk = options.fk.name;
   const owner = qualifiedName(options.owner);
@@ -296,14 +343,19 @@ export const scopeFromOwnerPolicies = <const TTables extends readonly PgTable[]>
   const ownership = options.ownerIs
     ? orFalse(OWNER_WRITE_TESTS[options.ownerIs]('o'))
     : ownedSqlFor(options.owner, 'o');
-  const owned = sql.raw(`exists (select 1 from ${from}${joins} where ${match} and ${ownership})`);
+  const ownedTest = `exists (select 1 from ${from}${joins} where ${match} and ${ownership})`;
+  const owned = sql.raw(ownedTest);
+  const insertable = options.siteInsertsThrough
+    ? sql.raw(anyOf(ownedTest, linkedAtThisSiteSql(options.fk, options.siteInsertsThrough)))
+    : owned;
 
   return [
     orgIsolationPolicy(),
     // SELECT — the direct parent row exists and is itself readable.
     pgPolicy('reach_read', { as: 'restrictive', for: 'select', using: reachable }),
-    // INSERT — WITH CHECK only: the parent chain must lead to an owner this workspace owns.
-    pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: owned }),
+    // INSERT — WITH CHECK only: the parent chain must lead to an owner this workspace owns, or with
+    // `siteInsertsThrough`, a site inserts for an owner an active link row at that site points at.
+    pgPolicy('owner_insert', { as: 'restrictive', for: 'insert', withCheck: insertable }),
     // UPDATE — USING only.
     pgPolicy('owner_update', { as: 'restrictive', for: 'update', using: owned }),
     // DELETE — the policy that actually mattered.
@@ -367,16 +419,25 @@ export const legalEntityOwnedPolicies = () => {
   ];
 };
 
+// The write test siteDocumentPolicies picks from its options
+const siteDocumentWriteTest = (options?: { legalEntityRows?: boolean; legalEntityWritesOnly?: boolean }) => {
+  if (options?.legalEntityWritesOnly) return legalEntityWritesSiteRowsSql;
+  return options?.legalEntityRows ? siteDocumentWithLegalEntityRowsWriteSql : siteDocumentWriteSql;
+};
+
 // For a site-owned document table (both owner columns always set): sites write their own rows, an LE writes for its
 // sites, a site group and the org only read.
 // With `legalEntityRows`, a row may also leave site_id empty to stand for the whole legal entity: the LE writes it, and
 // every workspace that reads the LE's rows reads it too, so each of its sites sees it beside its own. With
-// `readByOwnerSite`, a site also reads — but does not write — the rows whose column names it.
-export const siteDocumentPolicies = (options?: { legalEntityRows?: boolean; readByOwnerSite?: AnyPgColumn }) => {
+// `readByOwnerSite`, a site also reads — but does not write — the rows whose column names it. With
+// `legalEntityWritesOnly`, only the LE writes its sites' rows and each site only reads its own.
+export const siteDocumentPolicies = (options?: {
+  legalEntityRows?: boolean;
+  readByOwnerSite?: AnyPgColumn;
+  legalEntityWritesOnly?: boolean;
+}) => {
   const read = orFalse(options?.legalEntityRows ? siteDocumentWithLegalEntityRowsReadSql() : siteDocumentReadSql());
-  const write = sql.raw(
-    orFalse(options?.legalEntityRows ? siteDocumentWithLegalEntityRowsWriteSql() : siteDocumentWriteSql()),
-  );
+  const write = sql.raw(orFalse(siteDocumentWriteTest(options)()));
 
   return [
     orgIsolationPolicy(),

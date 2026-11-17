@@ -34,7 +34,7 @@ export const EditStorageFiguresForm: React.FC<EditStorageFiguresFormProps> = ({ 
       <div className="grid grid-cols-2 gap-3">
         <TextField
           name="weight"
-          label={`Weight per ${item.uomSymbol ?? 'unit'}`}
+          label={`Weight per ${item.uomSymbol}`}
           type="number"
           positive
           placeholder="Not set"
@@ -42,7 +42,7 @@ export const EditStorageFiguresForm: React.FC<EditStorageFiguresFormProps> = ({ 
         />
         <TextField
           name="volume"
-          label={`Volume per ${item.uomSymbol ?? 'unit'}`}
+          label={`Volume per ${item.uomSymbol}`}
           type="number"
           positive
           placeholder="Not set"

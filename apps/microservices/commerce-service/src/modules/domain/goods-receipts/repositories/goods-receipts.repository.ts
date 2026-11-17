@@ -1,7 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import type { SearchState } from '@vritti/api-sdk/conditions';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, eq, exists, getColumns, ilike, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  asc,
+  eq,
+  exists,
+  getColumns,
+  ilike,
+  inArray,
+  notExists,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceipt,
   GoodsReceiptStatusValues,
@@ -53,6 +65,17 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
   // Loads a receipt with its supplier, inbound delivery, purchase orders and post readiness
   findDetail(id: string): Promise<GoodsReceiptRow | undefined> {
     return this.findById<GoodsReceiptRow>(id, { select: this.selection(), leftJoins: this.joins() });
+  }
+
+  // Loads the given receipts with their detail, oldest first
+  findDetailsByIds(ids: string[]): Promise<GoodsReceiptRow[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    return this.findAllWithSelect<GoodsReceiptRow>({
+      select: this.selection(),
+      leftJoins: this.joins(),
+      where: inArray(goodsReceipts.id, ids),
+      orderBy: [asc(goodsReceipts.createdAt)],
+    });
   }
 
   // Returns the receipts a purchase created, oldest first

@@ -4,7 +4,7 @@ import type { UpdateGoodsReceiptLotDto } from '@domain/goods-receipt-lots/dto/re
 import { GoodsReceiptLotsDomainService } from '@domain/goods-receipt-lots/services/goods-receipt-lots.service';
 import type { GoodsReceiptItemContext } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InboundDeliverySourceValues } from '@/db/schema';
@@ -14,7 +14,7 @@ export class GoodsReceiptsLotsService {
   constructor(
     private readonly lotsService: GoodsReceiptLotsDomainService,
     private readonly itemsService: GoodsReceiptItemsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
   ) {}
 
   // Adds a lot to an item of a draft receipt
@@ -41,6 +41,6 @@ export class GoodsReceiptsLotsService {
   // Rejects a change to an item of a Receive with Invoice receipt, which is edited with its supplier invoice (409)
   private assertNotReceiveWithInvoice(item: GoodsReceiptItemContext): void {
     if (item.deliverySource !== InboundDeliverySourceValues.SUPPLIER_INVOICE) return;
-    this.purchasesService.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
   }
 }

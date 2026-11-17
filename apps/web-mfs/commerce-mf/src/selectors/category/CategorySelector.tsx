@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type CategorySelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type CategorySelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Renders the parent breadcrumb from an ltree path, dropping the leaf segment shown as the option label.
 export const formatCategoryPath = (path: string): string =>

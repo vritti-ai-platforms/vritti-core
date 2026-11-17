@@ -18,6 +18,7 @@ export { useDownloadPurchaseOrderPdf } from './useDownloadPurchaseOrderPdf';
 export { usePurchaseOrder } from './usePurchaseOrder';
 export { usePurchaseOrderGoodsReceiptsTable } from './usePurchaseOrderGoodsReceiptsTable';
 export { usePurchaseOrderInboundDeliveriesTable } from './usePurchaseOrderInboundDeliveriesTable';
+export { usePurchaseOrderItemDefaults } from './usePurchaseOrderItemDefaults';
 export { usePurchaseOrderItemIds } from './usePurchaseOrderItemIds';
 export { usePurchaseOrderItemsTable } from './usePurchaseOrderItemsTable';
 export { usePurchaseOrderProblems } from './usePurchaseOrderProblems';

@@ -1,8 +1,9 @@
 import { formatDate } from '@vritti/quantum-ui/format';
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type ReceivableInboundDeliverySelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type ReceivableInboundDeliverySelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // The supplier, then the day the delivery is expected
 function describeDelivery(supplierName: string, option: SelectOption): string {

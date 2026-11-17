@@ -40,4 +40,11 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   purchaseOrderId?: string;
+
+  @ApiPropertyOptional({
+    description: "With inventoryItemId, only the units this supplier sells the item in (its supplier items')",
+  })
+  @IsOptional()
+  @IsUUID('7')
+  soldBySupplierId?: string;
 }

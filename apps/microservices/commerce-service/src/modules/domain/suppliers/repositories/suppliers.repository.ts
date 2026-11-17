@@ -15,6 +15,7 @@ import {
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
+  hasSupplierItem,
   type PartyIdentifierType,
   type PartyLicense,
   type PartyTaxRegistration,
@@ -49,6 +50,15 @@ const partyTaxIdField = <T>(column: AnyPgColumn) =>
 
 export type SupplierRegistrationRow = PartyTaxRegistration & { jurisdictionName: string | null };
 
+export type SupplierSelectFilters = {
+  activeOnly?: boolean;
+  inventoryItemId?: string;
+  enrolledAtSiteId?: string;
+  suppliedItemIds?: string[];
+  // With suppliedItemIds, keep only the suppliers the legal entity set up any of the items for
+  onlySupplying?: boolean;
+};
+
 export type SupplierWithParty = Supplier & { partyName: string; defaultPaymentTermName: string };
 
 export type SupplierDetailRow = SupplierWithParty & {
@@ -74,12 +84,10 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     super(database, suppliers);
   }
 
-  // Paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the item and
-  // enrolledAtSiteId those actively enrolled at the site
-  override findForSelect(
-    config: FindForSelectConfig,
-    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
-  ): Promise<SelectQueryResult> {
+  // Paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the item,
+  // enrolledAtSiteId those actively enrolled at the site; suppliedItemIds marks those set up for any of the items and,
+  // with onlySupplying, keeps only them
+  override findForSelect(config: FindForSelectConfig, options?: SupplierSelectFilters): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
     if (options?.activeOnly) conditions.push(eq(suppliers.isActive, true));
     if (options?.enrolledAtSiteId) {
@@ -114,10 +122,16 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
         ),
       );
     }
+    const supplies =
+      options?.suppliedItemIds?.length && options.enrolledAtSiteId
+        ? hasSupplierItem(suppliers.id, options.suppliedItemIds)
+        : undefined;
+    if (supplies && options?.onlySupplying) conditions.push(supplies);
     return super.findForSelect({
       ...config,
       joins: [{ table: parties, on: eq(parties.id, suppliers.partyId), type: 'inner' }],
       conditions,
+      additionalExpressions: supplies ? { suppliesItem: sql<boolean>`${supplies}` } : undefined,
     });
   }
 

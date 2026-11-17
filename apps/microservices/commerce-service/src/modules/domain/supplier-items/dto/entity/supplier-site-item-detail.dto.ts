@@ -25,7 +25,7 @@ export class SupplierSiteItemDetailDto extends SupplierItemDetailDto {
         pricedSiteCount: number;
       },
     itemName: string | null,
-    uomSymbol: string | null,
+    uomSymbol: string,
   ): SupplierSiteItemDetailDto {
     const dto = new SupplierSiteItemDetailDto();
     Object.assign(dto, SupplierItemDetailDto.fromDetail(entity, itemName, uomSymbol));

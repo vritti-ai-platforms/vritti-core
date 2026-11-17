@@ -2,6 +2,7 @@ import type {
   PurchaseQuotationDto,
   PurchaseQuotationItemDto,
 } from '@domain/supplier-quotations/dto/entity/purchase-quotation.dto';
+import type { UomFactorLookup } from '@domain/uom-conversions/dto/entity/uom-factor-lookup.dto';
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto, majorToMinor } from '@vritti/api-sdk/money';
 import type { WorkspaceScope } from '@/db/schema';
@@ -12,7 +13,7 @@ export class PurchaseDetailQuotationItemDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   unitPrice: CurrencyAmountDto;
   unitPricePerPrimary: CurrencyAmountDto;
   schemeBuyQty: number | null;
@@ -56,13 +57,9 @@ export class PurchaseDetailQuotationDto {
   itemCount: number;
   items: PurchaseDetailQuotationItemDto[];
 
-  // Keys the primary quantity one unit of an item holds
-  static unitKey(inventoryItemId: string, uomId: string): string {
-    return `${inventoryItemId}:${uomId}`;
-  }
-
-  // Shapes a quotation the purchase requested, pricing each line per primary unit from the given unit sizes
-  static from(quotation: PurchaseQuotationDto, primaryPerUnit: Map<string, number>): PurchaseDetailQuotationDto {
+  // Shapes a quotation the purchase requested, pricing each line per primary unit from the given unit factors; a line
+  // in a unit with no conversion is priced as if one unit were one primary unit
+  static from(quotation: PurchaseQuotationDto, factors: UomFactorLookup): PurchaseDetailQuotationDto {
     const dto = new PurchaseDetailQuotationDto();
     dto.id = quotation.id;
     dto.legalEntityId = quotation.legalEntityId;
@@ -80,7 +77,7 @@ export class PurchaseDetailQuotationDto {
     dto.items = quotation.items.map((item) =>
       PurchaseDetailQuotationItemDto.from(
         item,
-        primaryPerUnit.get(PurchaseDetailQuotationDto.unitKey(item.inventoryItemId, item.uomId)) ?? 1,
+        factors.get(item.inventoryItemId, item.uomId)?.toDecimalPlaces(3, Decimal.ROUND_HALF_UP).toNumber() ?? 1,
       ),
     );
     return dto;

@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class InboundDeliveryLineResponseDto {
   @ApiProperty({ description: 'Delivery line ID' })
@@ -34,8 +34,8 @@ export class InboundDeliveryLineResponseDto {
   @ApiProperty({ description: 'Unit the PO line is ordered in — every quantity on the line is in it' })
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Unit symbol', nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: 'Unit symbol' })
+  uomSymbol: string;
 
   @ApiProperty({ description: 'Whether the unit takes fractional quantities' })
   allowDecimal: boolean;

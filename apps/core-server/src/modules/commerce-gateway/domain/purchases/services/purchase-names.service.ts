@@ -1,7 +1,7 @@
 import { UserDomainService } from '@domain/user/services/user.service';
 import { Injectable } from '@nestjs/common';
 import { OwnerNameService } from '@/owner-names/owner-name.service';
-import type { PurchaseHeaderResponseDto } from '../dto/response/purchase-header-response.dto';
+import type { PurchaseDetailResponseDto } from '../dto/response/purchase-detail-response.dto';
 import type {
   PurchaseLegRejectionResponseDto,
   PurchaseLegResponseDto,
@@ -13,7 +13,7 @@ export type UnnamedPurchaseLeg = Omit<PurchaseLegResponseDto, 'approverNames' | 
   rejection: UnnamedRejection | null;
 };
 
-export type UnnamedPurchaseHeader = Omit<PurchaseHeaderResponseDto, 'siteName' | 'siteCode'>;
+export type UnnamedPurchase = Omit<PurchaseDetailResponseDto, 'siteName' | 'siteCode'>;
 
 @Injectable()
 export class PurchaseNamesService {
@@ -22,9 +22,9 @@ export class PurchaseNamesService {
     private readonly userService: UserDomainService,
   ) {}
 
-  // Fills a purchase header's site name and code
-  async withHeaderNames(orgId: string, header: UnnamedPurchaseHeader): Promise<PurchaseHeaderResponseDto> {
-    const [named] = await this.ownerNames.withSiteNames(orgId, [header]);
+  // Fills a purchase's site name and code
+  async withSiteName(orgId: string, purchase: UnnamedPurchase): Promise<PurchaseDetailResponseDto> {
+    const [named] = await this.ownerNames.withSiteNames(orgId, [purchase]);
     return named;
   }
 

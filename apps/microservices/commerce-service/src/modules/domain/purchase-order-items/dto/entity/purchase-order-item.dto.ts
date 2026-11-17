@@ -14,8 +14,10 @@ export class PurchaseOrderItemDto {
   taxDate: string;
   isTaxDateOverridden: boolean;
   isTaxDateLocked: boolean;
+  // Why the order's site has blocked buying the item: the line may be lowered but not raised; null while it has not
+  purchasingBlockedReason: string | null;
   uomId: string;
-  orderUomSymbol: string | null;
+  orderUomSymbol: string;
   uomQty: number;
   expectedFreeQty: number;
   receivedQty: number;
@@ -29,7 +31,7 @@ export class PurchaseOrderItemDto {
   duePrimaryQty: number;
   openToReceivePrimaryQty: number;
   openToInvoicePrimaryQty: number;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   currencyCode: string;
   unitPrice: CurrencyAmountDto;
   primaryUomUnitPrice: CurrencyAmountDto;
@@ -60,6 +62,7 @@ export class PurchaseOrderItemDto {
     dto.taxDate = row.taxDate;
     dto.isTaxDateOverridden = row.isTaxDateOverridden;
     dto.isTaxDateLocked = row.isTaxDateLocked;
+    dto.purchasingBlockedReason = row.purchasingBlockedReason;
     dto.uomId = row.uomId;
     dto.orderUomSymbol = row.orderUomSymbol;
     dto.uomQty = row.uomQty;

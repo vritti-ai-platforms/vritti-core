@@ -3,7 +3,7 @@ import type { CreateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/re
 import type { SetInboundDeliveryStatusDto } from '@domain/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import type { UpdateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -16,7 +16,7 @@ export class InboundDeliveriesService {
   constructor(
     private readonly deliveriesService: InboundDeliveriesDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
   ) {}
 
   // Creates a planned delivery of a supplier the site still buys from
@@ -42,7 +42,7 @@ export class InboundDeliveriesService {
   async delete(id: string): Promise<SuccessResponseDto> {
     const delivery = await this.deliveriesService.findDetailOrThrow(id);
     if (delivery.source !== InboundDeliverySourceValues.ANNOUNCED) {
-      this.purchasesService.assertNotPartOfPurchase(`Inbound delivery "${delivery.deliveryNumber}"`, [
+      this.purchasesRepository.assertNotPartOfPurchase(`Inbound delivery "${delivery.deliveryNumber}"`, [
         delivery.purchaseNumber,
       ]);
     }

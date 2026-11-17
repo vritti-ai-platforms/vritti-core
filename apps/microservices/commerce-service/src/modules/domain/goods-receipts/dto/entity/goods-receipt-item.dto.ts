@@ -31,7 +31,7 @@ export class GoodsReceiptItemDto {
   uomId: string;
   uomSymbol: string;
   uomAllowDecimal: boolean;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   receivedQty: number;
   rejectedQuantity: number;
   receivedPrimaryQty: number;
@@ -58,13 +58,12 @@ export class GoodsReceiptItemDto {
     const alreadyReceivedQty = inLineUnit(row.alreadyAcceptedPrimaryQty);
     const receivedInAll = acceptedQty.plus(alreadyReceivedQty);
     const expectedInAll = new Decimal(row.orderedQty).plus(expectedFreeQty);
-    const uomSymbol = row.uomSymbol ?? '';
 
     const flags: GoodsReceiptItemFlagDto[] = [];
     if (receivedInAll.gt(expectedInAll)) {
       flags.push({
         code: GoodsReceiptItemFlagCodeValues.OVER_RECEIVED,
-        detail: `${receivedInAll.toString()} ${uomSymbol} received in all against ${expectedInAll.toString()} expected (${row.orderedQty} ordered + ${expectedFreeQty} free).`,
+        detail: `${receivedInAll.toString()} ${row.uomSymbol} received in all against ${expectedInAll.toString()} expected (${row.orderedQty} ordered + ${expectedFreeQty} free).`,
       });
     }
     if (row.earliestExpiryDate !== null) {
@@ -79,7 +78,7 @@ export class GoodsReceiptItemDto {
     if (row.rejectedQuantity > 0) {
       flags.push({
         code: GoodsReceiptItemFlagCodeValues.REJECTED,
-        detail: `${row.rejectedQuantity} ${uomSymbol} rejected on receipt.`,
+        detail: `${row.rejectedQuantity} ${row.uomSymbol} rejected on receipt.`,
       });
     }
 
@@ -92,7 +91,7 @@ export class GoodsReceiptItemDto {
     dto.inventoryItemName = row.inventoryItemName ?? '';
     dto.inventoryItemTracking = row.inventoryItemTracking;
     dto.uomId = row.uomId;
-    dto.uomSymbol = uomSymbol;
+    dto.uomSymbol = row.uomSymbol;
     dto.uomAllowDecimal = row.uomAllowDecimal;
     dto.primaryUomSymbol = row.primaryUomSymbol;
     dto.receivedQty = row.receivedQty;

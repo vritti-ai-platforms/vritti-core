@@ -297,8 +297,8 @@ export interface InvoiceableGoodsReceipt {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   poUnitPrice: CurrencyValue;
   poExchangeRate: number;
   acceptedPrimaryQty: number;

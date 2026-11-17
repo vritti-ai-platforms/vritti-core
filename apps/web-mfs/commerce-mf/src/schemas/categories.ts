@@ -71,7 +71,7 @@ export interface CategoryItemRow {
   sku: string;
   type: InventoryItemType;
   tracking: InventoryTracking;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 export type CategoryItemsTableResponse = TableResponse<CategoryItemRow>;

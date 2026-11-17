@@ -123,7 +123,7 @@ export interface LocationItemRow {
   inventoryItemId: string;
   itemName: string;
   itemSku: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   totalQuantity: number;
   availableQuantity: number;
   totalValue: CurrencyValue | null;

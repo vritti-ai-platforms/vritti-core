@@ -64,7 +64,7 @@ export class SupplierQuotationItemDto {
   uomId: string;
   inventoryItemName: string;
   supplierItemCode: string | null;
-  uomSymbol: string | null;
+  uomSymbol: string;
   unitPrice: CurrencyAmountDto;
   mrpId: string | null;
   mrp: CurrencyAmountDto | null;
@@ -79,7 +79,7 @@ export class SupplierQuotationItemDto {
     dto.uomId = row.uomId;
     dto.inventoryItemName = row.inventoryItemName;
     dto.supplierItemCode = row.supplierItemCode ?? null;
-    dto.uomSymbol = row.uomSymbol ?? null;
+    dto.uomSymbol = row.uomSymbol;
     dto.unitPrice = CurrencyAmountDto.from(row.unitPrice, row.currencyCode);
     dto.mrpId = row.mrpId ?? null;
     dto.mrp = row.mrpAmount != null ? CurrencyAmountDto.from(row.mrpAmount, row.currencyCode) : null;

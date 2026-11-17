@@ -49,7 +49,7 @@ export class ItemSupplierPriceDto extends SupplierItemPriceDto {
   supplierId: string;
   supplierName: string;
   supplierCode: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 
   static fromItemRow(
     entity: SupplierItemPrice & {
@@ -57,14 +57,14 @@ export class ItemSupplierPriceDto extends SupplierItemPriceDto {
       supplierId: string;
       supplierName: string;
       supplierCode: string;
-      uomSymbol: string | null;
+      uomSymbol: string;
     },
   ): ItemSupplierPriceDto {
     const dto = Object.assign(new ItemSupplierPriceDto(), SupplierItemPriceDto.from(entity));
     dto.supplierId = entity.supplierId;
     dto.supplierName = entity.supplierName;
     dto.supplierCode = entity.supplierCode;
-    dto.uomSymbol = entity.uomSymbol ?? null;
+    dto.uomSymbol = entity.uomSymbol;
     return dto;
   }
 }

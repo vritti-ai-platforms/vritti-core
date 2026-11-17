@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type RepositorySelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type RepositorySelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select for git repository selection with async search; repositories are keyed by name
 export const RepositorySelector = forwardRef<HTMLButtonElement, RepositorySelectorProps>((props, ref) => (

@@ -2,6 +2,7 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
+import { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
 import type { PurchaseOrderItemRow } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderRow } from '@domain/purchase-orders/repositories/purchase-orders.repository';
@@ -10,6 +11,10 @@ import {
   PurchaseLegActionValues,
   PurchaseLegStepLabels,
 } from '@domain/purchase-suppliers/dto/entity/purchase-supplier.dto';
+import {
+  CancelledQuantityValues,
+  type CancelSupplierDto,
+} from '@domain/purchase-suppliers/dto/request/cancel-supplier.dto';
 import type { CloseSupplierDto } from '@domain/purchase-suppliers/dto/request/close-supplier.dto';
 import type { ConfirmLegPurchaseOrderDto } from '@domain/purchase-suppliers/dto/request/confirm-leg-purchase-order.dto';
 import type { CreateLegGoodsReceiptDto } from '@domain/purchase-suppliers/dto/request/create-leg-goods-receipt.dto';
@@ -17,22 +22,30 @@ import type { CreateLegInboundDeliveryDto } from '@domain/purchase-suppliers/dto
 import type { CreateLegPurchaseOrderDto } from '@domain/purchase-suppliers/dto/request/create-leg-purchase-order.dto';
 import type { RejectPurchaseLegDto } from '@domain/purchase-suppliers/dto/request/reject-purchase-leg.dto';
 import type { PurchaseSupplierRow } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
+import { PurchaseSuppliersDomainRepository } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import {
   type LegApprovers,
   PurchaseSuppliersDomainService,
 } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
-import type { PurchaseRow } from '@domain/purchases/repositories/purchases.repository';
+import type { PurchaseBlockers, PurchaseRow } from '@domain/purchases/repositories/purchases.repository';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
+import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/services/supplier-quotations.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { NatsHeaders } from '@vritti/api-sdk/nats';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { formatISO } from 'date-fns';
 import {
   InboundDeliverySourceValues,
+  InboundDeliveryStatusValues,
+  PurchaseLegStatusValues,
   type PurchaseLegStep,
+  PurchaseLegStepValues,
+  type PurchaseOrderStatus,
   PurchaseOrderStatusValues,
   PurchaseTypeValues,
 } from '@/db/schema';
@@ -53,16 +66,32 @@ interface LoadedLeg {
   fulfilment: PurchaseLegFulfilment;
 }
 
+export interface PurchaseBlockerState {
+  blockers: PurchaseBlockers;
+  open: PurchaseSupplierRow[];
+  fulfilment: PurchaseLegFulfilment[];
+}
+
 @Injectable()
 export class PurchasesLegsService {
   private readonly logger = new Logger(PurchasesLegsService.name);
 
+  private static readonly CANCELLABLE_ORDERS: PurchaseOrderStatus[] = [
+    PurchaseOrderStatusValues.DRAFT,
+    PurchaseOrderStatusValues.SENT,
+    PurchaseOrderStatusValues.CONFIRMED,
+  ];
+
   constructor(
     private readonly database: PrimaryDatabaseService,
     private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly legsService: PurchaseSuppliersDomainService,
+    private readonly purchaseSuppliersRepository: PurchaseSuppliersDomainRepository,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
+    private readonly itemsService: PurchaseItemsDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
+    private readonly supplierQuotationsService: SupplierQuotationsDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
     private readonly deliveriesService: InboundDeliveriesDomainService,
@@ -190,6 +219,18 @@ export class PurchasesLegsService {
   ): Promise<PurchaseLegStep> {
     const snapshot = await this.supplierEnrollmentsService.findPurchasingSnapshot(leg.supplierId, purchase.siteId);
     const allocations = await this.allocationsService.findByLegId(leg.id);
+    if (purchase.quotationsRequired) {
+      const counts = await this.supplierQuotationsService.countQuotingSuppliersByItem(
+        purchase.id,
+        purchase.siteId,
+        allocations.map((allocation) => allocation.purchaseItemId),
+        formatISO(new Date(), { representation: 'date' }),
+      );
+      const shortCount = allocations.filter(
+        (allocation) => (counts.get(allocation.purchaseItemId) ?? 0) < purchase.minQuotations,
+      ).length;
+      this.purchaseSuppliersRepository.assertQuotedEnough(leg, shortCount, purchase.minQuotations);
+    }
     return this.legsService.start(leg, {
       snapshot,
       sourcing: this.allocationsService.summarize(allocations),
@@ -198,11 +239,11 @@ export class PurchasesLegsService {
     });
   }
 
-  // Starts one leg of a submitted purchase on its own: one rejected back to sourcing or opened after the submit
+  // Starts one leg in sourcing on its own, whatever the purchase's other legs are doing
   async submitSupplier(ref: PurchaseLegRef, headers: NatsHeaders, leCurrencyCode: string): Promise<SuccessResponseDto> {
-    const purchase = await this.purchasesService.findDetailOrThrow(ref.id);
-    this.legsService.assertStartableAlone(purchase);
-    const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, ref.legId);
+    const purchase = await this.purchasesRepository.findDetailOrThrow(ref.id);
+    this.purchasesRepository.assertOpen(purchase, 'Cannot Submit Supplier');
+    const leg = await this.purchaseSuppliersRepository.findOnPurchaseOrThrow(purchase.id, ref.legId);
     const step = await this.database.runInTransaction(() => this.startLeg(purchase, leg, headers, leCurrencyCode));
     this.logger.log(`purchases.legs.submitSupplier — ${purchase.purchaseNumber}, leg: ${leg.id} → ${step}`);
     return {
@@ -213,8 +254,8 @@ export class PurchasesLegsService {
 
   // Approves a leg waiting for approval as one of its enrollment's current approvers who did not submit it
   async approve(ref: PurchaseLegRef, headers: NatsHeaders): Promise<SuccessResponseDto> {
-    const purchase = await this.purchasesService.findDetailOrThrow(ref.id);
-    const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, ref.legId);
+    const purchase = await this.purchasesRepository.findDetailOrThrow(ref.id);
+    const leg = await this.purchaseSuppliersRepository.findOnPurchaseOrThrow(purchase.id, ref.legId);
     const approvers = await this.findApprovers(leg, headers);
     const step = await this.legsService.approve(leg, approvers);
     this.logger.log(`purchases.legs.approve — ${purchase.purchaseNumber}, leg: ${leg.id} → ${step}`);
@@ -226,8 +267,8 @@ export class PurchasesLegsService {
 
   // Rejects a leg waiting for approval back to sourcing with a reason; the purchase's other legs carry on
   async reject(dto: RejectPurchaseLegDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
-    const purchase = await this.purchasesService.findDetailOrThrow(dto.id);
-    const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, dto.legId);
+    const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
+    const leg = await this.purchaseSuppliersRepository.findOnPurchaseOrThrow(purchase.id, dto.legId);
     const approvers = await this.findApprovers(leg, headers);
     await this.legsService.reject(leg, approvers, dto.reason);
     this.logger.log(`purchases.legs.reject — ${purchase.purchaseNumber}, leg: ${leg.id}`);
@@ -255,28 +296,96 @@ export class PurchasesLegsService {
     return { success: true, message: `Purchase order "${po.poNumber}" confirmed.` };
   }
 
-  // Closes a leg: its confirmed POs complete delivery and its sent ones are cancelled; the purchase completes with its last leg
+  // Closes a leg for receiving: its confirmed POs complete delivery and its sent ones are cancelled, so nothing more is
+  // expected; it closes once what it received is invoiced, and the purchase completes once it is done
   async closeSupplier(dto: CloseSupplierDto): Promise<SuccessResponseDto> {
     const { purchase, leg, fulfilment } = await this.loadLeg(dto);
+    await this.database.runInTransaction(() => this.closeForReceiving(purchase, leg, fulfilment, dto.reason ?? null));
+    this.logger.log(`purchases.legs.closeSupplier — ${purchase.purchaseNumber}, leg: ${leg.id}`);
+    return { success: true, message: `${leg.supplierName} on "${purchase.purchaseNumber}" closed for receiving.` };
+  }
+
+  // Closes a leg for receiving inside the caller's transaction and re-derives its step
+  async closeForReceiving(
+    purchase: PurchaseRow,
+    leg: PurchaseSupplierRow,
+    fulfilment: PurchaseLegFulfilment,
+    reason: string | null,
+  ): Promise<void> {
     this.legsService.assertActionAvailable(leg, purchase, fulfilment.facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
     const openOrders = fulfilment.documents.purchaseOrders.filter(
       (po) => po.status === PurchaseOrderStatusValues.CONFIRMED || po.status === PurchaseOrderStatusValues.SENT,
     );
+    for (const po of openOrders) await this.completeOrCancelOrder(po);
+    const closedLeg = await this.legsService.closeForReceiving(leg, purchase, fulfilment.facts, reason);
+    if (closedLeg.status === PurchaseLegStatusValues.OPEN) await this.progressService.syncLegStep(purchase, closedLeg);
+    else await this.progressService.completeIfDone(purchase);
+  }
+
+  // Cancels a leg nothing is received or invoiced on: its POs and planned deliveries are cancelled and its quantity goes
+  // back to sourcing or is dropped from the purchase; the supplier is told outside the system
+  async cancelSupplier(dto: CancelSupplierDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+    const { purchase, leg, fulfilment } = await this.loadLeg(dto);
     await this.database.runInTransaction(async () => {
-      for (const po of openOrders) await this.completeOrCancelOrder(po);
-      await this.legsService.close(leg, purchase, fulfilment.facts, dto.reason ?? null);
-      await this.progressService.completeIfLegsClosed(purchase);
+      await this.cancelLeg(purchase, leg, fulfilment, { reason: dto.reason, userId: headers.userId || null });
+      const held = await this.allocationsService.removeForLeg(leg.id);
+      if (dto.quantity === CancelledQuantityValues.DROP) await this.itemsService.lowerBy(purchase.id, held);
+      await this.progressService.completeIfDone(purchase);
     });
-    this.logger.log(
-      `purchases.legs.closeSupplier — ${purchase.purchaseNumber}, leg: ${leg.id}, POs: ${openOrders.length}`,
-    );
-    return { success: true, message: `${leg.supplierName} on "${purchase.purchaseNumber}" closed.` };
+    this.logger.log(`purchases.legs.cancelSupplier — ${purchase.purchaseNumber}, leg: ${leg.id}, ${dto.quantity}`);
+    return {
+      success: true,
+      message:
+        dto.quantity === CancelledQuantityValues.DROP
+          ? `${leg.supplierName} cancelled on "${purchase.purchaseNumber}"; its quantity is dropped.`
+          : `${leg.supplierName} cancelled on "${purchase.purchaseNumber}"; its quantity is back to allocate.`,
+    };
+  }
+
+  // Cancels a leg and the documents it ordered, in the caller's transaction: its live POs and its deliveries still planned
+  async cancelLeg(
+    purchase: PurchaseRow,
+    leg: PurchaseSupplierRow,
+    fulfilment: PurchaseLegFulfilment,
+    cancellation: { reason: string; userId: string | null },
+  ): Promise<void> {
+    await this.legsService.cancel(leg, purchase, fulfilment.facts, cancellation);
+    for (const po of fulfilment.documents.purchaseOrders) {
+      if (PurchasesLegsService.CANCELLABLE_ORDERS.includes(po.status)) {
+        await this.purchaseOrdersService.changeStatus(po, PurchaseOrderStatusValues.CANCELLED);
+      }
+    }
+    for (const delivery of fulfilment.documents.deliveries) {
+      if (delivery.status === InboundDeliveryStatusValues.PLANNED) {
+        await this.deliveriesService.setStatus(delivery, InboundDeliveryStatusValues.CANCELLED);
+      }
+    }
+  }
+
+  // Loads a purchase's legs and the fulfilment of its open ones, and explains from them what keeps each purchase-level
+  // action from running; callers reuse the legs and fulfilment instead of reading them again
+  async findBlockers(purchase: PurchaseRow): Promise<PurchaseBlockerState> {
+    const legs = await this.legsService.findByPurchaseId(purchase.id);
+    const open = legs.filter((leg) => leg.status === PurchaseLegStatusValues.OPEN);
+    const fulfilment = await this.progressService.findFulfilment(purchase, open);
+    const blockers = this.purchasesService.blockersOf(purchase, {
+      count: legs.length,
+      closedCount: legs.filter((leg) => leg.status === PurchaseLegStatusValues.CLOSED).length,
+      open: open.map((leg, index) => ({
+        supplierName: leg.supplierName,
+        isSourcing: leg.step === PurchaseLegStepValues.SOURCING,
+        hasPostedDocument: fulfilment[index].facts.hasPostedDocument,
+        receivingClosed: fulfilment[index].facts.receivingClosed,
+        blockers: this.legsService.blockersOf(leg, purchase, fulfilment[index].facts),
+      })),
+    });
+    return { blockers, open, fulfilment };
   }
 
   // Loads a purchase, one of its legs and the leg's documents and fulfilment facts
   private async loadLeg(ref: PurchaseLegRef): Promise<LoadedLeg> {
-    const purchase = await this.purchasesService.findDetailOrThrow(ref.id);
-    const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, ref.legId);
+    const purchase = await this.purchasesRepository.findDetailOrThrow(ref.id);
+    const leg = await this.purchaseSuppliersRepository.findOnPurchaseOrThrow(purchase.id, ref.legId);
     const fulfilment = await this.progressService.findLegFulfilment(purchase, leg);
     return { purchase, leg, fulfilment };
   }

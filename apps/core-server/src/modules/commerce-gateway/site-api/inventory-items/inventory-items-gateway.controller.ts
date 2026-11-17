@@ -1,4 +1,6 @@
+import { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
 import { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
+import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import { UpdateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item-location.dto';
 import type { InventoryItemLedgerTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-table-response.dto';
 import type { InventoryItemLocationResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-location-response.dto';
@@ -6,11 +8,9 @@ import type { InventoryItemLocationTableResponseDto } from '@commerce/inventory-
 import type { InventoryItemLotTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-lot-table-response.dto';
 import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
+import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
 import type { SiteStockTableResponseDto } from '@commerce/inventory-item-sites/dto/response/site-stock-table-response.dto';
-import { CreateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/create-site-stock-levels.dto';
-import { UpdateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/update-site-stock-levels.dto';
-import type { InventoryItemSiteStockLevelResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-site-stock-level-response.dto';
 import {
   Body,
   Controller,
@@ -42,6 +42,18 @@ export class SiteInventoryItemsGatewayController {
 
   constructor(private readonly service: SiteInventoryItemsGatewayService) {}
 
+  // Adds an inventory item to the current site with how it is replenished here
+  @Post(':id/setup')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.add)
+  @HttpCode(HttpStatus.CREATED)
+  addToSite(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: ReplenishmentDto,
+  ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
+    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/setup`);
+    return this.service.addToSite(id, dto);
+  }
+
   // Creates an item-location config for an inventory item
   @Post(':id/locations')
   @RequirePermission(SITE_INVENTORY_ITEMS.locations.add)
@@ -54,15 +66,15 @@ export class SiteInventoryItemsGatewayController {
     return this.service.createItemLocation(id, dto);
   }
 
-  // Updates an inventory item's stock levels at the current site
-  @Patch(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.edit)
-  updateStockLevels(
+  // Changes how the current site replenishes an inventory item
+  @Patch(':id/setup')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.edit)
+  updateReplenishment(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: UpdateSiteStockLevelsDto,
+    @Body() dto: ReplenishmentDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.updateStockLevels(id, dto);
+    this.logger.log(`PATCH /commerce-api/site/inventory-items/${id}/setup`);
+    return this.service.updateReplenishment(id, dto);
   }
 
   // Updates an item-location config
@@ -77,16 +89,22 @@ export class SiteInventoryItemsGatewayController {
     return this.service.updateItemLocation(locationConfigId, dto);
   }
 
-  // Sets an inventory item's stock levels at the current site
-  @Post(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.add)
-  @HttpCode(HttpStatus.CREATED)
-  setStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body() dto: CreateSiteStockLevelsDto,
-  ): Promise<CreateResponseDto<{ id: string }>> {
-    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.setStockLevels(id, dto);
+  // Stops the current site buying an inventory item, with why
+  @Post(':id/setup/block')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.block)
+  @HttpCode(HttpStatus.OK)
+  block(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: BlockSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/setup/block`);
+    return this.service.block(id, dto);
+  }
+
+  // Lets the current site buy an inventory item again
+  @Post(':id/setup/unblock')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.block)
+  @HttpCode(HttpStatus.OK)
+  unblock(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/inventory-items/${id}/setup/unblock`);
+    return this.service.unblock(id);
   }
 
   // Returns a single inventory item
@@ -97,7 +115,7 @@ export class SiteInventoryItemsGatewayController {
     return this.service.findById(id);
   }
 
-  // Every master item with the site's stock levels for it and its stock on hand, split by location
+  // Every master item with how the site carries it and its stock on hand, split by location
   @Get('stock-table')
   @RequirePermission(SITE_INVENTORY_ITEMS.view)
   getStockTable(@UserId() userId: string): Promise<SiteStockTableResponseDto> {
@@ -145,14 +163,12 @@ export class SiteInventoryItemsGatewayController {
     return this.service.findItemLocationsForTable(id, userId);
   }
 
-  // Returns an inventory item's stock levels at the current site, or null while none are set
-  @Get(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.view)
-  findStockLevels(
-    @Param('id', new ParseUUIDPipe()) id: string,
-  ): Promise<InventoryItemSiteStockLevelResponseDto | null> {
-    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.findStockLevels(id);
+  // Returns how the current site carries an inventory item, or null while it does not
+  @Get(':id/setup')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.view)
+  findSiteItem(@Param('id', new ParseUUIDPipe()) id: string): Promise<InventoryItemSiteResponseDto | null> {
+    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/setup`);
+    return this.service.findSiteItem(id);
   }
 
   // Returns location-wise stock aggregates for an inventory item (sourced from inventory_item_quants)
@@ -163,13 +179,12 @@ export class SiteInventoryItemsGatewayController {
     return this.service.findStocks(id);
   }
 
-  // Removes an inventory item's stock levels at the current site; refused while the site holds it or has it on an open
-  // purchase
-  @Delete(':id/stock-levels')
-  @RequirePermission(SITE_INVENTORY_ITEMS.stockLevels.delete)
-  removeStockLevels(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/site/inventory-items/${id}/stock-levels`);
-    return this.service.removeStockLevels(id);
+  // Removes an inventory item from the current site; refused while the site holds it or has it on an open purchase
+  @Delete(':id/setup')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.delete)
+  removeFromSite(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/site/inventory-items/${id}/setup`);
+    return this.service.removeFromSite(id);
   }
 
   // Deletes an item-location config

@@ -1,18 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, exists, getColumns, gt, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, exists, getColumns, gt, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { type AnyPgColumn, alias, QueryBuilder, union } from '@vritti/api-sdk/drizzle-pg-core';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
+  hasSupplierItem,
   type InventoryItem,
   inventoryItemQuants,
-  inventoryItemSiteStockLevels,
+  inventoryItemSites,
   inventoryItems,
   inventoryItemUomConversions,
   itemStockAtSite,
   locations,
   purchaseOrderItems,
+  type ReplenishmentMethod,
+  type SiteItemStatus,
   type SiteStockLocation,
   type StockStatus,
   siteStockByItem,
@@ -29,13 +32,23 @@ import {
   uom,
 } from '@/db/schema';
 
-type TableRow = InventoryItem & { uomSymbol: string | null; categoryName: string | null; taxClassName: string | null };
+export type InventoryItemNames = {
+  uomSymbol: string;
+  uomAllowDecimal: boolean;
+  categoryName: string;
+  taxClassName: string;
+};
+
+type TableRow = InventoryItem & InventoryItemNames;
 
 export type SiteStockTableRow = TableRow & {
-  hasStockLevels: boolean;
+  atSite: boolean;
+  siteItemStatus: SiteItemStatus | null;
+  blockedReason: string | null;
+  replenishment: ReplenishmentMethod | null;
   reorderPoint: number | null;
   safetyStock: number | null;
-  maxStockLevel: number | null;
+  maxStock: number | null;
   onHand: number;
   stockValue: bigint;
   stockStatus: StockStatus | null;
@@ -87,32 +100,50 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     config: FindForSelectConfig,
     options?: {
       excludeOnSupplierId?: string;
-      withoutStockLevels?: boolean;
+      // Only the items this site does not carry yet
+      notAtSiteId?: string;
       // Only the items filed under one of these categories
       categoryIds?: string[];
-      stockLevelsAtSiteId?: string;
+      // Only the items this site carries, each with its stock and levels there
+      atSiteId?: string;
       // With a site, only the items whose stock there has one of these statuses
       stockStatus?: string[];
+      // With a site, marks the items the legal entity set up as the supplier's items and leaves out the others where the
+      // site's rules require them — every item while the site's own rule is on, else the ones it ties to it
+      supplier?: { supplierId: string; siteRequires: boolean };
     },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
 
-    // RLS narrows the stock levels to the request's site
-    if (options?.withoutStockLevels) {
-      const stockLevels = this.db
-        .select({ id: inventoryItemSiteStockLevels.id })
-        .from(inventoryItemSiteStockLevels)
-        .where(eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id));
-      conditions.push(notExists(stockLevels));
+    if (options?.notAtSiteId) {
+      const atSite = this.db
+        .select({ id: inventoryItemSites.id })
+        .from(inventoryItemSites)
+        .where(
+          and(
+            eq(inventoryItemSites.inventoryItemId, inventoryItems.id),
+            eq(inventoryItemSites.siteId, options.notAtSiteId),
+          ),
+        );
+      conditions.push(notExists(atSite));
     }
 
-    // Only the items with stock levels set at the site, through the inner join on their stock levels below; each row's
-    // stock is read per item, so a page adds up only its own items' stock, not everything the site holds
-    const stock = itemStockAtSite(inventoryItems.id, inventoryItemSiteStockLevels.siteId);
+    // Only the items the site carries, through the inner join on its site items below; each row's stock is read per
+    // item, so a page adds up only its own items' stock, not everything the site holds
+    const stock = itemStockAtSite(inventoryItems.id, inventoryItemSites.siteId);
     const stockStatus = stockStatusSql(stock.onHand);
-    if (options?.stockLevelsAtSiteId) {
-      conditions.push(eq(inventoryItemSiteStockLevels.siteId, options.stockLevelsAtSiteId));
+    if (options?.atSiteId) {
+      conditions.push(eq(inventoryItemSites.siteId, options.atSiteId));
       if (options.stockStatus?.length) conditions.push(siteStockStatusMatchesSql(options.stockStatus, stockStatus));
+    }
+
+    const supplied = options?.supplier ? hasSupplierItem(options.supplier.supplierId, inventoryItems.id) : undefined;
+    if (options?.atSiteId && options.supplier && supplied) {
+      conditions.push(
+        options.supplier.siteRequires
+          ? supplied
+          : (or(eq(inventoryItemSites.supplierItemsRequired, false), supplied) as SQL),
+      );
     }
 
     if (options?.categoryIds?.length) conditions.push(inArray(inventoryItems.categoryId, options.categoryIds));
@@ -137,31 +168,45 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return super.findForSelect({
       ...config,
       joins: [
-        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' },
-        ...(options?.stockLevelsAtSiteId
+        { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'inner' },
+        ...(options?.atSiteId
           ? [
               {
-                table: inventoryItemSiteStockLevels,
-                on: eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id),
+                table: inventoryItemSites,
+                on: eq(inventoryItemSites.inventoryItemId, inventoryItems.id),
                 type: 'inner' as const,
               },
             ]
           : []),
       ],
-      // Each item's stock at the site against its levels there, for the picker to show beside the item
-      additionalExpressions: options?.stockLevelsAtSiteId
-        ? {
-            onHand: sql<number>`${stock.onHand}`.mapWith(Number),
-            safetyStock: sql<number>`${inventoryItemSiteStockLevels.safetyStock}`.mapWith(Number),
-            reorderPoint: sql<number>`${inventoryItemSiteStockLevels.reorderPoint}`.mapWith(Number),
-            maxStockLevel: sql<number>`${inventoryItemSiteStockLevels.maxStockLevel}`.mapWith(Number),
-            stockStatus,
-            stockValue: stock.value,
-            locations: stock.locations,
-            uomSymbol: sql<string | null>`${uom.symbol}`,
-            allowDecimal: sql<boolean | null>`${uom.allowDecimal}`,
-          }
-        : undefined,
+      // Each item's unit and, at a site, its stock there against its levels and how the site carries it, for the picker to
+      // show beside it
+      additionalExpressions: {
+        uomSymbol: sql<string>`${uom.symbol}`,
+        allowDecimal: sql<boolean>`${uom.allowDecimal}`,
+        ...(options?.atSiteId
+          ? {
+              onHand: sql<number>`${stock.onHand}`.mapWith(Number),
+              siteItemStatus: sql<SiteItemStatus>`${inventoryItemSites.status}`,
+              blockedReason: sql<string | null>`${inventoryItemSites.blockedReason}`,
+              replenishment: sql<ReplenishmentMethod>`${inventoryItemSites.replenishment}`,
+              safetyStock: sql<number | null>`${inventoryItemSites.safetyStock}`.mapWith(Number),
+              reorderPoint: sql<number | null>`${inventoryItemSites.reorderPoint}`.mapWith(Number),
+              maxStock: sql<number | null>`${inventoryItemSites.maxStock}`.mapWith(Number),
+              stockStatus,
+              stockValue: stock.value,
+              locations: stock.locations,
+            }
+          : {}),
+        ...(options?.atSiteId && options.supplier && supplied
+          ? {
+              suppliedBySupplier: sql<boolean>`${supplied}`,
+              supplierItemsRequired: options.supplier.siteRequires
+                ? sql<boolean>`true`
+                : sql<boolean>`${inventoryItemSites.supplierItemsRequired}`,
+            }
+          : {}),
+      },
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions,
     });
@@ -178,12 +223,13 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return rows.map((row) => row.uomId);
   }
 
-  // Returns paginated inventory items with UOM symbol via LEFT JOIN
+  // Returns paginated inventory items with their unit's symbol
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & {
-      uomSymbol: string | null;
-      categoryName: string | null;
-      taxClassName: string | null;
+      uomSymbol: string;
+      uomAllowDecimal: boolean;
+      categoryName: string;
+      taxClassName: string;
     })[];
     count: number;
   }> {
@@ -191,18 +237,19 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       select: {
         ...inventoryItems,
         uomSymbol: uom.symbol,
-        categoryName: sql<string | null>`(
+        uomAllowDecimal: uom.allowDecimal,
+        categoryName: sql<string>`(
           SELECT c.name
           FROM ${categories} c
           WHERE c.id = ${inventoryItems.categoryId}
         )`,
-        taxClassName: sql<string | null>`(
+        taxClassName: sql<string>`(
           SELECT t.name
           FROM ${taxClasses} t
           WHERE t.id = ${inventoryItems.taxClassId}
         )`,
       },
-      leftJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
+      innerJoin: { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       where: options?.where,
       orderBy: options?.orderBy,
       limit: options?.limit,
@@ -210,12 +257,13 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     });
   }
 
-  // Returns up to limit+1 inventory items with UOM symbol via LEFT JOIN for keyset pagination
+  // Returns up to limit+1 inventory items with their unit's symbol for keyset pagination
   async findKeysetWithUom(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
     rows: (typeof inventoryItems.$inferSelect & {
-      uomSymbol: string | null;
-      categoryName: string | null;
-      taxClassName: string | null;
+      uomSymbol: string;
+      uomAllowDecimal: boolean;
+      categoryName: string;
+      taxClassName: string;
     })[];
     hasMore: boolean;
   }> {
@@ -223,12 +271,13 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       select: {
         ...inventoryItems,
         uomSymbol: uom.symbol,
-        categoryName: sql<string | null>`(
+        uomAllowDecimal: uom.allowDecimal,
+        categoryName: sql<string>`(
           SELECT c.name
           FROM ${categories} c
           WHERE c.id = ${inventoryItems.categoryId}
         )`,
-        taxClassName: sql<string | null>`(
+        taxClassName: sql<string>`(
           SELECT t.name
           FROM ${taxClasses} t
           WHERE t.id = ${inventoryItems.taxClassId}
@@ -241,12 +290,13 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     });
   }
 
-  // Returns a single inventory item with UOM symbol and category name via LEFT JOINs
+  // Returns a single inventory item with its unit's symbol and its category and tax class names
   async findByIdWithUomAndCategory(id: string): Promise<
     | (typeof inventoryItems.$inferSelect & {
-        uomSymbol: string | null;
-        categoryName: string | null;
-        taxClassName: string | null;
+        uomSymbol: string;
+        uomAllowDecimal: boolean;
+        categoryName: string;
+        taxClassName: string;
       })
     | null
   > {
@@ -254,13 +304,14 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       .select({
         ...getColumns(inventoryItems),
         uomSymbol: uom.symbol,
+        uomAllowDecimal: uom.allowDecimal,
         categoryName: categories.name,
         taxClassName: taxClasses.name,
       })
       .from(inventoryItems)
-      .leftJoin(uom, eq(inventoryItems.uomId, uom.id))
-      .leftJoin(categories, eq(inventoryItems.categoryId, categories.id))
-      .leftJoin(taxClasses, eq(inventoryItems.taxClassId, taxClasses.id))
+      .innerJoin(uom, eq(inventoryItems.uomId, uom.id))
+      .innerJoin(categories, eq(inventoryItems.categoryId, categories.id))
+      .innerJoin(taxClasses, eq(inventoryItems.taxClassId, taxClasses.id))
       .where(eq(inventoryItems.id, id))
       .limit(1);
 
@@ -269,7 +320,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
 
   // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
   findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
-    result: (InventoryItem & { uomSymbol: string | null; categoryName: string | null; taxClassName: string | null })[];
+    result: TableRow[];
     count: number;
   }> {
     return this.findAllWithUom(options);
@@ -279,23 +330,27 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
   private tableColumns() {
     return {
       ...getColumns(inventoryItems),
-      uomSymbol: sql<string | null>`(${this.db
+      uomSymbol: sql<string>`(${this.db
         .select({ symbol: uom.symbol })
         .from(uom)
         .where(eq(uom.id, inventoryItems.uomId))})`,
-      categoryName: sql<string | null>`(${this.db
+      uomAllowDecimal: sql<boolean>`(${this.db
+        .select({ allowDecimal: uom.allowDecimal })
+        .from(uom)
+        .where(eq(uom.id, inventoryItems.uomId))})`,
+      categoryName: sql<string>`(${this.db
         .select({ name: categories.name })
         .from(categories)
         .where(eq(categories.id, inventoryItems.categoryId))})`,
-      taxClassName: sql<string | null>`(${this.db
+      taxClassName: sql<string>`(${this.db
         .select({ name: taxClasses.name })
         .from(taxClasses)
         .where(eq(taxClasses.id, inventoryItems.taxClassId))})`,
     };
   }
 
-  // Every master item with the site's stock levels for it, when set, the stock the site holds of it by location and its
-  // stock status; RLS narrows the stock levels and quants to the request's site
+  // Every master item with how the site carries it, when it does, the stock the site holds of it by location and its
+  // stock status; RLS narrows the site items and quants to the request's site
   async findForSiteStockTable(options: {
     where?: SQL;
     orderBy: SQL[];
@@ -305,10 +360,13 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return this.findAllAndCount<SiteStockTableRow>({
       select: {
         ...this.tableColumns(),
-        hasStockLevels: sql<boolean>`${inventoryItemSiteStockLevels.id} IS NOT NULL`,
-        reorderPoint: inventoryItemSiteStockLevels.reorderPoint,
-        safetyStock: inventoryItemSiteStockLevels.safetyStock,
-        maxStockLevel: inventoryItemSiteStockLevels.maxStockLevel,
+        atSite: sql<boolean>`${inventoryItemSites.id} IS NOT NULL`,
+        siteItemStatus: inventoryItemSites.status,
+        blockedReason: inventoryItemSites.blockedReason,
+        replenishment: inventoryItemSites.replenishment,
+        reorderPoint: inventoryItemSites.reorderPoint,
+        safetyStock: inventoryItemSites.safetyStock,
+        maxStock: inventoryItemSites.maxStock,
         onHand: sql<number>`${siteStockOnHand}`.mapWith(Number),
         stockValue: sql<bigint>`${siteStockValue}`.mapWith(BigInt),
         stockStatus: siteStockStatus,
@@ -316,8 +374,8 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       },
       leftJoins: [
         {
-          table: inventoryItemSiteStockLevels,
-          on: eq(inventoryItemSiteStockLevels.inventoryItemId, inventoryItems.id),
+          table: inventoryItemSites,
+          on: eq(inventoryItemSites.inventoryItemId, inventoryItems.id),
         },
         { table: siteStockByItem, on: eq(siteStockByItem.inventoryItemId, inventoryItems.id) },
       ],
@@ -328,24 +386,25 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     });
   }
 
-  // Returns the UOM symbol for a given UOM ID
-  async findUomSymbol(uomId: string): Promise<string | null> {
-    const result = await this.db.select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, uomId));
-    return result[0]?.symbol ?? null;
+  // Returns a unit's symbol and whether it can be counted in fractions
+  async findUnit(uomId: string): Promise<Pick<InventoryItemNames, 'uomSymbol' | 'uomAllowDecimal'>> {
+    const [row] = await this.db
+      .select({ uomSymbol: uom.symbol, uomAllowDecimal: uom.allowDecimal })
+      .from(uom)
+      .where(eq(uom.id, uomId));
+    return row;
   }
 
   // Returns category name for a given category ID
-  async findCategoryName(categoryId: string): Promise<string | null> {
-    const result = await this.db
-      .select({ name: categories.name })
-      .from(categories)
-      .where(eq(categories.id, categoryId));
-    return result[0]?.name ?? null;
+  async findCategoryName(categoryId: string): Promise<string> {
+    const [row] = await this.db.select({ name: categories.name }).from(categories).where(eq(categories.id, categoryId));
+    return row.name;
   }
 
-  async findTaxClassName(taxClassId: string): Promise<string | null> {
+  // Returns the tax class name for a given tax class ID
+  async findTaxClassName(taxClassId: string): Promise<string> {
     const [row] = await this.db.select({ name: taxClasses.name }).from(taxClasses).where(eq(taxClasses.id, taxClassId));
-    return row?.name ?? null;
+    return row.name;
   }
 
   // Returns a set of inventory item IDs that have at least one non-cascading reference

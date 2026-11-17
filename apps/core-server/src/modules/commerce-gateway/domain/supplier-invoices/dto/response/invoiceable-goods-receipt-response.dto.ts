@@ -44,11 +44,11 @@ export class InvoiceableGoodsReceiptResponseDto {
   @ApiProperty({ description: "Order line's unit" })
   uomId: string;
 
-  @ApiPropertyOptional({ description: "Symbol of the order line's unit", type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the order line's unit" })
+  uomSymbol: string;
 
-  @ApiPropertyOptional({ description: "Symbol of the item's primary unit", type: String, nullable: true })
-  primaryUomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the item's primary unit" })
+  primaryUomSymbol: string;
 
   @ApiProperty({ type: CurrencyAmountDto, description: "Order line's unit price in the PO currency" })
   poUnitPrice: CurrencyAmountDto;

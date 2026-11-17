@@ -85,8 +85,8 @@ export class SupplierQuotationItemResponseDto {
   @ApiPropertyOptional({ description: "Supplier's code for the item", type: String, nullable: true })
   supplierItemCode: string | null;
 
-  @ApiPropertyOptional({ description: 'Unit symbol', type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: 'Unit symbol' })
+  uomSymbol: string;
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Quoted price' })
   unitPrice: CurrencyAmountDto;

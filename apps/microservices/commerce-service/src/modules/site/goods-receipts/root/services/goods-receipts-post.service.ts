@@ -14,10 +14,10 @@ import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/servi
 import { InventoryItemLedgerDomainService } from '@domain/inventory-item-ledger/services/inventory-item-ledger.service';
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
@@ -57,9 +57,9 @@ export class GoodsReceiptsPostService {
     private readonly quantsService: InventoryItemQuantsDomainService,
     private readonly inventoryLotsService: InventoryItemLotsDomainService,
     private readonly ledgerService: InventoryItemLedgerDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
     private readonly inboundDeliveriesService: InboundDeliveriesDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly purchaseProgressService: PurchaseProgressService,
   ) {}
 
@@ -70,7 +70,7 @@ export class GoodsReceiptsPostService {
   async post(id: string, leCurrencyCode: string, headers: NatsHeaders): Promise<GoodsReceiptDto> {
     const receipt = await this.goodsReceiptsService.findDraftOrThrow(id, 'Cannot Post');
     if (receipt.deliverySource === InboundDeliverySourceValues.SUPPLIER_INVOICE) {
-      this.purchasesService.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
+      this.purchasesRepository.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
     }
     this.goodsReceiptsService.assertPostable(receipt);
 
@@ -115,7 +115,7 @@ export class GoodsReceiptsPostService {
   // Checks a draft's items are enabled at its site and its lots keep their MRPs, and works out what it lands at
   async prepareLanding(receipt: GoodsReceiptRow, leCurrencyCode: string): Promise<ReceiptLanding> {
     const costs = await this.itemsService.findProvisionalCosts(receipt.id, leCurrencyCode);
-    await this.siteStockLevelsService.ensureStockLevels(
+    await this.inventoryItemSitesRepository.ensureAtSite(
       _.uniq(costs.map((cost) => cost.item.inventoryItemId)),
       'items',
       receipt.siteId,

@@ -1,18 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   PURCHASE_STATUSES,
-  PURCHASE_STEPS,
+  PURCHASE_SUMMARIES,
   type PurchaseStatus,
-  type PurchaseStep,
+  type PurchaseSummary,
 } from '../../constants/purchase.constants';
-
-export class PurchaseProgressQuotationsResponseDto {
-  @ApiProperty({ description: 'Suppliers with a posted quotation', example: 2 })
-  posted: number;
-
-  @ApiProperty({ description: 'Quotations the purchase needs before sourcing (min quotations)', example: 3 })
-  needed: number;
-}
 
 export class PurchaseProgressSegmentsResponseDto {
   @ApiProperty({ description: 'Percent of the requested quantity invoiced', example: 20 })
@@ -35,21 +27,8 @@ export class PurchaseProgressSegmentsResponseDto {
 }
 
 export class PurchaseProgressResponseDto {
-  @ApiProperty({
-    description: "The purchase's stage the progress is measured at: Requesting, Quoting, Sourcing or Procuring",
-    enum: PURCHASE_STEPS,
-  })
-  stage: PurchaseStep;
-
   @ApiProperty({ description: 'Number of items, each weighing 1/N of the bar', example: 5 })
   itemCount: number;
-
-  @ApiPropertyOptional({
-    type: () => PurchaseProgressQuotationsResponseDto,
-    description: 'Posted vs needed quotations, only while the purchase is Quoting',
-    nullable: true,
-  })
-  quotations: PurchaseProgressQuotationsResponseDto | null;
 
   @ApiProperty({
     type: () => PurchaseProgressSegmentsResponseDto,
@@ -65,11 +44,15 @@ export class PurchaseTableRowResponseDto {
   @ApiProperty({ description: 'Purchase number', example: 'PUR-202611-0001' })
   purchaseNumber: string;
 
-  @ApiProperty({ description: 'Furthest stage the purchase reached', enum: PURCHASE_STEPS })
-  step: PurchaseStep;
-
   @ApiProperty({ description: 'Purchase status', enum: PURCHASE_STATUSES })
   status: PurchaseStatus;
+
+  @ApiPropertyOptional({
+    description: 'Where an open purchase stands, from its progress; null once completed or cancelled',
+    enum: PURCHASE_SUMMARIES,
+    nullable: true,
+  })
+  summary: PurchaseSummary | null;
 
   @ApiProperty({ description: 'Site the purchase is for' })
   siteId: string;

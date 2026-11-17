@@ -1,4 +1,6 @@
 import { CancelPurchaseDto } from '@commerce/purchases/dto/request/cancel-purchase.dto';
+import { CancelSupplierDto } from '@commerce/purchases/dto/request/cancel-supplier.dto';
+import { ClosePurchaseDto } from '@commerce/purchases/dto/request/close-purchase.dto';
 import { CloseSupplierDto } from '@commerce/purchases/dto/request/close-supplier.dto';
 import { CreateLegGoodsReceiptDto } from '@commerce/purchases/dto/request/create-leg-goods-receipt.dto';
 import { CreateLegInboundDeliveryDto } from '@commerce/purchases/dto/request/create-leg-inbound-delivery.dto';
@@ -15,17 +17,42 @@ import { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/req
 import { UpdatePurchaseDto } from '@commerce/purchases/dto/request/update-purchase.dto';
 import { UpdatePurchaseAllocationDto } from '@commerce/purchases/dto/request/update-purchase-allocation.dto';
 import { UpdatePurchaseItemDto } from '@commerce/purchases/dto/request/update-purchase-item.dto';
+import { UpdatePurchaseSettingsDto } from '@commerce/purchases/dto/request/update-purchase-settings.dto';
 import { CreatedLegGoodsReceiptResponseDto } from '@commerce/purchases/dto/response/created-leg-goods-receipt-response.dto';
 import { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/dto/response/created-leg-inbound-delivery-response.dto';
 import { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
+import {
+  PurchaseActionsResponseDto,
+  PurchaseCountsResponseDto,
+  PurchaseDetailResponseDto,
+  PurchaseProgressSummaryResponseDto,
+} from '@commerce/purchases/dto/response/purchase-detail-response.dto';
 import { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
+import {
+  PurchaseItemComparisonTableResponseDto,
+  PurchaseItemFacetsResponseDto,
+  PurchaseItemTableResponseDto,
+} from '@commerce/purchases/dto/response/purchase-item-table-response.dto';
+import {
+  PurchaseItemAllocationTableResponseDto,
+  PurchaseItemCountsResponseDto,
+  PurchaseItemDocumentTableResponseDto,
+  PurchaseItemProgressResponseDto,
+  PurchaseItemQuoteTableResponseDto,
+  PurchaseItemSiteStockResponseDto,
+  PurchaseItemViewResponseDto,
+} from '@commerce/purchases/dto/response/purchase-item-view-response.dto';
 import { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
-import { PurchaseQuotationResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
+import {
+  PurchaseLegCountResponseDto,
+  PurchaseLegTableResponseDto,
+  PurchaseSupplierDocumentsResponseDto,
+} from '@commerce/purchases/dto/response/purchase-leg-table-response.dto';
+import { PurchaseQuotationTableResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
 import { PurchaseResponseDto } from '@commerce/purchases/dto/response/purchase-response.dto';
-import { PurchaseSourcingItemResponseDto } from '@commerce/purchases/dto/response/purchase-sourcing-item-response.dto';
+import { PurchaseSettingsRowResponseDto } from '@commerce/purchases/dto/response/purchase-settings-response.dto';
 import { PurchaseTableResponseDto } from '@commerce/purchases/dto/response/purchase-table-response.dto';
 import { ReceiveWithInvoiceDetailResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-detail-response.dto';
 import { ReceiveWithInvoiceOpenLineResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-open-line-response.dto';
@@ -63,60 +90,10 @@ export function ApiFindById() {
     ApiOperation({
       summary: 'Get a purchase',
       description:
-        "Returns the purchase's header: its site, item, quotation and supplier counts, its progress and the purchase-level actions available to the caller.",
+        'Returns the purchase with its site. Its counts, progress and actions come from `:id/counts`, `:id/progress` and `:id/actions`.',
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Purchase retrieved.', type: PurchaseHeaderResponseDto }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-  );
-}
-
-export function ApiFindItems() {
-  return applyDecorators(
-    ApiOperation({
-      summary: "List a purchase's items",
-      description: 'Returns the items requested on the purchase — the Requesting view.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Items retrieved.', type: [PurchaseItemResponseDto] }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-  );
-}
-
-export function ApiFindQuotations() {
-  return applyDecorators(
-    ApiOperation({
-      summary: "List a purchase's quotations",
-      description: 'Returns the supplier quotations linked to the purchase with their lines — the Quoting view.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Quotations retrieved.', type: [PurchaseQuotationResponseDto] }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-  );
-}
-
-export function ApiFindSourcingItems() {
-  return applyDecorators(
-    ApiOperation({
-      summary: "List a purchase's items with their allocations",
-      description:
-        "Returns each item with its allocations across every supplier leg, each naming its supplier, its leg's step and status, and whether it can still change — the Sourcing view's Items tab.",
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Sourcing items retrieved.', type: [PurchaseSourcingItemResponseDto] }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-  );
-}
-
-export function ApiFindSuppliers() {
-  return applyDecorators(
-    ApiOperation({
-      summary: "List a purchase's supplier legs",
-      description:
-        "Returns one leg per supplier with its allocations, documents, progress, approvers, last rejection and the actions available to the caller — the Sourcing view's Suppliers tab and the Procuring view.",
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Supplier legs retrieved.', type: [PurchaseLegResponseDto] }),
+    ApiResponse({ status: 200, description: 'Purchase retrieved.', type: PurchaseDetailResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase not found.' }),
   );
 }
@@ -200,19 +177,6 @@ export function ApiDeleteItem() {
   );
 }
 
-export function ApiSubmitItems() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Submit the items',
-      description: 'Moves the purchase to Quoting when quotations are required, otherwise to Sourcing.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Items submitted.', type: SuccessResponseDto }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-    ApiResponse({ status: 409, description: 'The purchase is not Requesting or has no items.' }),
-  );
-}
-
 export function ApiRequestQuotation() {
   return applyDecorators(
     ApiOperation({
@@ -225,19 +189,6 @@ export function ApiRequestQuotation() {
     ApiResponse({ status: 201, description: 'Quotation requested.', type: RequestedPurchaseQuotationResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase or supplier not found.' }),
     ApiResponse({ status: 409, description: 'The purchase is not collecting quotations.' }),
-  );
-}
-
-export function ApiCompleteQuotations() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Complete quotations',
-      description: 'Moves the purchase to sourcing once enough suppliers have posted a quotation.',
-    }),
-    ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiResponse({ status: 200, description: 'Quotations completed.', type: SuccessResponseDto }),
-    ApiResponse({ status: 404, description: 'Purchase not found.' }),
-    ApiResponse({ status: 409, description: 'Not enough posted quotations, or the purchase is not Quoting.' }),
   );
 }
 
@@ -576,5 +527,298 @@ export function ApiDiscardReceiveWithInvoice() {
     ApiResponse({ status: 200, description: 'Receive with Invoice discarded.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Receive with Invoice not found.' }),
     ApiResponse({ status: 409, description: 'The Receive with Invoice is posted.' }),
+  );
+}
+
+export function ApiClose() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Close a purchase',
+      description:
+        'Suppliers with goods received stop expecting more and close once invoiced; suppliers with nothing received are cancelled with their quantity dropped, and every item is lowered to what is allocated of it.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiBody({ type: ClosePurchaseDto }),
+    ApiResponse({ status: 200, description: 'Purchase closed.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+    ApiResponse({
+      status: 409,
+      description: 'Nothing is received yet, or a supplier has goods on their way or a draft open.',
+    }),
+  );
+}
+
+export function ApiCancelSupplier() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Cancel a supplier',
+      description:
+        'Cancels a supplier leg nothing is received or invoiced on, with its purchase orders and planned deliveries; its quantity goes back to allocate or is dropped. The supplier is told outside the system.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiParam({ name: 'legId', description: 'Supplier leg ID' }),
+    ApiBody({ type: CancelSupplierDto }),
+    ApiResponse({ status: 200, description: 'Supplier cancelled.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or leg not found.' }),
+    ApiResponse({ status: 409, description: 'Goods are received, on their way or a draft is open.' }),
+  );
+}
+
+export function ApiFindItemById() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get a purchase item',
+      description:
+        "Returns one item as its own page shows it: the item with its category and tax class, whether its unit can be split, and what stops it being bought at the purchase's site. Its allocations, quotes, documents, progress and site stock each have their own endpoint.",
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiParam({ name: 'itemId', description: 'Purchase item ID' }),
+    ApiResponse({ status: 200, description: 'Item retrieved.', type: PurchaseItemViewResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or item not found.' }),
+  );
+}
+
+export function ApiFindSupplierById() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Get a supplier leg',
+      description:
+        'Returns one supplier leg with its allocations, documents, progress, approvers, last rejection, the actions available to the caller and why it cannot be cancelled or closed.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiParam({ name: 'legId', description: 'Supplier leg ID' }),
+    ApiResponse({ status: 200, description: 'Supplier leg retrieved.', type: PurchaseLegResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or leg not found.' }),
+  );
+}
+
+export function ApiGetItemsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase's items table",
+      description:
+        'Returns one page of the items with how much of each is allocated, ordered, on its way, received and invoiced, filtered by the saved table state (bucket, category, supplier, search).',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Items retrieved.', type: PurchaseItemTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiGetItemComparisonTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Compare a purchase's quotations by item",
+      description:
+        'Returns one page of the items, each with the quotation lines quoting it (cheapest per primary unit first within each currency) and its allocations.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Comparison retrieved.', type: PurchaseItemComparisonTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiGetSuppliersTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase's suppliers table",
+      description:
+        'Returns one page of the supplier legs with their documents, progress, line count, actions and blockers; allocations come with the leg on its own.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Supplier legs retrieved.', type: PurchaseLegTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiGetQuotationsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase's quotations table",
+      description: 'Returns one page of the quotations linked to the purchase, drafts included, without their lines.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Quotations retrieved.', type: PurchaseQuotationTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a purchase's items, suppliers and quotations",
+      description: 'Counts its item lines, its supplier legs in any status and the quotations requested for it.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: PurchaseCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindProgress() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase's progress",
+      description:
+        'Returns how far its items have got (allocated, ordered, on their way, received, invoiced) and where it stands as a whole.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Progress retrieved.', type: PurchaseProgressSummaryResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindActions() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase's actions",
+      description: 'Returns the purchase-level actions available to the caller and why each blocked one is blocked.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Actions retrieved.', type: PurchaseActionsResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindItemFacets() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a purchase's items by bucket",
+      description:
+        'Counts the items still to allocate, short of quotations, allocated, ordered, on their way, received and invoiced.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: PurchaseItemFacetsResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindSupplierCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a purchase's supplier legs by step",
+      description: 'Counts the supplier legs and their allocated lines by step and status.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: [PurchaseLegCountResponseDto] }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiFindDocuments() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "List a purchase's documents",
+      description: 'Returns the purchase orders, deliveries, receipts and invoices of every supplier leg.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiResponse({ status: 200, description: 'Documents retrieved.', type: [PurchaseSupplierDocumentsResponseDto] }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+const ITEM_PARAMS = [
+  ApiParam({ name: 'id', description: 'Purchase ID' }),
+  ApiParam({ name: 'itemId', description: 'Purchase item ID' }),
+];
+
+export function ApiGetItemAllocationsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase item's allocations table",
+      description:
+        "Returns one page of the item's allocations, each with its supplier and leg state, the purchase order it became and what of that PO line is received and invoiced, filtered and sorted by the saved table state.",
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Allocations retrieved.', type: PurchaseItemAllocationTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiGetItemQuotesTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase item's quotes table",
+      description:
+        "Returns one page of the purchase's quotation lines that quote the item, each priced per primary unit; the cheapest per currency among the posted quotes valid today is marked lowest.",
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Quotes retrieved.', type: PurchaseItemQuoteTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+  );
+}
+
+export function ApiGetItemDocumentsTable() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase item's documents table",
+      description:
+        'Returns one page of the document lines that move the item: its purchase order lines and the inbound delivery lines, goods receipt items and supplier invoice lines on them, quantities in the primary unit.',
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Documents retrieved.', type: PurchaseItemDocumentTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or item not found.' }),
+  );
+}
+
+export function ApiFindItemCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a purchase item's allocations, quotes and documents",
+      description: "Returns the counts a purchase item's page labels its tabs with.",
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: PurchaseItemCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or item not found.' }),
+  );
+}
+
+export function ApiFindItemProgress() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase item's progress",
+      description:
+        'Returns how much of the item is allocated, ordered, on its way, received and invoiced, in its primary unit, in all and per supplier.',
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Progress retrieved.', type: PurchaseItemProgressResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or item not found.' }),
+  );
+}
+
+export function ApiFindItemSiteStock() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get a purchase item's stock at the purchase's site",
+      description:
+        "Returns how the purchase's site carries the item (purchasing status, replenishment and levels) and the stock it holds there by location, valued in the legal entity's currency; null while the site does not carry it.",
+    }),
+    ...ITEM_PARAMS,
+    ApiResponse({ status: 200, description: 'Site stock retrieved.', type: PurchaseItemSiteStockResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase or item not found.' }),
+  );
+}
+
+export function ApiUpdateSettings() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Set a site's purchasing rules",
+      description:
+        "Sets whether one of the legal entity's sites buys an item only from suppliers that have it set up there, and " +
+        'whether its sent purchase orders set those supplier items up with the price they paid.',
+    }),
+    ApiParam({ name: 'siteId', description: "One of the legal entity's sites" }),
+    ApiBody({ type: UpdatePurchaseSettingsDto }),
+    ApiResponse({ status: 200, description: 'Purchasing rules updated.', type: SuccessResponseDto }),
+  );
+}
+
+export function ApiFindSettings() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "List the sites' purchasing rules",
+      description: 'Returns every site of the legal entity with its purchasing rules, the defaults where none are set.',
+    }),
+    ApiResponse({ status: 200, description: 'Purchasing rules retrieved.', type: [PurchaseSettingsRowResponseDto] }),
   );
 }

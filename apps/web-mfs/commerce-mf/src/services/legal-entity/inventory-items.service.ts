@@ -3,10 +3,11 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type { InventoryItemMrpTableResponse } from '@/schemas/inventory-item-mrp';
 import type { InventoryItemData, InventoryItemTableResponse } from '@/schemas/inventory-items';
 import type {
-  SiteStockLevelData,
-  SiteStockLevelsPayload,
-  SiteStockLevelsTableResponse,
-} from '@/schemas/site-stock-levels';
+  BlockSiteItemFormData,
+  InventoryItemSiteData,
+  ReplenishmentPayload,
+  SiteItemsTableResponse,
+} from '@/schemas/site-items';
 import type {
   InventoryItemPriceHistory,
   InventoryItemSuppliersTableResponse,
@@ -46,31 +47,51 @@ export function getLeInventoryItemPricesTable(id: string): Promise<ItemSupplierP
     .then((r) => r.data);
 }
 
-// Lists every site of the legal entity with the item's stock levels and on-hand quantity there
-// The item's stock levels at the legal entity's sites, with the stock each holds, for the data table
-export function getLeSiteStockLevelsTable(id: string): Promise<SiteStockLevelsTableResponse> {
-  return axios.get<SiteStockLevelsTableResponse>(`${BASE}/${id}/site-stock-levels/table`).then((r) => r.data);
+// The legal entity's sites with how each carries the item and the stock it holds, for the data table
+export function getLeSiteItemsTable(id: string): Promise<SiteItemsTableResponse> {
+  return axios.get<SiteItemsTableResponse>(`${BASE}/${id}/sites/table`).then((r) => r.data);
 }
 
-export function createLeSiteStockLevels(
+// Adds the item to one of the legal entity's sites with how the site replenishes it
+export function addToLeSite(
   id: string,
   siteId: string,
-  data: SiteStockLevelsPayload['data'],
-): Promise<CreateResponse<SiteStockLevelData>> {
+  data: ReplenishmentPayload,
+): Promise<CreateResponse<InventoryItemSiteData>> {
+  return axios.post<CreateResponse<InventoryItemSiteData>>(`${BASE}/${id}/sites/${siteId}`, data).then((r) => r.data);
+}
+
+// Changes how one of the legal entity's sites replenishes the item
+export function updateLeSiteReplenishment(
+  id: string,
+  siteId: string,
+  data: ReplenishmentPayload,
+): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${id}/sites/${siteId}`, data).then((r) => r.data);
+}
+
+// Stops one of the legal entity's sites buying the item, with why
+export function blockLeSiteItem(id: string, siteId: string, data: BlockSiteItemFormData): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/sites/${siteId}/block`, data).then((r) => r.data);
+}
+
+// Lets one of the legal entity's sites buy the item again
+export function unblockLeSiteItem(id: string, siteId: string): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/sites/${siteId}/unblock`).then((r) => r.data);
+}
+
+// Ties buying the item at a site to the supplier's item set up there, or leaves it to the site's own rule
+export function setLeSiteItemSupplierItemsRequired(
+  id: string,
+  siteId: string,
+  required: boolean,
+): Promise<SuccessResponse> {
   return axios
-    .post<CreateResponse<SiteStockLevelData>>(`${BASE}/${id}/site-stock-levels/${siteId}`, data)
+    .patch<SuccessResponse>(`${BASE}/${id}/sites/${siteId}/supplier-items-required`, { required })
     .then((r) => r.data);
 }
 
-export function updateLeSiteStockLevels(
-  id: string,
-  siteId: string,
-  data: SiteStockLevelsPayload['data'],
-): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/${id}/site-stock-levels/${siteId}`, data).then((r) => r.data);
-}
-
-// Removes the item's stock levels at a site; rejected while the site still holds stock or has open purchases for it
-export function deleteLeSiteStockLevels(id: string, siteId: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`${BASE}/${id}/site-stock-levels/${siteId}`).then((r) => r.data);
+// Removes the item from a site; rejected while the site still holds stock or has open purchases for it
+export function removeFromLeSite(id: string, siteId: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${id}/sites/${siteId}`).then((r) => r.data);
 }

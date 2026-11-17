@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type DimensionTemplateSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type DimensionTemplateSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 export const DimensionTemplateSelector = forwardRef<HTMLButtonElement, DimensionTemplateSelectorProps>((props, ref) => (
   <Select

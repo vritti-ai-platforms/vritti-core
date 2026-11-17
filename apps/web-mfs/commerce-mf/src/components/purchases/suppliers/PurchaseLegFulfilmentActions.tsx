@@ -2,14 +2,13 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { CheckCircle2, FileText, PackageCheck, PackageX, ReceiptText, ShoppingCart, Truck } from 'lucide-react';
+import { Ban, CheckCircle2, FileText, PackageCheck, PackageX, ReceiptText, ShoppingCart, Truck } from 'lucide-react';
 import type React from 'react';
 import { Fragment } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { GoodsReceiptStatus } from '@/schemas/goods-receipts';
 import { PurchaseOrderStatusValues } from '@/schemas/purchase-orders';
 import {
-  type PurchaseHeader,
+  type PurchaseDetail,
   type PurchaseLeg,
   type PurchaseLegAction,
   PurchaseLegActionValues,
@@ -20,12 +19,12 @@ import {
   type PurchaseType,
   PurchaseTypeValues,
 } from '@/schemas/purchases';
-import { SupplierInvoiceStatusValues } from '@/schemas/supplier-invoices';
 import { workspaceBase } from '@/utils/workspace';
 import type { PurchasesBinding } from '../bindings';
 import { goodsReceiptPath, purchasesPath } from '../documentPaths';
 import { CreatePurchaseSupplierInvoiceDialog } from '../forms/CreatePurchaseSupplierInvoiceDialog';
 import { receiveWithInvoiceSearch } from '../receive-with-invoices/receiveWithInvoiceSearch';
+import { CancelSupplierDialog } from './forms/CancelSupplierDialog';
 import { CloseSupplierDialog } from './forms/CloseSupplierDialog';
 import { CreateLegGoodsReceiptDialog } from './forms/CreateLegGoodsReceiptDialog';
 import { CreateLegInboundDeliveryDialog } from './forms/CreateLegInboundDeliveryDialog';
@@ -50,7 +49,7 @@ interface LegActionButton {
 
 interface PurchaseLegFulfilmentActionsProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
 }
 
@@ -72,18 +71,15 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
   const goodsReceiptDialog = useDialog();
   const supplierInvoiceDialog = useDialog();
   const closeDialog = useDialog();
+  const cancelDialog = useDialog();
   const confirmOrderMutation = binding.useConfirmLegPurchaseOrder();
 
   const isAvailable = (action: PurchaseLegAction) => leg.availableActions.includes(action);
   const primaryAction = (STEP_ACTIONS[leg.step] ?? []).find(isAvailable);
-  const hasDrafts =
-    leg.documents.receipts.some((receipt) => receipt.status === GoodsReceiptStatus.DRAFT) ||
-    leg.documents.invoices.some((invoice) => invoice.status === SupplierInvoiceStatusValues.DRAFT);
-  const isComingSoon =
-    COMING_SOON_TYPES.includes(leg.type) &&
-    leg.status === PurchaseLegStatusValues.OPEN &&
-    leg.step !== PurchaseLegStepValues.SOURCING &&
-    leg.step !== PurchaseLegStepValues.APPROVAL;
+  const isOpen = leg.status === PurchaseLegStatusValues.OPEN;
+  const isFulfilling =
+    isOpen && leg.step !== PurchaseLegStepValues.SOURCING && leg.step !== PurchaseLegStepValues.APPROVAL;
+  const isComingSoon = COMING_SOON_TYPES.includes(leg.type) && isFulfilling;
   const siteId = binding.spansSites ? purchase.siteId : undefined;
 
   // Confirms one of the leg's sent orders: the supplier has accepted it
@@ -96,6 +92,9 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
     if (confirmed) confirmOrderMutation.mutate({ id: purchase.id, legId: leg.id, purchaseOrderId: order.id });
   };
 
+  // Receiving a supplier with no purchase order yet creates its orders, so a blocked item stops that too
+  const receiveOrderBlocker = leg.documents.purchaseOrders.length === 0 ? leg.blockers.order : null;
+
   const allButtons: LegActionButton[] = [
     {
       key: 'purchase-order',
@@ -107,6 +106,8 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
           permission={permissions.edit}
           startAdornment={<ShoppingCart className="size-4" />}
           onClick={purchaseOrderDialog.open}
+          disabled={leg.blockers.order !== null}
+          disabledTip={leg.blockers.order ?? undefined}
         >
           Create Purchase Order
         </Button>
@@ -157,6 +158,8 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
           permission={permissions.receive}
           startAdornment={<PackageCheck className="size-4" />}
           onClick={goodsReceiptDialog.open}
+          disabled={receiveOrderBlocker !== null}
+          disabledTip={receiveOrderBlocker ?? undefined}
         >
           Create Goods Receipt
         </Button>
@@ -171,6 +174,8 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
           variant={variant}
           permission={permissions.receive}
           startAdornment={<ReceiptText className="size-4" />}
+          disabled={receiveOrderBlocker !== null}
+          disabledTip={receiveOrderBlocker ?? undefined}
           onClick={() =>
             navigate(
               `${purchasesPath(workspace)}/receive-with-invoices/new${receiveWithInvoiceSearch({ supplierId: leg.supplierId, siteId })}`,
@@ -204,15 +209,28 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
   return (
     <>
       {isComingSoon && <Badge variant="secondary">Fulfilment coming soon</Badge>}
-      {isAvailable(PurchaseLegActionValues.CLOSE_SUPPLIER) && (
+      {isOpen && (
+        <Button
+          size="sm"
+          variant="outline"
+          permission={permissions.edit}
+          startAdornment={<Ban className="size-4" />}
+          onClick={cancelDialog.open}
+          disabled={leg.blockers.cancel !== null}
+          disabledTip={leg.blockers.cancel ?? undefined}
+        >
+          Cancel Supplier
+        </Button>
+      )}
+      {isFulfilling && !leg.receivingClosedAt && (
         <Button
           size="sm"
           variant="outline"
           permission={permissions.close}
           startAdornment={<PackageX className="size-4" />}
           onClick={closeDialog.open}
-          disabled={hasDrafts}
-          disabledTip="Post or discard the supplier's draft receipts and invoices before closing it."
+          disabled={leg.blockers.close !== null}
+          disabledTip={leg.blockers.close ?? undefined}
         >
           Close Supplier
         </Button>
@@ -297,9 +315,19 @@ export const PurchaseLegFulfilmentActions: React.FC<PurchaseLegFulfilmentActions
         handle={closeDialog}
         icon={PackageX}
         title={`Close ${leg.supplierName}?`}
-        description="What is still open on the supplier's orders is marked delivery completed; nothing more is received or invoiced on it."
+        description="Nothing more is received from the supplier: its orders are marked delivery completed. It stays open until what was received is invoiced."
         content={(close) => (
           <CloseSupplierDialog binding={binding} purchase={purchase} leg={leg} onSuccess={close} onCancel={close} />
+        )}
+      />
+      <Dialog
+        handle={cancelDialog}
+        icon={Ban}
+        iconVariant="destructive"
+        title={`Cancel ${leg.supplierName}?`}
+        description="Its purchase orders and planned deliveries are cancelled. This cannot be undone."
+        content={(close) => (
+          <CancelSupplierDialog binding={binding} purchase={purchase} leg={leg} onSuccess={close} onCancel={close} />
         )}
       />
     </>

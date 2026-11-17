@@ -196,13 +196,14 @@ export class SupplierEnrollmentsDomainService {
     return this.repository.isEnrolled(supplierId, siteId);
   }
 
-  // Returns supplier options for a site picker with each supplier's enrollment status at the site
+  // Returns supplier options for a site picker with each supplier's enrollment status at the site; with suppliedItemIdss,
+  // each marked when it supplies the item there and, with onlySupplying, only those
   findSuppliersForSelect(
     legalEntityId: string,
     query: SupplierEnrollmentSelectQueryDto,
-    siteId?: string,
+    options: { siteId?: string; onlySupplying?: boolean } = {},
   ): Promise<SelectQueryResult> {
-    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, query, siteId);
+    return this.siteSuppliersRepository.findForSiteSelect(legalEntityId, query, options);
   }
 
   // Returns the sites a supplier (or any supplier of an inventory item) is enrolled at, only the active enrollments with

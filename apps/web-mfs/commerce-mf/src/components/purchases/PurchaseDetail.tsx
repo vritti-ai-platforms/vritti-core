@@ -1,48 +1,37 @@
 import { useFormatters, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { Tabs } from '@vritti/quantum-ui/Tabs';
 import type React from 'react';
-import { Suspense, useState } from 'react';
-import type { PurchaseHeader, PurchaseStep } from '@/schemas/purchases';
 import type { PurchasesBinding } from './bindings';
-import { PurchaseDangerZone } from './PurchaseDangerZone';
-import { PurchaseStageViewSkeleton } from './PurchaseDetailSkeleton';
-import { PurchaseHeaderActions } from './PurchaseHeaderActions';
-import { PurchaseStageBadge } from './PurchaseStageBadge';
-import { PurchaseStageBar } from './PurchaseStageBar';
+import { PurchaseDetailActions } from './PurchaseDetailActions';
 import { PurchaseStatusBadge } from './PurchaseStatusBadge';
-import { isStageReadOnly } from './purchaseState';
-import { ProcuringView } from './views/procuring/ProcuringView';
-import { QuotingView } from './views/quoting/QuotingView';
-import { RequestingView } from './views/requesting/RequestingView';
-import { SourcingView } from './views/sourcing/SourcingView';
+import { PurchaseSummaryBadge } from './PurchaseSummaryBadge';
+import { PurchaseDocumentsTab } from './tabs/documents/PurchaseDocumentsTab';
+import { PurchaseItemsTab } from './tabs/items/PurchaseItemsTab';
+import { PurchaseOverviewTab } from './tabs/PurchaseOverviewTab';
+import { PurchaseComparisonTab } from './tabs/quotations/PurchaseComparisonTab';
+import { PurchaseQuotationsTab } from './tabs/quotations/PurchaseQuotationsTab';
+import { PurchaseSuppliersTab } from './tabs/suppliers/PurchaseSuppliersTab';
 
 interface PurchaseDetailProps {
   binding: PurchasesBinding;
 }
 
-interface StageViewProps {
-  binding: PurchasesBinding;
-  purchase: PurchaseHeader;
-  readOnly: boolean;
-}
-
-const STAGE_VIEWS: Record<PurchaseStep, React.FC<StageViewProps>> = {
-  REQUESTING: RequestingView,
-  QUOTING: QuotingView,
-  SOURCING: SourcingView,
-  PROCURING: ProcuringView,
-};
-
-// `…/purchases/<number~id>` — a purchase's header, its stages as navigation and the view of the stage looked at: the
-// stage it is in by default, or the one it ended in once completed or cancelled; an earlier stage opens read-only
+// `…/purchases/<number~id>/<tab>` — a purchase's header with its actions, and its tabs: an overview of where it stands,
+// its items, suppliers, quotations compared item by item (once it requires or has any), and the documents its suppliers
+// created
 export const PurchaseDetail: React.FC<PurchaseDetailProps> = ({ binding }) => {
   const fmt = useFormatters();
+  const { permissions } = binding;
   const { id } = useSlugParams('purchaseSlug');
   const { data: purchase } = binding.usePurchase(id);
-  // The stage picked on the bar, dropped once the purchase moves on so the new stage opens
-  const [selection, setSelection] = useState({ step: purchase.step, stage: purchase.step });
-  const viewed = selection.step === purchase.step ? selection.stage : purchase.step;
-  const StageView = STAGE_VIEWS[viewed];
+  const { data: counts } = binding.usePurchaseCounts(id);
+  const { data: progress } = binding.usePurchaseProgress(id);
+  const tabProps = { binding, purchase };
+  // Quotations matter once the purchase requires them, which is also where they are requested, or while it still has some
+  const showsQuotations = purchase.quotationsRequired || (counts?.quotationCount ?? 0) > 0;
+  const withCount = (label: string, count: number | undefined) =>
+    count === undefined ? label : `${label} (${fmt.number(count).primary})`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -50,7 +39,7 @@ export const PurchaseDetail: React.FC<PurchaseDetailProps> = ({ binding }) => {
         title={purchase.purchaseNumber}
         titleSlot={
           <div className="flex items-center gap-2">
-            <PurchaseStageBadge purchase={purchase} />
+            {progress && <PurchaseSummaryBadge purchase={progress} />}
             <PurchaseStatusBadge
               purchase={purchase}
               tip={purchase.cancelReason && `Cancelled: “${purchase.cancelReason}”`}
@@ -58,20 +47,49 @@ export const PurchaseDetail: React.FC<PurchaseDetailProps> = ({ binding }) => {
           </div>
         }
         description={[purchase.siteName, `Created ${fmt.date(purchase.createdAt).primary}`].filter(Boolean).join(' · ')}
-        actions={<PurchaseHeaderActions binding={binding} purchase={purchase} />}
+        actions={<PurchaseDetailActions binding={binding} purchase={purchase} />}
       />
 
-      <PurchaseStageBar
-        purchase={purchase}
-        viewed={viewed}
-        onView={(stage) => setSelection({ step: purchase.step, stage })}
+      <Tabs
+        routeParam="tab"
+        tabs={[
+          { value: 'overview', label: 'Overview', content: <PurchaseOverviewTab {...tabProps} /> },
+          {
+            value: 'items',
+            label: withCount('Items', counts?.itemCount),
+            permission: permissions.view,
+            content: <PurchaseItemsTab {...tabProps} />,
+          },
+          {
+            value: 'suppliers',
+            label: withCount('Suppliers', counts?.supplierCount),
+            permission: permissions.view,
+            content: <PurchaseSuppliersTab {...tabProps} />,
+          },
+          ...(showsQuotations
+            ? [
+                {
+                  value: 'quotations',
+                  label: withCount('Quotations', counts?.quotationCount),
+                  permission: permissions.quotations.view,
+                  content: <PurchaseQuotationsTab {...tabProps} />,
+                },
+                {
+                  value: 'comparison',
+                  label: 'Comparison',
+                  permission: permissions.quotations.view,
+                  content: <PurchaseComparisonTab {...tabProps} />,
+                },
+              ]
+            : []),
+          {
+            value: 'documents',
+            label: 'Documents',
+            permission: permissions.view,
+            content: <PurchaseDocumentsTab {...tabProps} />,
+          },
+        ]}
       />
-
-      <Suspense key={viewed} fallback={<PurchaseStageViewSkeleton />}>
-        <StageView binding={binding} purchase={purchase} readOnly={isStageReadOnly(purchase, viewed)} />
-      </Suspense>
-
-      <PurchaseDangerZone binding={binding} purchase={purchase} />
     </div>
   );
 };

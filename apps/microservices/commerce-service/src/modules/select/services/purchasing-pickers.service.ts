@@ -1,0 +1,57 @@
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
+import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
+import { Injectable } from '@nestjs/common';
+import type { CurrencyCode } from '@vritti/api-sdk/money';
+import type { SelectQueryResult } from '@vritti/api-sdk/select';
+import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
+import type { InventoryItemsSelectQueryDto } from '../dto/request/inventory-items-select-query.dto';
+import type { SuppliersSelectQueryDto } from '../dto/request/suppliers-select-query.dto';
+
+@Injectable()
+export class PurchasingPickersService {
+  constructor(
+    private readonly inventoryItemsService: InventoryItemsDomainService,
+    private readonly suppliersService: SuppliersDomainService,
+    private readonly purchasingRulesService: PurchasingRulesService,
+  ) {}
+
+  // Returns inventory item options; with a site, only the items it carries with their stock there, and with a supplier
+  // too, those set up as its items marked and the others left out where the site's rules require supplier items
+  async findInventoryItems(
+    query: InventoryItemsSelectQueryDto,
+    leCurrencyCode: CurrencyCode,
+  ): Promise<SelectQueryResult> {
+    const { excludeOnSupplierId, atSiteId, notAtSiteId, stockStatus, categoryIds, supplierId, ...page } = query;
+    return this.inventoryItemsService.findForSelect(page, {
+      excludeOnSupplierId,
+      notAtSiteId,
+      categoryIds,
+      atSite: atSiteId ? { siteId: atSiteId, stockStatus, leCurrencyCode } : undefined,
+      supplier:
+        atSiteId && supplierId
+          ? { supplierId, siteRequires: await this.purchasingRulesService.requiresSupplierItems(atSiteId) }
+          : undefined,
+    });
+  }
+
+  // Returns supplier options, only those enrolled at a site with enrolledAtSiteId; there, those set up for the picker's
+  // items are marked and only they are kept where asked or where the site's rules require it
+  async findSuppliers(query: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
+    const { activeOnly, inventoryItemId, enrolledAtSiteId, suppliedItemIds, forPurchaseId, onlySupplying, ...page } =
+      query;
+    const picker = enrolledAtSiteId
+      ? await this.purchasingRulesService.findSupplierPicker(enrolledAtSiteId, {
+          suppliedItemIds,
+          forPurchaseId,
+          onlySupplying,
+        })
+      : undefined;
+    return this.suppliersService.findForSelect(page, {
+      activeOnly,
+      inventoryItemId,
+      enrolledAtSiteId,
+      suppliedItemIds: picker?.itemIds,
+      onlySupplying: picker?.onlySupplying,
+    });
+  }
+}

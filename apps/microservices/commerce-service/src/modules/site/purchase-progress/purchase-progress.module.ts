@@ -1,6 +1,7 @@
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
 import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
 import { PurchaseItemAllocationsDomainModule } from '@domain/purchase-item-allocations/purchase-item-allocations.module';
+import { PurchaseItemsDomainModule } from '@domain/purchase-items/purchase-items.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { PurchaseSuppliersDomainModule } from '@domain/purchase-suppliers/purchase-suppliers.module';
@@ -14,6 +15,7 @@ import { PurchaseProgressService } from './services/purchase-progress.service';
     PurchasesDomainModule,
     PurchaseSuppliersDomainModule,
     PurchaseItemAllocationsDomainModule,
+    PurchaseItemsDomainModule,
     PurchaseOrdersDomainModule,
     PurchaseOrderItemsDomainModule,
     InboundDeliveriesDomainModule,

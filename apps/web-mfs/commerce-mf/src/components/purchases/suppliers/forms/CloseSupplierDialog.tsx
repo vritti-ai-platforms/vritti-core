@@ -6,16 +6,16 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import {
-  type ClosePurchaseLegFormData,
-  closePurchaseLegSchema,
-  type PurchaseHeader,
+  type PurchaseCloseReasonFormData,
+  type PurchaseDetail,
   type PurchaseLeg,
+  purchaseCloseReasonSchema,
 } from '@/schemas/purchases';
 import type { PurchasesBinding } from '../../bindings';
 
 interface CloseSupplierDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
   onSuccess: () => void;
   onCancel: () => void;
@@ -29,8 +29,8 @@ export const CloseSupplierDialog: React.FC<CloseSupplierDialogProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<ClosePurchaseLegFormData>({
-    resolver: zodResolver(closePurchaseLegSchema),
+  const form = useForm<PurchaseCloseReasonFormData>({
+    resolver: zodResolver(purchaseCloseReasonSchema),
     defaultValues: { reason: '' },
   });
   const closeMutation = binding.useCloseSupplier({ onSuccess });

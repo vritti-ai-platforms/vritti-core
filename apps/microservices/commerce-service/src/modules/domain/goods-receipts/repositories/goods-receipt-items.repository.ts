@@ -31,9 +31,9 @@ const otherReceipts = aliasedTable(goodsReceipts, 'other_receipts');
 export type GoodsReceiptItemRow = GoodsReceiptItem & {
   inventoryItemName: string | null;
   inventoryItemTracking: InventoryTracking;
-  uomSymbol: string | null;
+  uomSymbol: string;
   uomAllowDecimal: boolean;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   receivedDate: string;
   orderedQty: number;
   poPrimaryUomQty: number;
@@ -84,7 +84,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   ): Promise<{ result: GoodsReceiptItemRow[]; count: number }> {
     return this.findAllAndCount<GoodsReceiptItemRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       ...options,
       where: and(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId), options.where),
     });
@@ -94,7 +94,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   async findByReceiptId(goodsReceiptId: string): Promise<GoodsReceiptItemRow[]> {
     return this.findAllWithSelect<GoodsReceiptItemRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
       orderBy: [asc(goodsReceiptItems.createdAt)],
     });
@@ -104,7 +104,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   async findByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderReceiptItemRow[]> {
     return this.findAllWithSelect<PurchaseOrderReceiptItemRow>({
       select: { ...this.selection(), grNumber: goodsReceipts.grNumber, receiptStatus: goodsReceipts.status },
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
       orderBy: [desc(goodsReceipts.receivedDate), desc(goodsReceipts.createdAt), asc(goodsReceiptItems.createdAt)],
     });
@@ -114,7 +114,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
   findOnReceipt(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptItemRow | undefined> {
     return this.findById<GoodsReceiptItemRow>(itemId, {
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId),
     });
   }
@@ -176,8 +176,8 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
     const rows = await this.db
       .select({ node })
       .from(goodsReceiptItems)
-      .leftJoin(inventoryItems, eq(inventoryItems.id, goodsReceiptItems.inventoryItemId))
-      .leftJoin(itemUom, eq(itemUom.id, goodsReceiptItems.uomId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, goodsReceiptItems.inventoryItemId))
+      .innerJoin(itemUom, eq(itemUom.id, goodsReceiptItems.uomId))
       .where(eq(goodsReceiptItems.goodsReceiptId, goodsReceiptId))
       .orderBy(asc(goodsReceiptItems.createdAt));
     return rows.map((row) => row.node);

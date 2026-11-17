@@ -41,7 +41,7 @@ export const UpdateInboundDeliveryLineDialog: React.FC<UpdateInboundDeliveryLine
     defaultValues: { quantity: line.quantity },
   });
   const updateMutation = mutations.useUpdateLine({ onSuccess });
-  const unit = line.uomSymbol ? ` ${line.uomSymbol}` : '';
+  const unit = ` ${line.uomSymbol}`;
 
   return (
     <Form

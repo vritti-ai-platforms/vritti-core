@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type SiteSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type SiteSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select for site selection with async search (supports single and multi-select)
 export const SiteSelector = forwardRef<HTMLButtonElement, SiteSelectorProps>((props, ref) => (

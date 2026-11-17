@@ -6,7 +6,7 @@ export interface InventoryItemMrpData {
   id: string;
   inventoryItemId: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   amount: CurrencyValue;
   sourceLotId: string | null;
   sourcedAt: string | null;

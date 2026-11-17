@@ -66,11 +66,7 @@ export const InventoryItemDetailPage = () => {
             label: 'UOM Conversions',
             permission: ORG_INVENTORY_ITEMS.conversions.view,
             content: (
-              <UomConversionsTab
-                inventoryItemId={item.id}
-                itemUomId={item.uomId}
-                itemUomSymbol={item.uomSymbol ?? ''}
-              />
+              <UomConversionsTab inventoryItemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol} />
             ),
           },
           {

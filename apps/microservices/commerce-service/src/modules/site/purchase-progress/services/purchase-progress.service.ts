@@ -5,6 +5,7 @@ import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/servi
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
 import type { PurchaseAllocationRow } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
+import { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
 import type { PurchaseOrderItemRow } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import type { PurchaseOrderRow } from '@domain/purchase-orders/repositories/purchase-orders.repository';
@@ -16,7 +17,9 @@ import {
   PurchaseSuppliersDomainService,
 } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type { PurchaseRow } from '@domain/purchases/repositories/purchases.repository';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import type { InvoiceableGoodsReceiptRow } from '@domain/supplier-invoices/repositories/invoiceable-goods-receipts.repository';
 import type { SupplierInvoiceRow } from '@domain/supplier-invoices/repositories/supplier-invoices.repository';
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { Injectable } from '@nestjs/common';
@@ -24,6 +27,8 @@ import Decimal from '@vritti/api-sdk/decimal';
 import {
   GoodsReceiptStatusValues,
   InboundDeliverySourceValues,
+  type InboundDeliveryStatus,
+  InboundDeliveryStatusValues,
   PurchaseOrderStatusValues,
   type PurchaseSupplier,
   SupplierInvoiceStatusValues,
@@ -51,16 +56,24 @@ interface PurchaseDocuments {
   deliveries: InboundDeliveryRow[];
   receipts: GoodsReceiptRow[];
   invoices: SupplierInvoiceRow[];
+  invoiceable: InvoiceableGoodsReceiptRow[];
 }
 
-type ProgressLeg = Leg & Pick<PurchaseSupplier, 'supplierId'>;
+type ProgressLeg = Leg & Pick<PurchaseSupplier, 'supplierId' | 'receivingClosedAt'>;
 
 @Injectable()
 export class PurchaseProgressService {
+  private static readonly ON_THE_WAY: InboundDeliveryStatus[] = [
+    InboundDeliveryStatusValues.IN_TRANSIT,
+    InboundDeliveryStatusValues.ARRIVED,
+  ];
+
   constructor(
     private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly legsService: PurchaseSuppliersDomainService,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
+    private readonly itemsService: PurchaseItemsDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
     private readonly deliveriesService: InboundDeliveriesDomainService,
@@ -70,24 +83,28 @@ export class PurchaseProgressService {
   ) {}
 
   // Re-derives a leg's step from its documents, in the caller's transaction; a leg that is now received and invoiced
-  // closes and the purchase completes once every leg is closed
+  // closes and the purchase completes once it is done
   async syncLegStep(purchase: PurchaseRow, leg: ProgressLeg): Promise<LegAdvance> {
     const { facts } = await this.findLegFulfilment(purchase, leg);
     const advance = await this.legsService.advance(leg, facts);
-    if (advance.isClosed) await this.completeIfLegsClosed(purchase);
+    if (advance.isClosed) await this.completeIfDone(purchase);
     return advance;
   }
 
-  // Completes the purchase once every leg is closed, in the caller's transaction
-  async completeIfLegsClosed(purchase: PurchaseRow): Promise<void> {
+  // Completes the purchase once nothing is left to allocate and every leg is closed or cancelled, at least one closed, in
+  // the caller's transaction
+  async completeIfDone(purchase: PurchaseRow): Promise<void> {
     const legs = await this.legsService.findByPurchaseId(purchase.id);
-    await this.purchasesService.completeIfLegsClosed(purchase, this.legsService.allClosed(legs));
+    await this.purchasesService.completeIfDone(purchase, {
+      allLegsDone: this.legsService.allDone(legs),
+      hasUnallocated: await this.itemsService.hasUnallocated(purchase.id),
+    });
   }
 
   // Tells a purchase that one of its documents was completed in its own feature, in the caller's transaction:
   // re-derives the step of the supplier's leg
   async notifyDocument(purchaseId: string, supplierId: string): Promise<void> {
-    const purchase = await this.purchasesService.findDetailOrThrow(purchaseId);
+    const purchase = await this.purchasesRepository.findDetailOrThrow(purchaseId);
     const leg = await this.legsService.findForSupplier(purchase.id, supplierId);
     if (!leg) return;
     await this.syncLegStep(purchase, leg);
@@ -100,10 +117,28 @@ export class PurchaseProgressService {
 
   // Gathers each leg's documents and the facts its step and actions derive from, in the order of the given legs
   async findFulfilment(purchase: PurchaseRow, legs: ProgressLeg[]): Promise<PurchaseLegFulfilment[]> {
-    const documents = await this.findDocuments(purchase.id);
-    const fulfilment: PurchaseLegFulfilment[] = [];
-    for (const leg of legs) fulfilment.push(await this.legFulfilment(purchase, leg, documents));
-    return fulfilment;
+    const documents = await this.findDocuments(purchase);
+    return legs.map((leg) => this.legFulfilment(leg, documents));
+  }
+
+  // Gathers only the documents of each leg, in the order of the given legs
+  async findLegDocuments(purchaseId: string, legs: Pick<ProgressLeg, 'supplierId'>[]): Promise<PurchaseLegDocuments[]> {
+    const [purchaseOrders, deliveries, receipts, invoices] = await Promise.all([
+      this.purchaseOrdersService.findForPurchase(purchaseId),
+      this.deliveriesService.findForPurchase(purchaseId),
+      this.goodsReceiptsService.findForPurchase(purchaseId),
+      this.invoicesService.findForPurchase(purchaseId),
+    ]);
+    return legs.map((leg) => {
+      const ofSupplier = <T extends { supplierId: string }>(rows: T[]) =>
+        rows.filter((row) => row.supplierId === leg.supplierId);
+      return {
+        purchaseOrders: ofSupplier(purchaseOrders),
+        deliveries: ofSupplier(deliveries),
+        receipts: ofSupplier(receipts),
+        invoices: ofSupplier(invoices),
+      };
+    });
   }
 
   // Gathers one leg's documents and fulfilment facts
@@ -112,9 +147,10 @@ export class PurchaseProgressService {
     return fulfilment;
   }
 
-  // Loads every document a purchase created or its lines invoice, with the lines of its live POs and what they still have
-  // free to deliver
-  private async findDocuments(purchaseId: string): Promise<PurchaseDocuments> {
+  // Loads every document a purchase created or its lines invoice, with the lines of its live POs, what they still have
+  // free to deliver and the posted receipts of them still to invoice
+  private async findDocuments(purchase: PurchaseRow): Promise<PurchaseDocuments> {
+    const purchaseId = purchase.id;
     const [allocations, purchaseOrders, deliveries, receipts, invoices] = await Promise.all([
       this.allocationsService.findByPurchaseId(purchaseId),
       this.purchaseOrdersService.findForPurchase(purchaseId),
@@ -125,17 +161,21 @@ export class PurchaseProgressService {
     const liveOrderIds = purchaseOrders
       .filter((po) => po.status !== PurchaseOrderStatusValues.CANCELLED)
       .map((po) => po.id);
-    const orderLines = await this.purchaseOrderItemsService.findRowsByPurchaseOrderIds(liveOrderIds);
+    const [orderLines, invoiceable] = await Promise.all([
+      this.purchaseOrderItemsService.findRowsByPurchaseOrderIds(liveOrderIds),
+      liveOrderIds.length > 0
+        ? this.invoicesService.findInvoiceableGoodsReceiptRows({
+            siteId: purchase.siteId,
+            purchaseOrderIds: liveOrderIds,
+          })
+        : [],
+    ]);
     const remainingByLine = await this.deliveryLinesService.findRemainingToDeliver(orderLines.map((line) => line.id));
-    return { allocations, purchaseOrders, orderLines, remainingByLine, deliveries, receipts, invoices };
+    return { allocations, purchaseOrders, orderLines, remainingByLine, deliveries, receipts, invoices, invoiceable };
   }
 
   // Narrows a purchase's documents to one leg (its supplier) and works out the facts its step and actions derive from
-  private async legFulfilment(
-    purchase: PurchaseRow,
-    leg: ProgressLeg,
-    documents: PurchaseDocuments,
-  ): Promise<PurchaseLegFulfilment> {
+  private legFulfilment(leg: ProgressLeg, documents: PurchaseDocuments): PurchaseLegFulfilment {
     const ofSupplier = <T extends { supplierId: string }>(rows: T[]) =>
       rows.filter((row) => row.supplierId === leg.supplierId);
     const purchaseOrders = ofSupplier(documents.purchaseOrders);
@@ -173,7 +213,17 @@ export class PurchaseProgressService {
       ),
       hasDraftReceipt: receipts.some((receipt) => receipt.status === GoodsReceiptStatusValues.DRAFT),
       hasDraftInvoice: invoices.some((invoice) => invoice.status === SupplierInvoiceStatusValues.DRAFT),
-      invoiceablePrimaryQty: await this.findInvoiceablePrimaryQty(purchase, leg, liveOrders),
+      hasDeliveryOnTheWay: deliveries.some((delivery) => PurchaseProgressService.ON_THE_WAY.includes(delivery.status)),
+      hasPostedDocument:
+        receipts.some((receipt) => receipt.status === GoodsReceiptStatusValues.POSTED) ||
+        invoices.some((invoice) => invoice.status === SupplierInvoiceStatusValues.POSTED),
+      receivingClosed: leg.receivingClosedAt !== null,
+      invoiceablePrimaryQty: this.legsService.isFulfilling(leg)
+        ? documents.invoiceable
+            .filter((row) => statusByOrder.has(row.purchaseOrderId))
+            .reduce((total, row) => total.plus(row.acceptedPrimaryQty).minus(row.invoicedPrimaryQty), new Decimal(0))
+            .toNumber()
+        : 0,
     };
     return {
       facts,
@@ -181,23 +231,5 @@ export class PurchaseProgressService {
       orderLines,
       remainingByLine: documents.remainingByLine,
     };
-  }
-
-  // Sums what the posted receipts of a leg's live POs accepted and live invoices have not invoiced yet
-  private async findInvoiceablePrimaryQty(
-    purchase: PurchaseRow,
-    leg: ProgressLeg,
-    liveOrders: PurchaseOrderRow[],
-  ): Promise<number> {
-    if (liveOrders.length === 0 || !this.legsService.isFulfilling(leg)) return 0;
-    const orderIds = new Set(liveOrders.map((po) => po.id));
-    const rows = await this.invoicesService.findInvoiceableGoodsReceiptRows({
-      supplierId: leg.supplierId,
-      siteId: purchase.siteId,
-    });
-    return rows
-      .filter((row) => orderIds.has(row.purchaseOrderId))
-      .reduce((total, row) => total.plus(row.acceptedPrimaryQty).minus(row.invoicedPrimaryQty), new Decimal(0))
-      .toNumber();
   }
 }

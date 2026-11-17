@@ -11,7 +11,11 @@ import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
-import { SuppliersDomainRepository, type SupplierWithParty } from '../repositories/suppliers.repository';
+import {
+  type SupplierSelectFilters,
+  SuppliersDomainRepository,
+  type SupplierWithParty,
+} from '../repositories/suppliers.repository';
 
 @Injectable()
 export class SuppliersDomainService {
@@ -180,11 +184,9 @@ export class SuppliersDomainService {
   }
 
   // Returns paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the
-  // item and enrolledAtSiteId those actively enrolled at the site
-  findForSelect(
-    query: SelectOptionsQueryDto,
-    options?: { activeOnly?: boolean; inventoryItemId?: string; enrolledAtSiteId?: string },
-  ): Promise<SelectQueryResult> {
+  // item, enrolledAtSiteId those actively enrolled at the site; suppliedItemIds marks those set up for any of the items
+  // and, with onlySupplying, keeps only them
+  findForSelect(query: SelectOptionsQueryDto, options?: SupplierSelectFilters): Promise<SelectQueryResult> {
     return this.repository.findForSelect(
       {
         ...selectPageOptions(query),

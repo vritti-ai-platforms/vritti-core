@@ -1,4 +1,4 @@
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import { InventoryItemsDomainRepository } from '@domain/inventory-items/repositories/inventory-items.repository';
 import type { StockAdjustmentLineDto } from '@domain/stock-adjustment-lines/dto/entity/stock-adjustment-line.dto';
 import { StockAdjustmentLinesDomainService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
@@ -21,7 +21,7 @@ export class StockAdjustmentsLinesService {
     private readonly lotsRepository: StockAdjustmentLotsDomainRepository,
     private readonly inventoryItemsRepository: InventoryItemsDomainRepository,
     private readonly uomConversionsService: UomConversionsDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
   ) {}
 
   async addOpeningLine(
@@ -54,7 +54,7 @@ export class StockAdjustmentsLinesService {
       this.logger.log(`addOpeningLine [validateLotOwnership] ${Date.now() - t0}ms`);
     }
 
-    await this.siteStockLevelsService.ensureStockLevels(
+    await this.inventoryItemSitesRepository.ensureAtSite(
       [adjustment.inventoryItemId],
       'inventoryItemId',
       adjustment.siteId,
@@ -85,7 +85,7 @@ export class StockAdjustmentsLinesService {
       data.uomId,
       data.uomQty,
     );
-    await this.siteStockLevelsService.ensureStockLevels(
+    await this.inventoryItemSitesRepository.ensureAtSite(
       [adjustment.inventoryItemId],
       'inventoryItemId',
       adjustment.siteId,

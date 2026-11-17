@@ -2,8 +2,9 @@ import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-re
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import type { AllocationWithLegRow } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
+import { PurchaseItemAllocationsDomainRepository } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import type { PurchaseOrderItemRow } from '@domain/purchase-order-items/repositories/purchase-order-items.repository';
 import {
@@ -25,6 +26,7 @@ import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { addDays, formatISO, parseISO } from 'date-fns';
 import { InboundDeliverySourceValues, type PurchaseOrder, type PurchaseSupplier } from '@/db/schema';
+import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 
 export interface PurchaseSiteContext {
   leCurrencyCode: string;
@@ -62,6 +64,7 @@ type DocumentLeg = Pick<PurchaseSupplier, 'id' | 'supplierId'>;
 export class PurchaseLegDocumentsService {
   constructor(
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
+    private readonly allocationsRepository: PurchaseItemAllocationsDomainRepository,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
     private readonly deliveriesService: InboundDeliveriesDomainService,
@@ -69,10 +72,12 @@ export class PurchaseLegDocumentsService {
     private readonly goodsReceiptsService: GoodsReceiptsDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
+    private readonly purchasingRulesService: PurchasingRulesService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
   ) {}
 
-  // Creates the planned POs with their lines and points each allocation at its line, in the caller's transaction
+  // Creates the planned POs with their lines and points each allocation at its line, then records what they ordered when
+  // the site updates supplier items from its orders, in the caller's transaction
   async createOrders(
     purchase: PurchaseRow,
     leg: DocumentLeg,
@@ -98,6 +103,10 @@ export class PurchaseLegDocumentsService {
       await this.purchaseOrdersService.syncTotalAmount(po.id);
       await this.allocationsService.linkOrderLines(
         order.lines.map((line, index) => ({ allocationId: line.allocationId, purchaseOrderItemId: lines[index].id })),
+      );
+      await this.purchasingRulesService.recordSentOrder(
+        { siteId: purchase.siteId, supplierId: leg.supplierId, poNumber: po.poNumber, orderDate: terms.orderDate },
+        lines,
       );
       created.push(po);
     }
@@ -182,8 +191,8 @@ export class PurchaseLegDocumentsService {
       purchase.siteId,
     );
     const itemIds = _.uniq(allocations.map((allocation) => allocation.inventoryItemId));
-    await this.siteStockLevelsService.ensureStockLevels(itemIds, 'allocations', purchase.siteId);
-    await this.supplierItemsService.assertSuppliedAt(leg.supplierId, purchase.siteId, itemIds, 'allocations');
+    await this.inventoryItemSitesRepository.ensurePurchasable(itemIds, 'allocations', purchase.siteId);
+    await this.purchasingRulesService.assertSourced(leg.supplierId, purchase.siteId, allocations, 'allocations');
     const leadTimes = await this.supplierItemsService.findSiteLeadTimes(leg.supplierId, purchase.siteId, allocations);
 
     const byCurrency = _.groupBy(allocations, (allocation) => terms.currencyCode ?? allocation.currencyCode);
@@ -201,7 +210,7 @@ export class PurchaseLegDocumentsService {
         uomId: allocation.uomId,
         uomQty: allocation.uomQty,
         primaryUomQty: allocation.primaryUomQty,
-        unitPrice: terms.prices?.get(allocation.id) ?? this.allocationsService.requireUnitPrice(allocation),
+        unitPrice: terms.prices?.get(allocation.id) ?? this.allocationsRepository.requireUnitPrice(allocation),
         scheme: {
           buyQty: allocation.schemeBuyQty,
           freeQty: allocation.schemeFreeQty,

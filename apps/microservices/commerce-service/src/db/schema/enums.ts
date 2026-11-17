@@ -368,20 +368,6 @@ export const PurchaseTypeValues = {
   SELF_INVOICING: 'SELF_INVOICING',
 } as const satisfies Record<PurchaseType, PurchaseType>;
 
-export const purchaseStepEnum = commerceSchema.enum('purchase_step', [
-  'REQUESTING',
-  'QUOTING',
-  'SOURCING',
-  'PROCURING',
-]);
-export type PurchaseStep = (typeof purchaseStepEnum.enumValues)[number];
-export const PurchaseStepValues = {
-  REQUESTING: 'REQUESTING',
-  QUOTING: 'QUOTING',
-  SOURCING: 'SOURCING',
-  PROCURING: 'PROCURING',
-} as const satisfies Record<PurchaseStep, PurchaseStep>;
-
 export const purchaseStatusEnum = commerceSchema.enum('purchase_status', ['OPEN', 'COMPLETED', 'CANCELLED']);
 export type PurchaseStatus = (typeof purchaseStatusEnum.enumValues)[number];
 export const PurchaseStatusValues = {
@@ -721,10 +707,15 @@ export const PartyLicenseTypeValues = {
 };
 export type PartyLicenseType = (typeof partyLicenseTypeEnum.enumValues)[number];
 
-export const supplierPriceSourceEnum = commerceSchema.enum('supplier_price_source', ['QUOTATION', 'MANUAL']);
+export const supplierPriceSourceEnum = commerceSchema.enum('supplier_price_source', [
+  'QUOTATION',
+  'MANUAL',
+  'PURCHASE_ORDER',
+]);
 export const SupplierPriceSourceValues = {
   QUOTATION: 'QUOTATION' as const,
   MANUAL: 'MANUAL' as const,
+  PURCHASE_ORDER: 'PURCHASE_ORDER' as const,
 };
 export type SupplierPriceSource = (typeof supplierPriceSourceEnum.enumValues)[number];
 
@@ -821,3 +812,17 @@ export const PaymentTermBaselineValues = {
   END_OF_MONTH: 'END_OF_MONTH' as const,
 };
 export type PaymentTermBaseline = (typeof paymentTermBaselineEnum.enumValues)[number];
+
+export const siteItemStatusEnum = commerceSchema.enum('site_item_status', ['ACTIVE', 'BLOCKED']);
+export type SiteItemStatus = (typeof siteItemStatusEnum.enumValues)[number];
+export const SiteItemStatusValues = {
+  ACTIVE: 'ACTIVE',
+  BLOCKED: 'BLOCKED',
+} as const satisfies Record<SiteItemStatus, SiteItemStatus>;
+
+export const replenishmentMethodEnum = commerceSchema.enum('replenishment_method', ['MANUAL', 'REORDER_POINT']);
+export type ReplenishmentMethod = (typeof replenishmentMethodEnum.enumValues)[number];
+export const ReplenishmentMethodValues = {
+  MANUAL: 'MANUAL',
+  REORDER_POINT: 'REORDER_POINT',
+} as const satisfies Record<ReplenishmentMethod, ReplenishmentMethod>;

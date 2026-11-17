@@ -25,7 +25,7 @@ interface PricesTableTabProps {
   inventoryItemId: string;
   itemName: string;
   // The item's own unit; a price quoted in another unit also shows per this one
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 const YES_NO = [
@@ -46,13 +46,13 @@ export const PricesTableTab: React.FC<PricesTableTabProps> = ({ inventoryItemId,
 
   // A price per the unit the supplier quotes, and below it per the item's own unit when the two differ — as on a PO line
   const priceLines = useCallback(
-    (price: CurrencyValue, quotedUomSymbol: string | null, perItemUnit: CurrencyValue | null) => (
+    (price: CurrencyValue, quotedUomSymbol: string, perItemUnit: CurrencyValue | null) => (
       <>
         <span className="font-mono">
           {fmt.currency(price).primary}
-          {quotedUomSymbol && <span className="text-muted-foreground"> / {quotedUomSymbol}</span>}
+          <span className="text-muted-foreground"> / {quotedUomSymbol}</span>
         </span>
-        {perItemUnit && uomSymbol && quotedUomSymbol !== uomSymbol && (
+        {perItemUnit && quotedUomSymbol !== uomSymbol && (
           <span className="font-mono text-xs text-muted-foreground">
             {fmt.currency(perItemUnit).primary} / {uomSymbol}
           </span>

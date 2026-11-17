@@ -5,7 +5,7 @@ export class LocationItemDto {
   inventoryItemId: string;
   itemName: string;
   itemSku: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   totalQuantity: number;
   availableQuantity: number;
   totalValue: CurrencyAmountDto | null;

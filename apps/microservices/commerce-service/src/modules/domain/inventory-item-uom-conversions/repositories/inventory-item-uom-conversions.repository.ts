@@ -10,8 +10,8 @@ import {
 } from '@/db/schema';
 
 export type ConversionWithUom = InventoryItemUomConversion & {
-  uomName: string | null;
-  uomSymbol: string | null;
+  uomName: string;
+  uomSymbol: string;
 };
 
 function buildJoinedSelect() {
@@ -52,7 +52,7 @@ export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepo
 
     const { result, count } = await this.findAllAndCount<ConversionWithUom>({
       select: buildJoinedSelect(),
-      leftJoins: [{ table: uom, on: eq(inventoryItemUomConversions.uomId, uom.id) }],
+      innerJoin: { table: uom, on: eq(inventoryItemUomConversions.uomId, uom.id) },
       where: combinedWhere,
       orderBy: options.orderBy ?? [asc(inventoryItemUomConversions.createdAt)],
       limit: options.limit,
@@ -66,7 +66,7 @@ export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepo
   async findByIdWithUom(id: string): Promise<ConversionWithUom | undefined> {
     return this.findById<ConversionWithUom>(id, {
       select: buildJoinedSelect(),
-      leftJoin: { table: uom, on: eq(inventoryItemUomConversions.uomId, uom.id) },
+      innerJoin: { table: uom, on: eq(inventoryItemUomConversions.uomId, uom.id) },
     });
   }
 

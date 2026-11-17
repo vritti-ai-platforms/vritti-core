@@ -1,7 +1,8 @@
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type SupplierSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & { activeOnly?: boolean };
+export type SupplierSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & { activeOnly?: boolean };
 
 const DEFAULT_FIELD_KEYS = {
   valueKey: 'id',
@@ -10,7 +11,7 @@ const DEFAULT_FIELD_KEYS = {
   additionalKeys: 'currencyCode,currencyCodes,purchasingBlocked',
 } as const;
 
-// Currencies, then a purchasing block
+// Currencies, then whether it supplies the picker's item at the site, then a purchasing block
 function defaultTransformDescription(value: string, option: SelectOption): string {
   const additionals = option.additionals ?? {};
   const currencyCode = Array.isArray(additionals.currencyCodes)
@@ -18,8 +19,9 @@ function defaultTransformDescription(value: string, option: SelectOption): strin
     : typeof additionals.currencyCode === 'string'
       ? additionals.currencyCode.trim()
       : '';
+  const supplies = additionals.suppliesItem === true ? 'Supplies this item' : '';
   const blocked = additionals.purchasingBlocked === true ? 'Purchasing blocked' : '';
-  const parts = [currencyCode || value, blocked].filter(Boolean);
+  const parts = [currencyCode || value, supplies, blocked].filter(Boolean);
   return parts.join(' · ');
 }
 

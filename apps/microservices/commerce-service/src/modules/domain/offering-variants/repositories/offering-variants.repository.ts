@@ -81,8 +81,8 @@ export interface ExportVariantRow {
   code: string;
   externalSku: string | null;
   values: VariantValueRef[];
-  salesUomName: string | null;
-  taxClassName: string | null;
+  salesUomName: string;
+  taxClassName: string;
   isTaxClassOverridden: boolean;
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;
@@ -107,8 +107,8 @@ export interface ChannelExclusionTarget {
 export type OfferingVariantTableRow = OfferingVariant & {
   listed?: boolean;
   availableHere?: boolean;
-  salesUomName: string | null;
-  taxClassName: string | null;
+  salesUomName: string;
+  taxClassName: string;
   values: VariantValueRef[];
   attributeValues: VariantAttributeValueRef[];
   bomLineCount: number;

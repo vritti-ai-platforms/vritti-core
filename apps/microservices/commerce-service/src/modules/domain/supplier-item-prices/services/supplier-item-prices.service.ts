@@ -54,6 +54,15 @@ export interface QuotationPriceLine {
   taxInclusive: boolean;
 }
 
+export interface OrderedPrice {
+  unitPrice: bigint;
+  currencyCode: string;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  orderDate: string;
+  poNumber: string;
+}
+
 export interface AddSupplierItemPriceInput {
   unitPrice: bigint;
   // One of the supplier's currencies
@@ -273,6 +282,26 @@ export class SupplierItemPricesDomainService {
       await this.repository.updatePriceRow(row.id, { quotationSiteId });
     }
     return lines.length;
+  }
+
+  // Records what a sent purchase order paid as the site's price of the supplier item from the order date, inside the
+  // caller's transaction; leaves prices alone when one starts on or after that date (a quotation's, say) or the price in
+  // force there is the same. Returns whether it wrote one
+  async recordOrderPrice(supplierItemId: string, siteId: string, order: OrderedPrice): Promise<boolean> {
+    if (await this.repository.hasPriceOnOrAfter(supplierItemId, siteId, order.orderDate)) return false;
+    const current = await this.repository.resolvePrice(supplierItemId, siteId, order.orderDate);
+    if (current && SupplierItemPricesDomainService.isSamePrice(current, order)) return false;
+    const context = await this.requirePriceContext(supplierItemId);
+    await this.applyPriceInsert(context, supplierItemId, siteId, {
+      unitPrice: order.unitPrice,
+      currencyCode: order.currencyCode,
+      schemeBuyQty: order.schemeBuyQty,
+      schemeFreeQty: order.schemeFreeQty,
+      validFrom: order.orderDate,
+      source: SupplierPriceSourceValues.PURCHASE_ORDER,
+      note: `From ${order.poNumber}`,
+    });
+    return true;
   }
 
   // Returns a single price row as a DTO, or null when it does not exist
@@ -558,6 +587,16 @@ export class SupplierItemPricesDomainService {
       source: data.source,
       note: data.note,
     });
+  }
+
+  // Whether a price row already says what the order paid: same price, currency and scheme
+  private static isSamePrice(row: SupplierItemPrice, order: OrderedPrice): boolean {
+    return (
+      row.unitPrice === order.unitPrice &&
+      row.currencyCode === order.currencyCode &&
+      row.schemeBuyQty === order.schemeBuyQty &&
+      row.schemeFreeQty === order.schemeFreeQty
+    );
   }
 
   // A price is in one of the currencies its supplier trades in

@@ -80,28 +80,20 @@ export class SelectApiGatewayService {
     return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemSerials', query);
   }
 
-  // Returns inventory item options without stock levels at the current site
-  selectInventoryItemsWithoutStockLevels(query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.inventoryItems.withoutStockLevels');
-    return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItems.withoutStockLevels', query);
-  }
-
-  // Returns inventory item options for select dropdowns; with a site named, only those with stock levels there, each
-  // with its stock and levels
+  // Returns inventory item options for select dropdowns; with a site named, only those it carries, each with its stock
+  // and levels there, or only those it does not carry yet
   async selectInventoryItems(
     query: InventoryItemsSelectQueryDto,
     workspaceSiteId: string | undefined,
     legalEntityId: string | undefined,
   ): Promise<SelectQueryResult> {
-    if (query.stockLevelsAtSiteId) {
-      await this.assertSiteInWorkspace(
-        query.stockLevelsAtSiteId,
-        workspaceSiteId,
-        legalEntityId,
-        'stockLevelsAtSiteId',
-      );
+    if (query.atSiteId) await this.assertSiteInWorkspace(query.atSiteId, workspaceSiteId, legalEntityId, 'atSiteId');
+    if (query.notAtSiteId) {
+      await this.assertSiteInWorkspace(query.notAtSiteId, workspaceSiteId, legalEntityId, 'notAtSiteId');
     }
-    this.logger.log(`select.inventoryItems — stockLevelsAtSiteId: ${query.stockLevelsAtSiteId ?? '-'}`);
+    this.logger.log(
+      `select.inventoryItems — atSiteId: ${query.atSiteId ?? '-'}, notAtSiteId: ${query.notAtSiteId ?? '-'}`,
+    );
     return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItems', query);
   }
 

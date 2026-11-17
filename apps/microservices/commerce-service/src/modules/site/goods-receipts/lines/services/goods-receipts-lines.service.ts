@@ -4,7 +4,7 @@ import type { UpdateGoodsReceiptLineDto } from '@domain/goods-receipt-lines/dto/
 import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import type { GoodsReceiptItemContext } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -16,7 +16,7 @@ export class GoodsReceiptsLinesService {
     private readonly linesService: GoodsReceiptLinesDomainService,
     private readonly itemsService: GoodsReceiptItemsDomainService,
     private readonly uomConversionsService: UomConversionsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
   ) {}
 
   // Adds a line to an item of a draft receipt, snapshotting its quantity in the item's primary unit
@@ -52,6 +52,6 @@ export class GoodsReceiptsLinesService {
   // Rejects a change to an item of a Receive with Invoice receipt, which is edited with its supplier invoice (409)
   private assertNotReceiveWithInvoice(item: GoodsReceiptItemContext): void {
     if (item.deliverySource !== InboundDeliverySourceValues.SUPPLIER_INVOICE) return;
-    this.purchasesService.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
   }
 }

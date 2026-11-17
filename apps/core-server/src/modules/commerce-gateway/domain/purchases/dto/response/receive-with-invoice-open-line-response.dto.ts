@@ -60,4 +60,13 @@ export class ReceiveWithInvoiceOpenLineResponseDto {
     nullable: true,
   })
   purchaseOrderItemId: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Why it cannot be received: it has no purchase order line yet and the site has blocked buying the item; null when it can',
+    type: String,
+    nullable: true,
+    example: 'Recalled batch',
+  })
+  orderBlockedReason: string | null;
 }

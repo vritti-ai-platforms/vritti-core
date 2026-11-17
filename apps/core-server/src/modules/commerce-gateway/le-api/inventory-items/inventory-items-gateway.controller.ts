@@ -1,13 +1,26 @@
-import { CreateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/create-site-stock-levels.dto';
+import { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
+import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
+import { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
+import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import { InventoryItemSiteParamsDto } from '@commerce/inventory-items/dto/request/inventory-item-site-params.dto';
-import { UpdateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/update-site-stock-levels.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
-import type { InventoryItemSiteStockLevelResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-site-stock-level-response.dto';
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
-import type { SiteStockLevelTableResponseDto } from '@commerce/inventory-items/dto/response/site-stock-level-row-response.dto';
-import { Body, Controller, Delete, Get, Logger, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import type { SiteItemTableResponseDto } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -16,10 +29,13 @@ import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { LegalEntityId, OrgId } from '@/security/decorators';
 import {
-  ApiCreateSiteStockLevels,
-  ApiDeleteSiteStockLevels,
-  ApiFindSiteStockLevelsTable,
-  ApiUpdateSiteStockLevels,
+  ApiAddToSite,
+  ApiBlockSiteItem,
+  ApiFindSiteItemsTable,
+  ApiRemoveFromSite,
+  ApiSetSupplierItemsRequired,
+  ApiUnblockSiteItem,
+  ApiUpdateReplenishment,
 } from './docs/inventory-items-gateway.docs';
 import { LeInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
@@ -33,28 +49,63 @@ export class LeInventoryItemsGatewayController {
 
   constructor(private readonly service: LeInventoryItemsGatewayService) {}
 
-  // Sets the item's stock levels at one of the legal entity's sites
-  @Post(':id/site-stock-levels/:siteId')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.add)
-  @ApiCreateSiteStockLevels()
-  createSiteStockLevels(
+  // Adds the item to one of the legal entity's sites with how it is replenished there
+  @Post(':id/sites/:siteId')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.add)
+  @ApiAddToSite()
+  addToSite(
     @Param() { id, siteId }: InventoryItemSiteParamsDto,
-    @Body() dto: CreateSiteStockLevelsDto,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
-    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.createSiteStockLevels(id, siteId, dto);
+    @Body() dto: ReplenishmentDto,
+  ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/sites/${siteId}`);
+    return this.service.addToSite(id, siteId, dto);
   }
 
-  // Updates the item's stock levels at one of the legal entity's sites
-  @Patch(':id/site-stock-levels/:siteId')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.edit)
-  @ApiUpdateSiteStockLevels()
-  updateSiteStockLevels(
+  // Changes how one of the legal entity's sites replenishes the item
+  @Patch(':id/sites/:siteId')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.edit)
+  @ApiUpdateReplenishment()
+  updateReplenishment(
     @Param() { id, siteId }: InventoryItemSiteParamsDto,
-    @Body() dto: UpdateSiteStockLevelsDto,
+    @Body() dto: ReplenishmentDto,
   ): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.updateSiteStockLevels(id, siteId, dto);
+    this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/sites/${siteId}`);
+    return this.service.updateReplenishment(id, siteId, dto);
+  }
+
+  // Stops one of the legal entity's sites buying the item, with why
+  @Post(':id/sites/:siteId/block')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.block)
+  @HttpCode(HttpStatus.OK)
+  @ApiBlockSiteItem()
+  block(
+    @Param() { id, siteId }: InventoryItemSiteParamsDto,
+    @Body() dto: BlockSiteItemDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/sites/${siteId}/block`);
+    return this.service.block(id, siteId, dto);
+  }
+
+  // Lets one of the legal entity's sites buy the item again
+  @Post(':id/sites/:siteId/unblock')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.block)
+  @HttpCode(HttpStatus.OK)
+  @ApiUnblockSiteItem()
+  unblock(@Param() { id, siteId }: InventoryItemSiteParamsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/sites/${siteId}/unblock`);
+    return this.service.unblock(id, siteId);
+  }
+
+  // Ties buying the item at one of the legal entity's sites to the supplier's item set up there, or frees it
+  @Patch(':id/sites/:siteId/supplier-items-required')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.edit)
+  @ApiSetSupplierItemsRequired()
+  setSupplierItemsRequired(
+    @Param() { id, siteId }: InventoryItemSiteParamsDto,
+    @Body() dto: SetSupplierItemsRequiredDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/le/inventory-items/${id}/sites/${siteId}/supplier-items-required`);
+    return this.service.setSupplierItemsRequired(id, siteId, dto);
   }
 
   // Returns one master item, read-only from a legal entity
@@ -89,26 +140,26 @@ export class LeInventoryItemsGatewayController {
     return this.service.findSuppliersTable(id, userId);
   }
 
-  // Returns the item's stock levels at the legal entity's sites, with the stock each holds, for the data table
-  @Get(':id/site-stock-levels/table')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.view)
-  @ApiFindSiteStockLevelsTable()
-  findSiteStockLevelsTable(
+  // Returns the legal entity's sites with how each carries the item and the stock it holds, for the data table
+  @Get(':id/sites/table')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.view)
+  @ApiFindSiteItemsTable()
+  findSiteItemsTable(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UserId() userId: string,
     @OrgId() orgId: string,
     @LegalEntityId() legalEntityId: string | undefined,
-  ): Promise<SiteStockLevelTableResponseDto> {
-    this.logger.log(`GET /commerce-api/le/inventory-items/${id}/site-stock-levels/table`);
-    return this.service.findSiteStockLevelsTable(id, userId, orgId, legalEntityId);
+  ): Promise<SiteItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/le/inventory-items/${id}/sites/table`);
+    return this.service.findSiteItemsTable(id, userId, orgId, legalEntityId);
   }
 
-  // Removes the item's stock levels at one of the legal entity's sites
-  @Delete(':id/site-stock-levels/:siteId')
-  @RequirePermission(LE_INVENTORY_ITEMS.siteStockLevels.delete)
-  @ApiDeleteSiteStockLevels()
-  deleteSiteStockLevels(@Param() { id, siteId }: InventoryItemSiteParamsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`DELETE /commerce-api/le/inventory-items/${id}/site-stock-levels/${siteId}`);
-    return this.service.deleteSiteStockLevels(id, siteId);
+  // Removes the item from one of the legal entity's sites
+  @Delete(':id/sites/:siteId')
+  @RequirePermission(LE_INVENTORY_ITEMS.sites.delete)
+  @ApiRemoveFromSite()
+  removeFromSite(@Param() { id, siteId }: InventoryItemSiteParamsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`DELETE /commerce-api/le/inventory-items/${id}/sites/${siteId}`);
+    return this.service.removeFromSite(id, siteId);
   }
 }

@@ -16,7 +16,7 @@ import type { InventoryItemLotData, InventoryItemLotStatus } from '@/schemas/inv
 
 interface LotsTabProps {
   inventoryItemId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 function getLotStatus(expiryDate: string): InventoryItemLotStatus {

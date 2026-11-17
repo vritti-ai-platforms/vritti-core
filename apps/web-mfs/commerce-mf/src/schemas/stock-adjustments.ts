@@ -77,8 +77,8 @@ export interface StockAdjustmentLineData {
   quantAvailableQuantity: number | null;
 
   uomId: string;
-  uomName: string | null;
-  uomSymbol: string | null;
+  uomName: string;
+  uomSymbol: string;
 
   uomQty: number;
   primaryUomQty: number;

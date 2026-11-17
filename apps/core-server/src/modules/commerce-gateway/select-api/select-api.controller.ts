@@ -39,7 +39,6 @@ import {
   ApiInventoryItemQuantsSelect,
   ApiInventoryItemSerialsSelect,
   ApiInventoryItemsSelect,
-  ApiInventoryItemsWithoutStockLevelsSelect,
   ApiLocationsSelect,
   ApiOfferingsSelect,
   ApiOfferingVariantsSelect,
@@ -130,15 +129,8 @@ export class SelectApiController {
     return this.service.selectInventoryItemSerials(query);
   }
 
-  // Returns inventory item options without stock levels at the current site, the ones that can have them set
-  @Get('inventory-items/without-stock-levels')
-  @ApiInventoryItemsWithoutStockLevelsSelect()
-  selectInventoryItemsWithoutStockLevels(@Query() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('GET /commerce-api/select-api/inventory-items/without-stock-levels');
-    return this.service.selectInventoryItemsWithoutStockLevels(query);
-  }
-
-  // Returns inventory item options for select dropdowns, only those with stock levels at a site when one is named
+  // Returns inventory item options for select dropdowns, only those with, or without, stock levels at a site when one is
+  // named
   @Get('inventory-items')
   @ApiInventoryItemsSelect()
   selectInventoryItems(

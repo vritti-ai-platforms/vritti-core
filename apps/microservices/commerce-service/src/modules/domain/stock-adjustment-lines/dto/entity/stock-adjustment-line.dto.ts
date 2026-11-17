@@ -1,8 +1,4 @@
-import type { StockAdjustmentLine } from '@/db/schema';
 import type { StockAdjustmentLineWithRefs } from '../../repositories/stock-adjustment-lines.repository';
-
-type StockAdjustmentLineRow = StockAdjustmentLine &
-  Partial<Omit<StockAdjustmentLineWithRefs, keyof StockAdjustmentLine>>;
 
 export class StockAdjustmentLineDto {
   id: string;
@@ -31,8 +27,8 @@ export class StockAdjustmentLineDto {
   quantAvailableQuantity: number | null;
 
   uomId: string;
-  uomName: string | null;
-  uomSymbol: string | null;
+  uomName: string;
+  uomSymbol: string;
   uomQty: number;
   primaryUomQty: number;
   resolvedQuantId: string | null;
@@ -40,7 +36,7 @@ export class StockAdjustmentLineDto {
   lineItemsCount: number;
   createdAt: string;
 
-  static from(row: StockAdjustmentLineRow): StockAdjustmentLineDto {
+  static from(row: StockAdjustmentLineWithRefs): StockAdjustmentLineDto {
     const dto = new StockAdjustmentLineDto();
     dto.id = row.id;
     dto.stockAdjustmentId = row.stockAdjustmentId;
@@ -63,8 +59,8 @@ export class StockAdjustmentLineDto {
         ? dto.quantTotalQuantity - dto.quantReservedQuantity
         : null;
     dto.uomId = row.uomId;
-    dto.uomName = row.uomName ?? null;
-    dto.uomSymbol = row.uomSymbol ?? null;
+    dto.uomName = row.uomName;
+    dto.uomSymbol = row.uomSymbol;
     dto.uomQty = row.uomQty;
     dto.primaryUomQty = row.primaryUomQty;
     dto.resolvedQuantId = row.resolvedQuantId ?? null;

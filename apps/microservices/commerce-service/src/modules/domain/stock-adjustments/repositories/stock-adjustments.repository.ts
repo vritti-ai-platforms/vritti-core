@@ -17,7 +17,7 @@ import {
 export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemName: string;
   inventoryItemUomId: string;
-  inventoryItemUomSymbol: string | null;
+  inventoryItemUomSymbol: string;
   inventoryItemTracking: InventoryTracking;
   totalQuantity: number;
   isPublishable?: boolean;
@@ -86,7 +86,7 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
         inventoryItemTracking: inventoryItems.tracking,
         totalQuantity: totalQuantitySql,
       },
-      leftJoins: [
+      innerJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],
@@ -134,11 +134,11 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
           )
         )`,
       },
-      innerJoin: { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
-      leftJoins: [
+      innerJoins: [
+        { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
-        { table: stockAdjustmentLines, on: eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId) },
       ],
+      leftJoin: { table: stockAdjustmentLines, on: eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId) },
       groupBy: [
         stockAdjustments.id,
         stockAdjustments.organizationId,

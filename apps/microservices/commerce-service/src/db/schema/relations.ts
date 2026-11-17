@@ -168,7 +168,7 @@ export const relations = defineRelations(schema, (r) => ({
     stockAdjustments: r.many.stockAdjustments(),
     stockTransfers: r.many.stockTransfers(),
     inventoryItemLocations: r.many.inventoryItemLocations(),
-    inventoryItemSiteStockLevels: r.many.inventoryItemSiteStockLevels(),
+    inventoryItemSites: r.many.inventoryItemSites(),
     inventoryItemMrps: r.many.inventoryItemMrps(),
   },
   locations: {
@@ -580,9 +580,9 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.locations.id,
     }),
   },
-  inventoryItemSiteStockLevels: {
+  inventoryItemSites: {
     inventoryItem: r.one.inventoryItems({
-      from: r.inventoryItemSiteStockLevels.inventoryItemId,
+      from: r.inventoryItemSites.inventoryItemId,
       to: r.inventoryItems.id,
     }),
   },

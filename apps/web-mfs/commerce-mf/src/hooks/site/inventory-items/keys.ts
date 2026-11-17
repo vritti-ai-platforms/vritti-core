@@ -1,8 +1,8 @@
 export const INVENTORY_ITEMS_STOCK_TABLE_KEY = ['commerce', 'inventory-items', 'stock-table'] as const;
 export const INVENTORY_ITEM_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId] as const;
-export const INVENTORY_ITEM_STOCK_LEVELS_KEY = (inventoryItemId: string) =>
-  ['commerce', 'inventory-items', inventoryItemId, 'stock-levels'] as const;
+export const INVENTORY_ITEM_SETUP_KEY = (inventoryItemId: string) =>
+  ['commerce', 'inventory-items', inventoryItemId, 'setup'] as const;
 export const INVENTORY_ITEM_QUANTS_KEY = (inventoryItemId: string) =>
   ['commerce', 'inventory-items', inventoryItemId, 'quants'] as const;
 export const INVENTORY_ITEM_LOTS_KEY = (inventoryItemId: string) =>

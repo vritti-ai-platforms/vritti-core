@@ -23,8 +23,8 @@ export class PurchaseAllocationResponseDto {
   @ApiProperty({ description: 'Unit the quantity is bought in' })
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Symbol of that unit', type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: 'Symbol of that unit' })
+  uomSymbol: string;
 
   @ApiProperty({ description: 'Quantity in that unit' })
   uomQty: number;

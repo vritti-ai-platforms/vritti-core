@@ -12,7 +12,7 @@ export class GoodsReceiptLineDto {
   expiryDate: string | null;
   quantity: number;
   primaryUomQty: number;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;

@@ -22,8 +22,8 @@ export class InventoryItemResponseDto {
   @ApiProperty()
   categoryId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  categoryName: string | null;
+  @ApiProperty()
+  categoryName: string;
 
   @ApiPropertyOptional({ nullable: true })
   description: string | null;
@@ -31,8 +31,11 @@ export class InventoryItemResponseDto {
   @ApiProperty()
   uomId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty()
+  uomSymbol: string;
+
+  @ApiProperty({ description: "Whether the item's primary unit can be counted in fractions" })
+  uomAllowDecimal: boolean;
 
   @ApiPropertyOptional({
     description: 'Tax class override, or null when inheriting the category default',
@@ -45,8 +48,8 @@ export class InventoryItemResponseDto {
   @ApiProperty({ description: 'Tax class the goods are bought under' })
   taxClassId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  taxClassName: string | null;
+  @ApiProperty()
+  taxClassName: string;
 
   @ApiProperty({
     description: 'Weight of one primary unit, in grams (g); null when not maintained',

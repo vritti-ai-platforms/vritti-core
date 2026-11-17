@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type PaymentTermSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
+export type PaymentTermSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & {
   // Lists draft terms too — for navigation, never for picking a term a supplier will use
   allowUnpublished?: boolean;
 };

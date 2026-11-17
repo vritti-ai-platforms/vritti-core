@@ -4,12 +4,14 @@ import { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/a
 import { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import { CreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/create-purchase-order.dto';
+import { PurchaseOrderItemDefaultsQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-item-defaults-query.dto';
 import { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
 import { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
@@ -28,6 +30,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -50,6 +53,7 @@ import {
   ApiFindForTablePurchaseOrderInvoices,
   ApiFindGoodsReceiptTable,
   ApiFindInboundDeliveryTable,
+  ApiFindItemDefaults,
   ApiFindItemIds,
   ApiFindItemsTable,
   ApiFindProblems,
@@ -263,6 +267,18 @@ export class PurchaseOrdersGatewayController {
       .header('Content-Type', 'application/pdf')
       .header('Content-Disposition', `inline; filename="${filename}"`)
       .send(buffer);
+  }
+
+  // What a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery
+  @Get(':id/items/defaults')
+  @RequirePermission(SITE_PURCHASE_ORDERS.edit)
+  @ApiFindItemDefaults()
+  findItemDefaults(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: PurchaseOrderItemDefaultsQueryDto,
+  ): Promise<PurchaseOrderItemDefaultsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/items/defaults`);
+    return this.service.findItemDefaults(id, query);
   }
 
   // Returns the inventory items ordered on a purchase order

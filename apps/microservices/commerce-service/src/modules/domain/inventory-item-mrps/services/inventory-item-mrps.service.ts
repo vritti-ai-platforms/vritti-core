@@ -8,7 +8,10 @@ import { type InventoryItemMrp, inventoryItemMrps, uom } from '@/db/schema';
 import { InventoryItemMrpDto } from '../dto/entity/inventory-item-mrp.dto';
 import type { AddInventoryItemMrpDto } from '../dto/request/add-inventory-item-mrp.dto';
 import type { UpdateInventoryItemMrpDto } from '../dto/request/update-inventory-item-mrp.dto';
-import { InventoryItemMrpsDomainRepository } from '../repositories/inventory-item-mrps.repository';
+import {
+  InventoryItemMrpsDomainRepository,
+  type InventoryItemMrpWithUom,
+} from '../repositories/inventory-item-mrps.repository';
 
 @Injectable()
 export class InventoryItemMrpsDomainService {
@@ -59,6 +62,11 @@ export class InventoryItemMrpsDomainService {
   // Promotes one recorded MRP to the current one for its triple; resolves undefined when none matched
   setCurrent(id: string): Promise<InventoryItemMrp | undefined> {
     return this.repository.setCurrent(id);
+  }
+
+  // Returns one MRP with its unit's symbol, read back after it is written
+  findByIdWithUom(id: string): Promise<InventoryItemMrpWithUom> {
+    return this.repository.findByIdWithUom(id);
   }
 
   // Returns one item's MRPs for the data table, by unit and currency unless the table sorts them

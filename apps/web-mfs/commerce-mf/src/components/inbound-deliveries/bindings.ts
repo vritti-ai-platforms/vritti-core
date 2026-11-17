@@ -17,7 +17,7 @@ import type {
 
 export interface InboundDeliveryMutationsBinding {
   permissions: InboundDeliveryWritePermissions;
-  SupplierSelector: ComponentType<Omit<SelectProps, 'optionsEndpoint'>>;
+  SupplierSelector: ComponentType<DistributiveOmit<SelectProps, 'optionsEndpoint'>>;
 
   useCreate: UseCreateInboundDelivery;
   useUpdate: UseUpdateInboundDelivery;

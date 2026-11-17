@@ -4,8 +4,10 @@ import type {
   AddPurchaseAllocationPayload,
   AddPurchaseAllocationsFromQuotationPayload,
   AddPurchaseItemPayload,
+  CancelPurchaseLegPayload,
   CancelPurchasePayload,
   ClosePurchaseLegPayload,
+  ClosePurchasePayload,
   ConfirmPurchaseLegPurchaseOrderPayload,
   CreatedPurchaseLegGoodsReceipt,
   CreatedPurchaseLegInboundDelivery,
@@ -16,16 +18,32 @@ import type {
   CreatePurchaseLegPurchaseOrdersPayload,
   CreatePurchasePayload,
   CreatePurchaseSupplierInvoicePayload,
+  PurchaseActions,
   PurchaseAllocation,
   PurchaseAllocationRef,
+  PurchaseCounts,
   PurchaseData,
-  PurchaseHeader,
+  PurchaseDetail,
   PurchaseItem,
+  PurchaseItemAllocationsTableResponse,
+  PurchaseItemComparisonTableResponse,
+  PurchaseItemCounts,
+  PurchaseItemDocumentsTableResponse,
+  PurchaseItemFacets,
+  PurchaseItemProgressSummary,
+  PurchaseItemQuotesTableResponse,
   PurchaseItemRef,
+  PurchaseItemSiteStock,
+  PurchaseItemsTableResponse,
+  PurchaseItemView,
   PurchaseLeg,
+  PurchaseLegCount,
   PurchaseLegRef,
-  PurchaseQuotation,
-  PurchaseSourcingItem,
+  PurchaseLegsTableResponse,
+  PurchaseProgressSummary,
+  PurchaseQuotationsTableResponse,
+  PurchaseSettings,
+  PurchaseSupplierDocuments,
   PurchasesTableResponse,
   RejectPurchaseLegPayload,
   RequestedPurchaseQuotation,
@@ -55,32 +73,109 @@ export function createPurchase(data: CreatePurchasePayload): Promise<CreateRespo
   return axios.post<CreateResponse<PurchaseData>>(BASE, data).then((r) => r.data);
 }
 
-// Fetches a purchase's header: its stage, counts, progress and the purchase-level actions it offers
-export function getPurchase(id: string): Promise<PurchaseHeader> {
-  return axios.get<PurchaseHeader>(`${BASE}/${id}`).then((r) => r.data);
+// Fetches a purchase's header: its counts, progress, where it stands, the actions it offers and why others are blocked
+export function getPurchase(id: string): Promise<PurchaseDetail> {
+  return axios.get<PurchaseDetail>(`${BASE}/${id}`).then((r) => r.data);
 }
 
-// Fetches a purchase's requested items
-export function getPurchaseItems(id: string): Promise<PurchaseItem[]> {
-  return axios.get<PurchaseItem[]>(`${BASE}/${id}/items`).then((r) => r.data);
+// Fetches how many item lines, suppliers and requested quotations a purchase has
+export function getPurchaseCounts(id: string): Promise<PurchaseCounts> {
+  return axios.get<PurchaseCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
-// Fetches the quotations linked to a purchase
-export function getPurchaseQuotations(id: string): Promise<PurchaseQuotation[]> {
-  return axios.get<PurchaseQuotation[]>(`${BASE}/${id}/quotations`).then((r) => r.data);
+// Fetches how far a purchase's items have got and where it stands as a whole
+export function getPurchaseProgress(id: string): Promise<PurchaseProgressSummary> {
+  return axios.get<PurchaseProgressSummary>(`${BASE}/${id}/progress`).then((r) => r.data);
 }
 
-// Fetches a purchase's items with the allocations sourcing each of them
-export function getPurchaseSourcingItems(id: string): Promise<PurchaseSourcingItem[]> {
-  return axios.get<PurchaseSourcingItem[]>(`${BASE}/${id}/sourcing/items`).then((r) => r.data);
+// Fetches the actions a purchase offers and why the others are blocked
+export function getPurchaseActions(id: string): Promise<PurchaseActions> {
+  return axios.get<PurchaseActions>(`${BASE}/${id}/actions`).then((r) => r.data);
 }
 
-// Fetches the suppliers a purchase sources from, each with its allocations, documents, progress and actions
-export function getPurchaseSuppliers(id: string): Promise<PurchaseLeg[]> {
-  return axios.get<PurchaseLeg[]>(`${BASE}/${id}/suppliers`).then((r) => r.data);
+// Fetches one page of a purchase's items with how far each has got
+export function getPurchaseItemsTable(id: string): Promise<PurchaseItemsTableResponse> {
+  return axios.get<PurchaseItemsTableResponse>(`${BASE}/${id}/items/table`).then((r) => r.data);
 }
 
-// Updates a purchase's details while it is in the Items step
+// Counts a purchase's items in each bucket of the items table
+export function getPurchaseItemFacets(id: string): Promise<PurchaseItemFacets> {
+  return axios.get<PurchaseItemFacets>(`${BASE}/${id}/items/facets`).then((r) => r.data);
+}
+
+// Fetches one purchase item as its own page shows it
+export function getPurchaseItem(id: string, itemId: string): Promise<PurchaseItemView> {
+  return axios.get<PurchaseItemView>(`${BASE}/${id}/items/${itemId}`).then((r) => r.data);
+}
+
+// Fetches the counts a purchase item's page labels its tabs with
+export function getPurchaseItemCounts(id: string, itemId: string): Promise<PurchaseItemCounts> {
+  return axios.get<PurchaseItemCounts>(`${BASE}/${id}/items/${itemId}/counts`).then((r) => r.data);
+}
+
+// Fetches how far a purchase item has got, in all and per supplier
+export function getPurchaseItemProgress(id: string, itemId: string): Promise<PurchaseItemProgressSummary> {
+  return axios.get<PurchaseItemProgressSummary>(`${BASE}/${id}/items/${itemId}/progress`).then((r) => r.data);
+}
+
+// Fetches one page of a purchase item's allocations
+export function getPurchaseItemAllocationsTable(
+  id: string,
+  itemId: string,
+): Promise<PurchaseItemAllocationsTableResponse> {
+  return axios
+    .get<PurchaseItemAllocationsTableResponse>(`${BASE}/${id}/items/${itemId}/allocations/table`)
+    .then((r) => r.data);
+}
+
+// Fetches one page of the quotation lines quoting a purchase item
+export function getPurchaseItemQuotesTable(id: string, itemId: string): Promise<PurchaseItemQuotesTableResponse> {
+  return axios.get<PurchaseItemQuotesTableResponse>(`${BASE}/${id}/items/${itemId}/quotes/table`).then((r) => r.data);
+}
+
+// Fetches one page of the document lines that move a purchase item
+export function getPurchaseItemDocumentsTable(id: string, itemId: string): Promise<PurchaseItemDocumentsTableResponse> {
+  return axios
+    .get<PurchaseItemDocumentsTableResponse>(`${BASE}/${id}/items/${itemId}/documents/table`)
+    .then((r) => r.data);
+}
+
+// Fetches a purchase item's stock at the purchase's site, null while the site does not carry it
+export function getPurchaseItemSiteStock(id: string, itemId: string): Promise<PurchaseItemSiteStock | null> {
+  return axios.get<PurchaseItemSiteStock | null>(`${BASE}/${id}/items/${itemId}/site-stock`).then((r) => r.data);
+}
+
+// Fetches one page of a purchase's items with the quotation lines that quote each
+export function getPurchaseItemComparison(id: string): Promise<PurchaseItemComparisonTableResponse> {
+  return axios.get<PurchaseItemComparisonTableResponse>(`${BASE}/${id}/items/comparison`).then((r) => r.data);
+}
+
+// Fetches one page of the quotations linked to a purchase, without their lines
+export function getPurchaseQuotationsTable(id: string): Promise<PurchaseQuotationsTableResponse> {
+  return axios.get<PurchaseQuotationsTableResponse>(`${BASE}/${id}/quotations/table`).then((r) => r.data);
+}
+
+// Fetches one page of a purchase's suppliers with their documents, progress, actions and blockers
+export function getPurchaseSuppliersTable(id: string): Promise<PurchaseLegsTableResponse> {
+  return axios.get<PurchaseLegsTableResponse>(`${BASE}/${id}/suppliers/table`).then((r) => r.data);
+}
+
+// Fetches one supplier of a purchase with its allocations, documents, progress, actions and blockers
+export function getPurchaseSupplier(id: string, legId: string): Promise<PurchaseLeg> {
+  return axios.get<PurchaseLeg>(`${BASE}/${id}/suppliers/${legId}`).then((r) => r.data);
+}
+
+// Counts a purchase's suppliers and their lines by step and status
+export function getPurchaseSupplierCounts(id: string): Promise<PurchaseLegCount[]> {
+  return axios.get<PurchaseLegCount[]>(`${BASE}/${id}/suppliers/counts`).then((r) => r.data);
+}
+
+// Fetches the documents of every supplier of a purchase
+export function getPurchaseDocuments(id: string): Promise<PurchaseSupplierDocuments[]> {
+  return axios.get<PurchaseSupplierDocuments[]>(`${BASE}/${id}/documents`).then((r) => r.data);
+}
+
+// Updates an open purchase's details
 export function updatePurchase({ id, ...data }: UpdatePurchasePayload): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/${id}`, data).then((r) => r.data);
 }
@@ -90,7 +185,12 @@ export function cancelPurchase({ id, reason }: CancelPurchasePayload): Promise<S
   return axios.post<SuccessResponse>(`${BASE}/${id}/cancel`, { reason }).then((r) => r.data);
 }
 
-// Deletes a purchase nothing exists behind yet, with its items
+// Closes a purchase: suppliers with goods received stop expecting more, the others are cancelled
+export function closePurchase({ id, ...data }: ClosePurchasePayload): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/close`, data).then((r) => r.data);
+}
+
+// Deletes a purchase no supplier is added to, with its items
 export function deletePurchase(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${id}`).then((r) => r.data);
 }
@@ -110,12 +210,7 @@ export function removePurchaseItem({ id, itemId }: PurchaseItemRef): Promise<Suc
   return axios.delete<SuccessResponse>(`${BASE}/${id}/items/${itemId}`).then((r) => r.data);
 }
 
-// Submits a purchase's items, moving it to quotations or sourcing
-export function submitPurchaseItems(id: string): Promise<SuccessResponse> {
-  return axios.post<SuccessResponse>(`${BASE}/${id}/submit-items`).then((r) => r.data);
-}
-
-// Opens a draft quotation for a supplier with one line per purchase item
+// Opens a draft quotation for a supplier with one line per purchase item still to allocate
 export function requestPurchaseQuotation({
   id,
   supplierId,
@@ -123,11 +218,6 @@ export function requestPurchaseQuotation({
   return axios
     .post<CreateResponse<RequestedPurchaseQuotation>>(`${BASE}/${id}/quotations`, { supplierId })
     .then((r) => r.data);
-}
-
-// Completes a purchase's quotations, moving it to sourcing
-export function completePurchaseQuotations(id: string): Promise<SuccessResponse> {
-  return axios.post<SuccessResponse>(`${BASE}/${id}/complete-quotations`).then((r) => r.data);
 }
 
 // Allocates part of an item to a supplier, opening the supplier's leg on its first allocation
@@ -138,7 +228,7 @@ export function addPurchaseAllocation({
   return axios.post<CreateResponse<PurchaseAllocation>>(`${BASE}/${id}/allocations`, data).then((r) => r.data);
 }
 
-// Allocates items from posted quotation lines at their quoted unit and price
+// Allocates what is still to allocate of items from posted quotation lines, or from every line of a quotation
 export function addPurchaseAllocationsFromQuotation({
   id,
   ...data
@@ -160,12 +250,12 @@ export function removePurchaseAllocation({ id, allocationId }: PurchaseAllocatio
   return axios.delete<SuccessResponse>(`${BASE}/${id}/allocations/${allocationId}`).then((r) => r.data);
 }
 
-// Submits a purchase's sourcing, starting every supplier leg still in sourcing
+// Submits every supplier still in sourcing
 export function submitPurchase(id: string): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${id}/submit`).then((r) => r.data);
 }
 
-// Resubmits one supplier leg on its own
+// Submits one supplier in sourcing on its own
 export function submitPurchaseLeg({ id, legId }: PurchaseLegRef): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${id}/legs/${legId}/submit`).then((r) => r.data);
 }
@@ -224,9 +314,14 @@ export function createPurchaseLegGoodsReceipt({
     .then((r) => r.data);
 }
 
-// Closes the leg, closing its open purchase order lines short
+// Closes a supplier for receiving: its open purchase orders complete, and it closes once invoiced
 export function closePurchaseLeg({ id, legId, ...data }: ClosePurchaseLegPayload): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${id}/legs/${legId}/close`, data).then((r) => r.data);
+}
+
+// Cancels a supplier nothing is received or invoiced on, returning its quantity to allocate or dropping it
+export function cancelPurchaseLeg({ id, legId, ...data }: CancelPurchaseLegPayload): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/legs/${legId}/cancel`, data).then((r) => r.data);
 }
 
 // Drafts a supplier invoice invoicing the supplier's posted receipts of its open legs
@@ -277,4 +372,9 @@ export function postReceiveWithInvoice(invoiceId: string): Promise<SuccessRespon
 // Discards a draft Receive with Invoice with the receipts and deliveries it created
 export function discardReceiveWithInvoice(invoiceId: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/receive-with-invoices/${invoiceId}`).then((r) => r.data);
+}
+
+// Fetches the purchasing rules the legal entity set for the session site
+export function getPurchaseSettings(): Promise<PurchaseSettings> {
+  return axios.get<PurchaseSettings>(`${BASE}/settings`).then((r) => r.data);
 }

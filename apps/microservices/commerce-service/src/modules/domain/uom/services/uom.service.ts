@@ -181,6 +181,8 @@ export class UomDomainService {
       inventoryItemId?: string;
       supplierId?: string;
       purchaseOrderId?: string;
+      // With inventoryItemId, only the units this supplier sells the item in
+      soldBySupplierId?: string;
     },
   ): Promise<SelectQueryResult> {
     const conditions: SQL[] = [];
@@ -211,6 +213,9 @@ export class UomDomainService {
       )`);
     } else if (options?.inventoryItemId) {
       conditions.push(sql`${uom.id} IN ${this.uomRepository.allowedUomIdsForItemSubquery(options.inventoryItemId)}`);
+    }
+    if (options?.inventoryItemId && options.soldBySupplierId) {
+      conditions.push(this.uomRepository.soldBySupplierCondition(options.soldBySupplierId, options.inventoryItemId));
     }
 
     const joins =

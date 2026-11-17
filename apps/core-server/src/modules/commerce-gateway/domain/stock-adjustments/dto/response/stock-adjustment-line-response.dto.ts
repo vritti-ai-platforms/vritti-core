@@ -24,8 +24,8 @@ export class StockAdjustmentLineResponseDto {
   @ApiPropertyOptional({ nullable: true }) quantAvailableQuantity: number | null;
 
   @ApiProperty() uomId: string;
-  @ApiPropertyOptional({ nullable: true }) uomName: string | null;
-  @ApiPropertyOptional({ nullable: true }) uomSymbol: string | null;
+  @ApiProperty() uomName: string;
+  @ApiProperty() uomSymbol: string;
 
   @ApiProperty({ description: 'Line quantity in the line UOM' }) uomQty: number;
   @ApiProperty({ description: 'Snapshot of line quantity converted to the item primary UOM at create/update time' })

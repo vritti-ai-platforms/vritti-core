@@ -17,6 +17,7 @@ import { LeSupplierQuotationsService } from './quotations/services/supplier-quot
 import { SupplierQuotationsController } from './quotations/supplier-quotations.controller';
 import { SuppliersService } from './root/services/suppliers-root.service';
 import { SuppliersRootController } from './root/suppliers-root.controller';
+import { LeSupplierSiteItemPricesService } from './site-items/prices/services/supplier-site-item-prices.service';
 import { SupplierSiteItemPricesController } from './site-items/prices/supplier-site-item-prices.controller';
 import { SupplierSiteItemsController } from './site-items/root/supplier-site-items.controller';
 
@@ -41,7 +42,13 @@ import { SupplierSiteItemsController } from './site-items/root/supplier-site-ite
     SupplierSiteItemPricesController,
     SupplierQuotationsController,
   ],
-  providers: [SuppliersItemsService, SuppliersService, LeSupplierQuotationsService, LeSupplierEnrollmentsService],
-  exports: [LeSupplierQuotationsService],
+  providers: [
+    SuppliersItemsService,
+    SuppliersService,
+    LeSupplierQuotationsService,
+    LeSupplierEnrollmentsService,
+    LeSupplierSiteItemPricesService,
+  ],
+  exports: [LeSupplierQuotationsService, LeSupplierSiteItemPricesService],
 })
 export class LeSuppliersModule {}

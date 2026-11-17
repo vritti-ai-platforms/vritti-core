@@ -7,6 +7,7 @@ import {
   type SelectProps,
   type SingleSelectOptionRenderProps,
 } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { Check, Gift } from 'lucide-react';
 import type React from 'react';
 import { forwardRef } from 'react';
@@ -17,7 +18,7 @@ export type SupplierItemSelectorParams = {
   excludeOnGoodsReceiptId?: string;
 };
 
-export type SupplierItemSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'params'> & {
+export type SupplierItemSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'params'> & {
   params?: SupplierItemSelectorParams;
 };
 

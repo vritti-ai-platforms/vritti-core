@@ -19,6 +19,7 @@ import type { SupplierInvoiceLineRow } from '@domain/supplier-invoices/repositor
 import type { SupplierInvoiceRow } from '@domain/supplier-invoices/repositories/supplier-invoices.repository';
 import {
   type InvoiceForLines,
+  type PreparedSupplierInvoiceLine,
   SupplierInvoiceLinesDomainService,
 } from '@domain/supplier-invoices/services/supplier-invoice-lines.service';
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
@@ -153,8 +154,7 @@ export class ReceiveWithInvoiceDocumentsService {
   async findDocuments(supplierInvoiceId: string): Promise<ReceiveWithInvoiceDocuments> {
     const lines = await this.invoiceLinesService.findByInvoice(supplierInvoiceId);
     const receiptIds = _.uniq(lines.flatMap((line) => (line.goodsReceiptId ? [line.goodsReceiptId] : [])));
-    const receipts: GoodsReceiptRow[] = [];
-    for (const receiptId of receiptIds) receipts.push(await this.goodsReceiptsService.findDetailOrThrow(receiptId));
+    const receipts = await this.goodsReceiptsService.findDetailsOrThrow(receiptIds);
     return { lines, receipts };
   }
 
@@ -167,7 +167,7 @@ export class ReceiveWithInvoiceDocumentsService {
   ): Promise<void> {
     this.assertReceiptsDraft(documents.receipts);
     if (keepInvoice) {
-      for (const line of documents.lines) await this.invoiceLinesService.delete(invoice, line.id);
+      await this.invoiceLinesService.deleteAll(invoice);
     } else {
       await this.invoicesService.delete(invoice);
     }
@@ -222,11 +222,12 @@ export class ReceiveWithInvoiceDocumentsService {
     leCurrencyCode: string,
   ): Promise<void> {
     const items = await this.goodsReceiptItemsService.findByReceiptId(goodsReceiptId);
+    const invoiceLines: PreparedSupplierInvoiceLine[] = [];
     for (const allocation of allocations) {
       const item = items.find((receiptItem) => receiptItem.purchaseOrderItemId === allocation.purchaseOrderItemId);
       if (!item) continue;
+      const context = await this.goodsReceiptItemsService.findDraftContextOrThrow(goodsReceiptId, item.id);
       for (const planned of linesByAllocation[allocation.id]) {
-        const context = await this.goodsReceiptItemsService.findDraftContextOrThrow(goodsReceiptId, item.id);
         const lotId = planned.lot
           ? (
               await this.lotsService.addLot(
@@ -263,9 +264,10 @@ export class ReceiveWithInvoiceDocumentsService {
           },
           { allowDraftReceipt: true },
         );
-        await this.invoiceLinesService.create(invoice, invoiceLine);
+        invoiceLines.push(invoiceLine);
       }
     }
+    await this.invoiceLinesService.createMany(invoice, invoiceLines);
   }
 
   // Sums what the invoice lines of one allocation receive (invoiced and free) in the allocation's unit

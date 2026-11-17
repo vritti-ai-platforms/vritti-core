@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
-import { and } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { majorToMinor } from '@vritti/api-sdk/money';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -11,14 +11,21 @@ import {
   type SupplierQuotationSite,
   supplierQuotations,
 } from '@/db/schema';
-import { PurchaseQuotationDto } from '../dto/entity/purchase-quotation.dto';
+import {
+  PurchaseItemQuotationLineDto,
+  PurchaseQuotationDto,
+  PurchaseQuotationTableRowDto,
+} from '../dto/entity/purchase-quotation.dto';
 import { PurchaseQuotationItemTermsDto } from '../dto/entity/purchase-quotation-item-terms.dto';
 import { SupplierQuotationDetailDto, SupplierQuotationDto } from '../dto/entity/supplier-quotation.dto';
 import type { CreatePurchaseQuotationDraftDto } from '../dto/request/create-purchase-quotation-draft.dto';
 import type { CreateSupplierQuotationDto } from '../dto/request/create-supplier-quotation.dto';
 import type { SupplierQuotationItemFieldsDto } from '../dto/request/supplier-quotation-item-fields.dto';
 import type { UpdateSupplierQuotationDto } from '../dto/request/update-supplier-quotation.dto';
-import { SupplierQuotationsDomainRepository } from '../repositories/supplier-quotations.repository';
+import {
+  type SiteOwnedQuotation,
+  SupplierQuotationsDomainRepository,
+} from '../repositories/supplier-quotations.repository';
 
 @Injectable()
 export class SupplierQuotationsDomainService {
@@ -211,18 +218,74 @@ export class SupplierQuotationsDomainService {
   }
 
   // Returns the quotations a purchase requested with their lines, each marked posted when it is posted to the site or
-  // its legal entity
-  async findForPurchase(purchaseId: string, siteId: string): Promise<PurchaseQuotationDto[]> {
-    const [quotations, items] = await Promise.all([
-      this.repository.findForPurchase(purchaseId, siteId),
-      this.repository.findItemsForPurchase(purchaseId),
-    ]);
-    return quotations.map((quotation) =>
-      PurchaseQuotationDto.from(
-        quotation,
-        items.filter((item) => item.quotationId === quotation.id),
+
+  // Returns one page of the quotations a purchase requested, newest first, without their lines
+  async findForPurchaseTable(
+    purchaseId: string,
+    siteId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseQuotationTableRowDto[]; count: number }> {
+    const fieldMap: FieldMap = {
+      quotationNumber: { column: supplierQuotations.quotationNumber, type: 'string' },
+      supplierId: { column: supplierQuotations.supplierId, type: 'string' },
+      validFrom: { column: supplierQuotations.validFrom, type: 'string' },
+    };
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 50, offset = 0 } = state.pagination;
+    const { result, count } = await this.repository.findForPurchaseTable(purchaseId, siteId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, { quotationNumber: fieldMap.quotationNumber }),
       ),
-    );
+      orderBy: orderBy.length > 0 ? orderBy : [desc(supplierQuotations.createdAt)],
+      limit,
+      offset,
+    });
+    return { result: result.map(PurchaseQuotationTableRowDto.from), count };
+  }
+
+  // Returns the ids of a quotation's lines that quote an item of the purchase it was requested for
+  findLineIdsForPurchase(purchaseId: string, quotationId: string): Promise<string[]> {
+    return this.repository.findLineIdsForPurchase(purchaseId, quotationId);
+  }
+
+  // Returns one page of the lines of a purchase's quotations that quote one of its items, narrowed and ordered by the
+  // table's state
+  async findForPurchaseItemTable(
+    purchaseId: string,
+    siteId: string,
+    purchaseItemId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseItemQuotationLineDto[]; count: number }> {
+    const fieldMap: FieldMap = {
+      supplierId: { column: supplierQuotations.supplierId, type: 'string' },
+      quotationNumber: { column: supplierQuotations.quotationNumber, type: 'string' },
+      validFrom: { column: supplierQuotations.validFrom, type: 'string' },
+    };
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 50, offset = 0 } = state.pagination;
+    const { result, count } = await this.repository.findForPurchaseItemTable(purchaseId, purchaseItemId, siteId, {
+      where: FilterProcessor.buildWhere(state.filters, fieldMap),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(supplierQuotations.quotationNumber)],
+      limit,
+      offset,
+    });
+    return { result: result.map(PurchaseItemQuotationLineDto.from), count };
+  }
+
+  // Returns the quotations a purchase requested that quote any of the given purchase items, each with only those lines
+  async findForPurchaseItems(
+    purchaseId: string,
+    siteId: string,
+    purchaseItemIds: string[],
+  ): Promise<PurchaseQuotationDto[]> {
+    const lines = await this.repository.findItemsForPurchaseItems(purchaseId, [...new Set(purchaseItemIds)]);
+    if (lines.length === 0) return [];
+    const quotations = await this.repository.findForPurchase(purchaseId, siteId);
+    return quotations.flatMap((quotation) => {
+      const quoted = lines.filter((line) => line.quotationId === quotation.id);
+      return quoted.length > 0 ? [PurchaseQuotationDto.from(quotation, quoted)] : [];
+    });
   }
 
   // Returns the terms of the given lines of the purchase's quotations posted to the site or its legal entity and valid
@@ -243,9 +306,15 @@ export class SupplierQuotationsDomainService {
     return rows.map(PurchaseQuotationItemTermsDto.from);
   }
 
-  // Counts the suppliers that have a quotation for the purchase posted to the site or its legal entity
-  countPostedSuppliersForPurchase(purchaseId: string, siteId: string): Promise<number> {
-    return this.repository.countPostedSuppliersForPurchase(purchaseId, siteId);
+  // Counts, per purchase item, the suppliers whose quotation for the purchase quotes it, is posted to the site or its legal
+  // entity and is valid on the day
+  countQuotingSuppliersByItem(
+    purchaseId: string,
+    siteId: string,
+    purchaseItemIds: string[],
+    onDate: string,
+  ): Promise<Map<string, number>> {
+    return this.repository.countQuotingSuppliersByItem(purchaseId, siteId, [...new Set(purchaseItemIds)], onDate);
   }
 
   // Counts the quotations the purchase requested that the workspace can read, drafts included
@@ -265,6 +334,11 @@ export class SupplierQuotationsDomainService {
 
   findSite(quotationId: string, siteId: string | null): Promise<SupplierQuotationSite | undefined> {
     return this.repository.findSite(quotationId, siteId);
+  }
+
+  // Loads a quotation the request's site owns, rejecting one another site posted to it
+  findOwnedByRequestSiteOrThrow(quotationId: string): Promise<SiteOwnedQuotation> {
+    return this.repository.findOwnedByRequestSiteOrThrow(quotationId);
   }
 
   // Rejects changing a quotation the request's site does not own

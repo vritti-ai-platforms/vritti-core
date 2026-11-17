@@ -1,9 +1,10 @@
-import type { CreateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/create-site-stock-levels.dto';
-import type { UpdateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/update-site-stock-levels.dto';
+import type { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
+import type { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
+import type { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
+import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
-import type { InventoryItemSiteStockLevelResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-site-stock-level-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
@@ -11,9 +12,9 @@ import type {
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type {
   ItemStockBySiteResponseDto,
-  SiteStockLevelRowResponseDto,
-  SiteStockLevelTableResponseDto,
-} from '@commerce/inventory-items/dto/response/site-stock-level-row-response.dto';
+  SiteItemRowResponseDto,
+  SiteItemTableResponseDto,
+} from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
 import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
@@ -34,28 +35,48 @@ export class LeInventoryItemsGatewayService {
     private readonly legalEntityContextResolver: LegalEntityContextResolverService,
   ) {}
 
-  // Sets the item's stock levels at one of the legal entity's sites
-  createSiteStockLevels(
+  // Adds the item to one of the legal entity's sites with how it is replenished there
+  addToSite(
     inventoryItemId: string,
     siteId: string,
-    dto: CreateSiteStockLevelsDto,
-  ): Promise<CreateResponseDto<InventoryItemSiteStockLevelResponseDto>> {
-    this.logger.log(
-      `le.inventoryItems.siteStockLevels.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
-    );
-    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.create', { inventoryItemId, siteId, ...dto });
+    dto: ReplenishmentDto,
+  ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
+    this.logger.log(`le.inventoryItems.sites.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.inventoryItems.sites.create', { inventoryItemId, siteId, ...dto });
   }
 
-  // Updates the item's stock levels at one of the legal entity's sites
-  updateSiteStockLevels(
+  // Changes how one of the legal entity's sites replenishes the item
+  updateReplenishment(inventoryItemId: string, siteId: string, dto: ReplenishmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.inventoryItems.sites.update — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.inventoryItems.sites.update', { inventoryItemId, siteId, ...dto });
+  }
+
+  // Stops one of the legal entity's sites buying the item, with why
+  block(inventoryItemId: string, siteId: string, dto: BlockSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.inventoryItems.sites.block — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.inventoryItems.sites.block', { inventoryItemId, siteId, ...dto });
+  }
+
+  // Lets one of the legal entity's sites buy the item again
+  unblock(inventoryItemId: string, siteId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.inventoryItems.sites.unblock — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.inventoryItems.sites.unblock', { inventoryItemId, siteId });
+  }
+
+  // Ties buying the item at one of the legal entity's sites to the supplier's item set up there, or frees it
+  setSupplierItemsRequired(
     inventoryItemId: string,
     siteId: string,
-    dto: UpdateSiteStockLevelsDto,
+    dto: SetSupplierItemsRequiredDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(
-      `le.inventoryItems.siteStockLevels.update — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
+      `le.inventoryItems.sites.setSupplierItemsRequired — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
     );
-    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.update', { inventoryItemId, siteId, ...dto });
+    return this.nats.send('commerce', 'le.inventoryItems.sites.setSupplierItemsRequired', {
+      inventoryItemId,
+      siteId,
+      ...dto,
+    });
   }
 
   findById(id: string): Promise<InventoryItemResponseDto> {
@@ -106,27 +127,25 @@ export class LeInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // The item's stock levels at the legal entity's sites, with the stock each holds by location and valued in the legal
-  // The legal entity's sites, each with the item's stock levels and its stock there; the user's saved view pages the
+  // The legal entity's sites, each with how it carries the item and its stock there; the user's saved view pages the
   // sites, and commerce resolves the item's stock at them through the legal entity's RLS context and tells which sites
-  // the status filter keeps — those whose stock matches, and those with no stock levels when that option is picked
-  async findSiteStockLevelsTable(
+  // the status filter keeps — those whose stock matches, and those that do not carry the item when that option is picked
+  async findSiteItemsTable(
     inventoryItemId: string,
     userId: string,
     orgId: string,
     legalEntityId: string | undefined,
-  ): Promise<SiteStockLevelTableResponseDto> {
-    this.logger.log(`le.inventoryItems.siteStockLevels.table — inventoryItemId: ${inventoryItemId}`);
+  ): Promise<SiteItemTableResponseDto> {
+    this.logger.log(`le.inventoryItems.sites.table — inventoryItemId: ${inventoryItemId}`);
     const leId = LeInventoryItemsGatewayService.requireLegalEntity(legalEntityId);
     const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
-      `commerce-le-inventory-item-${inventoryItemId}-site-stock-levels`,
+      `commerce-le-inventory-item-${inventoryItemId}-sites`,
     );
-    const stockBySite = await this.nats.send<ItemStockBySiteResponseDto>(
-      'commerce',
-      'le.inventoryItems.siteStockLevels.bySite',
-      { inventoryItemId, filters: state.filters },
-    );
+    const stockBySite = await this.nats.send<ItemStockBySiteResponseDto>('commerce', 'le.inventoryItems.sites.bySite', {
+      inventoryItemId,
+      filters: state.filters,
+    });
     const stockOfSite = new Map(stockBySite.rows.map((stock) => [stock.siteId, stock]));
     const unmatchedSiteIds = stockBySite.rows.filter((stock) => !stock.matchesFilter).map((stock) => stock.siteId);
     const matchedSiteIds = stockBySite.rows.filter((stock) => stock.matchesFilter).map((stock) => stock.siteId);
@@ -134,21 +153,25 @@ export class LeInventoryItemsGatewayService {
       orgId,
       leId,
       state,
-      stockBySite.sitesWithoutStockLevelsMatch ? { excludeSiteIds: unmatchedSiteIds } : { siteIds: matchedSiteIds },
+      stockBySite.sitesNotCarryingMatch ? { excludeSiteIds: unmatchedSiteIds } : { siteIds: matchedSiteIds },
     );
     const { leCurrencyCode } = await this.legalEntityContextResolver.resolve(leId);
 
-    const result = sites.map((site): SiteStockLevelRowResponseDto => {
+    const result = sites.map((site): SiteItemRowResponseDto => {
       const stock = stockOfSite.get(site.id);
       return {
         siteId: site.id,
         siteName: site.name,
         siteCode: site.code,
-        hasStockLevels: Boolean(stock),
-        stockLevelId: stock?.id ?? null,
+        atSite: Boolean(stock),
+        siteItemId: stock?.id ?? null,
+        siteItemStatus: stock?.status ?? null,
+        blockedReason: stock?.blockedReason ?? null,
+        replenishment: stock?.replenishment ?? null,
         reorderPoint: stock?.reorderPoint ?? null,
         safetyStock: stock?.safetyStock ?? null,
-        maxStockLevel: stock?.maxStockLevel ?? null,
+        maxStock: stock?.maxStock ?? null,
+        supplierItemsRequired: stock?.supplierItemsRequired ?? false,
         onHand: stock?.onHand ?? 0,
         stockValue: stock?.stockValue ?? CurrencyAmountDto.from(0n, leCurrencyCode),
         stockStatus: stock?.stockStatus ?? null,
@@ -158,12 +181,10 @@ export class LeInventoryItemsGatewayService {
     return { result, count, state, activeViewId };
   }
 
-  // Removes the item's stock levels at one of the legal entity's sites
-  deleteSiteStockLevels(inventoryItemId: string, siteId: string): Promise<SuccessResponseDto> {
-    this.logger.log(
-      `le.inventoryItems.siteStockLevels.delete — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`,
-    );
-    return this.nats.send('commerce', 'le.inventoryItems.siteStockLevels.delete', { inventoryItemId, siteId });
+  // Removes the item from one of the legal entity's sites
+  removeFromSite(inventoryItemId: string, siteId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`le.inventoryItems.sites.delete — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.inventoryItems.sites.delete', { inventoryItemId, siteId });
   }
 
   // Returns the session legal entity, rejecting requests made outside a legal entity workspace

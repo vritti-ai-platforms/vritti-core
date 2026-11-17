@@ -3,14 +3,22 @@ import { SITE_PURCHASES } from '@vritti/commerce-permissions/purchases';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import type { PurchasesBinding } from '@/components/purchases/bindings';
 import {
+  PURCHASE_ITEM_ALLOCATIONS_TABLE_KEY,
+  PURCHASE_ITEM_COMPARISON_KEY,
+  PURCHASE_ITEM_DOCUMENTS_TABLE_KEY,
+  PURCHASE_ITEM_QUOTES_TABLE_KEY,
+  PURCHASE_ITEMS_TABLE_KEY,
+  PURCHASE_QUOTATIONS_TABLE_KEY,
+  PURCHASE_SUPPLIERS_TABLE_KEY,
   PURCHASES_TABLE_KEY,
   useAddPurchaseAllocation,
   useAddPurchaseAllocationsFromQuotation,
   useAddPurchaseItem,
   useApprovePurchaseLeg,
   useCancelPurchase,
+  useCancelPurchaseLeg,
+  useClosePurchase,
   useClosePurchaseLeg,
-  useCompletePurchaseQuotations,
   useConfirmPurchaseLegPurchaseOrder,
   useCreatePurchase,
   useCreatePurchaseLegGoodsReceipt,
@@ -22,10 +30,24 @@ import {
   useDiscardReceiveWithInvoice,
   usePostReceiveWithInvoice,
   usePurchase,
-  usePurchaseItems,
-  usePurchaseQuotations,
-  usePurchaseSourcingItems,
-  usePurchaseSuppliers,
+  usePurchaseActions,
+  usePurchaseCounts,
+  usePurchaseDocuments,
+  usePurchaseItem,
+  usePurchaseItemAllocationsTable,
+  usePurchaseItemComparison,
+  usePurchaseItemCounts,
+  usePurchaseItemDocumentsTable,
+  usePurchaseItemFacets,
+  usePurchaseItemProgress,
+  usePurchaseItemQuotesTable,
+  usePurchaseItemSiteStock,
+  usePurchaseItemsTable,
+  usePurchaseProgress,
+  usePurchaseQuotationsTable,
+  usePurchaseSupplier,
+  usePurchaseSupplierCounts,
+  usePurchaseSuppliersTable,
   usePurchasesTable,
   useReceiveWithInvoice,
   useReceiveWithInvoiceOpenLines,
@@ -34,7 +56,6 @@ import {
   useRemovePurchaseItem,
   useRequestPurchaseQuotation,
   useSubmitPurchase,
-  useSubmitPurchaseItems,
   useSubmitPurchaseLeg,
   useUpdatePurchase,
   useUpdatePurchaseAllocation,
@@ -43,14 +64,20 @@ import {
 } from '@/hooks/site/purchases';
 import { EnrolledSiteSupplierSelector, SiteSupplierFilter } from '@/selectors/site-supplier';
 
-// The session site's purchases, sourced from the suppliers enrolled at it; its quotations are priced and posted by the
-// legal entity, so a draft only waits here
+// The session site's purchases, sourced from the suppliers enrolled at it; a quotation it requests is its own draft,
+// priced and posted under the supplier's Quotations
 export const binding: PurchasesBinding = {
   permissions: SITE_PURCHASES,
   spansSites: false,
   SupplierSelector: EnrolledSiteSupplierSelector,
   SupplierFilter: SiteSupplierFilter,
-  quotations: { draftLabel: 'Waiting for the legal entity' },
+  quotations: {
+    draftLabel: 'Draft',
+    quotationPath: ({ supplierId, supplierName, quotationId, quotationNumber }) =>
+      `suppliers/${buildSlug(supplierName, supplierId)}/quotations/${
+        quotationNumber ? buildSlug(quotationNumber, quotationId) : quotationId
+      }`,
+  },
   // A site's invoices live under their supplier
   invoicePath: (invoice) =>
     `suppliers/${buildSlug(invoice.supplierName, invoice.supplierId)}/invoices/${buildSlug(invoice.invoiceNumber, invoice.id)}`,
@@ -58,26 +85,52 @@ export const binding: PurchasesBinding = {
 
   tableKey: PURCHASES_TABLE_KEY,
   tableSlug: 'commerce-site-purchases',
+  purchaseTableSlug: (id, table) => `commerce-site-purchase-${id}-${table}`,
+  purchaseTableKeys: {
+    items: PURCHASE_ITEMS_TABLE_KEY,
+    comparison: PURCHASE_ITEM_COMPARISON_KEY,
+    suppliers: PURCHASE_SUPPLIERS_TABLE_KEY,
+    quotations: PURCHASE_QUOTATIONS_TABLE_KEY,
+  },
+  purchaseItemTableSlug: (id, itemId, table) => `commerce-site-purchase-${id}-item-${itemId}-${table}`,
+  purchaseItemTableKeys: {
+    allocations: PURCHASE_ITEM_ALLOCATIONS_TABLE_KEY,
+    quotes: PURCHASE_ITEM_QUOTES_TABLE_KEY,
+    documents: PURCHASE_ITEM_DOCUMENTS_TABLE_KEY,
+  },
 
   useTable: usePurchasesTable,
   usePurchase,
-  usePurchaseItems,
-  usePurchaseQuotations,
-  usePurchaseSourcingItems,
-  usePurchaseSuppliers,
+  usePurchaseActions,
+  usePurchaseCounts,
+  usePurchaseProgress,
+  usePurchaseItemsTable,
+  usePurchaseItemFacets,
+  usePurchaseItem,
+  usePurchaseItemCounts,
+  usePurchaseItemProgress,
+  usePurchaseItemSiteStock,
+  usePurchaseItemAllocationsTable,
+  usePurchaseItemQuotesTable,
+  usePurchaseItemDocumentsTable,
+  usePurchaseItemComparison,
+  usePurchaseQuotationsTable,
+  usePurchaseSuppliersTable,
+  usePurchaseSupplier,
+  usePurchaseSupplierCounts,
+  usePurchaseDocuments,
 
   useCreate: useCreatePurchase,
   useUpdate: useUpdatePurchase,
+  useClose: useClosePurchase,
   useCancel: useCancelPurchase,
   useDelete: useDeletePurchase,
 
   useAddItem: useAddPurchaseItem,
   useUpdateItem: useUpdatePurchaseItem,
   useRemoveItem: useRemovePurchaseItem,
-  useSubmitItems: useSubmitPurchaseItems,
 
   useRequestQuotation: useRequestPurchaseQuotation,
-  useCompleteQuotations: useCompletePurchaseQuotations,
 
   useAddAllocation: useAddPurchaseAllocation,
   useAddAllocationsFromQuotation: useAddPurchaseAllocationsFromQuotation,
@@ -94,6 +147,7 @@ export const binding: PurchasesBinding = {
   useCreateLegInboundDelivery: useCreatePurchaseLegInboundDelivery,
   useCreateLegGoodsReceipt: useCreatePurchaseLegGoodsReceipt,
   useCloseSupplier: useClosePurchaseLeg,
+  useCancelSupplier: useCancelPurchaseLeg,
   useCreateSupplierInvoice: useCreatePurchaseSupplierInvoice,
   receiveWithInvoices: {
     useOpenLines: useReceiveWithInvoiceOpenLines,

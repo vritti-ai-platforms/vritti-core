@@ -1,13 +1,37 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import { STOCK_STATUSES, type StockStatus } from '../../constants/stock-status.constants';
+import {
+  REPLENISHMENT_METHODS,
+  type ReplenishmentMethod,
+  SITE_ITEM_STATUSES,
+  type SiteItemStatus,
+  STOCK_STATUSES,
+  type StockStatus,
+} from '../../constants/stock-status.constants';
 import { SiteInventoryItemResponseDto } from './inventory-item-response.dto';
 import { SiteStockLocationResponseDto } from './site-stock-location-response.dto';
 
 export class SiteStockTableRowDto extends SiteInventoryItemResponseDto {
-  @ApiProperty({ description: 'Whether the item has stock levels set at this site' })
-  hasStockLevels: boolean;
+  @ApiProperty({ description: 'Whether this site carries the item' })
+  atSite: boolean;
+
+  @ApiPropertyOptional({
+    enum: SITE_ITEM_STATUSES,
+    nullable: true,
+    description: 'Null when the site does not carry it',
+  })
+  siteItemStatus: SiteItemStatus | null;
+
+  @ApiPropertyOptional({ type: String, nullable: true, description: 'Why this site has blocked purchasing it' })
+  blockedReason: string | null;
+
+  @ApiPropertyOptional({
+    enum: REPLENISHMENT_METHODS,
+    nullable: true,
+    description: 'Null when the site does not carry it',
+  })
+  replenishment: ReplenishmentMethod | null;
 
   @ApiPropertyOptional({
     description: 'Reorder point at this site, in the primary unit; null when not set',
@@ -22,10 +46,10 @@ export class SiteStockTableRowDto extends SiteInventoryItemResponseDto {
   safetyStock: number | null;
 
   @ApiPropertyOptional({
-    description: 'Max level at this site, in the primary unit; null when not set',
+    description: 'Maximum stock at this site, in the primary unit; null when not set',
     nullable: true,
   })
-  maxStockLevel: number | null;
+  maxStock: number | null;
 
   @ApiProperty({ description: 'Quantity on hand at this site, in the primary unit' })
   onHand: number;
@@ -37,7 +61,7 @@ export class SiteStockTableRowDto extends SiteInventoryItemResponseDto {
   stockValue: CurrencyAmountDto;
 
   @ApiPropertyOptional({
-    description: 'Where the on-hand quantity sits against the stock levels; null when they are not set',
+    description: 'Where the on-hand quantity sits; null when the site does not carry the item',
     enum: STOCK_STATUSES,
     nullable: true,
   })

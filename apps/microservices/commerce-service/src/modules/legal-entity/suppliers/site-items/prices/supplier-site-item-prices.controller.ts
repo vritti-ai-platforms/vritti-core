@@ -1,25 +1,21 @@
-import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import type { SupplierItemPriceDto } from '@domain/supplier-item-prices/dto/entity/supplier-item-price.dto';
 import type { SupplierItemPriceHistoryDto } from '@domain/supplier-item-prices/dto/entity/supplier-item-price-history.dto';
 import { AddLeSupplierItemPriceDto } from '@domain/supplier-item-prices/dto/request/add-le-supplier-item-price.dto';
 import { UpdateSupplierItemPriceDto } from '@domain/supplier-item-prices/dto/request/update-supplier-item-price.dto';
-import { SupplierItemPricesDomainService } from '@domain/supplier-item-prices/services/supplier-item-prices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { FilterCondition } from '@vritti/api-sdk/conditions';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { LeSupplierSiteItemPricesService } from './services/supplier-site-item-prices.service';
 
 @Controller()
 export class SupplierSiteItemPricesController {
   private readonly logger = new Logger(SupplierSiteItemPricesController.name);
 
-  constructor(
-    private readonly service: SupplierItemPricesDomainService,
-    private readonly enrollments: SupplierEnrollmentsDomainService,
-  ) {}
+  constructor(private readonly service: LeSupplierSiteItemPricesService) {}
 
-  // Adds a validity-dated price to a supplier item's timeline
+  // Adds a validity-dated price to a supplier item's timeline, setting the item up at sites that do not carry it yet
   @MessagePattern({ cmd: 'le.suppliers.siteItems.prices.create' })
   create(@Payload() dto: AddLeSupplierItemPriceDto): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
     this.logger.log(
@@ -53,9 +49,7 @@ export class SupplierSiteItemPricesController {
     @Payload() data: { supplierItemId: string; context: FilterCondition[] },
   ): Promise<SupplierItemPriceHistoryDto> {
     this.logger.log(`le.suppliers.siteItems.prices.priceHistory — supplierItemId: ${data.supplierItemId}`);
-    return this.service.findPriceHistory(data.supplierItemId, data.context, (supplierId) =>
-      this.enrollments.findEnrolledSiteIds({ supplierId }),
-    );
+    return this.service.findPriceHistory(data.supplierItemId, data.context);
   }
 
   // Deletes a price row from a supplier item's timeline

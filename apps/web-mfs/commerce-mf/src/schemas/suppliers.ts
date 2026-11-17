@@ -259,7 +259,7 @@ export interface ItemSupplierPriceRow extends SupplierItemPriceRow {
   supplierId: string;
   supplierName: string;
   supplierCode: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 export type ItemSupplierPricesTableResponse = TableResponse<ItemSupplierPriceRow>;
@@ -288,7 +288,7 @@ export interface ItemSupplierPriceComparisonRow {
   supplierId: string;
   supplierName: string;
   supplierCode: string;
-  quotedUomSymbol: string | null;
+  quotedUomSymbol: string;
   isPreferred: boolean;
   currentPrice: CurrencyValue | null;
   currentFrom: string | null;

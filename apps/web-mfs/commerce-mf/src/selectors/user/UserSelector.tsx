@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type UserSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type UserSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select for user selection
 export const UserSelector = forwardRef<HTMLButtonElement, UserSelectorProps>((props, ref) => (

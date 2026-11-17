@@ -8,7 +8,7 @@ import type { InventoryItemStockData } from '@/schemas/inventory-items';
 
 interface StockLevelsTabProps {
   inventoryItemId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 export const StockLevelsTab: React.FC<StockLevelsTabProps> = ({ inventoryItemId, uomSymbol }) => {

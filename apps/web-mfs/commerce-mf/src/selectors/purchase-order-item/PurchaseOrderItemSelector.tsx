@@ -1,12 +1,13 @@
 import { formatCurrency } from '@vritti/quantum-ui/money';
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
 export type PurchaseOrderItemSelectorParams = {
   purchaseOrderId: string;
 };
 
-export type PurchaseOrderItemSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'params'> & {
+export type PurchaseOrderItemSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'params'> & {
   params: PurchaseOrderItemSelectorParams;
 };
 

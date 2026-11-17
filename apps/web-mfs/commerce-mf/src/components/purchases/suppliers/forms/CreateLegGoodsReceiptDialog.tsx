@@ -18,7 +18,7 @@ import {
 import {
   buildPurchaseLegGoodsReceiptSchema,
   type CreatedPurchaseLegGoodsReceipt,
-  type PurchaseHeader,
+  type PurchaseDetail,
   type PurchaseLeg,
   type PurchaseLegGoodsReceiptFormData,
   PurchaseTypeValues,
@@ -32,7 +32,7 @@ const CLOSED_DELIVERY_STATUSES: InboundDeliveryStatus[] = [
 
 interface CreateLegGoodsReceiptDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
   onSuccess: (received: CreatedPurchaseLegGoodsReceipt) => void;
   onCancel: () => void;

@@ -3,7 +3,7 @@ import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inven
 import { InventoryItemMrpsDomainModule } from '@domain/inventory-item-mrps/inventory-item-mrps.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
 import { InventoryItemSerialsDomainModule } from '@domain/inventory-item-serials/inventory-item-serials.module';
-import { InventoryItemSiteStockLevelsDomainModule } from '@domain/inventory-item-site-stock-levels/inventory-item-site-stock-levels.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { InventoryItemsDomainModule } from '@domain/inventory-items/inventory-items.module';
 import { SupplierItemPricesDomainModule } from '@domain/supplier-item-prices/supplier-item-prices.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
@@ -32,7 +32,7 @@ import { InventoryItemsSupplierItemsController } from './supplier-items/inventor
     InventoryItemLotsDomainModule,
     InventoryItemQuantsDomainModule,
     InventoryItemSerialsDomainModule,
-    InventoryItemSiteStockLevelsDomainModule,
+    InventoryItemSitesDomainModule,
     SupplierItemsDomainModule,
     SupplierItemPricesDomainModule,
     UomConversionsDomainModule,

@@ -28,8 +28,8 @@ export class StockAdjustmentDto {
   static from(
     entity: StockAdjustment & {
       inventoryItemName?: string;
-      inventoryItemUomId?: string;
-      inventoryItemUomSymbol?: string | null;
+      inventoryItemUomId: string;
+      inventoryItemUomSymbol: string;
       inventoryItemTracking: InventoryTracking;
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
@@ -41,12 +41,6 @@ export class StockAdjustmentDto {
     dto.code = entity.code;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.inventoryItemName = entity.inventoryItemName ?? '';
-    if (!entity.inventoryItemUomSymbol) {
-      throw new Error(`Inventory item UOM symbol missing for stock adjustment ${entity.id}`);
-    }
-    if (!entity.inventoryItemUomId) {
-      throw new Error(`Inventory item UOM id missing for stock adjustment ${entity.id}`);
-    }
     dto.inventoryItemUomId = entity.inventoryItemUomId;
     dto.inventoryItemUomSymbol = entity.inventoryItemUomSymbol;
     dto.inventoryItemTracking = entity.inventoryItemTracking;

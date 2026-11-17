@@ -1,6 +1,6 @@
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
 import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
-import { InventoryItemSiteStockLevelsDomainModule } from '@domain/inventory-item-site-stock-levels/inventory-item-site-stock-levels.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
@@ -12,6 +12,7 @@ import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
 import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/purchase-progress.module';
+import { SitePurchasingRulesModule } from '@/modules/site/purchasing-rules/purchasing-rules.module';
 import { PurchaseOrdersGoodsReceiptsController } from './goods-receipts/purchase-orders-goods-receipts.controller';
 import { PurchaseOrdersInboundDeliveriesController } from './inbound-deliveries/purchase-orders-inbound-deliveries.controller';
 import { PurchaseOrdersInvoicesController } from './invoices/root/purchase-orders-invoices.controller';
@@ -26,7 +27,7 @@ import { PurchaseOrdersService } from './root/services/purchase-orders-root.serv
     PurchaseOrderItemsDomainModule,
     GoodsReceiptsDomainModule,
     InboundDeliveriesDomainModule,
-    InventoryItemSiteStockLevelsDomainModule,
+    InventoryItemSitesDomainModule,
     SuppliersDomainModule,
     SupplierItemsDomainModule,
     SupplierItemPricesDomainModule,
@@ -35,6 +36,7 @@ import { PurchaseOrdersService } from './root/services/purchase-orders-root.serv
     SupplierInvoicesDomainModule,
     PurchasesDomainModule,
     SitePurchaseProgressModule,
+    SitePurchasingRulesModule,
   ],
   controllers: [
     PurchaseOrdersRootController,

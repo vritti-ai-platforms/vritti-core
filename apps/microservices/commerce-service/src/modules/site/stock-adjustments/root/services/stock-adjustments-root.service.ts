@@ -4,7 +4,7 @@ import {
   type CreateQuantParams,
   InventoryItemQuantsDomainService,
 } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import { StockAdjustmentLineItemsDomainRepository } from '@domain/stock-adjustment-line-items/repositories/stock-adjustment-line-items.repository';
 import type { StockAdjustmentLineWithRefs } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
 import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-lines/repositories/stock-adjustment-lines.repository';
@@ -52,17 +52,17 @@ export class StockAdjustmentsService {
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
     private readonly ledgerService: InventoryItemLedgerDomainService,
     private readonly adjustmentsService: StockAdjustmentsDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
   ) {}
 
-  // Creates an adjustment for an item that has stock levels set at the site
+  // Creates an adjustment for an item the site carries
   async create(data: {
     inventoryItemId: string;
     type: StockAdjustmentType;
     reason: string;
     unitCost?: bigint | null;
   }): Promise<CreateResponseDto<StockAdjustmentDto>> {
-    await this.siteStockLevelsService.ensureStockLevels([data.inventoryItemId], 'inventoryItemId');
+    await this.inventoryItemSitesRepository.ensureAtSite([data.inventoryItemId], 'inventoryItemId');
     return this.adjustmentsService.create(data);
   }
 
@@ -80,6 +80,11 @@ export class StockAdjustmentsService {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be published.');
     }
+    await this.inventoryItemSitesRepository.ensureAtSite(
+      [adjustment.inventoryItemId],
+      'inventoryItemId',
+      adjustment.siteId,
+    );
 
     const unitCostMinor = adjustment.unitCost == null ? null : BigInt(adjustment.unitCost as unknown as string);
     if (adjustment.type === StockAdjustmentTypeValues.OPENING_STOCK && (unitCostMinor == null || unitCostMinor <= 0n)) {

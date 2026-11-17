@@ -38,7 +38,7 @@ export const EditMrpForm: React.FC<EditMrpFormProps> = ({ inventoryItemId, row, 
       transformSubmit={(data) => ({ mrpId: row.id, data })}
     >
       <div className="grid grid-cols-2 gap-3">
-        <DetailField label="Unit" type="string" value={row.uomSymbol ?? '—'} />
+        <DetailField label="Unit" type="string" value={row.uomSymbol} />
         <DetailField label="Currency" type="string" value={row.amount.currency} mono />
       </div>
       <CurrencyField name="amount" label="MRP Amount" currencyCode={row.amount.currency} />

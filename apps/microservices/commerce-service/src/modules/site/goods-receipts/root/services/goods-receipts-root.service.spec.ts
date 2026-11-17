@@ -11,7 +11,7 @@ import type {
 } from '@domain/inbound-deliveries/repositories/inbound-delivery-lines.repository';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
-import type { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import type { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import type { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Logger } from '@nestjs/common';
 import type { PrimaryDatabaseService } from '@vritti/api-sdk/database';
@@ -67,7 +67,7 @@ function setup(row: InboundDeliveryRow, lines: DeliveryLineReceivability[]) {
     deliveriesService,
     deliveryLinesService,
     { assertPurchasable: jest.fn() } as unknown as SupplierEnrollmentsDomainService,
-    {} as PurchasesDomainService,
+    {} as PurchasesDomainRepository,
   );
   return { service, createDraft };
 }

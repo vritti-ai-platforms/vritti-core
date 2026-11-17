@@ -43,11 +43,20 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'True once a posted goods receipt or a posted supplier invoice counts the line' })
   isTaxDateLocked: boolean;
 
+  @ApiPropertyOptional({
+    description:
+      "Why the order's site has blocked buying the item: the line may be lowered but not raised; null while it has not",
+    type: String,
+    nullable: true,
+    example: 'Recalled batch',
+  })
+  purchasingBlockedReason: string | null;
+
   @ApiProperty({ description: 'Unit the line is ordered in' })
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Symbol of the unit the line is ordered in', nullable: true })
-  orderUomSymbol: string | null;
+  @ApiProperty({ description: 'Symbol of the unit the line is ordered in' })
+  orderUomSymbol: string;
 
   @ApiProperty({ description: 'Ordered quantity in the line unit' })
   uomQty: number;
@@ -88,8 +97,8 @@ export class PurchaseOrderItemResponseDto {
   @ApiProperty({ description: 'Received − returned − invoiced, never below 0, in primary units' })
   openToInvoicePrimaryQty: number;
 
-  @ApiPropertyOptional({ description: "Symbol of the item's primary unit", nullable: true })
-  primaryUomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the item's primary unit" })
+  primaryUomSymbol: string;
 
   @ApiProperty({ description: 'Line currency code (ISO 4217) — the PO currency' })
   currencyCode: string;

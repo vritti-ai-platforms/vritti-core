@@ -109,7 +109,7 @@ export class StockAdjustmentLinesDomainService {
     this.logger.log(`addOpeningLine [repository.create] ${Date.now() - t0}ms`);
 
     this.logger.log(`Added opening line ${line.id} to adjustment ${adjustment.id}`);
-    return StockAdjustmentLineDto.from(line);
+    return this.findById(adjustment.id, line.id);
   }
 
   async addChangeLine(
@@ -157,7 +157,7 @@ export class StockAdjustmentLinesDomainService {
     });
 
     this.logger.log(`Added change line ${line.id} to adjustment ${adjustment.id}`);
-    return StockAdjustmentLineDto.from(line);
+    return this.findById(adjustment.id, line.id);
   }
 
   async updateOpeningLine(

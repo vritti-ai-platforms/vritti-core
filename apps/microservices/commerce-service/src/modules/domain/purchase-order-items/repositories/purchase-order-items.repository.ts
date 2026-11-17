@@ -22,9 +22,12 @@ import {
   InboundDeliveryStatusValues,
   inboundDeliveries,
   inboundDeliveryLines,
+  inventoryItemSites,
   inventoryItems,
   type PurchaseOrderItem,
   purchaseOrderItems,
+  purchaseOrders,
+  SiteItemStatusValues,
   SupplierInvoiceStatusValues,
   supplierInvoiceLines,
   supplierInvoices,
@@ -35,12 +38,14 @@ const orderUom = aliasedTable(uom, 'order_uom');
 
 export type PurchaseOrderItemRow = PurchaseOrderItem & {
   inventoryItemName: string | null;
-  orderUomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  orderUomSymbol: string;
+  primaryUomSymbol: string;
   inboundDeliveryNumbers: string[];
   inboundDeliveryIds: string[];
   inboundDeliveryDates: string[];
   isTaxDateLocked: boolean;
+  // Why the order's site has blocked buying the item; null while it has not
+  purchasingBlockedReason: string | null;
 };
 
 export type PurchaseOrderItemCounters = Pick<
@@ -61,7 +66,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
       joins: [
         { table: inventoryItems, on: eq(inventoryItems.id, purchaseOrderItems.inventoryItemId), type: 'inner' },
         { table: categories, on: eq(categories.id, inventoryItems.categoryId), type: 'left' },
-        { table: orderUom, on: eq(orderUom.id, purchaseOrderItems.uomId), type: 'left' },
+        { table: orderUom, on: eq(orderUom.id, purchaseOrderItems.uomId), type: 'inner' },
       ],
       groupTable: config.groupIdKey === 'categoryId' ? categories : undefined,
       conditions: [eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId)],
@@ -82,7 +87,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
   async findByPurchaseOrderId(purchaseOrderId: string): Promise<PurchaseOrderItemRow[]> {
     return this.findAllWithSelect<PurchaseOrderItemRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
       orderBy: [asc(inventoryItems.name)],
     });
@@ -93,7 +98,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
     if (purchaseOrderIds.length === 0) return [];
     return this.findAllWithSelect<PurchaseOrderItemRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: inArray(purchaseOrderItems.purchaseOrderId, purchaseOrderIds),
       orderBy: [asc(inventoryItems.name)],
     });
@@ -106,7 +111,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
   ): Promise<{ result: PurchaseOrderItemRow[]; count: number }> {
     return this.findAllAndCount<PurchaseOrderItemRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       ...options,
       where: and(eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId), options.where),
     });
@@ -127,7 +132,7 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
   findDetailOnPurchaseOrder(purchaseOrderId: string, itemId: string): Promise<PurchaseOrderItemRow | undefined> {
     return this.findById<PurchaseOrderItemRow>(itemId, {
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
       where: eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId),
     });
   }
@@ -192,7 +197,8 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
     return receiptItem !== undefined;
   }
 
-  // Selects a PO line with its item and unit names, its live inbound deliveries' numbers, ids and dates and its tax date lock
+  // Selects a PO line with its item and unit names, its live inbound deliveries' numbers, ids and dates, its tax date lock
+  // and why the order's site has blocked buying its item
   private selection() {
     const liveDeliveries = (column: SQL) =>
       this.db
@@ -218,6 +224,17 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
         string[]
       >`coalesce((${liveDeliveries(sql`${inboundDeliveries.expectedDeliveryDate}::text`)}), '{}')`,
       isTaxDateLocked: sql<boolean>`${this.taxDateLocked()}`,
+      purchasingBlockedReason: sql<string | null>`(${this.db
+        .select({ reason: inventoryItemSites.blockedReason })
+        .from(inventoryItemSites)
+        .innerJoin(purchaseOrders, eq(purchaseOrders.siteId, inventoryItemSites.siteId))
+        .where(
+          and(
+            eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId),
+            eq(inventoryItemSites.inventoryItemId, purchaseOrderItems.inventoryItemId),
+            eq(inventoryItemSites.status, SiteItemStatusValues.BLOCKED),
+          ),
+        )})`,
     };
   }
 

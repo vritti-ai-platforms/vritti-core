@@ -6,6 +6,7 @@ import type { AddPurchaseOrderItemDto } from '@commerce/purchase-orders/dto/requ
 import type { ChangePurchaseOrderExchangeRateDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import type { ChangePurchaseOrderSupplierDto } from '@commerce/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import type { LeCreatePurchaseOrderDto } from '@commerce/purchase-orders/dto/request/le-create-purchase-order.dto';
+import type { PurchaseOrderItemDefaultsQueryDto } from '@commerce/purchase-orders/dto/request/purchase-order-item-defaults-query.dto';
 import type { SendPurchaseOrderEmailDto } from '@commerce/purchase-orders/dto/request/send-purchase-order-email.dto';
 import type { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
 import type { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
@@ -13,6 +14,7 @@ import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/
 import type { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import type { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
+import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
@@ -49,7 +51,7 @@ export class LePurchaseOrdersGatewayService {
 
   // Adds a line item to a purchase order
   async addItem(id: string, dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
-    this.logger.log(`le.purchaseOrders.addItem — id: ${id}, supplierItemId: ${dto.supplierItemId}`);
+    this.logger.log(`le.purchaseOrders.addItem — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'le.purchaseOrders.addItem', { purchaseOrderId: id, ...dto });
   }
 
@@ -190,6 +192,15 @@ export class LePurchaseOrdersGatewayService {
       count: number;
     }>('commerce', 'le.purchaseOrders.invoices.table', { purchaseOrderId, ...state });
     return { result: await this.ownerNames.withSiteNames(orgId, result), count, state, activeViewId };
+  }
+
+  // What a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery
+  findItemDefaults(
+    id: string,
+    query: PurchaseOrderItemDefaultsQueryDto,
+  ): Promise<PurchaseOrderItemDefaultsResponseDto> {
+    this.logger.log(`le.purchaseOrders.itemDefaults — id: ${id}, inventoryItemId: ${query.inventoryItemId}`);
+    return this.nats.send('commerce', 'le.purchaseOrders.itemDefaults', { id, ...query });
   }
 
   // Returns inventory item IDs for a purchase order

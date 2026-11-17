@@ -26,7 +26,7 @@ export class PurchasesAllocationsController {
   @MessagePattern({ cmd: 'site.purchases.allocations.createFromQuotation' })
   createFromQuotation(@Payload() dto: CreatePurchaseAllocationsFromQuotationDto): Promise<SuccessResponseDto> {
     this.logger.log(
-      `site.purchases.allocations.createFromQuotation — id: ${dto.id}, lines: ${dto.supplierQuotationItemIds.length}`,
+      `site.purchases.allocations.createFromQuotation — id: ${dto.id}, quotation: ${dto.supplierQuotationId ?? 'lines'}`,
     );
     return this.service.createFromQuotation(dto);
   }

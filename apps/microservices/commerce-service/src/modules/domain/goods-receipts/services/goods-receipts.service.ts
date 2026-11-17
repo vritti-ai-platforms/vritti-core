@@ -184,6 +184,14 @@ export class GoodsReceiptsDomainService {
     return receipt;
   }
 
+  // Loads the given receipts, oldest first, throwing when any is out of reach
+  async findDetailsOrThrow(ids: string[]): Promise<GoodsReceiptRow[]> {
+    const unique = [...new Set(ids)];
+    const receipts = await this.repository.findDetailsByIds(unique);
+    if (receipts.length < unique.length) throw new NotFoundException('Goods receipt not found.');
+    return receipts;
+  }
+
   // Loads a receipt that is still a draft — the only state whose items, lots and lines may change
   async findDraftOrThrow(id: string, label: string): Promise<GoodsReceiptRow> {
     const receipt = await this.findDetailOrThrow(id);

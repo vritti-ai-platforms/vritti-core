@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class PurchaseQuotationItemResponseDto {
@@ -17,8 +18,8 @@ export class PurchaseQuotationItemResponseDto {
   @ApiProperty({ description: 'Unit the price is quoted in' })
   uomId: string;
 
-  @ApiPropertyOptional({ description: 'Symbol of that unit', type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: 'Symbol of that unit' })
+  uomSymbol: string;
 
   @ApiProperty({ type: () => CurrencyAmountDto, description: 'Quoted price per unit' })
   unitPrice: CurrencyAmountDto;
@@ -79,7 +80,18 @@ export class PurchaseQuotationResponseDto {
 
   @ApiProperty({ description: 'Lines on the quotation' })
   itemCount: number;
+}
 
-  @ApiProperty({ type: [PurchaseQuotationItemResponseDto], description: 'Quotation lines' })
-  items: PurchaseQuotationItemResponseDto[];
+export class PurchaseQuotationTableResponseDto extends TableResponseDto<PurchaseQuotationResponseDto> {
+  @ApiProperty({ type: [PurchaseQuotationResponseDto] })
+  declare result: PurchaseQuotationResponseDto[];
+
+  @ApiProperty()
+  declare count: number;
+
+  @ApiProperty({ description: 'Current active filter/sort/visibility state' })
+  declare state: TableState;
+
+  @ApiPropertyOptional()
+  declare activeViewId: string | null;
 }

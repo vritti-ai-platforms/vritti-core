@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type LocationSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type LocationSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 const DEFAULT_FIELD_KEYS = {
   valueKey: 'id',

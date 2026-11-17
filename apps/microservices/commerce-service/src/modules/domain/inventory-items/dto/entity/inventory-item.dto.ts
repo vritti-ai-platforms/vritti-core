@@ -1,4 +1,5 @@
 import type { InventoryItem, InventoryItemType, InventoryPickStrategy, InventoryTracking } from '@/db/schema';
+import type { InventoryItemNames } from '../../repositories/inventory-items.repository';
 
 export class InventoryItemDto {
   id: string;
@@ -8,13 +9,15 @@ export class InventoryItemDto {
   tracking: InventoryTracking;
   pickStrategy: InventoryPickStrategy;
   categoryId: string;
-  categoryName: string | null;
+  categoryName: string;
   description: string | null;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
+  // Whether the item's primary unit can be counted in fractions
+  uomAllowDecimal: boolean;
   hsnCode: string | null;
   taxClassId: string;
-  taxClassName: string | null;
+  taxClassName: string;
   weight: number | null;
   volume: number | null;
   length: number | null;
@@ -24,36 +27,31 @@ export class InventoryItemDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(
-    entity: InventoryItem,
-    uomSymbol?: string | null,
-    canDelete = true,
-    categoryName?: string | null,
-    taxClassName?: string | null,
-  ): InventoryItemDto {
+  static from(row: InventoryItem & InventoryItemNames, canDelete = true): InventoryItemDto {
     const dto = new InventoryItemDto();
-    dto.id = entity.id;
-    dto.name = entity.name;
-    dto.sku = entity.sku;
-    dto.type = entity.type;
-    dto.tracking = entity.tracking;
-    dto.pickStrategy = entity.pickStrategy;
-    dto.categoryId = entity.categoryId;
-    dto.categoryName = categoryName ?? null;
-    dto.description = entity.description ?? null;
-    dto.uomId = entity.uomId;
-    dto.uomSymbol = uomSymbol ?? null;
-    dto.hsnCode = entity.hsnCode ?? null;
-    dto.taxClassId = entity.taxClassId;
-    dto.taxClassName = taxClassName ?? null;
-    dto.weight = entity.weight ?? null;
-    dto.volume = entity.volume ?? null;
-    dto.length = entity.length ?? null;
-    dto.width = entity.width ?? null;
-    dto.height = entity.height ?? null;
+    dto.id = row.id;
+    dto.name = row.name;
+    dto.sku = row.sku;
+    dto.type = row.type;
+    dto.tracking = row.tracking;
+    dto.pickStrategy = row.pickStrategy;
+    dto.categoryId = row.categoryId;
+    dto.categoryName = row.categoryName;
+    dto.description = row.description ?? null;
+    dto.uomId = row.uomId;
+    dto.uomSymbol = row.uomSymbol;
+    dto.uomAllowDecimal = row.uomAllowDecimal;
+    dto.hsnCode = row.hsnCode ?? null;
+    dto.taxClassId = row.taxClassId;
+    dto.taxClassName = row.taxClassName;
+    dto.weight = row.weight ?? null;
+    dto.volume = row.volume ?? null;
+    dto.length = row.length ?? null;
+    dto.width = row.width ?? null;
+    dto.height = row.height ?? null;
     dto.canDelete = canDelete;
-    dto.createdAt = entity.createdAt.toISOString();
-    dto.updatedAt = entity.updatedAt.toISOString();
+    dto.createdAt = row.createdAt.toISOString();
+    dto.updatedAt = row.updatedAt.toISOString();
     return dto;
   }
 }

@@ -67,7 +67,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? adjustment.inventoryItemUomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -115,7 +115,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
           ]
         : []),
     ],
-    [adjustment.id, adjustment.inventoryItemUomSymbol, isDraft, handleRemove, adjustment.inventoryItemId],
+    [adjustment.id, isDraft, handleRemove, adjustment.inventoryItemId],
   );
 
   const stockAdjustmentLinesTable = useDataTable({

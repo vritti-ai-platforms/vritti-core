@@ -1,23 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
+import { and, asc } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@vritti/api-sdk/exceptions';
-import {
-  type Purchase,
   PurchaseLegStatusValues,
   type PurchaseLegStep,
   PurchaseLegStepValues,
   type PurchaseOrderStatus,
   PurchaseOrderStatusValues,
   PurchaseStatusValues,
-  PurchaseStepValues,
   type PurchaseSupplier,
   type PurchaseType,
   PurchaseTypeValues,
+  parties,
+  purchaseSuppliers,
 } from '@/db/schema';
 import {
   type PurchaseLegAction,
@@ -25,25 +23,15 @@ import {
   PurchaseLegStepLabels,
   PurchaseTypeLabels,
 } from '../dto/entity/purchase-supplier.dto';
+import type { LegEnrollmentSnapshot, LegPurchase } from '../repositories/purchase-suppliers.repository';
 import {
+  type PurchaseLegCount,
   type PurchaseSupplierRow,
   PurchaseSuppliersDomainRepository,
+  type PurchaseSupplierTableRow,
 } from '../repositories/purchase-suppliers.repository';
 
-export type LegPurchase = Pick<Purchase, 'id' | 'purchaseNumber' | 'status' | 'step'>;
-
 export type Leg = Pick<PurchaseSupplier, 'id' | 'type' | 'step' | 'status'>;
-
-export interface LegEnrollmentSnapshot {
-  enrollmentId: string;
-  isActive: boolean;
-  isSupplierActive: boolean;
-  purchasingBlocked: boolean;
-  purchaseType: PurchaseType;
-  approvalEnabled: boolean;
-  approvalThreshold: bigint | null;
-  qualityCheckEnabled: boolean;
-}
 
 export interface LegSourcing {
   currencyCodes: string[];
@@ -88,7 +76,15 @@ export interface LegFulfilmentFacts {
   hasReceivableAnnouncedDelivery: boolean;
   hasDraftReceipt: boolean;
   hasDraftInvoice: boolean;
+  hasDeliveryOnTheWay: boolean;
+  hasPostedDocument: boolean;
+  receivingClosed: boolean;
   invoiceablePrimaryQty: number;
+}
+
+export interface LegBlockers {
+  cancel: string | null;
+  close: string | null;
 }
 
 export interface LegProgress {
@@ -173,18 +169,27 @@ export class PurchaseSuppliersDomainService {
     [PurchaseLegActionValues.RECEIVE_WITH_INVOICE]: 'Cannot Receive with Invoice',
     [PurchaseLegActionValues.CREATE_SUPPLIER_INVOICE]: 'Cannot Create Supplier Invoice',
     [PurchaseLegActionValues.CLOSE_SUPPLIER]: 'Cannot Close Supplier',
+    [PurchaseLegActionValues.CANCEL_SUPPLIER]: 'Cannot Cancel Supplier',
+  };
+
+  private static readonly TABLE_FIELD_MAP: FieldMap = {
+    step: { column: purchaseSuppliers.step, type: 'string' },
+    status: { column: purchaseSuppliers.status, type: 'string' },
+    supplierId: { column: purchaseSuppliers.supplierId, type: 'string' },
+    supplierName: { column: parties.displayName, type: 'string' },
+    submittedAt: { column: purchaseSuppliers.submittedAt, type: 'string' },
   };
 
   constructor(private readonly repository: PurchaseSuppliersDomainRepository) {}
 
-  // Opens the leg of a supplier on a purchase in sourcing, with a snapshot of its active enrollment at the site
+  // Opens the leg of a supplier on an open purchase, with a snapshot of its active enrollment at the site
   async open(
     purchase: LegPurchase,
     supplierId: string,
     snapshot: LegEnrollmentSnapshot | undefined,
   ): Promise<PurchaseSupplier> {
-    this.assertSourcingOpen(purchase);
-    const enrollment = this.requireActiveEnrollment(snapshot);
+    this.repository.assertPurchaseOpen(purchase, 'Cannot Allocate');
+    const enrollment = this.repository.requireActiveEnrollment(snapshot);
     const leg = await this.repository.create({
       purchaseId: purchase.id,
       supplierId,
@@ -202,7 +207,7 @@ export class PurchaseSuppliersDomainService {
   // its type's first fulfilment step otherwise, clearing its last rejection; returns the step it reached
   async start(leg: Leg, start: LegStart): Promise<PurchaseLegStep> {
     this.assertInSourcing(leg, 'Cannot Submit Supplier');
-    const enrollment = this.requireActiveEnrollment(start.snapshot);
+    const enrollment = this.repository.requireActiveEnrollment(start.snapshot);
     if (start.sourcing.unpricedCount > 0 && !this.allowsUnpriced(enrollment.purchaseType)) {
       throw new BadRequestException({
         label: 'Prices Missing',
@@ -266,11 +271,6 @@ export class PurchaseSuppliersDomainService {
     this.logger.log(`Rejected leg ${leg.id} → SOURCING`);
   }
 
-  // Cancels every open leg of a cancelled purchase
-  async cancelOpen(purchaseId: string): Promise<number> {
-    return this.repository.cancelOpen(purchaseId);
-  }
-
   // Re-derives a fulfilling leg's step from its documents, closing it once its due quantity is received and invoiced;
   // returns the step it was in and the one it reached
   async advance(leg: Leg, facts: LegFulfilmentFacts): Promise<LegAdvance> {
@@ -289,21 +289,67 @@ export class PurchaseSuppliersDomainService {
     return { stepBefore: leg.step, stepAfter: step, isClosed: false };
   }
 
-  // Closes a fulfilling leg without a draft receipt or invoice, with an optional reason; the caller has completed
-  // delivery of its open POs
-  async close(
+  // Stops a leg expecting more goods, with an optional reason; the caller has completed delivery of its open POs and
+  // re-derives its step, so it closes once what it received is invoiced. A type purchases do not fulfil closes outright
+  async closeForReceiving(
     leg: Leg & { supplierName: string },
     purchase: LegPurchase,
     facts: LegFulfilmentFacts,
     reason: string | null,
-  ): Promise<void> {
+  ): Promise<PurchaseSupplier> {
     this.assertActionAvailable(leg, purchase, facts, PurchaseLegActionValues.CLOSE_SUPPLIER);
-    await this.markClosed(leg, reason);
+    if (!PurchaseSuppliersDomainService.FULFILLED_TYPES.includes(leg.type)) return this.markClosed(leg, reason);
+    const closed = await this.repository.update(leg.id, { receivingClosedAt: new Date(), closeReason: reason });
+    this.logger.log(`Closed leg ${leg.id} for receiving`);
+    return closed;
+  }
+
+  // Cancels an open leg nothing is received or invoiced on, with a reason; the caller cancels its documents and returns
+  // or drops its allocations in the same transaction
+  async cancel(
+    leg: Leg & { supplierName: string },
+    purchase: LegPurchase,
+    facts: LegFulfilmentFacts,
+    cancellation: { reason: string; userId: string | null },
+  ): Promise<void> {
+    const blocker = this.blockersOf(leg, purchase, facts).cancel;
+    if (blocker) throw new ConflictException({ label: 'Cannot Cancel Supplier', detail: blocker });
+    await this.repository.update(leg.id, {
+      status: PurchaseLegStatusValues.CANCELLED,
+      cancelledAt: new Date(),
+      cancelledBy: cancellation.userId,
+      cancelReason: cancellation.reason,
+    });
+    this.logger.log(`Cancelled leg ${leg.id} from ${leg.step}`);
   }
 
   // Returns the legs of a purchase with their suppliers' names
   findByPurchaseId(purchaseId: string): Promise<PurchaseSupplierRow[]> {
     return this.repository.findByPurchaseId(purchaseId);
+  }
+
+  // Returns one page of a purchase's legs with their suppliers' names and line counts, by step then supplier
+  findForTable(purchaseId: string, state: TableState): Promise<{ result: PurchaseSupplierTableRow[]; count: number }> {
+    const fieldMap = PurchaseSuppliersDomainService.TABLE_FIELD_MAP;
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 50, offset = 0 } = state.pagination;
+    return this.repository.findForTable(purchaseId, {
+      where: and(
+        FilterProcessor.buildWhere(state.filters, fieldMap),
+        FilterProcessor.buildSearch(state.search, { supplierName: fieldMap.supplierName }),
+      ),
+      orderBy:
+        orderBy.length > 0
+          ? orderBy
+          : [asc(purchaseSuppliers.status), asc(purchaseSuppliers.step), asc(parties.displayName)],
+      limit,
+      offset,
+    });
+  }
+
+  // Counts a purchase's legs and their allocated lines by step and status
+  findCounts(purchaseId: string): Promise<PurchaseLegCount[]> {
+    return this.repository.findCounts(purchaseId);
   }
 
   // Returns the legs of a purchase still open in sourcing, the ones its submit starts
@@ -312,13 +358,6 @@ export class PurchaseSuppliersDomainService {
     return legs.filter(
       (leg) => leg.status === PurchaseLegStatusValues.OPEN && leg.step === PurchaseLegStepValues.SOURCING,
     );
-  }
-
-  // Loads a leg of the given purchase, throwing when it is not on it
-  async findOnPurchaseOrThrow(purchaseId: string, legId: string): Promise<PurchaseSupplierRow> {
-    const leg = await this.repository.findDetailOnPurchase(purchaseId, legId);
-    if (!leg) throw new NotFoundException('Supplier not found on this purchase.');
-    return leg;
   }
 
   // Returns a supplier's legs at a site that are fulfilling and of the given types, on the given purchases when named
@@ -347,37 +386,6 @@ export class PurchaseSuppliersDomainService {
     return PurchaseSuppliersDomainService.UNPRICED_TYPES.includes(type);
   }
 
-  // Returns the enrollment of a supplier at the purchase's site, rejecting a supplier not actively enrolled there or
-  // blocked from purchasing
-  requireActiveEnrollment(snapshot: LegEnrollmentSnapshot | undefined): LegEnrollmentSnapshot {
-    if (!snapshot?.isActive || !snapshot.isSupplierActive) {
-      throw new BadRequestException({
-        label: 'Supplier Not Enrolled',
-        detail: snapshot
-          ? "The supplier's enrollment at this site is inactive. Activate it before buying from the supplier here."
-          : 'The supplier is not enrolled at this site. Enroll it before buying from it here.',
-        errors: [{ field: 'supplierId', message: 'Not enrolled at this site' }],
-      });
-    }
-    if (snapshot.purchasingBlocked) {
-      throw new BadRequestException({
-        label: 'Supplier Blocked',
-        detail: 'Purchasing from this supplier is blocked. Unblock the supplier before buying from it.',
-        errors: [{ field: 'supplierId', message: 'Blocked from purchasing' }],
-      });
-    }
-    return snapshot;
-  }
-
-  // Rejects starting a single leg until the purchase itself is submitted; before that the purchase submit starts them all
-  assertStartableAlone(purchase: LegPurchase): void {
-    if (purchase.status === PurchaseStatusValues.OPEN && purchase.step === PurchaseStepValues.PROCURING) return;
-    throw new ConflictException({
-      label: 'Cannot Submit Supplier',
-      detail: `Submit "${purchase.purchaseNumber}" to start its suppliers; a single supplier is submitted on its own only after that.`,
-    });
-  }
-
   // Whether the user is one of the leg's current approvers and did not submit it
   mayApprove(approvers: LegApprovers): boolean {
     return this.isApprover(approvers) && approvers.userId !== approvers.submitterId;
@@ -393,17 +401,37 @@ export class PurchaseSuppliersDomainService {
   ): PurchaseLegAction[] {
     const isOpen = leg.status === PurchaseLegStatusValues.OPEN && purchase.status === PurchaseStatusValues.OPEN;
     if (!isOpen) return [];
-    if (this.isFulfilling(leg)) return this.fulfilmentActions(leg, facts);
-    const actions: PurchaseLegAction[] = [];
+    const actions: PurchaseLegAction[] = this.isFulfilling(leg) ? this.fulfilmentActions(leg, facts) : [];
     if (leg.step === PurchaseLegStepValues.SOURCING) {
-      actions.push(PurchaseLegActionValues.EDIT_ALLOCATIONS);
-      if (purchase.step === PurchaseStepValues.PROCURING) actions.push(PurchaseLegActionValues.SUBMIT);
+      actions.push(PurchaseLegActionValues.EDIT_ALLOCATIONS, PurchaseLegActionValues.SUBMIT);
     }
     if (leg.step === PurchaseLegStepValues.APPROVAL) {
       if (this.mayApprove(approvers)) actions.push(PurchaseLegActionValues.APPROVE);
       if (this.isApprover(approvers)) actions.push(PurchaseLegActionValues.REJECT);
     }
+    if (this.blockersOf(leg, purchase, facts).cancel === null) actions.push(PurchaseLegActionValues.CANCEL_SUPPLIER);
     return actions;
+  }
+
+  // Explains what keeps a leg from being cancelled or closed, or null when it may be: cancel while nothing is received,
+  // invoiced or on its way; close once something is received, nothing is on its way and no draft is open
+  blockersOf(leg: Leg, purchase: LegPurchase, facts: LegFulfilmentFacts): LegBlockers {
+    const state =
+      purchase.status !== PurchaseStatusValues.OPEN
+        ? `"${purchase.purchaseNumber}" is ${purchase.status.toLowerCase()}.`
+        : leg.status !== PurchaseLegStatusValues.OPEN
+          ? `This supplier is ${leg.status.toLowerCase()}.`
+          : null;
+    if (state) return { cancel: state, close: state };
+    const draft =
+      facts.hasDraftReceipt || facts.hasDraftInvoice
+        ? 'A draft goods receipt or supplier invoice is open; post or delete it first.'
+        : null;
+    const onTheWay = facts.hasDeliveryOnTheWay ? 'A delivery is on its way; receive or cancel it first.' : null;
+    const cancel = facts.hasPostedDocument
+      ? 'Goods are received or invoiced; close the supplier instead.'
+      : (onTheWay ?? draft);
+    return { cancel, close: this.closeBlockerOf(leg, facts) ?? onTheWay ?? draft };
   }
 
   // Whether a leg is open past approval and not closed, so its documents move it
@@ -458,7 +486,11 @@ export class PurchaseSuppliersDomainService {
 
   // Lists the fulfilment actions a leg's type and documents allow; Phase 4 types only close
   fulfilmentActions(leg: Leg, facts: LegFulfilmentFacts): PurchaseLegAction[] {
-    const canClose = !facts.hasDraftReceipt && !facts.hasDraftInvoice;
+    const canClose =
+      this.closeBlockerOf(leg, facts) === null &&
+      !facts.hasDeliveryOnTheWay &&
+      !facts.hasDraftReceipt &&
+      !facts.hasDraftInvoice;
     if (!PurchaseSuppliersDomainService.FULFILLED_TYPES.includes(leg.type)) {
       return canClose ? [PurchaseLegActionValues.CLOSE_SUPPLIER] : [];
     }
@@ -496,9 +528,12 @@ export class PurchaseSuppliersDomainService {
     });
   }
 
-  // Whether every leg of a purchase is closed, so the purchase completes
-  allClosed(legs: Pick<PurchaseSupplier, 'status'>[]): boolean {
-    return legs.length > 0 && legs.every((leg) => leg.status === PurchaseLegStatusValues.CLOSED);
+  // Whether every leg of a purchase is closed or cancelled and at least one closed, so the purchase can complete
+  allDone(legs: Pick<PurchaseSupplier, 'status'>[]): boolean {
+    return (
+      legs.some((leg) => leg.status === PurchaseLegStatusValues.CLOSED) &&
+      legs.every((leg) => leg.status !== PurchaseLegStatusValues.OPEN)
+    );
   }
 
   // Deletes a leg still in sourcing once its last allocation is gone, returning whether it was deleted
@@ -510,14 +545,15 @@ export class PurchaseSuppliersDomainService {
   }
 
   // Marks a leg closed in its last step, with the reason it was closed by hand
-  private async markClosed(leg: Leg, reason: string | null): Promise<void> {
-    await this.repository.update(leg.id, {
+  private async markClosed(leg: Leg, reason: string | null): Promise<PurchaseSupplier> {
+    const closed = await this.repository.update(leg.id, {
       step: PurchaseLegStepValues.CLOSED,
       status: PurchaseLegStatusValues.CLOSED,
       closedAt: new Date(),
       closeReason: reason,
     });
     this.logger.log(`Closed leg ${leg.id} from ${leg.step}`);
+    return closed;
   }
 
   // Works out a leg's quantities in primary units from its allocations and the counters of its PO lines
@@ -529,10 +565,12 @@ export class PurchaseSuppliersDomainService {
     const confirmed = facts.orderLines.filter(
       (line) => line.purchaseOrderStatus === PurchaseOrderStatusValues.CONFIRMED,
     );
-    const unordered = sum(
-      facts.allocations.filter((allocation) => allocation.purchaseOrderItemId === null),
-      (allocation) => new Decimal(allocation.primaryUomQty).plus(allocation.freePrimaryQty),
-    );
+    const unordered = facts.receivingClosed
+      ? new Decimal(0)
+      : sum(
+          facts.allocations.filter((allocation) => allocation.purchaseOrderItemId === null),
+          (allocation) => new Decimal(allocation.primaryUomQty).plus(allocation.freePrimaryQty),
+        );
     return {
       due: sum(facts.orderLines, lineDue).plus(unordered),
       ordered: sum(facts.orderLines, (line) => new Decimal(line.primaryUomQty).plus(line.freePrimaryQty)),
@@ -603,19 +641,19 @@ export class PurchaseSuppliersDomainService {
       return `Suppliers set to "${PurchaseTypeLabels[leg.type]}" are not fulfilled through purchases yet; only closing them is possible.`;
     }
     if (action === PurchaseLegActionValues.CLOSE_SUPPLIER) {
-      return `${legName} has a draft goods receipt or supplier invoice. Post or delete it before closing the supplier.`;
+      return `${legName}: ${this.blockersOf(leg, purchase, facts).close ?? 'it cannot be closed now.'}`;
     }
     return `${legName} is in ${PurchaseLegStepLabels[leg.step]}, and its documents leave nothing to ${action.toLowerCase().replace(/_/g, ' ')}.`;
   }
 
-  // Rejects opening a leg unless the purchase is open in SOURCING or PROCURING (409)
-  private assertSourcingOpen(purchase: LegPurchase): void {
-    const isSourcing = purchase.step === PurchaseStepValues.SOURCING || purchase.step === PurchaseStepValues.PROCURING;
-    if (purchase.status === PurchaseStatusValues.OPEN && isSourcing) return;
-    throw new ConflictException({
-      label: 'Cannot Allocate',
-      detail: `"${purchase.purchaseNumber}" is not sourcing, so no supplier can be added to it.`,
-    });
+  // Explains why an open leg cannot close for receiving by its own state: not ordered yet, nothing received, or already
+  // closed for receiving; a type purchases do not fulfil closes whenever no draft is open
+  closeBlockerOf(leg: Leg, facts: LegFulfilmentFacts): string | null {
+    if (!this.isFulfilling(leg)) return 'Nothing is ordered from this supplier yet; cancel it instead.';
+    if (!PurchaseSuppliersDomainService.FULFILLED_TYPES.includes(leg.type)) return null;
+    if (facts.receivingClosed) return 'This supplier is already closed for receiving; it closes once it is invoiced.';
+    if (!facts.hasPostedDocument) return 'Nothing is received from this supplier yet; cancel it instead.';
+    return null;
   }
 
   // Rejects an action on a leg that is not open in SOURCING (409)

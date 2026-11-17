@@ -7,7 +7,7 @@ export class PurchaseItemDto {
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemCode: string;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   primaryQty: number;
   allocatedPrimaryQty: number;
   source: PurchaseItemSource;

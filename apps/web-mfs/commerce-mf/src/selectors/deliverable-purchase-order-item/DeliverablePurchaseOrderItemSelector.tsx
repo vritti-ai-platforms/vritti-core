@@ -1,11 +1,12 @@
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
 export type DeliverablePurchaseOrderItemSelectorParams = {
   inboundDeliveryId: string;
 };
 
-export type DeliverablePurchaseOrderItemSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'params'> & {
+export type DeliverablePurchaseOrderItemSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'params'> & {
   params: DeliverablePurchaseOrderItemSelectorParams;
 };
 

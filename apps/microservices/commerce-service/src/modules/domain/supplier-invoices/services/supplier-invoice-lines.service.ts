@@ -53,6 +53,14 @@ export class SupplierInvoiceLinesDomainService {
     return { success: true, message: `"${line.label}" added to invoice "${invoice.invoiceNumber}".` };
   }
 
+  // Adds many prepared lines to an invoice in one insert and recomputes its totals once, in the caller's transaction
+  async createMany(invoice: InvoiceForLines, lines: PreparedSupplierInvoiceLine[]): Promise<void> {
+    if (lines.length === 0) return;
+    await this.repository.createMany(lines.map((line) => ({ ...line.values, supplierInvoiceId: invoice.id })));
+    await this.invoicesRepository.syncTotals(invoice.id);
+    this.logger.log(`Added ${lines.length} lines to supplier invoice ${invoice.invoiceNumber}`);
+  }
+
   // Replaces a line with a prepared one and recomputes the invoice totals, in the caller's transaction
   async update(invoice: InvoiceForLines, id: string, line: PreparedSupplierInvoiceLine): Promise<SuccessResponseDto> {
     await this.repository.update(id, line.values);
@@ -218,6 +226,13 @@ export class SupplierInvoiceLinesDomainService {
     await this.invoicesRepository.syncTotals(invoice.id);
     this.logger.log(`Removed line ${id} from supplier invoice ${invoice.invoiceNumber}`);
     return { success: true, message: `Line removed from invoice "${invoice.invoiceNumber}".` };
+  }
+
+  // Removes every line of an invoice and recomputes its totals once, in the caller's transaction
+  async deleteAll(invoice: InvoiceForLines): Promise<void> {
+    await this.repository.deleteByInvoice(invoice.id);
+    await this.invoicesRepository.syncTotals(invoice.id);
+    this.logger.log(`Removed every line from supplier invoice ${invoice.invoiceNumber}`);
   }
 
   // Loads the active cost category a charge line books its cost under; the item category is not a charge

@@ -1,29 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, exists, getColumns, isNull, notInArray, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import _ from '@vritti/api-sdk/lodash';
 import {
-  GoodsReceiptStatusValues,
-  goodsReceiptItems,
-  goodsReceipts,
-  InboundDeliveryStatusValues,
-  inboundDeliveries,
-  inboundDeliveryLines,
   type Purchase,
-  PurchaseLegStatusValues,
-  PurchaseLegStepValues,
-  PurchaseOrderStatusValues,
   PurchaseStatusValues,
-  PurchaseStepValues,
-  purchaseItemAllocations,
+  purchaseItemProgress,
   purchaseItems,
   purchaseNumberSeq,
-  purchaseOrderItems,
-  purchaseOrders,
   purchaseSuppliers,
   purchases,
-  supplierQuotationSites,
-  supplierQuotations,
 } from '@/db/schema';
+import { PurchaseStatusLabels } from '../dto/entity/purchase.dto';
 
 export type PurchaseRow = Purchase & { itemCount: number };
 
@@ -37,16 +26,23 @@ export type PurchaseProgressItemRow = {
 };
 
 export type PurchaseProgressRow = {
-  postedSuppliers: number | null;
   items: PurchaseProgressItemRow[];
 };
 
 export type PurchaseTableRow = PurchaseRow & { progress: PurchaseProgressRow };
 
-export type PurchaseHeaderRow = PurchaseTableRow & {
-  supplierCount: number;
-  hasSourcingLeg: boolean;
-};
+export type PurchaseCountsRow = { itemCount: number; supplierCount: number };
+
+export type PurchaseProgressDetailRow = Pick<PurchaseTableRow, 'status' | 'itemCount' | 'progress'>;
+
+export type PurchaseState = Pick<Purchase, 'purchaseNumber' | 'status'>;
+
+export interface PurchaseBlockers {
+  submit: string | null;
+  close: string | null;
+  cancel: string | null;
+  delete: string | null;
+}
 
 @Injectable()
 export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purchases> {
@@ -67,35 +63,34 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
     return this.findById<PurchaseRow>(id, { select: this.selection() });
   }
 
-  // Loads a purchase with its item line count, its progress through its step, its leg count and whether a leg is still
-  // open in sourcing
-  findHeader(id: string): Promise<PurchaseHeaderRow | undefined> {
-    return this.findById<PurchaseHeaderRow>(id, {
+  // Loads the given purchases with their item line counts
+  findDetailsByIds(ids: string[]): Promise<PurchaseRow[]> {
+    if (ids.length === 0) return Promise.resolve([]);
+    return this.findAllWithSelect<PurchaseRow>({ select: this.selection(), where: inArray(purchases.id, ids) });
+  }
+
+  // Counts a purchase's item lines and legs
+  findCounts(id: string): Promise<PurchaseCountsRow | undefined> {
+    return this.findById<PurchaseCountsRow>(id, {
       select: {
-        ...this.selection(),
-        progress: this.progress(),
+        itemCount: this.db.$count(purchaseItems, eq(purchaseItems.purchaseId, purchases.id)),
         supplierCount: this.db.$count(purchaseSuppliers, eq(purchaseSuppliers.purchaseId, purchases.id)),
-        hasSourcingLeg: sql<boolean>`${exists(this.sourcingLegs())}`,
       },
     });
   }
 
-  // Deletes the purchase only while it is open in REQUESTING, returning whether it did
-  async deleteRequesting(id: string): Promise<boolean> {
-    const deleted = await this.db
-      .delete(purchases)
-      .where(
-        and(
-          eq(purchases.id, id),
-          eq(purchases.status, PurchaseStatusValues.OPEN),
-          eq(purchases.step, PurchaseStepValues.REQUESTING),
-        ),
-      )
-      .returning({ id: purchases.id });
-    return deleted.length > 0;
+  // Loads a purchase's status with its item line count and progress
+  findProgress(id: string): Promise<PurchaseProgressDetailRow | undefined> {
+    return this.findById<PurchaseProgressDetailRow>(id, {
+      select: {
+        status: purchases.status,
+        itemCount: this.db.$count(purchaseItems, eq(purchaseItems.purchaseId, purchases.id)),
+        progress: this.progress(),
+      },
+    });
   }
 
-  // Returns one page of purchases with their item line counts and their progress through their step
+  // Returns one page of purchases with their item line counts and their progress
   findForTable(options: {
     where?: SQL;
     orderBy: SQL[];
@@ -108,6 +103,52 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
     });
   }
 
+  // Rejects closing a purchase that cannot close now: not open, nothing received, or a supplier with goods on their way or
+  // a draft open
+  assertClosable(blockers: PurchaseBlockers): void {
+    if (blockers.close) throw new ConflictException({ label: 'Cannot Close Purchase', detail: blockers.close });
+  }
+
+  // Loads a purchase with its item count and quantities, throwing when it is out of reach
+  async findDetailOrThrow(id: string): Promise<PurchaseRow> {
+    const purchase = await this.findDetail(id);
+    if (!purchase) throw new NotFoundException('Purchase not found.');
+    return purchase;
+  }
+
+  // Counts a purchase's item lines and legs, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<PurchaseCountsRow> {
+    const counts = await this.findCounts(id);
+    if (!counts) throw new NotFoundException('Purchase not found.');
+    return counts;
+  }
+
+  // Loads a purchase's status, item line count and progress, throwing when it is out of reach
+  async findProgressOrThrow(id: string): Promise<PurchaseProgressDetailRow> {
+    const progress = await this.findProgress(id);
+    if (!progress) throw new NotFoundException('Purchase not found.');
+    return progress;
+  }
+
+  // Rejects an action on a purchase that is no longer open (409)
+  assertOpen(purchase: PurchaseState, label: string): void {
+    if (purchase.status === PurchaseStatusValues.OPEN) return;
+    throw new ConflictException({
+      label,
+      detail: `"${purchase.purchaseNumber}" is ${PurchaseStatusLabels[purchase.status].toLowerCase()}.`,
+    });
+  }
+
+  // Rejects a change a manual feature would make to a document a purchase created or completes (409)
+  assertNotPartOfPurchase(document: string, purchaseNumbers: (string | null)[]): void {
+    const numbers = _.uniq(purchaseNumbers.filter((number): number is string => number !== null));
+    if (numbers.length === 0) return;
+    throw new ConflictException({
+      label: 'Belongs to a Purchase',
+      detail: `${document} belongs to purchase ${numbers.map((number) => `"${number}"`).join(', ')}; change it through the purchase.`,
+    });
+  }
+
   // Selects a purchase with its item line count
   private selection() {
     return {
@@ -116,149 +157,22 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
     };
   }
 
-  // Selects the purchase's legs still open in sourcing
-  private sourcingLegs() {
-    return this.db
-      .select({ one: sql`1` })
-      .from(purchaseSuppliers)
-      .where(
-        and(
-          eq(purchaseSuppliers.purchaseId, purchases.id),
-          eq(purchaseSuppliers.status, PurchaseLegStatusValues.OPEN),
-          eq(purchaseSuppliers.step, PurchaseLegStepValues.SOURCING),
-        ),
-      );
-  }
-
-  // Selects the purchase's progress as JSON; only the branch for the purchase's own step runs
+  // Selects the purchase's progress as JSON: each item's requested quantity and how much of it is allocated, ordered,
+  // on its way, received and invoiced
   private progress(): SQL<PurchaseProgressRow> {
-    return sql<PurchaseProgressRow>`case
-      when ${eq(purchases.step, PurchaseStepValues.QUOTING)} then (${this.quotingProgress()})
-      when ${eq(purchases.step, PurchaseStepValues.SOURCING)} then (${this.sourcingProgress()})
-      when ${eq(purchases.step, PurchaseStepValues.PROCURING)} then (${this.procuringProgress()})
-      else json_build_object('postedSuppliers', null, 'items', '[]'::json)
-    end`;
-  }
-
-  // Counts the suppliers with a quotation for the purchase posted to its site or its whole legal entity
-  private quotingProgress() {
-    const posted = this.db
-      .select({ one: sql`1` })
-      .from(supplierQuotationSites)
-      .where(
-        and(
-          eq(supplierQuotationSites.quotationId, supplierQuotations.id),
-          or(eq(supplierQuotationSites.siteId, purchases.siteId), isNull(supplierQuotationSites.siteId)),
-        ),
-      );
-    return this.db
+    const items = this.db
       .select({
-        progress: sql`json_build_object(
-          'postedSuppliers', count(distinct ${supplierQuotations.supplierId}),
-          'items', '[]'::json
-        )`,
-      })
-      .from(supplierQuotations)
-      .where(and(eq(supplierQuotations.purchaseId, purchases.id), exists(posted)));
-  }
-
-  // Lists each item's requested and allocated primary quantities
-  private sourcingProgress() {
-    const allocated = this.db
-      .select({ total: sql`coalesce(sum(${purchaseItemAllocations.primaryUomQty}), 0)` })
-      .from(purchaseItemAllocations)
-      .where(eq(purchaseItemAllocations.purchaseItemId, purchaseItems.id));
-    return this.db
-      .select({
-        progress: sql`json_build_object(
-          'postedSuppliers', null,
-          'items', coalesce(json_agg(json_build_object(
-            'requested', ${purchaseItems.primaryQty},
-            'allocated', (${allocated}),
-            'ordered', 0,
-            'inTransit', 0,
-            'received', 0,
-            'invoiced', 0
-          )), '[]'::json)
-        )`,
+        progress: sql`json_build_object('items', coalesce(json_agg(json_build_object(
+          'requested', ${purchaseItems.primaryQty},
+          'allocated', ${purchaseItemProgress.allocated()},
+          'ordered', ${purchaseItemProgress.ordered()},
+          'inTransit', ${purchaseItemProgress.inTransit()},
+          'received', ${purchaseItemProgress.received()},
+          'invoiced', ${purchaseItemProgress.invoiced()}
+        )), '[]'::json))`,
       })
       .from(purchaseItems)
       .where(eq(purchaseItems.purchaseId, purchases.id));
-  }
-
-  // Lists each item's requested primary quantity with what its allocations allocated and their PO lines ordered
-  // (live orders only), carry on open deliveries, received net of returns and invoiced
-  private procuringProgress() {
-    const liveOrder = notInArray(purchaseOrders.status, [
-      PurchaseOrderStatusValues.CANCELLED,
-      PurchaseOrderStatusValues.REJECTED,
-    ]);
-    const items = this.db
-      .select({
-        requested: sql`${purchaseItems.primaryQty}`.as('requested'),
-        allocated: sql`coalesce(sum(${purchaseItemAllocations.primaryUomQty}), 0)`.as('allocated'),
-        ordered:
-          sql`coalesce(sum(${purchaseOrderItems.primaryUomQty} + ${purchaseOrderItems.freePrimaryQty} - ${purchaseOrderItems.cancelledPrimaryQty}) filter (where ${liveOrder}), 0)`.as(
-            'ordered',
-          ),
-        inTransit: sql`coalesce(sum(${this.inTransitOnOrderLine()}), 0)`.as('in_transit'),
-        received:
-          sql`coalesce(sum(${purchaseOrderItems.receivedPrimaryQty} - ${purchaseOrderItems.returnedPrimaryQty}), 0)`.as(
-            'received',
-          ),
-        invoiced: sql`coalesce(sum(${purchaseOrderItems.invoicedPrimaryQty}), 0)`.as('invoiced'),
-      })
-      .from(purchaseItems)
-      .leftJoin(purchaseItemAllocations, eq(purchaseItemAllocations.purchaseItemId, purchaseItems.id))
-      .leftJoin(purchaseOrderItems, eq(purchaseOrderItems.id, purchaseItemAllocations.purchaseOrderItemId))
-      .leftJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
-      .where(eq(purchaseItems.purchaseId, purchases.id))
-      .groupBy(purchaseItems.id)
-      .as('progress_items');
-    return this.db
-      .select({
-        progress: sql`json_build_object(
-          'postedSuppliers', null,
-          'items', coalesce(json_agg(json_build_object(
-            'requested', ${items.requested},
-            'allocated', ${items.allocated},
-            'ordered', ${items.ordered},
-            'inTransit', ${items.inTransit},
-            'received', ${items.received},
-            'invoiced', ${items.invoiced}
-          )), '[]'::json)
-        )`,
-      })
-      .from(items);
-  }
-
-  // Sums what the outer PO line's open deliveries carry that posted receipts have not yet accepted, in primary units
-  private inTransitOnOrderLine(): SQL {
-    const accepted = this.db
-      .select({
-        total: sql`coalesce(sum(${goodsReceiptItems.receivedPrimaryQty} - ${goodsReceiptItems.rejectedPrimaryQty}), 0)`,
-      })
-      .from(goodsReceiptItems)
-      .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
-      .where(
-        and(
-          eq(goodsReceiptItems.inboundDeliveryLineId, inboundDeliveryLines.id),
-          eq(goodsReceipts.status, GoodsReceiptStatusValues.POSTED),
-        ),
-      );
-    const outstanding = this.db
-      .select({ total: sql`coalesce(sum(greatest(${inboundDeliveryLines.primaryUomQty} - (${accepted}), 0)), 0)` })
-      .from(inboundDeliveryLines)
-      .innerJoin(inboundDeliveries, eq(inboundDeliveries.id, inboundDeliveryLines.inboundDeliveryId))
-      .where(
-        and(
-          eq(inboundDeliveryLines.purchaseOrderItemId, purchaseOrderItems.id),
-          notInArray(inboundDeliveries.status, [
-            InboundDeliveryStatusValues.RECEIVED,
-            InboundDeliveryStatusValues.CANCELLED,
-          ]),
-        ),
-      );
-    return sql`(${outstanding})`;
+    return sql<PurchaseProgressRow>`(${items})`;
   }
 }

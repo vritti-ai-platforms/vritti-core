@@ -1,25 +1,17 @@
-import type { Purchase, PurchaseStatus, PurchaseStep } from '@/db/schema';
+import type { Purchase, PurchaseStatus } from '@/db/schema';
 
 export const PurchaseActionValues = {
   EDIT: 'EDIT',
   CANCEL: 'CANCEL',
   DELETE: 'DELETE',
   EDIT_ITEMS: 'EDIT_ITEMS',
-  SUBMIT_ITEMS: 'SUBMIT_ITEMS',
   REQUEST_QUOTATION: 'REQUEST_QUOTATION',
-  COMPLETE_QUOTATIONS: 'COMPLETE_QUOTATIONS',
   EDIT_ALLOCATIONS: 'EDIT_ALLOCATIONS',
   SUBMIT: 'SUBMIT',
+  CLOSE: 'CLOSE',
 } as const;
 
 export type PurchaseAction = (typeof PurchaseActionValues)[keyof typeof PurchaseActionValues];
-
-export const PurchaseStepLabels: Record<PurchaseStep, string> = {
-  REQUESTING: 'Requesting',
-  QUOTING: 'Quoting',
-  SOURCING: 'Sourcing',
-  PROCURING: 'Procuring',
-};
 
 export const PurchaseStatusLabels: Record<PurchaseStatus, string> = {
   OPEN: 'Open',
@@ -30,7 +22,6 @@ export const PurchaseStatusLabels: Record<PurchaseStatus, string> = {
 export class PurchaseDto {
   id: string;
   purchaseNumber: string;
-  step: PurchaseStep;
   status: PurchaseStatus;
   siteId: string;
   legalEntityId: string;
@@ -40,6 +31,7 @@ export class PurchaseDto {
   submittedAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
+  cancelReason: string | null;
   createdAt: string;
   updatedAt: string;
 
@@ -47,7 +39,6 @@ export class PurchaseDto {
     const dto = new PurchaseDto();
     dto.id = row.id;
     dto.purchaseNumber = row.purchaseNumber;
-    dto.step = row.step;
     dto.status = row.status;
     dto.siteId = row.siteId;
     dto.legalEntityId = row.legalEntityId;
@@ -57,6 +48,7 @@ export class PurchaseDto {
     dto.submittedAt = row.submittedAt?.toISOString() ?? null;
     dto.completedAt = row.completedAt?.toISOString() ?? null;
     dto.cancelledAt = row.cancelledAt?.toISOString() ?? null;
+    dto.cancelReason = row.cancelReason;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

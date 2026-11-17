@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type StorageTypeSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type StorageTypeSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select for storage type selection (id → name, code as description)
 export const StorageTypeSelector = forwardRef<HTMLButtonElement, StorageTypeSelectorProps>((props, ref) => (

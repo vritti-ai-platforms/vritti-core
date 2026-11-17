@@ -21,7 +21,7 @@ import { CurrencyAmountDto, type CurrencyCode } from '@vritti/api-sdk/money';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
-import { inventoryItems, siteStockStatusMatchesSql, siteStockValue } from '@/db/schema';
+import { inventoryItems, SiteItemStatusValues, siteStockStatusMatchesSql, siteStockValue } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import type { SiteStockTableItemDto } from '../dto/entity/scoped-inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
@@ -86,8 +86,8 @@ export class InventoryItemsDomainService {
       hsnCode: data.hsnCode,
       taxClassId: data.taxClassId,
     });
-    const [uomSymbol, categoryName, taxClassName] = await Promise.all([
-      this.repository.findUomSymbol(entity.uomId),
+    const [unit, categoryName, taxClassName] = await Promise.all([
+      this.repository.findUnit(entity.uomId),
       this.repository.findCategoryName(entity.categoryId),
       this.repository.findTaxClassName(entity.taxClassId),
     ]);
@@ -95,7 +95,7 @@ export class InventoryItemsDomainService {
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
-      data: InventoryItemDto.from(entity, uomSymbol, true, categoryName, taxClassName),
+      data: InventoryItemDto.from({ ...entity, ...unit, categoryName, taxClassName }),
     };
   }
 
@@ -127,13 +127,7 @@ export class InventoryItemsDomainService {
     const entity = await this.repository.findByIdWithUomAndCategory(id);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const referencedIds = await this.repository.findReferencedIds([id]);
-    return InventoryItemDto.from(
-      entity,
-      entity.uomSymbol,
-      !referencedIds.has(id),
-      entity.categoryName,
-      entity.taxClassName,
-    );
+    return InventoryItemDto.from(entity, !referencedIds.has(id));
   }
 
   // Returns paginated, filtered, and sorted inventory items for the data table
@@ -154,7 +148,7 @@ export class InventoryItemsDomainService {
       offset,
     });
 
-    const dtos = rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName));
+    const dtos = rows.map((row) => InventoryItemDto.from(row));
 
     return { result: dtos, count };
   }
@@ -181,7 +175,7 @@ export class InventoryItemsDomainService {
     });
 
     return {
-      result: rows.map((row) => InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName)),
+      result: rows.map((row) => InventoryItemDto.from(row)),
       count,
     };
   }
@@ -191,8 +185,8 @@ export class InventoryItemsDomainService {
     return this.findForTable(state);
   }
 
-  // Every master item with the site's stock levels for it, the stock it holds by location, its value in the site's
-  // currency and where that stock sits against the levels; RLS narrows everything to the request's site
+  // Every master item with how the site carries it, the stock it holds by location, its value in the site's currency
+  // and where that stock sits against the levels; RLS narrows everything to the request's site
   async findForSiteStockTable(
     state: TableState,
     leCurrencyCode: CurrencyCode,
@@ -219,11 +213,14 @@ export class InventoryItemsDomainService {
 
     return {
       result: result.map((row) => ({
-        ...InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
-        hasStockLevels: row.hasStockLevels,
+        ...InventoryItemDto.from(row),
+        atSite: row.atSite,
+        siteItemStatus: row.siteItemStatus,
+        blockedReason: row.blockedReason,
+        replenishment: row.replenishment,
         reorderPoint: row.reorderPoint,
         safetyStock: row.safetyStock,
-        maxStockLevel: row.maxStockLevel,
+        maxStock: row.maxStock,
         onHand: row.onHand,
         stockValue: CurrencyAmountDto.from(row.stockValue, leCurrencyCode),
         stockStatus: row.stockStatus,
@@ -284,7 +281,7 @@ export class InventoryItemsDomainService {
         orderByEntries.map((e) => (row as Record<string, unknown>)[e.key]),
         signature,
       ),
-      node: InventoryItemDto.from(row, row.uomSymbol, true, row.categoryName, row.taxClassName),
+      node: InventoryItemDto.from(row),
     }));
 
     return {
@@ -300,13 +297,17 @@ export class InventoryItemsDomainService {
     query: SelectOptionsQueryDto,
     options?: {
       excludeOnSupplierId?: string;
-      withoutStockLevels?: boolean;
+      // Only the items the site does not carry yet
+      notAtSiteId?: string;
       categoryIds?: string[];
-      // Only the items with stock levels at the site, each with its stock and levels there
-      stockLevelsAt?: { siteId: string; stockStatus?: string[]; leCurrencyCode: CurrencyCode };
+      // Only the items the site carries, each with its stock and levels there; one whose purchasing the site has blocked
+      // comes disabled
+      atSite?: { siteId: string; stockStatus?: string[]; leCurrencyCode: CurrencyCode };
+      // At the site, marks the items the supplier supplies there and leaves out the ones its rules keep from it
+      supplier?: { supplierId: string; siteRequires: boolean };
     },
   ): Promise<SelectQueryResult> {
-    const { stockLevelsAt, ...filters } = options ?? {};
+    const { atSite, ...filters } = options ?? {};
     const result = await this.repository.findForSelect(
       {
         ...selectPageOptions(query),
@@ -318,21 +319,19 @@ export class InventoryItemsDomainService {
         orderByKey: query.orderByKey || 'name',
         orderDirection: query.orderDirection || 'asc',
       },
-      { ...filters, stockLevelsAtSiteId: stockLevelsAt?.siteId, stockStatus: stockLevelsAt?.stockStatus },
+      { ...filters, atSiteId: atSite?.siteId, stockStatus: atSite?.stockStatus },
     );
-    if (!stockLevelsAt) return result;
+    if (!atSite) return result;
 
     // The stock's value comes in minor units of the legal entity's currency and goes out as an amount in it
     return {
       ...result,
       options: result.options.map((option) => ({
         ...option,
+        disabled: option.additionals?.siteItemStatus === SiteItemStatusValues.BLOCKED,
         additionals: {
           ...option.additionals,
-          stockValue: CurrencyAmountDto.from(
-            BigInt(String(option.additionals?.stockValue)),
-            stockLevelsAt.leCurrencyCode,
-          ),
+          stockValue: CurrencyAmountDto.from(BigInt(String(option.additionals?.stockValue)), atSite.leCurrencyCode),
         },
       })),
     };

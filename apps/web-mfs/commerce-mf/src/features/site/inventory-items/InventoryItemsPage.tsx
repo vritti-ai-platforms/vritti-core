@@ -9,25 +9,25 @@ import { useDialog, useWorkspaceCurrency } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { buildSlug } from '@vritti/quantum-ui/slug';
-import { Eye, Package, PackageCheck, Pencil } from 'lucide-react';
+import { Eye, Package, PackagePlus, Pencil } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StockLevelsCell } from '@/components/inventory-items/StockLevelsCell';
+import { SiteStockCell } from '@/components/inventory-items/SiteStockCell';
 import { INVENTORY_ITEMS_STOCK_TABLE_KEY, useInventoryItemsStockTable } from '@/hooks/site/inventory-items';
 import { type SiteStockTableItemData, stockStatusFilterOptions } from '@/schemas/inventory-items';
 import { CategoryFilter } from '@/selectors/category';
 import { LocationFilter } from '@/selectors/location';
 import { UomFilter } from '@/selectors/uom';
-import { EditStockLevelsForm } from './forms/EditStockLevelsForm';
-import { SetStockLevelsForm } from './forms/SetStockLevelsForm';
+import { AddToSiteForm } from './forms/AddToSiteForm';
+import { EditReplenishmentForm } from './forms/EditReplenishmentForm';
 
-// The organization's items with their stock levels at this site: the stock on hand against them, split by the locations
-// holding it; an item is bought and stocked here only once its stock levels are set
+// The organization's items with how this site carries them: the stock on hand against their levels, split by the
+// locations holding it; an item is bought and stocked here only once it is added to the site
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const inventoryItemsStockTableQuery = useInventoryItemsStockTable();
-  const setDialog = useDialog();
+  const addDialog = useDialog();
   const workspaceCurrency = useWorkspaceCurrency();
 
   const openItem = useCallback((item: SiteStockTableItemData) => navigate(buildSlug(item.name, item.id)), [navigate]);
@@ -52,11 +52,11 @@ export const InventoryItemsPage = () => {
         enableSorting: false,
       },
       {
-        id: 'stockLevels',
-        header: 'Stock Levels',
+        id: 'stock',
+        header: 'Stock',
         size: 460,
-        meta: { grow: true, label: 'Stock Levels' },
-        cell: ({ row }) => <StockLevelsCell stock={row.original} uomSymbol={row.original.uomSymbol} />,
+        meta: { grow: true, label: 'Stock' },
+        cell: ({ row }) => <SiteStockCell stock={row.original} uomSymbol={row.original.uomSymbol} />,
         enableSorting: false,
       },
       {
@@ -73,27 +73,29 @@ export const InventoryItemsPage = () => {
                 onClick: () => openItem(row.original),
               },
               {
-                id: 'set',
-                icon: PackageCheck,
-                label: 'Set Stock Levels',
-                permission: SITE_INVENTORY_ITEMS.stockLevels.add,
-                hidden: row.original.hasStockLevels,
+                id: 'add',
+                icon: PackagePlus,
+                label: 'Add to Site',
+                permission: SITE_INVENTORY_ITEMS.setup.add,
+                hidden: row.original.atSite,
                 dialog: {
-                  title: 'Set Stock Levels',
-                  description: `${row.original.name} — this site can buy and stock it once they are set.`,
-                  content: (close) => <SetStockLevelsForm item={row.original} onSuccess={close} onCancel={close} />,
+                  title: 'Add to Site',
+                  className: 'max-w-2xl',
+                  description: `${row.original.name} — this site can buy and stock it once it is added.`,
+                  content: (close) => <AddToSiteForm item={row.original} onSuccess={close} onCancel={close} />,
                 },
               },
               {
                 id: 'edit',
                 icon: Pencil,
-                label: 'Edit Stock Levels',
-                permission: SITE_INVENTORY_ITEMS.stockLevels.edit,
-                hidden: !row.original.hasStockLevels,
+                label: 'Edit Replenishment',
+                permission: SITE_INVENTORY_ITEMS.setup.edit,
+                hidden: !row.original.atSite,
                 dialog: {
-                  title: 'Edit Stock Levels',
-                  description: `${row.original.name} at this site.`,
-                  content: (close) => <EditStockLevelsForm item={row.original} onSuccess={close} onCancel={close} />,
+                  title: 'Edit Replenishment',
+                  className: 'max-w-2xl',
+                  description: `How this site restocks ${row.original.name}.`,
+                  content: (close) => <EditReplenishmentForm item={row.original} onSuccess={close} onCancel={close} />,
                 },
               },
             ]}
@@ -119,7 +121,7 @@ export const InventoryItemsPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Inventory Items" description="The organization's items, and their stock levels at this site" />
+      <PageHeader title="Inventory Items" description="The organization's items, and how this site carries them" />
       <DataTable
         table={inventoryItemsTable}
         permission={SITE_INVENTORY_ITEMS.view}
@@ -158,27 +160,28 @@ export const InventoryItemsPage = () => {
           actions: (
             <Button
               size="sm"
-              startAdornment={<PackageCheck className="size-4" />}
-              onClick={setDialog.open}
-              permission={SITE_INVENTORY_ITEMS.stockLevels.add}
+              startAdornment={<PackagePlus className="size-4" />}
+              onClick={addDialog.open}
+              permission={SITE_INVENTORY_ITEMS.setup.add}
             >
-              Set Stock Levels
+              Add to Site
             </Button>
           ),
         }}
         emptyStateConfig={{
           icon: Package,
           title: 'No inventory items',
-          description: 'Items added to the organization appear here, ready for their stock levels at this site.',
+          description: 'Items added to the organization appear here, ready to be added to this site.',
         }}
       />
 
       <Dialog
-        handle={setDialog}
-        icon={PackageCheck}
-        title="Set Stock Levels"
-        description="Pick an item this site has no stock levels for. The site can buy and stock it once they are set; levels are in the item's primary unit."
-        content={(close) => <SetStockLevelsForm onSuccess={close} onCancel={close} />}
+        handle={addDialog}
+        icon={PackagePlus}
+        title="Add to Site"
+        className="max-w-2xl"
+        description="Pick an item this site does not carry yet. The site can buy and stock it once it is added; levels are in the item's primary unit."
+        content={(close) => <AddToSiteForm onSuccess={close} onCancel={close} />}
       />
     </div>
   );

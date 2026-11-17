@@ -1,3 +1,4 @@
+import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import type {
   SupplierQuotationDetailDto,
@@ -10,9 +11,10 @@ import type { UpdateSupplierQuotationItemDto } from '@domain/supplier-quotations
 import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/services/supplier-quotations.service';
 import { Injectable } from '@nestjs/common';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { LeSupplierQuotationsService } from '@/modules/legal-entity/suppliers/quotations/services/supplier-quotations.service';
+import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 
 // Quotations at a site: it writes, posts and deletes the quotations it owns, and removes any posted to it; the legal
 // entity's quotation service runs the shared work once the site's own rules pass
@@ -21,6 +23,8 @@ export class SiteSupplierQuotationsService {
   constructor(
     private readonly quotations: SupplierQuotationsDomainService,
     private readonly supplierItems: SupplierItemsDomainService,
+    private readonly supplierEnrollments: SupplierEnrollmentsDomainService,
+    private readonly purchasingRules: PurchasingRulesService,
     private readonly legalEntityQuotations: LeSupplierQuotationsService,
   ) {}
 
@@ -29,9 +33,11 @@ export class SiteSupplierQuotationsService {
     return this.legalEntityQuotations.create(dto);
   }
 
-  // Adds a line to a quotation the site owns
+  // Adds a line to a quotation the site owns; an item the site's rules buy only from suppliers set up for it needs the
+  // supplier's item in that unit
   async addItem(dto: AddSupplierQuotationItemDto): Promise<SuccessResponseDto> {
-    await this.quotations.assertOwnedByRequestSite(dto.quotationId);
+    const quotation = await this.quotations.findOwnedByRequestSiteOrThrow(dto.quotationId);
+    await this.purchasingRules.assertSourced(quotation.supplierId, quotation.siteId, [dto], 'inventoryItemId');
     return this.legalEntityQuotations.addItem(dto);
   }
 
@@ -47,11 +53,14 @@ export class SiteSupplierQuotationsService {
     return this.legalEntityQuotations.updateItem(dto);
   }
 
-  // Posts a quotation the site owns to the site, once the supplier has an item for every line
+  // Posts a quotation the site owns to the site: each line's supplier item — created by the site when its rules allow,
+  // which needs the supplier's enrollment there active — set up at the site and priced there
   async post(quotationId: string, userId: string | null): Promise<SuccessResponseDto> {
-    await this.quotations.assertOwnedByRequestSite(quotationId);
-    const quotation = await this.quotations.requireQuotation(quotationId);
-    await this.supplierItems.assertHasItemsFor(quotation.supplierId, await this.quotations.findItems(quotationId));
+    const quotation = await this.quotations.findOwnedByRequestSiteOrThrow(quotationId);
+    const lines = await this.quotations.findItems(quotationId);
+    await this.purchasingRules.assertSourced(quotation.supplierId, quotation.siteId, lines, 'items');
+    const createsSupplierItems = !(await this.supplierItems.isEverySetUp(quotation.supplierId, lines));
+    if (createsSupplierItems) await this.assertActiveAt(quotation.supplierId, quotation.siteId);
     return this.legalEntityQuotations.postToSite(quotationId, quotation.siteId, userId);
   }
 
@@ -90,5 +99,15 @@ export class SiteSupplierQuotationsService {
   async removeFromSite(quotationId: string): Promise<SuccessResponseDto> {
     const posting = await this.quotations.findPostingAtRequestSiteOrThrow(quotationId);
     return this.legalEntityQuotations.removeFromSite(quotationId, posting.siteId);
+  }
+
+  // Rejects creating the supplier's items from the site while its enrollment there is inactive
+  private async assertActiveAt(supplierId: string, siteId: string): Promise<void> {
+    const activeSiteIds = await this.supplierEnrollments.findEnrolledSiteIds({ supplierId, isActive: true });
+    if (activeSiteIds.includes(siteId)) return;
+    throw new BadRequestException({
+      label: 'Enrollment Inactive',
+      detail: "Reactivate the supplier's enrollment at this site before posting quotations that add its items.",
+    });
   }
 }

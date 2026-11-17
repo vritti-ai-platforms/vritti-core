@@ -6,7 +6,11 @@ export class AddPurchaseOrderItemDto {
   purchaseOrderId: string;
 
   @IsUUID('7')
-  supplierItemId: string;
+  inventoryItemId: string;
+
+  // One of the item's units; the supplier's item in it, when there is one, defaults the scheme and delivery
+  @IsUUID('7')
+  uomId: string;
 
   @IsNumber({ maxDecimalPlaces: 3 })
   @IsPositive()

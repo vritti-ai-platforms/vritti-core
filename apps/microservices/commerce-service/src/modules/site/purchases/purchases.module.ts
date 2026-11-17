@@ -2,7 +2,7 @@ import { GoodsReceiptLinesDomainModule } from '@domain/goods-receipt-lines/goods
 import { GoodsReceiptLotsDomainModule } from '@domain/goods-receipt-lots/goods-receipt-lots.module';
 import { GoodsReceiptsDomainModule } from '@domain/goods-receipts/goods-receipts.module';
 import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
-import { InventoryItemSiteStockLevelsDomainModule } from '@domain/inventory-item-site-stock-levels/inventory-item-site-stock-levels.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { LocationsDomainModule } from '@domain/locations/locations.module';
 import { PaymentTermRulesDomainModule } from '@domain/payment-term-rules/payment-term-rules.module';
 import { PaymentTermsDomainModule } from '@domain/payment-terms/payment-terms.module';
@@ -12,6 +12,7 @@ import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/pur
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { PurchaseSuppliersDomainModule } from '@domain/purchase-suppliers/purchase-suppliers.module';
 import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
+import { SitePurchasingSettingsDomainModule } from '@domain/site-purchasing-settings/site-purchasing-settings.module';
 import { SupplierEnrollmentsDomainModule } from '@domain/supplier-enrollments/supplier-enrollments.module';
 import { SupplierInvoicesDomainModule } from '@domain/supplier-invoices/supplier-invoices.module';
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
@@ -21,6 +22,7 @@ import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversi
 import { Module } from '@nestjs/common';
 import { SiteGoodsReceiptsModule } from '@/modules/site/goods-receipts/goods-receipts.module';
 import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/purchase-progress.module';
+import { SitePurchasingRulesModule } from '@/modules/site/purchasing-rules/purchasing-rules.module';
 import { SiteSuppliersModule } from '@/modules/site/suppliers/suppliers.module';
 import { PurchasesAllocationsController } from './allocations/purchases-allocations.controller';
 import { PurchasesAllocationsService } from './allocations/services/purchases-allocations.service';
@@ -36,8 +38,7 @@ import { PurchasesReceiveWithInvoicesService } from './receive-with-invoices/ser
 import { ReceiveWithInvoiceDocumentsService } from './receive-with-invoices/services/receive-with-invoice-documents.service';
 import { PurchasesRootController } from './root/purchases-root.controller';
 import { PurchasesService } from './root/services/purchases-root.service';
-import { PurchasesSourcingController } from './sourcing/purchases-sourcing.controller';
-import { PurchasesSourcingService } from './sourcing/services/purchases-sourcing.service';
+import { PurchasesSettingsController } from './settings/purchases-settings.controller';
 import { PurchasesSupplierInvoicesController } from './supplier-invoices/purchases-supplier-invoices.controller';
 import { PurchasesSupplierInvoicesService } from './supplier-invoices/services/purchases-supplier-invoices.service';
 import { PurchasesSuppliersController } from './suppliers/purchases-suppliers.controller';
@@ -56,7 +57,7 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     GoodsReceiptLotsDomainModule,
     GoodsReceiptLinesDomainModule,
     SupplierInvoicesDomainModule,
-    InventoryItemSiteStockLevelsDomainModule,
+    InventoryItemSitesDomainModule,
     LocationsDomainModule,
     PaymentTermsDomainModule,
     PaymentTermRulesDomainModule,
@@ -66,6 +67,8 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     SupplierQuotationsDomainModule,
     UomConversionsDomainModule,
     SitePurchaseProgressModule,
+    SitePurchasingRulesModule,
+    SitePurchasingSettingsDomainModule,
     SiteGoodsReceiptsModule,
     SiteSuppliersModule,
   ],
@@ -73,12 +76,12 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     PurchasesRootController,
     PurchasesItemsController,
     PurchasesQuotationsController,
-    PurchasesSourcingController,
     PurchasesAllocationsController,
     PurchasesSuppliersController,
     PurchasesLegsController,
     PurchasesSupplierInvoicesController,
     PurchasesReceiveWithInvoicesController,
+    PurchasesSettingsController,
   ],
   providers: [
     // Root
@@ -88,7 +91,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     // Quotations
     PurchasesQuotationsService,
     // Sourcing
-    PurchasesSourcingService,
     // Allocations
     PurchasesAllocationsService,
     // Suppliers
@@ -106,7 +108,6 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
     PurchasesService,
     PurchasesItemsService,
     PurchasesQuotationsService,
-    PurchasesSourcingService,
     PurchasesAllocationsService,
     PurchasesSuppliersService,
     PurchasesLegsService,

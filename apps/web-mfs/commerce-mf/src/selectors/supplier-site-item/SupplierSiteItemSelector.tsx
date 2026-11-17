@@ -1,8 +1,9 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef, useMemo } from 'react';
 import { useSupplierSiteItemsTable } from '@/hooks/legal-entity/suppliers';
 
-export type SupplierSiteItemSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'options'> & {
+export type SupplierSiteItemSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'options'> & {
   supplierId: string;
   itemId: string;
 };

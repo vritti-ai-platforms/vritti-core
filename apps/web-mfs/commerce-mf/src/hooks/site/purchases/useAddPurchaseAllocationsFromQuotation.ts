@@ -3,7 +3,7 @@ import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { AddPurchaseAllocationsFromQuotationPayload } from '@/schemas/purchases';
 import { addPurchaseAllocationsFromQuotation } from '@/services/site/purchases.service';
-import { invalidatePurchase, PURCHASE_SOURCING_ITEMS_KEY, PURCHASE_SUPPLIERS_KEY } from './keys';
+import { invalidatePurchase } from './keys';
 
 // Allocates items from posted quotation lines and refreshes the purchase's header, sourcing items and suppliers
 export function useAddPurchaseAllocationsFromQuotation(
@@ -18,7 +18,7 @@ export function useAddPurchaseAllocationsFromQuotation(
     mutationFn: addPurchaseAllocationsFromQuotation,
     onSuccess: (...args) => {
       const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id, [PURCHASE_SOURCING_ITEMS_KEY, PURCHASE_SUPPLIERS_KEY]);
+      invalidatePurchase(queryClient, variables.id);
       options?.onSuccess?.(...args);
     },
   });

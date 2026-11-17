@@ -7,6 +7,8 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { PurchaseOrderItemDefaultsDto } from '@/modules/site/purchase-orders/items/dto/entity/purchase-order-item-defaults.dto';
+import { PurchaseOrderItemDefaultsQueryDto } from '@/modules/site/purchase-orders/items/dto/request/purchase-order-item-defaults-query.dto';
 import { PurchaseOrdersItemsService } from '@/modules/site/purchase-orders/items/services/purchase-orders-items.service';
 
 @Controller()
@@ -21,7 +23,7 @@ export class LePurchaseOrdersItemsController {
   // Adds a line to a purchase order
   @MessagePattern({ cmd: 'le.purchaseOrders.addItem' })
   addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
-    this.logger.log(`le.purchaseOrders.addItem — id: ${dto.purchaseOrderId}, supplierItem: ${dto.supplierItemId}`);
+    this.logger.log(`le.purchaseOrders.addItem — id: ${dto.purchaseOrderId}, item: ${dto.inventoryItemId}`);
     return this.service.addItem(dto);
   }
 
@@ -38,6 +40,13 @@ export class LePurchaseOrdersItemsController {
     this.logger.log(`le.purchaseOrders.itemsTable — id: ${data.id}`);
     const { id, ...state } = data;
     return this.itemsService.findForTable(id, state);
+  }
+
+  // What a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery
+  @MessagePattern({ cmd: 'le.purchaseOrders.itemDefaults' })
+  itemDefaults(@Payload() query: PurchaseOrderItemDefaultsQueryDto): Promise<PurchaseOrderItemDefaultsDto> {
+    this.logger.log(`le.purchaseOrders.itemDefaults — id: ${query.id}, item: ${query.inventoryItemId}`);
+    return this.service.findItemDefaults(query);
   }
 
   // Returns every line of a purchase order

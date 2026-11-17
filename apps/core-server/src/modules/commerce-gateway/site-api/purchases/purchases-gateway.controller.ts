@@ -1,4 +1,6 @@
 import { CancelPurchaseDto } from '@commerce/purchases/dto/request/cancel-purchase.dto';
+import { CancelSupplierDto } from '@commerce/purchases/dto/request/cancel-supplier.dto';
+import { ClosePurchaseDto } from '@commerce/purchases/dto/request/close-purchase.dto';
 import { CloseSupplierDto } from '@commerce/purchases/dto/request/close-supplier.dto';
 import { CreateLegGoodsReceiptDto } from '@commerce/purchases/dto/request/create-leg-goods-receipt.dto';
 import { CreateLegInboundDeliveryDto } from '@commerce/purchases/dto/request/create-leg-inbound-delivery.dto';
@@ -20,12 +22,36 @@ import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/d
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
 import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
-import type { PurchaseHeaderResponseDto } from '@commerce/purchases/dto/response/purchase-header-response.dto';
+import type {
+  PurchaseActionsResponseDto,
+  PurchaseCountsResponseDto,
+  PurchaseDetailResponseDto,
+  PurchaseProgressSummaryResponseDto,
+} from '@commerce/purchases/dto/response/purchase-detail-response.dto';
 import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
+import type {
+  PurchaseItemComparisonTableResponseDto,
+  PurchaseItemFacetsResponseDto,
+  PurchaseItemTableResponseDto,
+} from '@commerce/purchases/dto/response/purchase-item-table-response.dto';
+import type {
+  PurchaseItemAllocationTableResponseDto,
+  PurchaseItemCountsResponseDto,
+  PurchaseItemDocumentTableResponseDto,
+  PurchaseItemProgressResponseDto,
+  PurchaseItemQuoteTableResponseDto,
+  PurchaseItemSiteStockResponseDto,
+  PurchaseItemViewResponseDto,
+} from '@commerce/purchases/dto/response/purchase-item-view-response.dto';
 import type { PurchaseLegResponseDto } from '@commerce/purchases/dto/response/purchase-leg-response.dto';
-import type { PurchaseQuotationResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
+import type {
+  PurchaseLegCountResponseDto,
+  PurchaseLegTableResponseDto,
+  PurchaseSupplierDocumentsResponseDto,
+} from '@commerce/purchases/dto/response/purchase-leg-table-response.dto';
+import type { PurchaseQuotationTableResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
 import type { PurchaseResponseDto } from '@commerce/purchases/dto/response/purchase-response.dto';
-import type { PurchaseSourcingItemResponseDto } from '@commerce/purchases/dto/response/purchase-sourcing-item-response.dto';
+import type { PurchaseSettingsResponseDto } from '@commerce/purchases/dto/response/purchase-settings-response.dto';
 import type { PurchaseTableResponseDto } from '@commerce/purchases/dto/response/purchase-table-response.dto';
 import type { ReceiveWithInvoiceDetailResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-detail-response.dto';
 import type { ReceiveWithInvoiceOpenLineResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-open-line-response.dto';
@@ -55,8 +81,9 @@ import { OrgId } from '@/security/decorators';
 import {
   ApiApproveLeg,
   ApiCancel,
+  ApiCancelSupplier,
+  ApiClose,
   ApiCloseSupplier,
-  ApiCompleteQuotations,
   ApiConfirmLegPurchaseOrder,
   ApiCreate,
   ApiCreateAllocation,
@@ -71,19 +98,33 @@ import {
   ApiDeleteAllocation,
   ApiDeleteItem,
   ApiDiscardReceiveWithInvoice,
+  ApiFindActions,
   ApiFindById,
-  ApiFindItems,
-  ApiFindQuotations,
+  ApiFindCounts,
+  ApiFindDocuments,
+  ApiFindItemById,
+  ApiFindItemCounts,
+  ApiFindItemFacets,
+  ApiFindItemProgress,
+  ApiFindItemSiteStock,
+  ApiFindProgress,
   ApiFindReceiveWithInvoiceById,
   ApiFindReceiveWithInvoiceOpenLines,
-  ApiFindSourcingItems,
-  ApiFindSuppliers,
+  ApiFindSettings,
+  ApiFindSupplierById,
+  ApiFindSupplierCounts,
+  ApiGetItemAllocationsTable,
+  ApiGetItemComparisonTable,
+  ApiGetItemDocumentsTable,
+  ApiGetItemQuotesTable,
+  ApiGetItemsTable,
+  ApiGetQuotationsTable,
+  ApiGetSuppliersTable,
   ApiGetTable,
   ApiPostReceiveWithInvoice,
   ApiRejectLeg,
   ApiRequestQuotation,
   ApiSubmit,
-  ApiSubmitItems,
   ApiSubmitSupplier,
   ApiUpdate,
   ApiUpdateAllocation,
@@ -127,7 +168,7 @@ export class PurchasesGatewayController {
 
   // Requests a draft quotation from a supplier for a purchase's items
   @Post(':id/quotations')
-  @RequirePermission(SITE_PURCHASES.edit)
+  @RequirePermission(SITE_PURCHASES.quotations.add)
   @HttpCode(HttpStatus.CREATED)
   @ApiRequestQuotation()
   requestQuotation(
@@ -287,26 +328,6 @@ export class PurchasesGatewayController {
     return this.service.cancel(id, dto);
   }
 
-  // Submits a purchase's items
-  @Post(':id/submit-items')
-  @RequirePermission(SITE_PURCHASES.edit)
-  @HttpCode(HttpStatus.OK)
-  @ApiSubmitItems()
-  submitItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/purchases/${id}/submit-items`);
-    return this.service.submitItems(id);
-  }
-
-  // Completes a purchase's quotations
-  @Post(':id/complete-quotations')
-  @RequirePermission(SITE_PURCHASES.edit)
-  @HttpCode(HttpStatus.OK)
-  @ApiCompleteQuotations()
-  completeQuotations(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
-    this.logger.log(`POST /commerce-api/site/purchases/${id}/complete-quotations`);
-    return this.service.completeQuotations(id);
-  }
-
   // Starts every leg of a purchase still in sourcing
   @Post(':id/submit')
   @RequirePermission(SITE_PURCHASES.edit)
@@ -315,6 +336,15 @@ export class PurchasesGatewayController {
   submit(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/site/purchases/${id}/submit`);
     return this.service.submit(id);
+  }
+  // Closes a purchase: suppliers with goods received stop expecting more, the others are cancelled
+  @Post(':id/close')
+  @RequirePermission(SITE_PURCHASES.close)
+  @HttpCode(HttpStatus.OK)
+  @ApiClose()
+  close(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: ClosePurchaseDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/close`);
+    return this.service.close(id, dto);
   }
 
   // Submits one supplier's leg of a purchase still in sourcing
@@ -384,6 +414,19 @@ export class PurchasesGatewayController {
     this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/close`);
     return this.service.closeSupplier(id, legId, dto);
   }
+  // Cancels a supplier nothing is received or invoiced on, returning its quantity to sourcing or dropping it
+  @Post(':id/legs/:legId/cancel')
+  @RequirePermission(SITE_PURCHASES.edit)
+  @HttpCode(HttpStatus.OK)
+  @ApiCancelSupplier()
+  cancelSupplier(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('legId', new ParseUUIDPipe()) legId: string,
+    @Body() dto: CancelSupplierDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/legs/${legId}/cancel`);
+    return this.service.cancelSupplier(id, legId, dto);
+  }
 
   // Posts a draft Receive with Invoice
   @Post('receive-with-invoices/:invoiceId/post')
@@ -395,11 +438,11 @@ export class PurchasesGatewayController {
     return this.service.postReceiveWithInvoice(invoiceId);
   }
 
-  // Returns one purchase's header with its counts, progress and available actions
+  // Returns one purchase, its site named
   @Get(':id')
   @RequirePermission(SITE_PURCHASES.view)
   @ApiFindById()
-  findById(@Param('id', new ParseUUIDPipe()) id: string, @OrgId() orgId: string): Promise<PurchaseHeaderResponseDto> {
+  findById(@Param('id', new ParseUUIDPipe()) id: string, @OrgId() orgId: string): Promise<PurchaseDetailResponseDto> {
     this.logger.log(`GET /commerce-api/site/purchases/${id}`);
     return this.service.findById(id, orgId);
   }
@@ -414,6 +457,30 @@ export class PurchasesGatewayController {
     this.logger.log(`GET /commerce-api/site/purchases/receive-with-invoices/${invoiceId}`);
     return this.service.findReceiveWithInvoiceById(invoiceId);
   }
+  // Returns one purchase item as its own page shows it
+  @Get(':id/items/:itemId')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindItemById()
+  findItemById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+  ): Promise<PurchaseItemViewResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}`);
+    return this.service.findItemById(id, itemId);
+  }
+
+  // Returns one supplier leg of a purchase with its allocations, documents, progress, actions and blockers
+  @Get(':id/suppliers/:legId')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindSupplierById()
+  findSupplierById(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('legId', new ParseUUIDPipe()) legId: string,
+    @OrgId() orgId: string,
+  ): Promise<PurchaseLegResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers/${legId}`);
+    return this.service.findSupplierById(id, legId, orgId);
+  }
 
   // Returns the site's purchases for the data table
   @Get('table')
@@ -423,47 +490,181 @@ export class PurchasesGatewayController {
     this.logger.log('GET /commerce-api/site/purchases/table');
     return this.service.findForTable(userId, orgId);
   }
-
-  // Returns a purchase's items
-  @Get(':id/items')
+  // Returns one page of a purchase's items with how far each has got
+  @Get(':id/items/table')
   @RequirePermission(SITE_PURCHASES.view)
-  @ApiFindItems()
-  findItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/purchases/${id}/items`);
-    return this.service.findItems(id);
-  }
-
-  // Returns the quotations linked to a purchase
-  @Get(':id/quotations')
-  @RequirePermission(SITE_PURCHASES.view)
-  @ApiFindQuotations()
-  findQuotations(
+  @ApiGetItemsTable()
+  getItemsTable(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @OrgId() orgId: string,
-  ): Promise<PurchaseQuotationResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/purchases/${id}/quotations`);
-    return this.service.findQuotations(id, orgId);
+    @UserId() userId: string,
+  ): Promise<PurchaseItemTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/table`);
+    return this.service.findItemsTable(id, userId);
   }
 
-  // Returns a purchase's items with their allocations across every leg
-  @Get(':id/sourcing/items')
-  @RequirePermission(SITE_PURCHASES.view)
-  @ApiFindSourcingItems()
-  findSourcingItems(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseSourcingItemResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/purchases/${id}/sourcing/items`);
-    return this.service.findSourcingItems(id);
-  }
-
-  // Returns a purchase's supplier legs
-  @Get(':id/suppliers')
-  @RequirePermission(SITE_PURCHASES.view)
-  @ApiFindSuppliers()
-  findSuppliers(
+  // Returns one page of a purchase's items with the quotation lines that quote each
+  @Get(':id/items/comparison')
+  @RequirePermission(SITE_PURCHASES.quotations.view)
+  @ApiGetItemComparisonTable()
+  getItemComparisonTable(
     @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+  ): Promise<PurchaseItemComparisonTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/comparison`);
+    return this.service.findItemComparisonTable(id, userId);
+  }
+  // Returns one page of a purchase item's allocations
+  @Get(':id/items/:itemId/allocations/table')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiGetItemAllocationsTable()
+  getItemAllocationsTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+    @UserId() userId: string,
+  ): Promise<PurchaseItemAllocationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/allocations/table`);
+    return this.service.findItemAllocationsTable(id, itemId, userId);
+  }
+
+  // Returns one page of the quotation lines quoting a purchase item
+  @Get(':id/items/:itemId/quotes/table')
+  @RequirePermission(SITE_PURCHASES.quotations.view)
+  @ApiGetItemQuotesTable()
+  getItemQuotesTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+    @UserId() userId: string,
+  ): Promise<PurchaseItemQuoteTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/quotes/table`);
+    return this.service.findItemQuotesTable(id, itemId, userId);
+  }
+
+  // Returns one page of the document lines that move a purchase item
+  @Get(':id/items/:itemId/documents/table')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiGetItemDocumentsTable()
+  getItemDocumentsTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+    @UserId() userId: string,
+  ): Promise<PurchaseItemDocumentTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/documents/table`);
+    return this.service.findItemDocumentsTable(id, itemId, userId);
+  }
+
+  // Returns one page of a purchase's supplier legs
+  @Get(':id/suppliers/table')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiGetSuppliersTable()
+  getSuppliersTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
     @OrgId() orgId: string,
-  ): Promise<PurchaseLegResponseDto[]> {
-    this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers`);
-    return this.service.findSuppliers(id, orgId);
+  ): Promise<PurchaseLegTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers/table`);
+    return this.service.findSuppliersTable(id, userId, orgId);
+  }
+
+  // Returns one page of the quotations linked to a purchase
+  @Get(':id/quotations/table')
+  @RequirePermission(SITE_PURCHASES.quotations.view)
+  @ApiGetQuotationsTable()
+  getQuotationsTable(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UserId() userId: string,
+    @OrgId() orgId: string,
+  ): Promise<PurchaseQuotationTableResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/quotations/table`);
+    return this.service.findQuotationsTable(id, userId, orgId);
+  }
+
+  // Counts a purchase's item lines, suppliers and requested quotations
+  @Get(':id/counts')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/counts`);
+    return this.service.findCounts(id);
+  }
+
+  // Returns how far a purchase's items have got and where it stands as a whole
+  @Get(':id/progress')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindProgress()
+  findProgress(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseProgressSummaryResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/progress`);
+    return this.service.findProgress(id);
+  }
+
+  // Returns the actions a purchase offers and why the others are blocked
+  @Get(':id/actions')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindActions()
+  findActions(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseActionsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/actions`);
+    return this.service.findActions(id);
+  }
+
+  // Counts a purchase's items in each bucket of the items table
+  @Get(':id/items/facets')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindItemFacets()
+  findItemFacets(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseItemFacetsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/facets`);
+    return this.service.findItemFacets(id);
+  }
+  // Counts what a purchase item's page lists
+  @Get(':id/items/:itemId/counts')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindItemCounts()
+  findItemCounts(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+  ): Promise<PurchaseItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/counts`);
+    return this.service.findItemCounts(id, itemId);
+  }
+
+  // Returns how far a purchase item has got, in all and per supplier
+  @Get(':id/items/:itemId/progress')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindItemProgress()
+  findItemProgress(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+  ): Promise<PurchaseItemProgressResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/progress`);
+    return this.service.findItemProgress(id, itemId);
+  }
+
+  // Returns a purchase item's stock at the purchase's site, or null while the site does not carry it
+  @Get(':id/items/:itemId/site-stock')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindItemSiteStock()
+  findItemSiteStock(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('itemId', new ParseUUIDPipe()) itemId: string,
+  ): Promise<PurchaseItemSiteStockResponseDto | null> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/items/${itemId}/site-stock`);
+    return this.service.findItemSiteStock(id, itemId);
+  }
+
+  // Counts a purchase's supplier legs and their lines by step and status
+  @Get(':id/suppliers/counts')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindSupplierCounts()
+  findSupplierCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseLegCountResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/suppliers/counts`);
+    return this.service.findSupplierCounts(id);
+  }
+
+  // Returns the documents of every supplier leg of a purchase
+  @Get(':id/documents')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindDocuments()
+  findDocuments(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseSupplierDocumentsResponseDto[]> {
+    this.logger.log(`GET /commerce-api/site/purchases/${id}/documents`);
+    return this.service.findDocuments(id);
   }
 
   // Returns the supplier's allocations open to receive and invoice at once
@@ -475,6 +676,15 @@ export class PurchasesGatewayController {
   ): Promise<ReceiveWithInvoiceOpenLineResponseDto[]> {
     this.logger.log('GET /commerce-api/site/purchases/receive-with-invoices/open-lines');
     return this.service.findReceiveWithInvoiceOpenLines(query);
+  }
+
+  // Returns the purchasing rules the legal entity set for the session site
+  @Get('settings')
+  @RequirePermission(SITE_PURCHASES.view)
+  @ApiFindSettings()
+  findSettings(): Promise<PurchaseSettingsResponseDto> {
+    this.logger.log('GET /commerce-api/site/purchases/settings');
+    return this.service.findSettings();
   }
 
   // Deletes a purchase that is still open and Requesting with nothing beyond items

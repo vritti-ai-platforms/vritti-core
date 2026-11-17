@@ -40,7 +40,7 @@ export class OfferingVariantResponseDto {
   externalSku: string | null;
   @ApiProperty() name: string;
   @ApiProperty() salesUomId: string;
-  @ApiPropertyOptional({ nullable: true }) salesUomName: string | null;
+  @ApiProperty() salesUomName: string;
   @ApiProperty() isActive: boolean;
   @ApiProperty() isOfferingActive: boolean;
   @ApiProperty({ type: [OfferingVariantValueRefResponseDto] }) values: OfferingVariantValueRefResponseDto[];
@@ -63,7 +63,7 @@ export class OfferingVariantResponseDto {
   canDelete: boolean;
   @ApiProperty({ description: "Follows the offering's tax class unless overridden" })
   taxClassId: string;
-  @ApiPropertyOptional({ nullable: true }) taxClassName: string | null;
+  @ApiProperty() taxClassName: string;
   @ApiProperty({ description: 'Pinned to this variant, so an offering-level change no longer cascades to it' })
   isTaxClassOverridden: boolean;
   @ApiProperty() createdAt: string;

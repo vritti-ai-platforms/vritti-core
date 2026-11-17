@@ -20,7 +20,7 @@ export interface ItemSupplierPriceComparisonRow {
   supplierId: string;
   supplierName: string;
   supplierCode: string;
-  quotedUomSymbol: string | null;
+  quotedUomSymbol: string;
   isPreferred: boolean;
   currencyCode: string | null;
   currentPrice: bigint | null;
@@ -217,10 +217,10 @@ export class ItemSupplierPriceComparisonsRepository extends PrimaryBaseRepositor
         { table: suppliers, on: eq(suppliers.id, supplierItems.supplierId) },
         { table: parties, on: eq(parties.id, suppliers.partyId) },
         { table: inventoryItems, on: eq(inventoryItems.id, supplierSiteItems.inventoryItemId) },
-      ],
-      leftJoins: [
         { table: quotedUom, on: eq(quotedUom.id, supplierItems.uomId) },
         { table: primaryUom, on: eq(primaryUom.id, inventoryItems.uomId) },
+      ],
+      leftJoins: [
         {
           table: inventoryItemUomConversions,
           on: and(

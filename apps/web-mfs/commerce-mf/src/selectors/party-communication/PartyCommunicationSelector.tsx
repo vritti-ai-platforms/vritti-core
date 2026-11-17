@@ -1,8 +1,9 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 import type { CommunicationChannel } from '@/schemas/party-communications';
 
-export type PartyCommunicationSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
+export type PartyCommunicationSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & {
   partyId: string | undefined;
   channel: CommunicationChannel;
 };

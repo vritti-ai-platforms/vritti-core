@@ -1,5 +1,7 @@
+import type { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
 import type { CreateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
+import type { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import type { UpdateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item.dto';
 import type { UpdateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item-location.dto';
 import type { InventoryItemLedgerResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-response.dto';
@@ -11,6 +13,7 @@ import type { InventoryItemLotTableResponseDto } from '@commerce/inventory-item-
 import type { InventoryItemQuantResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-response.dto';
 import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
+import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
 import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
 import type {
@@ -18,10 +21,7 @@ import type {
   SiteStockTableRowDto,
 } from '@commerce/inventory-item-sites/dto/response/site-stock-table-response.dto';
 import type { CreateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/create-inventory-item-uom-conversion.dto';
-import type { CreateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/create-site-stock-levels.dto';
 import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
-import type { UpdateSiteStockLevelsDto } from '@commerce/inventory-items/dto/request/update-site-stock-levels.dto';
-import type { InventoryItemSiteStockLevelResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-site-stock-level-response.dto';
 import type {
   InventoryItemSupplierResponseDto,
   InventoryItemSupplierTableResponseDto,
@@ -45,6 +45,12 @@ export class SiteInventoryItemsGatewayService {
   async create(dto: CreateSiteInventoryItemDto): Promise<CreateResponseDto<SiteInventoryItemResponseDto>> {
     this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.nats.send('commerce', 'org.inventoryItems.create', { ...dto, createOffering: false });
+  }
+
+  // Adds an inventory item to the current site with how it is replenished here
+  addToSite(inventoryItemId: string, dto: ReplenishmentDto): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
+    this.logger.log(`site.inventoryItems.setup.create — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.create', { inventoryItemId, ...dto });
   }
 
   // Creates an item-location config; returns the created entity so the client inserts it into the cached feed.
@@ -71,10 +77,10 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.update', { id, ...dto });
   }
 
-  // Updates an inventory item's stock levels at the current site
-  updateStockLevels(inventoryItemId: string, dto: UpdateSiteStockLevelsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.inventoryItems.stockLevels.update — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.update', { inventoryItemId, ...dto });
+  // Changes how the current site replenishes an inventory item
+  updateReplenishment(inventoryItemId: string, dto: ReplenishmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.update — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.update', { inventoryItemId, ...dto });
   }
 
   // Updates an item-location config
@@ -92,10 +98,16 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.uom.update', { id: conversionId, ...dto });
   }
 
-  // Sets a master inventory item's stock levels at the current site
-  setStockLevels(inventoryItemId: string, dto: CreateSiteStockLevelsDto): Promise<CreateResponseDto<{ id: string }>> {
-    this.logger.log(`site.inventoryItems.stockLevels.create — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.create', { inventoryItemId, ...dto });
+  // Stops the current site buying an inventory item, with why
+  block(inventoryItemId: string, dto: BlockSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.block — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.block', { inventoryItemId, ...dto });
+  }
+
+  // Lets the current site buy an inventory item again
+  unblock(inventoryItemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.unblock — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.unblock', { inventoryItemId });
   }
 
   // Returns a single inventory item
@@ -234,10 +246,10 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.feed', query);
   }
 
-  // Returns an inventory item's stock levels at the current site, or null while none are set
-  findStockLevels(inventoryItemId: string): Promise<InventoryItemSiteStockLevelResponseDto | null> {
-    this.logger.log(`site.inventoryItems.stockLevels.find — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.find', { inventoryItemId });
+  // Returns how the current site carries an inventory item, or null while it does not
+  findSiteItem(inventoryItemId: string): Promise<InventoryItemSiteResponseDto | null> {
+    this.logger.log(`site.inventoryItems.setup.find — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.find', { inventoryItemId });
   }
 
   // Keyset Relay connection of an item's supplier links for the mobile infinite feed (mirrors findStockLevelsForFeed).
@@ -346,10 +358,10 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'org.inventoryItems.delete', { id });
   }
 
-  // Removes an inventory item's stock levels at the current site
-  removeStockLevels(inventoryItemId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.inventoryItems.stockLevels.delete — inventoryItemId: ${inventoryItemId}`);
-    return this.nats.send('commerce', 'site.inventoryItems.stockLevels.delete', { inventoryItemId });
+  // Removes an inventory item from the current site
+  removeFromSite(inventoryItemId: string): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.delete — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.delete', { inventoryItemId });
   }
 
   // Deletes an item-location config

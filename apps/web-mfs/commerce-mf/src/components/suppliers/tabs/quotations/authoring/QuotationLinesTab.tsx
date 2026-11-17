@@ -13,6 +13,8 @@ import { QuotationItemDialog } from './forms/QuotationItemDialog';
 // The quotation's lines, editable while it is a draft its workspace writes
 export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, authoring, supplierId, quotation }) => {
   const currencyCode = quotation.currencyCode;
+  // A quotation a site owns follows that site's purchasing rules
+  const ownerSiteId = quotation.ownerScope === 'SITE' ? quotation.siteId : null;
   const confirm = useConfirm();
   const addDialog = useDialog();
   const removeMutation = authoring.useRemoveItem(supplierId, quotation.id);
@@ -52,6 +54,7 @@ export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, autho
               authoring={authoring}
               supplierId={supplierId}
               quotationId={quotation.id}
+              siteId={ownerSiteId}
               currencyCode={currencyCode}
               item={item}
               onSuccess={close}
@@ -71,7 +74,7 @@ export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, autho
         onClick: () => handleRemove(item),
       },
     ],
-    [authoring, supplierId, quotation.id, currencyCode, isLocked, lockedTip, handleRemove],
+    [authoring, supplierId, quotation.id, currencyCode, isLocked, lockedTip, handleRemove, ownerSiteId],
   );
 
   const addButton = (
@@ -109,6 +112,7 @@ export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, autho
             authoring={authoring}
             supplierId={supplierId}
             quotationId={quotation.id}
+            siteId={ownerSiteId}
             currencyCode={currencyCode}
             onSuccess={close}
             onCancel={close}

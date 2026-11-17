@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type TaxComponentSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
+export type TaxComponentSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & {
   country: string | undefined;
 };
 

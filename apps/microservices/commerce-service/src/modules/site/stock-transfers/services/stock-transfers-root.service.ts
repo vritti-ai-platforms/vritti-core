@@ -1,7 +1,7 @@
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
 import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import type { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -21,7 +21,7 @@ export class StockTransfersService {
     private readonly batchesService: InventoryItemQuantsDomainService,
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
     private readonly lotsService: InventoryItemLotsDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
   ) {}
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.
@@ -50,7 +50,7 @@ export class StockTransfersService {
       if (!data.fromBatchId) {
         throw new BadRequestException('A source quant is required to receive a stock transfer.');
       }
-      await this.siteStockLevelsService.ensureStockLevels(
+      await this.inventoryItemSitesRepository.ensureAtSite(
         [transfer.inventoryItemId],
         'toLocationId',
         transfer.toSiteId,

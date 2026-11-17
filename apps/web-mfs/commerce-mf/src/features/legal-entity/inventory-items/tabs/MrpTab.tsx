@@ -18,7 +18,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
 
   const columns = useMemo<ColumnDef<InventoryItemMrpData>[]>(
     () => [
-      { accessorKey: 'uomSymbol', header: 'Unit', cell: ({ row }) => row.original.uomSymbol ?? '—' },
+      { accessorKey: 'uomSymbol', header: 'Unit', cell: ({ row }) => row.original.uomSymbol },
       { id: 'currencyCode', accessorFn: (row) => row.amount.currency, header: 'Currency' },
       { accessorKey: 'amount', header: 'MRP', cell: ({ row }) => <CurrencyCell value={row.original.amount} /> },
       {

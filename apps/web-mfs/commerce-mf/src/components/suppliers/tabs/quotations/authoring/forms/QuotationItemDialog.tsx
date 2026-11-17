@@ -23,6 +23,8 @@ interface QuotationItemDialogProps {
   authoring: SupplierQuotationAuthoring;
   supplierId: string;
   quotationId: string;
+  // The site that owns the quotation, whose rules may require the supplier's items; null for a legal entity's
+  siteId: string | null;
   currencyCode: string;
   // Edits this line; without it the dialog adds a line for an item and unit the quotation does not have yet
   item?: SupplierQuotationItemData;
@@ -34,6 +36,7 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
   authoring,
   supplierId,
   quotationId,
+  siteId,
   currencyCode,
   item,
   onSuccess,
@@ -56,7 +59,9 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
   });
   // The item scopes the unit choices; the unit names what the price and MRP are per
   const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
-  const [unitLabel, setUnitLabel] = useState<string | undefined>(item?.uomSymbol ?? undefined);
+  const [unitLabel, setUnitLabel] = useState<string | undefined>(item?.uomSymbol);
+  // The owning site's rules quote the picked item only in the units the legal entity set up as the supplier's items
+  const [supplierUnitsOnly, setSupplierUnitsOnly] = useState<boolean>(false);
 
   const addMutation = authoring.useAddItem(supplierId, quotationId, { onSuccess });
   const updateMutation = authoring.useUpdateItem(supplierId, quotationId, { onSuccess });
@@ -82,10 +87,12 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
               label="Item"
               placeholder="Select item"
               disabled={!!item}
-              onOptionSelect={() => {
+              {...(siteId ? { atSiteId: siteId, supplierId } : {})}
+              onOptionSelect={(option) => {
                 if (item) return;
                 form.resetField('uomId');
                 setUnitLabel(undefined);
+                setSupplierUnitsOnly(option?.additionals?.supplierItemsRequired === true);
               }}
             />
           </div>
@@ -94,7 +101,11 @@ export const QuotationItemDialog: React.FC<QuotationItemDialogProps> = ({
             label="Unit"
             placeholder={inventoryItemId ? 'Select unit' : 'Select an item first'}
             disabled={!inventoryItemId || !!item}
-            params={inventoryItemId ? { inventoryItemId } : undefined}
+            params={
+              inventoryItemId
+                ? { inventoryItemId, ...(supplierUnitsOnly ? { soldBySupplierId: supplierId } : {}) }
+                : undefined
+            }
             onOptionSelect={(option) => setUnitLabel(option?.label)}
           />
           <TextField name="supplierItemCode" label="Supplier Code (optional)" placeholder="Supplier's code for it" />

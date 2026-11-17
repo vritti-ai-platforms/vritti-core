@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getColumns, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, getColumns, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   type GoodsReceiptLine,
   goodsReceiptItems,
@@ -19,7 +19,7 @@ export type GoodsReceiptLineRow = GoodsReceiptLine & {
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
   lotMrp: bigint | null;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   lineItemsCount: number;
 };
 
@@ -37,7 +37,8 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
     const { lotId, ...page } = options;
     return this.findAllAndCount<GoodsReceiptLineRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
+      leftJoin: this.lotJoin(),
       ...page,
       where: and(
         eq(goodsReceiptLines.goodsReceiptItemId, itemId),
@@ -51,8 +52,21 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
   async findByItemId(itemId: string): Promise<GoodsReceiptLineRow[]> {
     return this.findAllWithSelect<GoodsReceiptLineRow>({
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
+      leftJoin: this.lotJoin(),
       where: eq(goodsReceiptLines.goodsReceiptItemId, itemId),
+      orderBy: [desc(goodsReceiptLines.createdAt)],
+    });
+  }
+
+  // Returns the lines of the given receipt items, newest first
+  findByItemIds(itemIds: string[]): Promise<GoodsReceiptLineRow[]> {
+    if (itemIds.length === 0) return Promise.resolve([]);
+    return this.findAllWithSelect<GoodsReceiptLineRow>({
+      select: this.selection(),
+      innerJoins: this.joins(),
+      leftJoin: this.lotJoin(),
+      where: inArray(goodsReceiptLines.goodsReceiptItemId, itemIds),
       orderBy: [desc(goodsReceiptLines.createdAt)],
     });
   }
@@ -61,7 +75,8 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
   findOnItem(itemId: string, lineId: string): Promise<GoodsReceiptLineRow | undefined> {
     return this.findById<GoodsReceiptLineRow>(lineId, {
       select: this.selection(),
-      leftJoins: this.joins(),
+      innerJoins: this.joins(),
+      leftJoin: this.lotJoin(),
       where: eq(goodsReceiptLines.goodsReceiptItemId, itemId),
     });
   }
@@ -138,14 +153,18 @@ export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typ
     };
   }
 
-  // Joins the lot, the location, and the item's primary unit through the receipt item
+  // Joins the location and the item's primary unit through the receipt item
   private joins() {
     return [
-      { table: goodsReceiptLots, on: eq(goodsReceiptLots.id, goodsReceiptLines.goodsReceiptLotId) },
       { table: locations, on: eq(locations.id, goodsReceiptLines.locationId) },
       { table: goodsReceiptItems, on: eq(goodsReceiptItems.id, goodsReceiptLines.goodsReceiptItemId) },
       { table: inventoryItems, on: eq(inventoryItems.id, goodsReceiptItems.inventoryItemId) },
       { table: uom, on: eq(uom.id, inventoryItems.uomId) },
     ];
+  }
+
+  // Joins the lot, when the line has one
+  private lotJoin() {
+    return { table: goodsReceiptLots, on: eq(goodsReceiptLots.id, goodsReceiptLines.goodsReceiptLotId) };
   }
 }

@@ -2,13 +2,15 @@ import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { BadRequestException, ConflictException, ForbiddenException } from '@vritti/api-sdk/exceptions';
 import type { PurchaseType } from '@/db/schema';
-import type { PurchaseSuppliersDomainRepository } from '../repositories/purchase-suppliers.repository';
+import {
+  type LegEnrollmentSnapshot,
+  type LegPurchase,
+  PurchaseSuppliersDomainRepository,
+} from '../repositories/purchase-suppliers.repository';
 import {
   type Leg,
-  type LegEnrollmentSnapshot,
   type LegFulfilmentFacts,
   type LegOrderLine,
-  type LegPurchase,
   type LegSourcing,
   PurchaseSuppliersDomainService,
 } from './purchase-suppliers.service';
@@ -46,7 +48,6 @@ const purchase = (overrides: Partial<LegPurchase> = {}): LegPurchase => ({
   id: 'pur-1',
   purchaseNumber: 'PUR-202611-0001',
   status: 'OPEN',
-  step: 'SOURCING',
   ...overrides,
 });
 
@@ -57,6 +58,9 @@ const facts = (overrides: Partial<LegFulfilmentFacts> = {}): LegFulfilmentFacts 
   hasReceivableAnnouncedDelivery: false,
   hasDraftReceipt: false,
   hasDraftInvoice: false,
+  hasDeliveryOnTheWay: false,
+  hasPostedDocument: false,
+  receivingClosed: false,
   invoiceablePrimaryQty: 0,
   ...overrides,
 });
@@ -66,6 +70,8 @@ function setup() {
     create: jest.fn().mockImplementation((row) => Promise.resolve({ id: 'leg-1', ...row })),
     update: jest.fn(),
     delete: jest.fn(),
+    assertPurchaseOpen: PurchaseSuppliersDomainRepository.prototype.assertPurchaseOpen,
+    requireActiveEnrollment: PurchaseSuppliersDomainRepository.prototype.requireActiveEnrollment,
   };
   const service = new PurchaseSuppliersDomainService(repository as unknown as PurchaseSuppliersDomainRepository);
   return { service, repository };
@@ -109,9 +115,9 @@ describe('PurchaseSuppliersDomainService legs open and close', () => {
     expect(repository.create).not.toHaveBeenCalled();
   });
 
-  it('refuses to open a leg before the purchase is sourcing', async () => {
+  it('refuses to open a leg on a purchase that is no longer open', async () => {
     const { service } = setup();
-    await expect(service.open(purchase({ step: 'QUOTING' }), 'sup-1', snapshot())).rejects.toBeInstanceOf(
+    await expect(service.open(purchase({ status: 'CANCELLED' }), 'sup-1', snapshot())).rejects.toBeInstanceOf(
       ConflictException,
     );
   });
@@ -221,10 +227,12 @@ describe('PurchaseSuppliersDomainService.start', () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 
-  it('starts a single leg on its own only once the purchase is in PROCURING', () => {
-    const { service } = setup();
-    expect(() => service.assertStartableAlone(purchase({ step: 'SOURCING' }))).toThrow(ConflictException);
-    expect(() => service.assertStartableAlone(purchase({ step: 'PROCURING' }))).not.toThrow();
+  it('refuses to start a leg while some of its items lack the required quotations', () => {
+    const named = { id: 'leg-1', supplierName: 'Akras' };
+    expect(() => PurchaseSuppliersDomainRepository.prototype.assertQuotedEnough(named, 0, 2)).not.toThrow();
+    expect(() => PurchaseSuppliersDomainRepository.prototype.assertQuotedEnough(named, 3, 2)).toThrow(
+      expect.objectContaining({ response: expect.objectContaining({ label: 'Not Enough Quotations' }) }),
+    );
   });
 });
 
@@ -281,14 +289,24 @@ describe('PurchaseSuppliersDomainService approval', () => {
 
   it('offers APPROVE only to an eligible approver, REJECT to any approver', () => {
     const { service } = setup();
-    const inProcuring = purchase({ step: 'PROCURING' });
-    expect(service.availableActions(waiting, inProcuring, approvers, facts())).toEqual(['APPROVE', 'REJECT']);
-    expect(service.availableActions(waiting, inProcuring, { ...approvers, userId: 'user-1' }, facts())).toEqual([
+    const open = purchase();
+    expect(service.availableActions(waiting, open, approvers, facts())).toEqual([
+      'APPROVE',
       'REJECT',
+      'CANCEL_SUPPLIER',
     ]);
-    expect(service.availableActions(waiting, inProcuring, { ...approvers, userId: 'user-9' }, facts())).toEqual([]);
-    expect(service.availableActions(leg(), inProcuring, approvers, facts())).toEqual(['EDIT_ALLOCATIONS', 'SUBMIT']);
-    expect(service.availableActions(leg(), purchase(), approvers, facts())).toEqual(['EDIT_ALLOCATIONS']);
+    expect(service.availableActions(waiting, open, { ...approvers, userId: 'user-1' }, facts())).toEqual([
+      'REJECT',
+      'CANCEL_SUPPLIER',
+    ]);
+    expect(service.availableActions(waiting, open, { ...approvers, userId: 'user-9' }, facts())).toEqual([
+      'CANCEL_SUPPLIER',
+    ]);
+    expect(service.availableActions(leg(), open, approvers, facts())).toEqual([
+      'EDIT_ALLOCATIONS',
+      'SUBMIT',
+      'CANCEL_SUPPLIER',
+    ]);
   });
 });
 
@@ -374,13 +392,13 @@ describe('PurchaseSuppliersDomainService leg fulfilment actions', () => {
   const { service } = setup();
   const caller = { userId: 'user-2', approverUserIds: [], submitterId: null };
   const actionsOf = (type: PurchaseType, legFacts: LegFulfilmentFacts) =>
-    service.availableActions(leg({ type, step: 'PURCHASE_ORDER' }), purchase({ step: 'PROCURING' }), caller, legFacts);
+    service.availableActions(leg({ type, step: 'PURCHASE_ORDER' }), purchase(), caller, legFacts);
 
   it('offers CREATE_PURCHASE_ORDER until the leg is ordered, then CONFIRM_PURCHASE_ORDER for a sent PO', () => {
-    expect(actionsOf('STANDARD', unordered)).toEqual(['CREATE_PURCHASE_ORDER', 'CLOSE_SUPPLIER']);
+    expect(actionsOf('STANDARD', unordered)).toEqual(['CREATE_PURCHASE_ORDER', 'CANCEL_SUPPLIER']);
     expect(actionsOf('STANDARD', ordered({ purchaseOrderStatus: 'SENT' }))).toEqual([
       'CONFIRM_PURCHASE_ORDER',
-      'CLOSE_SUPPLIER',
+      'CANCEL_SUPPLIER',
     ]);
   });
 
@@ -388,33 +406,36 @@ describe('PurchaseSuppliersDomainService leg fulfilment actions', () => {
     expect(actionsOf('STANDARD', ordered())).toEqual([
       'CREATE_INBOUND_DELIVERY',
       'CREATE_GOODS_RECEIPT',
-      'CLOSE_SUPPLIER',
+      'CANCEL_SUPPLIER',
     ]);
-    expect(actionsOf('ANNOUNCED', ordered())).toEqual(['CREATE_INBOUND_DELIVERY', 'CLOSE_SUPPLIER']);
+    expect(actionsOf('ANNOUNCED', ordered())).toEqual(['CREATE_INBOUND_DELIVERY', 'CANCEL_SUPPLIER']);
     expect(
       actionsOf('ANNOUNCED', ordered({ remainingToDeliverPrimaryQty: 0 }, { hasReceivableAnnouncedDelivery: true })),
-    ).toEqual(['CREATE_GOODS_RECEIPT', 'CLOSE_SUPPLIER']);
+    ).toEqual(['CREATE_GOODS_RECEIPT', 'CANCEL_SUPPLIER']);
   });
 
   it('offers CREATE_SUPPLIER_INVOICE for invoiceable receipts and RECEIVE_WITH_INVOICE to the types invoiced with their goods', () => {
     expect(
       actionsOf(
         'DIRECT_RECEIPT',
-        ordered({ receivedPrimaryQty: 100, remainingToDeliverPrimaryQty: 0 }, { invoiceablePrimaryQty: 100 }),
+        ordered(
+          { receivedPrimaryQty: 100, remainingToDeliverPrimaryQty: 0 },
+          { invoiceablePrimaryQty: 100, hasPostedDocument: true },
+        ),
       ),
     ).toEqual(['CREATE_SUPPLIER_INVOICE', 'CLOSE_SUPPLIER']);
-    expect(actionsOf('DIRECT_RECEIPT', unordered)).toEqual(['CREATE_GOODS_RECEIPT', 'CLOSE_SUPPLIER']);
-    expect(actionsOf('DIRECT_PURCHASE', unordered)).toEqual(['RECEIVE_WITH_INVOICE', 'CLOSE_SUPPLIER']);
+    expect(actionsOf('DIRECT_RECEIPT', unordered)).toEqual(['CREATE_GOODS_RECEIPT', 'CANCEL_SUPPLIER']);
+    expect(actionsOf('DIRECT_PURCHASE', unordered)).toEqual(['RECEIVE_WITH_INVOICE', 'CANCEL_SUPPLIER']);
     expect(actionsOf('ORDER_INVOICE_WITH_GOODS', ordered())).toEqual([
       'CREATE_INBOUND_DELIVERY',
       'RECEIVE_WITH_INVOICE',
-      'CLOSE_SUPPLIER',
+      'CANCEL_SUPPLIER',
     ]);
   });
 
-  it('offers PREPAID and SELF_INVOICING legs only CLOSE_SUPPLIER, and no CLOSE_SUPPLIER while a draft receipt or invoice is open', () => {
-    expect(actionsOf('PREPAID', unordered)).toEqual(['CLOSE_SUPPLIER']);
-    expect(actionsOf('SELF_INVOICING', ordered())).toEqual(['CLOSE_SUPPLIER']);
+  it('offers PREPAID and SELF_INVOICING legs only closing and cancelling, and neither while a draft receipt or invoice is open', () => {
+    expect(actionsOf('PREPAID', unordered)).toEqual(['CLOSE_SUPPLIER', 'CANCEL_SUPPLIER']);
+    expect(actionsOf('SELF_INVOICING', ordered())).toEqual(['CLOSE_SUPPLIER', 'CANCEL_SUPPLIER']);
     expect(actionsOf('STANDARD', ordered({}, { hasDraftReceipt: true }))).toEqual([
       'CREATE_INBOUND_DELIVERY',
       'CREATE_GOODS_RECEIPT',
@@ -425,7 +446,7 @@ describe('PurchaseSuppliersDomainService leg fulfilment actions', () => {
     expect(() =>
       service.assertActionAvailable(
         { ...leg({ type: 'STANDARD', step: 'PURCHASE_ORDER' }), supplierName: 'Acme' },
-        purchase({ step: 'PROCURING' }),
+        purchase(),
         ordered(),
         'CREATE_PURCHASE_ORDER',
       ),
@@ -433,8 +454,8 @@ describe('PurchaseSuppliersDomainService leg fulfilment actions', () => {
     expect(() =>
       service.assertActionAvailable(
         { ...leg({ type: 'STANDARD', step: 'PURCHASE_ORDER' }), supplierName: 'Acme' },
-        purchase({ step: 'PROCURING' }),
-        ordered({}, { hasDraftInvoice: true }),
+        purchase(),
+        ordered({}, { hasDraftInvoice: true, hasPostedDocument: true }),
         'CLOSE_SUPPLIER',
       ),
     ).toThrow(expect.objectContaining({ response: expect.objectContaining({ label: 'Cannot Close Supplier' }) }));
@@ -470,10 +491,83 @@ describe('PurchaseSuppliersDomainService advancing a leg', () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 
-  it('knows a purchase is done only when every leg is closed', () => {
+  it('knows the legs are done when none is open and at least one closed', () => {
     const { service } = setup();
-    expect(service.allClosed([{ status: 'CLOSED' }, { status: 'CLOSED' }])).toBe(true);
-    expect(service.allClosed([{ status: 'CLOSED' }, { status: 'OPEN' }])).toBe(false);
-    expect(service.allClosed([])).toBe(false);
+    expect(service.allDone([{ status: 'CLOSED' }, { status: 'CANCELLED' }])).toBe(true);
+    expect(service.allDone([{ status: 'CLOSED' }, { status: 'OPEN' }])).toBe(false);
+    expect(service.allDone([{ status: 'CANCELLED' }])).toBe(false);
+    expect(service.allDone([])).toBe(false);
+  });
+
+  it('closes a leg closed for receiving once what it received is invoiced, ignoring what was never ordered', async () => {
+    const { service, repository } = setup();
+    const closedForReceiving = facts({
+      receivingClosed: true,
+      allocations: [{ primaryUomQty: 40, freePrimaryQty: 0, purchaseOrderItemId: null }],
+      purchaseOrderStatuses: ['DELIVERY_COMPLETED'],
+      orderLines: [
+        line({ purchaseOrderStatus: 'DELIVERY_COMPLETED', cancelledPrimaryQty: 40, receivedPrimaryQty: 60 }),
+      ],
+    });
+    expect(service.deriveStep(leg({ type: 'STANDARD', step: 'GOODS_RECEIPT' }), closedForReceiving)).toBe(
+      'SUPPLIER_INVOICE',
+    );
+    const invoiced = {
+      ...closedForReceiving,
+      orderLines: [{ ...closedForReceiving.orderLines[0], invoicedPrimaryQty: 60 }],
+    };
+    const advance = await service.advance(leg({ type: 'STANDARD', step: 'SUPPLIER_INVOICE' }), invoiced);
+    expect(advance.isClosed).toBe(true);
+    expect(repository.update).toHaveBeenCalledWith('leg-1', expect.objectContaining({ status: 'CLOSED' }));
+  });
+});
+
+describe('PurchaseSuppliersDomainService cancel and close', () => {
+  const named = (overrides: Partial<Leg> = {}) => ({
+    ...leg({ type: 'STANDARD', step: 'GOODS_RECEIPT', ...overrides }),
+    supplierName: 'Akras',
+  });
+
+  it('cancels a leg nothing is received on, in any open step', async () => {
+    const { service, repository } = setup();
+    await service.cancel(named({ step: 'APPROVAL' }), purchase(), facts(), {
+      reason: 'Out of stock',
+      userId: 'user-1',
+    });
+    expect(repository.update).toHaveBeenCalledWith(
+      'leg-1',
+      expect.objectContaining({ status: 'CANCELLED', cancelReason: 'Out of stock', cancelledBy: 'user-1' }),
+    );
+  });
+
+  it('refuses to cancel once goods are received, on their way or a draft is open', () => {
+    const { service } = setup();
+    const of = (legFacts: LegFulfilmentFacts) => service.blockersOf(named(), purchase(), legFacts).cancel;
+    expect(of(facts({ hasPostedDocument: true }))).toMatch(/close the supplier instead/);
+    expect(of(facts({ hasDeliveryOnTheWay: true }))).toMatch(/on its way/);
+    expect(of(facts({ hasDraftReceipt: true }))).toMatch(/draft/);
+    expect(of(facts())).toBeNull();
+  });
+
+  it('closes for receiving only once something is received and nothing is on its way', () => {
+    const { service } = setup();
+    const of = (legFacts: LegFulfilmentFacts, overrides: Partial<Leg> = {}) =>
+      service.blockersOf(named(overrides), purchase(), legFacts).close;
+    expect(of(facts())).toMatch(/Nothing is received/);
+    expect(of(facts(), { step: 'SOURCING' })).toMatch(/Nothing is ordered/);
+    expect(of(facts({ hasPostedDocument: true, hasDeliveryOnTheWay: true }))).toMatch(/on its way/);
+    expect(of(facts({ hasPostedDocument: true, receivingClosed: true }))).toMatch(/already closed for receiving/);
+    expect(of(facts({ hasPostedDocument: true }))).toBeNull();
+  });
+
+  it('marks a leg closed for receiving, and closes a type purchases do not fulfil outright', async () => {
+    const { service, repository } = setup();
+    await service.closeForReceiving(named(), purchase(), facts({ hasPostedDocument: true }), 'Short-shipped');
+    expect(repository.update).toHaveBeenCalledWith(
+      'leg-1',
+      expect.objectContaining({ receivingClosedAt: expect.any(Date), closeReason: 'Short-shipped' }),
+    );
+    await service.closeForReceiving(named({ type: 'PREPAID', step: 'PURCHASE_ORDER' }), purchase(), facts(), null);
+    expect(repository.update).toHaveBeenLastCalledWith('leg-1', expect.objectContaining({ status: 'CLOSED' }));
   });
 });

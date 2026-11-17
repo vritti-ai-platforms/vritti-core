@@ -4,10 +4,12 @@ import { PermissionGate, PermissionLockIcon } from '@vritti/quantum-ui/Permissio
 import type React from 'react';
 import { Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
+import { PurchaseItemDetailSkeleton } from '@/components/purchases/item/PurchaseItemDetailSkeleton';
 import { PurchaseDetailSkeleton } from '@/components/purchases/PurchaseDetailSkeleton';
 import { ReceiveWithInvoiceSkeleton } from '@/components/purchases/receive-with-invoices/ReceiveWithInvoiceSkeleton';
 import { NewReceiveWithInvoicePage } from './NewReceiveWithInvoicePage';
 import { PurchaseDetailPage } from './PurchaseDetailPage';
+import { PurchaseItemPage } from './PurchaseItemPage';
 import { PurchasesPage } from './PurchasesPage';
 import { ReceiveWithInvoicePage } from './ReceiveWithInvoicePage';
 
@@ -36,7 +38,13 @@ const routes: RouteObject[] = [
     element: gated(LE_PURCHASES.view, <ReceiveWithInvoicePage />, <ReceiveWithInvoiceSkeleton />),
   },
   {
-    path: ':purchaseSlug',
+    // The static `items` segment outranks the purchase's `:tab?`
+    path: ':purchaseSlug/items/:itemSlug/:tab?',
+    element: gated(LE_PURCHASES.view, <PurchaseItemPage />, <PurchaseItemDetailSkeleton />),
+  },
+  {
+    // `:tab?` lets Tabs own the active tab in the URL — deep links and back/forward work
+    path: ':purchaseSlug/:tab?',
     element: gated(LE_PURCHASES.view, <PurchaseDetailPage />, <PurchaseDetailSkeleton />),
   },
 ];

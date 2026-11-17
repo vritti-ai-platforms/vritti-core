@@ -4,7 +4,7 @@ import Decimal from '@vritti/quantum-ui/decimal';
 export interface ReceiveWithInvoiceTableLine {
   allocationId: string;
   inventoryItemName?: string;
-  uomSymbol?: string | null;
+  uomSymbol?: string;
   purchaseNumber?: string;
   quantity: number;
   freeQty: number;

@@ -1,3 +1,4 @@
+import { CancelSupplierDto } from '@domain/purchase-suppliers/dto/request/cancel-supplier.dto';
 import { CloseSupplierDto } from '@domain/purchase-suppliers/dto/request/close-supplier.dto';
 import { ConfirmLegPurchaseOrderDto } from '@domain/purchase-suppliers/dto/request/confirm-leg-purchase-order.dto';
 import { CreateLegGoodsReceiptDto } from '@domain/purchase-suppliers/dto/request/create-leg-goods-receipt.dto';
@@ -84,10 +85,20 @@ export class LePurchasesLegsController {
     return this.service.confirmPurchaseOrder(dto);
   }
 
-  // Closes a leg, completing delivery of its open purchase orders
+  // Closes a leg for receiving, completing delivery of its open purchase orders; it closes once invoiced
   @MessagePattern({ cmd: 'le.purchases.legs.closeSupplier' })
   closeSupplier(@Payload() dto: CloseSupplierDto): Promise<SuccessResponseDto> {
     this.logger.log(`le.purchases.legs.closeSupplier — id: ${dto.id}, leg: ${dto.legId}`);
     return this.service.closeSupplier(dto);
+  }
+
+  // Cancels a leg nothing is received or invoiced on, returning its quantity to sourcing or dropping it
+  @MessagePattern({ cmd: 'le.purchases.legs.cancelSupplier' })
+  cancelSupplier(
+    @Payload() dto: CancelSupplierDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.legs.cancelSupplier — id: ${dto.id}, leg: ${dto.legId}`);
+    return this.service.cancelSupplier(dto, headers);
   }
 }

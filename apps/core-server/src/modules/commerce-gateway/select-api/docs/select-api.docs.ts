@@ -132,19 +132,6 @@ export function ApiInventoryItemSerialsSelect() {
   );
 }
 
-export function ApiInventoryItemsWithoutStockLevelsSelect() {
-  return applyDecorators(
-    ApiOperation({
-      summary: 'Get inventory item select options without stock levels at the current site',
-      description:
-        "Returns paginated inventory item options for the items that have no stock levels at the request's site yet — the ones a site can set stock levels for.",
-    }),
-    ...BASE_SELECT_QUERIES,
-    ApiResponse({ status: 200, description: 'Inventory item select options retrieved successfully.' }),
-    ApiResponse({ status: 401, description: 'Unauthorized.' }),
-  );
-}
-
 export function ApiInventoryItemsSelect() {
   return applyDecorators(
     ApiOperation({
@@ -155,6 +142,16 @@ export function ApiInventoryItemsSelect() {
     ApiQuery({
       name: 'excludeOnSupplierId',
       description: 'Exclude items that have all UOMs already linked to this supplier',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'atSiteId',
+      description: 'Only the items this site carries, each with its stock and levels there; blocked ones come disabled',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'notAtSiteId',
+      description: 'Only the items this site does not carry yet',
       required: false,
     }),
     ApiResponse({ status: 200, description: 'Inventory item select options retrieved successfully.' }),

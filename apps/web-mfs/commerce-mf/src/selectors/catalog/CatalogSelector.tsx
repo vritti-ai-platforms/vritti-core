@@ -1,7 +1,8 @@
-import { Select } from '@vritti/quantum-ui/Select';
+import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-type CatalogSelectorProps = Omit<React.ComponentProps<typeof Select>, 'optionsEndpoint' | 'fieldKeys'>;
+type CatalogSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'fieldKeys'>;
 
 export const CatalogSelector = forwardRef<HTMLButtonElement, CatalogSelectorProps>((props, ref) => (
   <Select

@@ -58,6 +58,16 @@ export class LocationsDomainRepository extends PrimaryBaseRepository<typeof loca
     return this.exists(and(eq(locations.id, locationId), eq(locations.siteId, siteId ?? currentSiteId())) as SQL);
   }
 
+  // Returns which of the given locations are at the named site, else the request's
+  async findIdsAtSite(locationIds: string[], siteId?: string): Promise<string[]> {
+    if (locationIds.length === 0) return [];
+    const rows = await this.db
+      .select({ id: locations.id })
+      .from(locations)
+      .where(and(inArray(locations.id, locationIds), eq(locations.siteId, siteId ?? currentSiteId())));
+    return rows.map((row) => row.id);
+  }
+
   async countAll(): Promise<number> {
     const [result] = await this.db.select({ count: sql<number>`count(*)` }).from(locations);
     return Number(result?.count ?? 0);

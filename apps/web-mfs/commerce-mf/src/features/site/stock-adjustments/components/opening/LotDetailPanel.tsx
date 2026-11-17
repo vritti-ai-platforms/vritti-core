@@ -188,7 +188,7 @@ const LotDetailContent = ({
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? uomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol}
           </span>
         ),
         enableSorting: true,
@@ -262,7 +262,7 @@ const LotDetailContent = ({
           ]
         : []),
     ],
-    [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, uomSymbol, handleRemoveLine, onSelectLine],
+    [adjustmentId, inventoryItemId, isDraft, isSerial, tracking, handleRemoveLine, onSelectLine],
   );
 
   const stockAdjustmentLinesByLotTable = useDataTable({

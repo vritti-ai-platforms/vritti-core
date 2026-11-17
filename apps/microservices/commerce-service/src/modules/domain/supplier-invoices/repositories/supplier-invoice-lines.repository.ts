@@ -8,6 +8,7 @@ import {
   goodsReceiptLots,
   goodsReceipts,
   inventoryItems,
+  type NewSupplierInvoiceLine,
   purchaseOrderItems,
   purchaseOrders,
   type SupplierInvoiceLine,
@@ -106,6 +107,17 @@ export class SupplierInvoiceLinesDomainRepository extends PrimaryBaseRepository<
       .where(eq(costCategories.id, costCategoryId))
       .limit(1);
     return category;
+  }
+
+  // Inserts many lines in one statement
+  async createMany(rows: NewSupplierInvoiceLine[]): Promise<void> {
+    if (rows.length === 0) return;
+    await this.db.insert(supplierInvoiceLines).values(rows);
+  }
+
+  // Deletes every line of an invoice
+  async deleteByInvoice(supplierInvoiceId: string): Promise<void> {
+    await this.deleteMany(eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoiceId));
   }
 
   // Clears the variance of every line of an invoice once its costing is reversed

@@ -23,8 +23,8 @@ export class SiteInventoryItemResponseDto {
   @ApiProperty()
   categoryId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  categoryName: string | null;
+  @ApiProperty()
+  categoryName: string;
 
   @ApiPropertyOptional({ nullable: true })
   description: string | null;
@@ -32,14 +32,17 @@ export class SiteInventoryItemResponseDto {
   @ApiProperty()
   uomId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty()
+  uomSymbol: string;
+
+  @ApiProperty({ description: "Whether the item's primary unit can be counted in fractions" })
+  uomAllowDecimal: boolean;
 
   @ApiProperty({ description: 'Tax class the goods are bought under' })
   taxClassId: string;
 
-  @ApiPropertyOptional({ nullable: true })
-  taxClassName: string | null;
+  @ApiProperty()
+  taxClassName: string;
 
   @ApiPropertyOptional({ description: 'HSN sku for tax reporting', nullable: true })
   hsnCode: string | null;

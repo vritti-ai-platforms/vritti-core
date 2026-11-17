@@ -57,7 +57,7 @@ export class DeliverablePurchaseOrderItemsRepository extends PrimaryBaseReposito
       joins: [
         { table: inventoryItems, on: eq(inventoryItems.id, purchaseOrderItems.inventoryItemId), type: 'inner' },
         { table: purchaseOrders, on: eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId), type: 'inner' },
-        { table: uom, on: eq(uom.id, purchaseOrderItems.uomId), type: 'left' },
+        { table: uom, on: eq(uom.id, purchaseOrderItems.uomId), type: 'inner' },
       ],
       conditions: [
         sql`${purchaseOrders.siteId} = (${delivery(inboundDeliveries.siteId)})`,

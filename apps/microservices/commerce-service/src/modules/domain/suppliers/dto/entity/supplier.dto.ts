@@ -35,8 +35,8 @@ export class SupplierItemDto {
 
   static from(
     entity: SupplierItem & { siteCount?: number | null; preferredSiteCount?: number | null },
-    itemName?: string | null,
-    uomSymbol?: string | null,
+    itemName: string | null,
+    uomSymbol: string,
   ): SupplierItemDto {
     const dto = new SupplierItemDto();
     dto.id = entity.id;
@@ -44,7 +44,7 @@ export class SupplierItemDto {
     dto.inventoryItemName = itemName ?? '';
     dto.supplierItemCode = entity.supplierItemCode ?? null;
     dto.uomId = entity.uomId;
-    dto.uomSymbol = uomSymbol ?? '';
+    dto.uomSymbol = uomSymbol;
     dto.minOrderQuantity = entity.minOrderQuantity ?? null;
     dto.defaultLeadTimeDays = entity.defaultLeadTimeDays;
     dto.siteCount = Number(entity.siteCount ?? 0);
@@ -75,7 +75,7 @@ export class SupplierItemDetailDto extends SupplierItemDto {
       pricedSiteCount: number;
     },
     itemName: string | null,
-    uomSymbol: string | null,
+    uomSymbol: string,
   ): SupplierItemDetailDto {
     const dto = new SupplierItemDetailDto();
     Object.assign(dto, SupplierItemDto.from(entity, itemName, uomSymbol));
@@ -114,9 +114,9 @@ export class InventoryItemSupplierDto {
 
   static from(
     entity: SupplierItem & SupplierSiteItemTermsRow & { siteCount: number },
-    supplierName?: string | null,
-    supplierCode?: string | null,
-    uomSymbol?: string | null,
+    supplierName: string | null,
+    supplierCode: string | null,
+    uomSymbol: string,
   ): InventoryItemSupplierDto {
     const dto = new InventoryItemSupplierDto();
     dto.id = entity.id;
@@ -125,7 +125,7 @@ export class InventoryItemSupplierDto {
     dto.supplierCode = supplierCode ?? '';
     dto.supplierItemCode = entity.supplierItemCode ?? null;
     dto.uomId = entity.uomId;
-    dto.uomSymbol = uomSymbol ?? '';
+    dto.uomSymbol = uomSymbol;
     dto.siteCount = entity.siteCount;
     return SupplierSiteItemTermsDto.assign(dto, entity);
   }

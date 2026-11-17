@@ -23,8 +23,8 @@ export class InventoryItem {
   @Field(() => String)
   categoryId: string;
 
-  @Field(() => String, { nullable: true })
-  categoryName: string | null;
+  @Field(() => String)
+  categoryName: string;
 
   @Field(() => String, { nullable: true })
   description: string | null;
@@ -32,14 +32,14 @@ export class InventoryItem {
   @Field(() => String)
   uomId: string;
 
-  @Field(() => String, { nullable: true })
-  uomSymbol: string | null;
+  @Field(() => String)
+  uomSymbol: string;
 
   @Field(() => String)
   taxClassId: string;
 
-  @Field(() => String, { nullable: true })
-  taxClassName: string | null;
+  @Field(() => String)
+  taxClassName: string;
 
   @Field(() => String, { nullable: true })
   hsnCode: string | null;

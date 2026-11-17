@@ -1,17 +1,18 @@
 import 'reflect-metadata';
-import type { PurchaseItemAllocationsDomainRepository } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
+import { PurchaseItemAllocationsDomainRepository } from '@domain/purchase-item-allocations/repositories/purchase-item-allocations.repository';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
-import type { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
-import type { PurchaseSuppliersDomainRepository } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
+import type { PurchaseItemsDomainRepository } from '@domain/purchase-items/repositories/purchase-items.repository';
+import { PurchaseSuppliersDomainRepository } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
-import type { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import type { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import type { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
-import type { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import type { SupplierQuotationsDomainService } from '@domain/supplier-quotations/services/supplier-quotations.service';
 import type { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import type { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Logger } from '@nestjs/common';
 import type { PrimaryDatabaseService } from '@vritti/api-sdk/database';
+import type { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 import { PurchasesAllocationsService } from './purchases-allocations.service';
 
 beforeAll(() => Logger.overrideLogger(false));
@@ -34,7 +35,14 @@ const leg = {
   status: 'OPEN',
 };
 
-function setup(options: { existingLeg?: typeof leg; remainingAllocations?: number; purchasingBlocked?: boolean } = {}) {
+function setup(
+  options: {
+    existingLeg?: typeof leg;
+    remainingAllocations?: number;
+    purchasingBlocked?: boolean;
+    itemBlocked?: boolean;
+  } = {},
+) {
   const legsRepository = {
     findForSupplier: jest.fn().mockResolvedValue(options.existingLeg),
     findDetailOnPurchase: jest.fn().mockResolvedValue(leg),
@@ -69,31 +77,41 @@ function setup(options: { existingLeg?: typeof leg; remainingAllocations?: numbe
     qualityCheckEnabled: false,
     approverUserIds: [],
   });
-  const legsService = new PurchaseSuppliersDomainService(
-    legsRepository as unknown as PurchaseSuppliersDomainRepository,
-  );
-  const allocationsService = new PurchaseItemAllocationsDomainService({
+  const legsRepositoryWithGuards = {
+    ...legsRepository,
+    findOnPurchaseOrThrow: PurchaseSuppliersDomainRepository.prototype.findOnPurchaseOrThrow,
+    assertPurchaseOpen: PurchaseSuppliersDomainRepository.prototype.assertPurchaseOpen,
+    requireActiveEnrollment: PurchaseSuppliersDomainRepository.prototype.requireActiveEnrollment,
+  } as unknown as PurchaseSuppliersDomainRepository;
+  const allocationsRepositoryWithGuards = {
     ...allocationsRepository,
     findForItemAndLeg: allocationsRepository.findOne,
     countByLeg: allocationsRepository.count,
-  } as unknown as PurchaseItemAllocationsDomainRepository);
+    findOnPurchaseOrThrow: PurchaseItemAllocationsDomainRepository.prototype.findOnPurchaseOrThrow,
+    assertEnteredAllowed: PurchaseItemAllocationsDomainRepository.prototype.assertEnteredAllowed,
+  } as unknown as PurchaseItemAllocationsDomainRepository;
   const service = new PurchasesAllocationsService(
     { runInTransaction: (fn: () => Promise<unknown>) => fn() } as unknown as PrimaryDatabaseService,
-    { findDetailOrThrow: jest.fn().mockResolvedValue(purchase) } as unknown as PurchasesDomainService,
+    { findDetailOrThrow: jest.fn().mockResolvedValue(purchase) } as unknown as PurchasesDomainRepository,
     {
       findOnPurchaseOrThrow: jest
         .fn()
         .mockResolvedValue({ id: 'pi-1', inventoryItemId: 'item-1', inventoryItemName: 'Paracetamol', primaryQty: 95 }),
-    } as unknown as PurchaseItemsDomainService,
-    legsService,
-    allocationsService,
+    } as unknown as PurchaseItemsDomainRepository,
+    new PurchaseSuppliersDomainService(legsRepositoryWithGuards),
+    legsRepositoryWithGuards,
+    new PurchaseItemAllocationsDomainService(allocationsRepositoryWithGuards),
+    allocationsRepositoryWithGuards,
     {
       findByIdOrThrow: jest.fn().mockResolvedValue({ id: 'sup-1', currencyCode: 'INR', currencyCodes: ['INR'] }),
     } as unknown as SuppliersDomainService,
     { findPurchasingSnapshot } as unknown as SupplierEnrollmentsDomainService,
-    { assertSuppliedAt: jest.fn() } as unknown as SupplierItemsDomainService,
+    { assertSourced: jest.fn() } as unknown as PurchasingRulesService,
     {} as SupplierQuotationsDomainService,
     { toPrimaryUomQuantity: jest.fn().mockResolvedValue(100) } as unknown as UomConversionsDomainService,
+    Object.assign(Object.create(InventoryItemSitesDomainRepository.prototype), {
+      countAtSite: jest.fn().mockResolvedValue({ requested: 1, carried: 1, blocked: options.itemBlocked ? 1 : 0 }),
+    }) as InventoryItemSitesDomainRepository,
   );
   return { service, legsRepository, allocationsRepository, findPurchasingSnapshot };
 }
@@ -122,6 +140,14 @@ describe('PurchasesAllocationsService legs', () => {
     });
     expect(legsRepository.create).not.toHaveBeenCalled();
     expect(allocationsRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('refuses allocating an item the site has blocked buying', async () => {
+    const { service, legsRepository } = setup({ itemBlocked: true });
+    await expect(service.create(dto)).rejects.toMatchObject({
+      response: expect.objectContaining({ label: 'Purchasing Blocked' }),
+    });
+    expect(legsRepository.create).not.toHaveBeenCalled();
   });
 
   it('allocates to the leg already open for the supplier', async () => {

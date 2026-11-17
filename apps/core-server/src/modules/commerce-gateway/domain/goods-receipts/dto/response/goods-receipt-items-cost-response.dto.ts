@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 
 export class GoodsReceiptItemCostResponseDto {
@@ -14,8 +14,8 @@ export class GoodsReceiptItemCostResponseDto {
   @ApiProperty({ description: 'Symbol of the unit the goods are counted in' })
   uomSymbol: string;
 
-  @ApiPropertyOptional({ description: "Symbol of the item's primary unit", nullable: true })
-  primaryUomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the item's primary unit" })
+  primaryUomSymbol: string;
 
   @ApiProperty({ description: 'Received less rejected, in the counted unit' })
   acceptedQty: number;

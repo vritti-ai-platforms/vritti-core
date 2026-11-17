@@ -2,7 +2,7 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { submitPurchase } from '@/services/site/purchases.service';
-import { invalidatePurchase, PURCHASE_SOURCING_ITEMS_KEY, PURCHASE_SUPPLIERS_KEY } from './keys';
+import { invalidatePurchase } from './keys';
 
 // Submits a purchase's sourcing and refreshes the purchase's header, sourcing items and suppliers
 export function useSubmitPurchase(
@@ -14,7 +14,7 @@ export function useSubmitPurchase(
     mutationFn: submitPurchase,
     onSuccess: (...args) => {
       const [, variables] = args;
-      invalidatePurchase(queryClient, variables, [PURCHASE_SOURCING_ITEMS_KEY, PURCHASE_SUPPLIERS_KEY]);
+      invalidatePurchase(queryClient, variables);
       options?.onSuccess?.(...args);
     },
   });

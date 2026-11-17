@@ -26,7 +26,7 @@ export class ReceiveWithInvoiceDetailLineDto {
   mrp: CurrencyAmountDto;
   locationId: string | null;
   inventoryItemName: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   isLotTracked: boolean;
   purchaseId: string;
   purchaseNumber: string;

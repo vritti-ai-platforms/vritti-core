@@ -20,7 +20,7 @@ import { LotFilter } from '@/selectors/lot';
 
 interface QuantsTabProps {
   inventoryItemId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 function getQuantStatus(expiryDate: string | null): InventoryItemQuantStatus {

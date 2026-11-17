@@ -37,7 +37,7 @@ export const PricesTab: React.FC<PricesTabProps> = ({ inventoryItemId }) => {
       {
         accessorKey: 'uomSymbol',
         header: 'Per',
-        cell: ({ row }) => row.original.uomSymbol ?? '—',
+        cell: ({ row }) => row.original.uomSymbol,
       },
       {
         accessorKey: 'unitPrice',

@@ -1,8 +1,9 @@
 import { RequestPurchaseQuotationDto } from '@domain/purchases/dto/request/request-purchase-quotation.dto';
+import type { PurchaseQuotationTableRowDto } from '@domain/supplier-quotations/dto/entity/purchase-quotation.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { PurchaseDetailQuotationDto } from '@/modules/site/purchases/quotations/dto/entity/purchase-detail-quotation.dto';
+import type { TableState } from '@vritti/api-sdk/data-table';
+import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { PurchasesQuotationsService } from '@/modules/site/purchases/quotations/services/purchases-quotations.service';
 
 @Controller()
@@ -11,24 +12,20 @@ export class LePurchasesQuotationsController {
 
   constructor(private readonly service: PurchasesQuotationsService) {}
 
-  // Creates a draft legal-entity quotation from a supplier for the purchase's items
+  // Creates a draft quotation the purchase's site owns, from a supplier, for the items still to allocate
   @MessagePattern({ cmd: 'le.purchases.quotations.request' })
   request(@Payload() dto: RequestPurchaseQuotationDto): Promise<CreateResponseDto<{ quotationId: string }>> {
     this.logger.log(`le.purchases.quotations.request — id: ${dto.id}, supplier: ${dto.supplierId}`);
     return this.service.request(dto);
   }
 
-  // Completes quotations, moving the purchase to sourcing
-  @MessagePattern({ cmd: 'le.purchases.quotations.complete' })
-  complete(@Payload() data: { id: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.quotations.complete — id: ${data.id}`);
-    return this.service.complete(data.id);
-  }
-
-  // Returns the quotations linked to a purchase, read in its legal entity's workspace
-  @MessagePattern({ cmd: 'le.purchases.quotations.findByPurchase' })
-  findByPurchase(@Payload() data: { id: string }): Promise<PurchaseDetailQuotationDto[]> {
-    this.logger.log(`le.purchases.quotations.findByPurchase — id: ${data.id}`);
-    return this.service.findByPurchase(data.id);
+  // Returns one page of the quotations linked to a purchase, without their lines
+  @MessagePattern({ cmd: 'le.purchases.quotations.table' })
+  table(
+    @Payload() data: { id: string } & TableState,
+  ): Promise<{ result: PurchaseQuotationTableRowDto[]; count: number }> {
+    const { id, ...state } = data;
+    this.logger.log(`le.purchases.quotations.table — id: ${id}`);
+    return this.service.findForTable(id, state);
   }
 }

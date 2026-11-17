@@ -8,7 +8,7 @@ import type {
   InventoryItemStockData,
   SiteStockTableResponse,
 } from '@/schemas/inventory-items';
-import type { ItemStockLevelsData, StockLevelsPayload } from '@/schemas/site-stock-levels';
+import type { BlockSiteItemFormData, InventoryItemSiteData, ReplenishmentPayload } from '@/schemas/site-items';
 import type {
   InventoryItemPriceHistory,
   InventoryItemSuppliersTableResponse,
@@ -21,29 +21,39 @@ export function getInventoryItemsStockTable(): Promise<SiteStockTableResponse> {
   return axios.get<SiteStockTableResponse>(`${BASE}/stock-table`).then((r) => r.data);
 }
 
-// Sets an item's stock levels at the current site
-export function setStockLevels(
+// Adds an item to the current site with how the site replenishes it
+export function addToSite(
   inventoryItemId: string,
-  data: StockLevelsPayload,
-): Promise<CreateResponse<{ id: string }>> {
+  data: ReplenishmentPayload,
+): Promise<CreateResponse<InventoryItemSiteData>> {
   return axios
-    .post<CreateResponse<{ id: string }>>(`${BASE}/${inventoryItemId}/stock-levels`, data)
+    .post<CreateResponse<InventoryItemSiteData>>(`${BASE}/${inventoryItemId}/setup`, data)
     .then((r) => r.data);
 }
 
-// Updates an item's stock levels at the current site
-// An item's stock levels at the current site, or null while none are set
-export function getStockLevels(inventoryItemId: string): Promise<ItemStockLevelsData | null> {
-  return axios.get<ItemStockLevelsData | null>(`${BASE}/${inventoryItemId}/stock-levels`).then((r) => r.data);
+// Changes how the current site replenishes an item
+export function updateReplenishment(inventoryItemId: string, data: ReplenishmentPayload): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${inventoryItemId}/setup`, data).then((r) => r.data);
 }
 
-// Removes an item's stock levels at the current site
-export function removeStockLevels(inventoryItemId: string): Promise<SuccessResponse> {
-  return axios.delete<SuccessResponse>(`${BASE}/${inventoryItemId}/stock-levels`).then((r) => r.data);
+// Stops the current site buying an item, with why
+export function blockSiteItem(inventoryItemId: string, data: BlockSiteItemFormData): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${inventoryItemId}/setup/block`, data).then((r) => r.data);
 }
 
-export function updateStockLevels(inventoryItemId: string, data: StockLevelsPayload): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/${inventoryItemId}/stock-levels`, data).then((r) => r.data);
+// Lets the current site buy an item again
+export function unblockSiteItem(inventoryItemId: string): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${inventoryItemId}/setup/unblock`).then((r) => r.data);
+}
+
+// How the current site carries an item, or null while it does not
+export function getSiteItem(inventoryItemId: string): Promise<InventoryItemSiteData | null> {
+  return axios.get<InventoryItemSiteData | null>(`${BASE}/${inventoryItemId}/setup`).then((r) => r.data);
+}
+
+// Removes an item from the current site
+export function removeFromSite(inventoryItemId: string): Promise<SuccessResponse> {
+  return axios.delete<SuccessResponse>(`${BASE}/${inventoryItemId}/setup`).then((r) => r.data);
 }
 
 export function getInventoryItem(id: string): Promise<InventoryItemData> {

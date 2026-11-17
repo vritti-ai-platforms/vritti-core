@@ -8,13 +8,19 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsUUID('7')
   excludeOnSupplierId?: string;
 
-  // Only the items with stock levels set at this site, each with its stock and levels there; the gateway has checked it
-  // is the user's site or one of the legal entity's sites
+  // Only the items this site carries, each with its stock and levels there; the gateway has checked it is the user's
+  // site or one of the legal entity's sites
   @IsOptional()
   @IsUUID('7')
-  stockLevelsAtSiteId?: string;
+  atSiteId?: string;
 
-  // With stockLevelsAtSiteId, only the items whose stock there has one of these statuses
+  // Only the items this site does not carry yet; the gateway has checked it is the user's site or one of the legal
+  // entity's sites
+  @IsOptional()
+  @IsUUID('7')
+  notAtSiteId?: string;
+
+  // With atSiteId, only the items whose stock there has one of these statuses
   @IsOptional()
   @Transform(({ value }) => (Array.isArray(value) ? value : String(value).split(',').filter(Boolean)))
   @IsArray()
@@ -27,4 +33,9 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsArray()
   @IsUUID('7', { each: true })
   categoryIds?: string[];
+
+  // With atSiteId, marks the items this supplier supplies there and leaves out those the site's rules keep from it
+  @IsOptional()
+  @IsUUID('7')
+  supplierId?: string;
 }

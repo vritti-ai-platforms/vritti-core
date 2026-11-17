@@ -1,8 +1,9 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
 import { countryFlag, ISO_COUNTRIES } from '@vritti/quantum-ui/selects/iso-country';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type TaxGroupSelectorProps = Omit<SelectProps, 'optionsEndpoint'> &
+export type TaxGroupSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> &
   (
     | { country: string | undefined; anyCountry?: never }
     // Lists every country's groups under a heading per country — for navigation, never for picking a group

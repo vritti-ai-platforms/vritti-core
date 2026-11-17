@@ -1,10 +1,11 @@
 import { cn } from '@vritti/quantum-ui/cn';
 import { Select, type SelectProps, type SingleSelectOptionRenderProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { Check } from 'lucide-react';
 import type React from 'react';
 import { forwardRef } from 'react';
 
-export type QuantSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type QuantSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Custom option row: label=lotNumber (or inventoryItemName), description=locationPath (or lotNumber), qty+symbol on the right
 function QuantOptionRow({ option, selected, onSelect }: SingleSelectOptionRenderProps) {

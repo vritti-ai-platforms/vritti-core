@@ -34,8 +34,12 @@ export const purchaseSuppliers = commerceSchema.table(
     rejectionReason: text('rejection_reason'),
     rejectedAt: timestamp('rejected_at', { withTimezone: true }),
     rejectedBy: uuid('rejected_by'),
+    receivingClosedAt: timestamp('receiving_closed_at', { withTimezone: true }),
     closedAt: timestamp('closed_at', { withTimezone: true }),
     closeReason: text('close_reason'),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledBy: uuid('cancelled_by'),
+    cancelReason: text('cancel_reason'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()

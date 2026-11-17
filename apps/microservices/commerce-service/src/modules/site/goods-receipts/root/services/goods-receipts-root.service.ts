@@ -5,7 +5,7 @@ import type { GoodsReceiptRow } from '@domain/goods-receipts/repositories/goods-
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
@@ -22,7 +22,7 @@ export class GoodsReceiptsService {
     private readonly deliveriesService: InboundDeliveriesDomainService,
     private readonly deliveryLinesService: InboundDeliveryLinesDomainService,
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
   ) {}
 
   // Creates a draft receipt of an inbound delivery that is not received or cancelled and has no draft receipt yet,
@@ -59,13 +59,13 @@ export class GoodsReceiptsService {
   // Deletes a draft receipt that no purchase created
   async delete(id: string): Promise<SuccessResponseDto> {
     const receipt = await this.goodsReceiptsService.findDraftOrThrow(id, 'Cannot Delete');
-    this.purchasesService.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
     return this.goodsReceiptsService.delete(receipt);
   }
 
   // Rejects a change to a Receive with Invoice receipt, which is edited, posted and discarded with its supplier invoice (409)
   private assertNotReceiveWithInvoice(receipt: GoodsReceiptRow): void {
     if (receipt.deliverySource !== InboundDeliverySourceValues.SUPPLIER_INVOICE) return;
-    this.purchasesService.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase(`Goods receipt "${receipt.grNumber}"`, [receipt.purchaseNumber]);
   }
 }

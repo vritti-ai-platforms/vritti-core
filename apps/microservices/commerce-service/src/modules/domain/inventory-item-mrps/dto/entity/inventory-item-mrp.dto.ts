@@ -5,7 +5,7 @@ export class InventoryItemMrpDto {
   id: string;
   inventoryItemId: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   amount: CurrencyAmountDto;
   sourceLotId: string | null;
   sourcedAt: string | null;
@@ -13,12 +13,12 @@ export class InventoryItemMrpDto {
   createdAt: string;
   updatedAt: string;
 
-  static from(entity: InventoryItemMrp & { uomSymbol?: string | null }): InventoryItemMrpDto {
+  static from(entity: InventoryItemMrp & { uomSymbol: string }): InventoryItemMrpDto {
     const dto = new InventoryItemMrpDto();
     dto.id = entity.id;
     dto.inventoryItemId = entity.inventoryItemId;
     dto.uomId = entity.uomId;
-    dto.uomSymbol = entity.uomSymbol ?? null;
+    dto.uomSymbol = entity.uomSymbol;
     dto.amount = CurrencyAmountDto.from(entity.amount, entity.currencyCode);
     dto.sourceLotId = entity.sourceLotId ?? null;
     dto.sourcedAt = entity.sourcedAt ? entity.sourcedAt.toISOString() : null;

@@ -27,7 +27,7 @@ export interface LocationItemRow {
   inventoryItemId: string;
   itemName: string;
   itemSku: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   totalQuantity: number;
   reservedQuantity: number;
   totalValueMinor: bigint;
@@ -431,7 +431,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         costCurrency: sql<string | null>`MAX(${inventoryItemQuants.costCurrency})`,
         batchCount: sql<number>`COUNT(*)`.mapWith(Number),
       },
-      leftJoins: [
+      innerJoins: [
         { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],

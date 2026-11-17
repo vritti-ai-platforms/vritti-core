@@ -1,18 +1,19 @@
 import type React from 'react';
 import { type Control, useWatch } from 'react-hook-form';
 import type { StockStatus } from '@/schemas/inventory-items';
-import type { StockLevelsFormData } from '@/schemas/site-stock-levels';
-import { StockLevelBar } from './StockLevelBar';
+import type { ReplenishmentFormData, ReplenishmentMethod } from '@/schemas/site-items';
+import { StockLevelBar } from './stock-level-bar/StockLevelBar';
 
 interface StockLevelsPreviewProps {
   // Stock on hand at the site, in the primary unit; 0 while it isn't known (an item still to be picked)
   onHand: number;
-  safetyStock: number;
-  reorderPoint: number;
-  maxStockLevel: number;
+  replenishment: ReplenishmentMethod | null;
+  safetyStock: number | null;
+  reorderPoint: number | null;
+  maxStock: number | null;
   // Colours the on-hand bar for levels already set; left out for levels still being typed
   status?: StockStatus;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 // An item's stock at a site against its stock levels, drawn on the same bar the stock tables show
@@ -22,30 +23,31 @@ export const StockLevelsPreview: React.FC<StockLevelsPreviewProps> = (props) => 
   </div>
 );
 
-interface StockLevelsFormPreviewProps<TForm extends StockLevelsFormData> {
+interface StockLevelsFormPreviewProps<TForm extends ReplenishmentFormData> {
   // The surrounding form's control; read directly, since the form context comes from quantum-ui's own react-hook-form
   control: Control<TForm>;
   onHand: number;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
-// The levels being typed into a stock levels form, previewed against the stock on hand
-export const StockLevelsFormPreview = <TForm extends StockLevelsFormData>({
+// The replenishment being filled into a form, previewed against the stock on hand
+export const StockLevelsFormPreview = <TForm extends ReplenishmentFormData>({
   control,
   onHand,
   uomSymbol,
 }: StockLevelsFormPreviewProps<TForm>) => {
-  const [safetyStock, reorderPoint, maxStockLevel] = useWatch({
-    // Every form here extends the stock levels fields, and only those three are read; Control itself is invariant
-    control: control as unknown as Control<StockLevelsFormData>,
-    name: ['safetyStock', 'reorderPoint', 'maxStockLevel'],
+  const [replenishment, safetyStock, reorderPoint, maxStock] = useWatch({
+    // Every form here extends the replenishment fields, and only those are read; Control itself is invariant
+    control: control as unknown as Control<ReplenishmentFormData>,
+    name: ['replenishment', 'safetyStock', 'reorderPoint', 'maxStock'],
   });
   return (
     <StockLevelsPreview
       onHand={onHand}
-      safetyStock={safetyStock ?? 0}
-      reorderPoint={reorderPoint ?? 0}
-      maxStockLevel={maxStockLevel ?? 0}
+      replenishment={replenishment}
+      safetyStock={safetyStock}
+      reorderPoint={reorderPoint}
+      maxStock={maxStock}
       uomSymbol={uomSymbol}
     />
   );

@@ -3,13 +3,13 @@ import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
 import { CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
 import type React from 'react';
-import { type PurchaseHeader, type PurchaseLeg, PurchaseLegActionValues } from '@/schemas/purchases';
+import { type PurchaseDetail, type PurchaseLeg, PurchaseLegActionValues } from '@/schemas/purchases';
 import type { PurchasesBinding } from '../bindings';
 import { RejectLegDialog } from './forms/RejectLegDialog';
 
 interface PurchaseLegActionsProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
 }
 
@@ -75,8 +75,8 @@ export const PurchaseLegActions: React.FC<PurchaseLegActionsProps> = ({ binding,
           startAdornment={<RotateCcw className="size-4" />}
           onClick={handleSubmit}
           isLoading={submitMutation.isPending}
-          disabled={leg.allocations.length === 0}
-          disabledTip="Allocate an item to this supplier before submitting it."
+          disabled={leg.allocations.length === 0 || leg.blockers.order !== null}
+          disabledTip={leg.blockers.order ?? 'Allocate an item to this supplier before submitting it.'}
         >
           Submit Supplier
         </Button>

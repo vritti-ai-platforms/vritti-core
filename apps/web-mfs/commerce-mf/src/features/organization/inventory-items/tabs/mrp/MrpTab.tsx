@@ -38,7 +38,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
     async (row: InventoryItemMrpData) => {
       const confirmed = await confirm({
         title: 'Remove MRP?',
-        description: `Remove the ${row.amount.currency} MRP for ${row.uomSymbol ?? 'this unit'}?`,
+        description: `Remove the ${row.amount.currency} MRP for ${row.uomSymbol}?`,
         confirmLabel: 'Remove',
         variant: 'destructive',
       });
@@ -52,7 +52,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
       {
         accessorKey: 'uomSymbol',
         header: 'Unit',
-        cell: ({ row }) => row.original.uomSymbol ?? '—',
+        cell: ({ row }) => row.original.uomSymbol,
       },
       {
         id: 'currencyCode',

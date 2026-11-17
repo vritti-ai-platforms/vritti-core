@@ -9,7 +9,7 @@ import type { UpdatePurchaseOrderStatusDto } from '@domain/purchase-orders/dto/r
 import type { UpdatePurchaseOrderTaxDateDto } from '@domain/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { PurchaseOrderRow } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import { SupplierInvoiceHoldsDomainService } from '@domain/supplier-invoices/services/supplier-invoice-holds.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
@@ -20,6 +20,7 @@ import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { PurchaseOrderStatusValues, type Supplier } from '@/db/schema';
 import { PurchaseProgressService } from '@/modules/site/purchase-progress/services/purchase-progress.service';
+import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 import { PurchaseOrderProblemsDto } from '../dto/entity/purchase-order-problems.dto';
 
 export interface PurchaseOrderSite {
@@ -39,8 +40,9 @@ export class PurchaseOrdersService {
     private readonly supplierEnrollmentsService: SupplierEnrollmentsDomainService,
     private readonly goodsReceiptItemsService: GoodsReceiptItemsDomainService,
     private readonly supplierInvoiceHoldsService: SupplierInvoiceHoldsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly purchaseProgressService: PurchaseProgressService,
+    private readonly purchasingRulesService: PurchasingRulesService,
   ) {}
 
   // Creates a PO at a site the supplier may be purchased from, in one of the supplier's currencies, on the payment term
@@ -56,15 +58,25 @@ export class PurchaseOrdersService {
     return this.purchaseOrdersService.create(dto, { ...site, currencyCode, paymentTermId: enrollment.paymentTermId });
   }
 
-  // Moves a PO along its workflow; a purchase's PO is not cancelled here, and confirming one tells its purchase in the
-  // same transaction
+  // Moves a PO along its workflow; a purchase's PO is not cancelled here, confirming one tells its purchase, and sending
+  // one needs every line set up for the supplier where the site's rules require it and records what it ordered when the
+  // site updates supplier items from its orders, all in one transaction
   async updateStatus(dto: UpdatePurchaseOrderStatusDto): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.id);
     if (dto.status === PurchaseOrderStatusValues.CANCELLED) this.assertNotPartOfPurchase(po);
+    const lines =
+      dto.status === PurchaseOrderStatusValues.SENT ? await this.itemsService.findRowsByPurchaseOrderIds([po.id]) : [];
+    await this.purchasingRulesService.assertSourced(po.supplierId, po.siteId, lines, 'status');
     return this.database.runInTransaction(async () => {
       const result = await this.purchaseOrdersService.changeStatus(po, dto.status);
       if (po.purchaseId && dto.status === PurchaseOrderStatusValues.CONFIRMED) {
         await this.purchaseProgressService.notifyDocument(po.purchaseId, po.supplierId);
+      }
+      if (dto.status === PurchaseOrderStatusValues.SENT) {
+        await this.purchasingRulesService.recordSentOrder(
+          { siteId: po.siteId, supplierId: po.supplierId, poNumber: po.poNumber, orderDate: po.orderDate },
+          lines,
+        );
       }
       return result;
     });
@@ -169,7 +181,7 @@ export class PurchaseOrdersService {
 
   // Rejects a change to a PO a purchase created; it is ordered from its approved allocations (409)
   private assertNotPartOfPurchase(po: Pick<PurchaseOrderRow, 'poNumber' | 'purchaseNumber'>): void {
-    this.purchasesService.assertNotPartOfPurchase(`Purchase order "${po.poNumber}"`, [po.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase(`Purchase order "${po.poNumber}"`, [po.purchaseNumber]);
   }
 
   // Rejects a currency the supplier does not trade in

@@ -10,7 +10,7 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
 import {
-  type PurchaseHeader,
+  type PurchaseDetail,
   type PurchaseLeg,
   type PurchaseLegPurchaseOrdersFormData,
   purchaseLegPurchaseOrdersSchema,
@@ -19,7 +19,7 @@ import type { PurchasesBinding } from '../../bindings';
 
 interface CreateLegPurchaseOrderDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
   onSuccess: () => void;
   onCancel: () => void;

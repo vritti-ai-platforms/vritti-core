@@ -317,6 +317,14 @@ export class LocationsDomainService {
     });
   }
 
+  // Rejects any of the given locations that is not the site's, in one read while they all are
+  async assertAllAtSite(locationIds: string[], field: string, siteId?: string): Promise<void> {
+    const unique = [...new Set(locationIds)];
+    const atSite = new Set(await this.locationsRepository.findIdsAtSite(unique, siteId));
+    const outside = unique.find((locationId) => !atSite.has(locationId));
+    if (outside) await this.assertAtSite(outside, field, siteId);
+  }
+
   // Validates an update and works out the row values, the new path and every storage type it changes in the subtree;
   // a zone's type flows down to descendants that do not override it, stopping at those that do
   async planUpdate(id: string, data: UpdateLocationDto): Promise<LocationUpdatePlan> {

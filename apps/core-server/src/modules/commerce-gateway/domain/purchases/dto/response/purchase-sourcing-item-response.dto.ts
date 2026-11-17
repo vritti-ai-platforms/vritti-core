@@ -6,7 +6,6 @@ import {
   type PurchaseLegStep,
 } from '../../constants/purchase.constants';
 import { PurchaseAllocationResponseDto } from './purchase-allocation-response.dto';
-import { PurchaseItemResponseDto } from './purchase-item-response.dto';
 
 export class PurchaseSourcingAllocationResponseDto extends PurchaseAllocationResponseDto {
   @ApiProperty({ description: 'Supplier of the leg the allocation belongs to' })
@@ -23,9 +22,4 @@ export class PurchaseSourcingAllocationResponseDto extends PurchaseAllocationRes
 
   @ApiProperty({ description: 'Whether the allocation can still change: its leg is open in sourcing' })
   isEditable: boolean;
-}
-
-export class PurchaseSourcingItemResponseDto extends PurchaseItemResponseDto {
-  @ApiProperty({ type: [PurchaseSourcingAllocationResponseDto], description: "The item's allocations, across legs" })
-  allocations: PurchaseSourcingAllocationResponseDto[];
 }

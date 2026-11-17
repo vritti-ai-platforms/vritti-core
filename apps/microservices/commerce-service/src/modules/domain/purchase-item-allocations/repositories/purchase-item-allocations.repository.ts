@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { aliasedTable, and, asc, eq, getColumns, inArray } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, and, asc, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type InventoryTracking,
+  inventoryItemSites,
   inventoryItems,
+  type NewPurchaseItemAllocation,
+  type Purchase,
   type PurchaseItemAllocation,
   type PurchaseLegStatus,
   type PurchaseLegStep,
@@ -16,6 +20,7 @@ import {
   purchaseOrders,
   purchaseSuppliers,
   purchases,
+  SiteItemStatusValues,
   supplierQuotationItems,
   supplierQuotations,
   uom,
@@ -26,8 +31,17 @@ const primaryUom = aliasedTable(uom, 'primary_uom');
 export type PurchaseAllocationRow = PurchaseItemAllocation & {
   purchaseOrderId: string | null;
   inventoryItemName: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   quotationNumber: string | null;
+  // Why the purchase's site has blocked buying the item; null while it has not
+  purchasingBlockedReason: string | null;
+};
+
+export type PurchaseItemAllocationTableRow = PurchaseAllocationRow & {
+  poNumber: string | null;
+  poStatus: PurchaseOrderStatus | null;
+  receivedPrimaryQty: number | null;
+  invoicedPrimaryQty: number | null;
 };
 
 export type AllocationWithLegRow = PurchaseItemAllocation & {
@@ -42,14 +56,16 @@ export type AllocationWithLegRow = PurchaseItemAllocation & {
   inventoryItemId: string;
   inventoryItemName: string;
   tracking: InventoryTracking;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   purchaseOrderId: string | null;
   purchaseOrderStatus: PurchaseOrderStatus | null;
   purchaseOrderCurrencyCode: string | null;
   orderedUomQty: number | null;
   orderedPrimaryUomQty: number | null;
   receivedPrimaryQty: number | null;
+  // Why the purchase's site has blocked buying the item; null while it has not
+  purchasingBlockedReason: string | null;
 };
 
 export type AllocationWithLegFilter = {
@@ -59,6 +75,8 @@ export type AllocationWithLegFilter = {
   allocationIds?: string[];
   legTypes?: PurchaseType[];
 };
+
+export type AllocationPurchase = Pick<Purchase, 'id' | 'purchaseNumber' | 'status' | 'quotationsRequired'>;
 
 @Injectable()
 export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseRepository<typeof purchaseItemAllocations> {
@@ -77,6 +95,66 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
     });
   }
 
+  // Returns every allocation of the given legs with its item and unit names and its quotation number, by item name
+  findDetailByLegIds(purchaseSupplierIds: string[]): Promise<PurchaseAllocationRow[]> {
+    if (purchaseSupplierIds.length === 0) return Promise.resolve([]);
+    return this.findAllWithSelect<PurchaseAllocationRow>({
+      select: this.selection(),
+      innerJoins: this.itemJoins(),
+      leftJoins: this.termJoins(),
+      where: inArray(purchaseItemAllocations.purchaseSupplierId, purchaseSupplierIds),
+      orderBy: [asc(inventoryItems.name)],
+    });
+  }
+
+  // Returns every allocation of the given purchase items with its item and unit names and its quotation number
+  findDetailByItemIds(purchaseItemIds: string[]): Promise<PurchaseAllocationRow[]> {
+    if (purchaseItemIds.length === 0) return Promise.resolve([]);
+    return this.findAllWithSelect<PurchaseAllocationRow>({
+      select: this.selection(),
+      innerJoins: this.itemJoins(),
+      leftJoins: this.termJoins(),
+      where: inArray(purchaseItemAllocations.purchaseItemId, purchaseItemIds),
+      orderBy: [asc(inventoryItems.name)],
+    });
+  }
+
+  // Returns one page of a purchase item's allocations with the PO each became and what of its line is received and
+  // invoiced, filtered and ordered by already-built clauses
+  findForItemTable(
+    purchaseId: string,
+    itemId: string,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: PurchaseItemAllocationTableRow[]; count: number }> {
+    return this.findAllAndCount<PurchaseItemAllocationTableRow>({
+      select: {
+        ...this.selection(),
+        poNumber: purchaseOrders.poNumber,
+        poStatus: purchaseOrders.status,
+        receivedPrimaryQty: sql<
+          number | null
+        >`${purchaseOrderItems.receivedPrimaryQty} - ${purchaseOrderItems.returnedPrimaryQty}`.mapWith(Number),
+        invoicedPrimaryQty: sql<number | null>`${purchaseOrderItems.invoicedPrimaryQty}`.mapWith(Number),
+      },
+      innerJoins: [
+        ...this.itemJoins(),
+        { table: purchaseSuppliers, on: eq(purchaseSuppliers.id, purchaseItemAllocations.purchaseSupplierId) },
+      ],
+      leftJoins: [
+        ...this.termJoins(),
+        { table: purchaseOrders, on: eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId) },
+      ],
+      where: and(
+        eq(purchaseItems.purchaseId, purchaseId),
+        eq(purchaseItemAllocations.purchaseItemId, itemId),
+        options.where,
+      ),
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
   // Loads an allocation of the given purchase's items with its item and unit names and its quotation number
   findDetailOnPurchase(purchaseId: string, allocationId: string): Promise<PurchaseAllocationRow | undefined> {
     return this.findById<PurchaseAllocationRow>(allocationId, {
@@ -90,6 +168,26 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
   // Returns the allocations of a leg
   findByLegId(purchaseSupplierId: string): Promise<PurchaseItemAllocation[]> {
     return this.findMany({ where: { purchaseSupplierId } });
+  }
+
+  // Loads the allocations of any of the given purchase items to any of the given legs
+  findForItemsOnLegs(purchaseItemIds: string[], purchaseSupplierIds: string[]): Promise<PurchaseItemAllocation[]> {
+    if (purchaseItemIds.length === 0 || purchaseSupplierIds.length === 0) return Promise.resolve([]);
+    return this.db
+      .select()
+      .from(purchaseItemAllocations)
+      .where(
+        and(
+          inArray(purchaseItemAllocations.purchaseItemId, purchaseItemIds),
+          inArray(purchaseItemAllocations.purchaseSupplierId, purchaseSupplierIds),
+        ),
+      );
+  }
+
+  // Inserts many allocations in one statement
+  async createMany(rows: NewPurchaseItemAllocation[]): Promise<PurchaseItemAllocation[]> {
+    if (rows.length === 0) return [];
+    return this.db.insert(purchaseItemAllocations).values(rows).returning();
   }
 
   // Loads the allocation of a purchase item to a leg
@@ -127,15 +225,15 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
         orderedUomQty: purchaseOrderItems.uomQty,
         orderedPrimaryUomQty: purchaseOrderItems.primaryUomQty,
         receivedPrimaryQty: purchaseOrderItems.receivedPrimaryQty,
+        purchasingBlockedReason: this.purchasingBlockedReasonSql(),
       },
       innerJoins: [
         ...this.itemJoins(),
         { table: purchases, on: eq(purchases.id, purchaseItems.purchaseId) },
         { table: purchaseSuppliers, on: eq(purchaseSuppliers.id, purchaseItemAllocations.purchaseSupplierId) },
+        { table: primaryUom, on: eq(primaryUom.id, inventoryItems.uomId) },
       ],
       leftJoins: [
-        { table: uom, on: eq(uom.id, purchaseItemAllocations.uomId) },
-        { table: primaryUom, on: eq(primaryUom.id, inventoryItems.uomId) },
         { table: purchaseOrderItems, on: eq(purchaseOrderItems.id, purchaseItemAllocations.purchaseOrderItemId) },
         { table: purchaseOrders, on: eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId) },
       ],
@@ -152,9 +250,27 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
 
   // Points each allocation at the PO line it became
   async linkOrderLines(links: { allocationId: string; purchaseOrderItemId: string }[]): Promise<void> {
-    for (const link of links) {
-      await this.update(link.allocationId, { purchaseOrderItemId: link.purchaseOrderItemId });
-    }
+    if (links.length === 0) return;
+    const lineOfAllocation = sql.join(
+      links.map(
+        (link) => sql`when ${eq(purchaseItemAllocations.id, link.allocationId)} then ${link.purchaseOrderItemId}::uuid`,
+      ),
+      sql` `,
+    );
+    await this.db
+      .update(purchaseItemAllocations)
+      .set({ purchaseOrderItemId: sql`case ${lineOfAllocation} end` })
+      .where(
+        inArray(
+          purchaseItemAllocations.id,
+          links.map((link) => link.allocationId),
+        ),
+      );
+  }
+
+  // Deletes every allocation of a leg
+  async deleteByLegId(purchaseSupplierId: string): Promise<void> {
+    await this.deleteMany(eq(purchaseItemAllocations.purchaseSupplierId, purchaseSupplierId));
   }
 
   // Clears the PO line of the allocations that became the given lines
@@ -165,7 +281,33 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
     });
   }
 
-  // Selects an allocation with its PO, item name, unit symbol and the number of the quotation it was awarded from
+  // Returns the unit price an allocation is ordered at, rejecting one without a price and naming its item
+  requireUnitPrice(allocation: Pick<PurchaseItemAllocation, 'unitPrice'> & { inventoryItemName: string }): bigint {
+    if (allocation.unitPrice !== null) return allocation.unitPrice;
+    throw new BadRequestException({
+      label: 'Price Missing',
+      detail: `"${allocation.inventoryItemName}" has no unit price on its allocation. Price it before ordering.`,
+    });
+  }
+
+  // Loads an allocation of the given purchase, throwing when it is not on it
+  async findOnPurchaseOrThrow(purchaseId: string, allocationId: string): Promise<PurchaseAllocationRow> {
+    const allocation = await this.findDetailOnPurchase(purchaseId, allocationId);
+    if (!allocation) throw new NotFoundException('Allocation not found.');
+    return allocation;
+  }
+
+  // Rejects an entered allocation on a purchase that requires quotations; its allocations come from quotation lines
+  assertEnteredAllowed(purchase: AllocationPurchase): void {
+    if (!purchase.quotationsRequired) return;
+    throw new BadRequestException({
+      label: 'Allocate From Quotations',
+      detail: `"${purchase.purchaseNumber}" requires quotations, so its items are allocated from posted quotation lines.`,
+    });
+  }
+
+  // Selects an allocation with its PO, item name, unit symbol, the number of the quotation it was awarded from and why the
+  // site has blocked buying its item
   private selection() {
     return {
       ...getColumns(purchaseItemAllocations),
@@ -173,21 +315,37 @@ export class PurchaseItemAllocationsDomainRepository extends PrimaryBaseReposito
       inventoryItemName: inventoryItems.name,
       uomSymbol: uom.symbol,
       quotationNumber: supplierQuotations.quotationNumber,
+      purchasingBlockedReason: this.purchasingBlockedReasonSql(),
     };
   }
 
-  // Joins the purchase item the allocation sources and its inventory item
+  // Why the purchase's site has blocked buying the allocation's item, or null while it has not
+  private purchasingBlockedReasonSql() {
+    return sql<string | null>`(${this.db
+      .select({ reason: inventoryItemSites.blockedReason })
+      .from(inventoryItemSites)
+      .innerJoin(purchases, eq(purchases.siteId, inventoryItemSites.siteId))
+      .where(
+        and(
+          eq(purchases.id, purchaseItems.purchaseId),
+          eq(inventoryItemSites.inventoryItemId, inventoryItems.id),
+          eq(inventoryItemSites.status, SiteItemStatusValues.BLOCKED),
+        ),
+      )})`;
+  }
+
+  // Joins the purchase item the allocation sources, its inventory item and the allocation's unit
   private itemJoins() {
     return [
       { table: purchaseItems, on: eq(purchaseItems.id, purchaseItemAllocations.purchaseItemId) },
       { table: inventoryItems, on: eq(inventoryItems.id, purchaseItems.inventoryItemId) },
+      { table: uom, on: eq(uom.id, purchaseItemAllocations.uomId) },
     ];
   }
 
-  // Joins the allocation's unit, the PO line it became and the quotation line it was awarded from, when any
+  // Joins the PO line the allocation became and the quotation line it was awarded from, when any
   private termJoins() {
     return [
-      { table: uom, on: eq(uom.id, purchaseItemAllocations.uomId) },
       { table: purchaseOrderItems, on: eq(purchaseOrderItems.id, purchaseItemAllocations.purchaseOrderItemId) },
       {
         table: supplierQuotationItems,

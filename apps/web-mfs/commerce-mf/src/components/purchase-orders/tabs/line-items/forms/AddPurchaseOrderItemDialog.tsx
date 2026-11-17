@@ -5,31 +5,24 @@ import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { parse } from '@vritti/quantum-ui/date-fns';
 import { Form, FormSection } from '@vritti/quantum-ui/Form';
-import { minorToMajor } from '@vritti/quantum-ui/money';
 import type { SelectOption } from '@vritti/quantum-ui/Select';
 import { Switch } from '@vritti/quantum-ui/Switch';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { FreeQtyPreview } from '@/components/FreeQtyPreview';
 import {
   type AddPurchaseOrderItemFormData,
   buildAddPurchaseOrderItemSchema,
   type PurchaseOrderDetail,
 } from '@/schemas/purchase-orders';
-import { SupplierItemSelector } from '@/selectors/supplier-item';
+import { InventoryItemSelector } from '@/selectors/inventory-item';
+import { UomSelector } from '@/selectors/uom';
 import { computeFreeQty } from '@/utils/freeQty';
 import type { PurchaseOrdersBinding } from '../../../bindings';
 import { ConversionPreview } from '../../../ConversionPreview';
-
-// Reads an optional number from a select option's additionals
-function toOptionalNumber(raw: unknown): number | undefined {
-  if (raw == null || raw === '') return undefined;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : undefined;
-}
 
 interface AddPurchaseOrderItemDialogProps {
   binding: PurchaseOrdersBinding;
@@ -38,7 +31,8 @@ interface AddPurchaseOrderItemDialogProps {
   onCancel: () => void;
 }
 
-// Orders one of the supplier's items, priced as the supplier quotes it and prefilled from the price in force
+// Orders an item the order's site carries, in one of its units, priced as the supplier quotes it; the supplier's item
+// for it at the site, when there is one, fills the unit, price, scheme and minimum order
 export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProps> = ({
   binding,
   purchaseOrder,
@@ -48,7 +42,8 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
   const mutation = binding.useAddItem({ onSuccess });
 
   const [allowDecimal, setAllowDecimal] = useState<boolean>(false);
-  const [minOrder, setMinOrder] = useState<number | undefined>();
+  // The site's rules buy the picked item only in the units the legal entity set up as the supplier's items
+  const [supplierUnitsOnly, setSupplierUnitsOnly] = useState<boolean>(false);
   const [itemCurrency, setItemCurrency] = useState<string>(purchaseOrder.currencyCode);
   const isForeign = itemCurrency !== purchaseOrder.currencyCode;
   const storedRate = purchaseOrder.conversionRates[itemCurrency];
@@ -59,32 +54,47 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     defaultValues: { uomQty: 0, hasScheme: false },
   });
 
-  const hasScheme = form.watch('hasScheme');
-  const unitPrice = form.watch('unitPrice');
-  const uomQty = form.watch('uomQty');
+  const [inventoryItemId, uomId, hasScheme, unitPrice, uomQty, enteredRate, schemeBuyQty, schemeFreeQty] = useWatch({
+    control: form.control,
+    name: [
+      'inventoryItemId',
+      'uomId',
+      'hasScheme',
+      'unitPrice',
+      'uomQty',
+      'conversionRate',
+      'schemeBuyQty',
+      'schemeFreeQty',
+    ],
+  });
+  const { data: defaults } = binding.useItemDefaults(purchaseOrder.id, inventoryItemId, uomId);
+  const minOrder = defaults?.minOrderQuantity ?? undefined;
   const belowMinOrder = minOrder != null && Number(uomQty) > 0 && Number(uomQty) < minOrder;
-  const enteredRate = form.watch('conversionRate');
-  const freeQtyPreview = computeFreeQty(uomQty, form.watch('schemeBuyQty'), form.watch('schemeFreeQty'), hasScheme);
+  const freeQtyPreview = computeFreeQty(uomQty, schemeBuyQty, schemeFreeQty, hasScheme);
 
-  // Prefills the price, scheme and minimum order from the picked supplier item; a currency without a PO rate asks for one
-  const handleItemSelect = (option: SelectOption | null) => {
-    const rawMinor = option?.additionals?.unitPrice;
-    const rawCurrency = option?.additionals?.currencyCode;
-    const currency = typeof rawCurrency === 'string' ? rawCurrency : purchaseOrder.currencyCode;
-    setAllowDecimal(option?.additionals?.allowDecimal === true);
-    setMinOrder(toOptionalNumber(option?.additionals?.minOrderQuantity));
+  // Fills the supplier's unit when none is picked, then its price and scheme in that unit; a currency without a PO rate
+  // asks for one
+  useEffect(() => {
+    if (!defaults) return;
+    if (!form.getValues('uomId') && defaults.uomId) form.setValue('uomId', defaults.uomId);
+    const currency = defaults.unitPrice?.currency ?? purchaseOrder.currencyCode;
     setItemCurrency(currency);
     const needsRate = currency !== purchaseOrder.currencyCode && !purchaseOrder.conversionRates[currency];
     form.setValue('rateCurrency', needsRate ? currency : undefined);
     form.resetField('conversionRate');
-    if (rawMinor) {
-      form.setValue('unitPrice', { currency, value: minorToMajor(rawMinor.toString(), currency) });
-    } else {
-      form.resetField('unitPrice');
-    }
-    form.setValue('schemeBuyQty', toOptionalNumber(option?.additionals?.schemeBuyQty));
-    form.setValue('schemeFreeQty', toOptionalNumber(option?.additionals?.schemeFreeQty));
-    form.setValue('hasScheme', option?.additionals?.hasScheme === true);
+    if (defaults.unitPrice) form.setValue('unitPrice', defaults.unitPrice);
+    else form.resetField('unitPrice');
+    form.setValue('schemeBuyQty', defaults.schemeBuyQty ?? undefined);
+    form.setValue('schemeFreeQty', defaults.schemeFreeQty ?? undefined);
+    form.setValue('hasScheme', defaults.schemeBuyQty != null && defaults.schemeFreeQty != null);
+  }, [defaults, form, purchaseOrder.currencyCode, purchaseOrder.conversionRates]);
+
+  // A new item starts from the supplier's unit for it, its primary unit's decimals until a unit is picked, and only the
+  // supplier's units where the site's rules require supplier items
+  const handleItemSelect = (option: SelectOption | null) => {
+    form.resetField('uomId');
+    setAllowDecimal(option?.additionals?.allowDecimal === true);
+    setSupplierUnitsOnly(option?.additionals?.supplierItemsRequired === true);
   };
 
   return (
@@ -95,7 +105,8 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
       onCancel={onCancel}
       transformSubmit={(data) => ({
         id: purchaseOrder.id,
-        supplierItemId: data.supplierItemId,
+        inventoryItemId: data.inventoryItemId,
+        uomId: data.uomId,
         uomQty: data.uomQty,
         unitPrice: data.unitPrice as CurrencyValue,
         conversionRate: data.rateCurrency ? data.conversionRate : undefined,
@@ -107,13 +118,25 @@ export const AddPurchaseOrderItemDialog: React.FC<AddPurchaseOrderItemDialogProp
     >
       <FormSection
         title="Item"
-        description={`The supplier's items set up at this order's site, priced in ${purchaseOrder.currencyCode} as of the order date.`}
-        contentClassName="block"
+        description={`An item this order's site carries, priced in ${purchaseOrder.currencyCode} as of the order date; the supplier's own item for it fills the unit and price.`}
       >
-        <SupplierItemSelector
-          name="supplierItemId"
-          params={{ supplierId: purchaseOrder.supplierId, purchaseOrderId: purchaseOrder.id }}
+        <InventoryItemSelector
+          name="inventoryItemId"
+          label="Item"
+          atSiteId={purchaseOrder.siteId}
+          supplierId={purchaseOrder.supplierId}
           onOptionSelect={handleItemSelect}
+        />
+        <UomSelector
+          name="uomId"
+          label="Unit"
+          params={
+            inventoryItemId
+              ? { inventoryItemId, ...(supplierUnitsOnly ? { soldBySupplierId: purchaseOrder.supplierId } : {}) }
+              : undefined
+          }
+          disabled={!inventoryItemId}
+          onOptionSelect={(option) => setAllowDecimal(option?.additionals?.allowDecimal === true)}
         />
       </FormSection>
 

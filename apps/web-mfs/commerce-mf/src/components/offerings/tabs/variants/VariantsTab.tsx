@@ -181,7 +181,7 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
           <StringCell
             value={
               <span className="inline-flex max-w-full items-center gap-1.5 align-middle">
-                <span className="truncate">{row.original.taxClassName ?? '—'}</span>
+                <span className="truncate">{row.original.taxClassName}</span>
                 {/* A lock rather than an "Override" badge — the name already fills a fixed column,
                     and following the offering is the norm worth no space at all */}
                 {row.original.isTaxClassOverridden && (

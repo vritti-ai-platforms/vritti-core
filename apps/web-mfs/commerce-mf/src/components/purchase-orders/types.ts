@@ -10,6 +10,7 @@ import type {
   CreatePurchaseOrderPayload,
   PurchaseOrderData,
   PurchaseOrderDetail,
+  PurchaseOrderItemDefaults,
   PurchaseOrderItemRef,
   PurchaseOrderItemsTableResponse,
   PurchaseOrderProblemsResponse,
@@ -40,6 +41,11 @@ export type UsePurchaseOrdersTable = () => {
 };
 export type UsePurchaseOrder = (id: string) => { data: PurchaseOrderDetail };
 export type UsePurchaseOrderItemIds = (id: string) => { data: string[] };
+export type UsePurchaseOrderItemDefaults = (
+  id: string,
+  inventoryItemId: string | undefined,
+  uomId: string | undefined,
+) => { data: PurchaseOrderItemDefaults | undefined; isFetching: boolean };
 export type UsePurchaseOrderItemsTable = (id: string) => {
   data: PurchaseOrderItemsTableResponse | undefined;
   isLoading: boolean;

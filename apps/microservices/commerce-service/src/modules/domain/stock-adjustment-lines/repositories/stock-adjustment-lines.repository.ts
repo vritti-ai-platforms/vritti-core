@@ -20,8 +20,8 @@ export { quantLocations };
 export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   locationName: string | null;
   locationPath: string | null;
-  uomName: string | null;
-  uomSymbol: string | null;
+  uomName: string;
+  uomSymbol: string;
   quantLotNumber: string | null;
   quantLocationId: string | null;
   quantLocationName: string | null;
@@ -90,12 +90,12 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
         lineItemsCount: lineItemsCountSql,
       },
+      innerJoins: [{ table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) }],
       leftJoins: [
         { table: stockAdjustmentLots, on: eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id) },
         { table: locations, on: eq(stockAdjustmentLines.locationId, locations.id) },
         { table: inventoryItemQuants, on: eq(stockAdjustmentLines.quantId, inventoryItemQuants.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
-        { table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) },
         { table: quantLocations, on: eq(inventoryItemQuants.locationId, quantLocations.id) },
       ],
       where: combinedWhere,
@@ -241,11 +241,11 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
         lineItemsCount: lineItemsCountSql,
       })
       .from(stockAdjustmentLines)
+      .innerJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
       .leftJoin(stockAdjustmentLots, eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id))
       .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
       .leftJoin(inventoryItemQuants, eq(stockAdjustmentLines.quantId, inventoryItemQuants.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
-      .leftJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
       .leftJoin(quantLocations, eq(inventoryItemQuants.locationId, quantLocations.id))
       .where(where ?? sql`TRUE`)
       .orderBy(...(orderBy?.length ? orderBy : [desc(stockAdjustmentLines.createdAt)]));

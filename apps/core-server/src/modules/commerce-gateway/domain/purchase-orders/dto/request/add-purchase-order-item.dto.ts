@@ -3,9 +3,16 @@ import { CurrencyAmountDto, IsCurrency } from '@vritti/api-sdk/money';
 import { IsBoolean, IsDateString, IsNumber, IsOptional, IsPositive, IsUUID, Matches, Min } from 'class-validator';
 
 export class AddPurchaseOrderItemDto {
-  @ApiProperty({ description: 'Supplier item ID' })
+  @ApiProperty({ description: "Inventory item the PO's site carries" })
   @IsUUID('7')
-  supplierItemId: string;
+  inventoryItemId: string;
+
+  @ApiProperty({
+    description:
+      "One of the item's units; the supplier's item in it, when there is one, defaults the scheme and delivery",
+  })
+  @IsUUID('7')
+  uomId: string;
 
   @ApiProperty({ description: 'Ordered uomQty', example: 100 })
   @IsNumber({ maxDecimalPlaces: 3 })
@@ -15,14 +22,14 @@ export class AddPurchaseOrderItemDto {
   @ApiProperty({
     type: CurrencyAmountDto,
     description:
-      "Unit price in the PO currency, or in the supplier item's own currency to be converted at the PO's rate for it",
+      "Unit price in the PO currency, or in another of the supplier's currencies to be converted at the PO's rate for it",
   })
   @IsCurrency()
   unitPrice: CurrencyAmountDto;
 
   @ApiPropertyOptional({
     description:
-      "1 unit of the supplier item's currency in the PO currency, when unitPrice is in the item's currency and no rate is stored on the PO for it yet; once given it applies to every line in that currency",
+      "1 unit of unitPrice's currency in the PO currency, when it is not the PO currency and no rate is stored on the PO for it yet; once given it applies to every line in that currency",
     example: 83.25,
   })
   @IsOptional()

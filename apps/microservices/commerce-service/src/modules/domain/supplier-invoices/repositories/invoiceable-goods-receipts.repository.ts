@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { aliasedTable, and, asc, eq, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { aliasedTable, and, asc, eq, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   currentSiteId,
   type GoodsReceiptStatus,
@@ -36,6 +36,7 @@ export type InvoiceableGoodsReceiptRow = {
   mrp: bigint | null;
   lotCount: number;
   purchaseOrderId: string;
+  purchaseId: string | null;
   poNumber: string;
   poStatus: PurchaseOrderStatus;
   poSupplierId: string;
@@ -49,16 +50,17 @@ export type InvoiceableGoodsReceiptRow = {
   inventoryItemId: string;
   inventoryItemName: string | null;
   uomId: string;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   acceptedPrimaryQty: number;
   invoicedPrimaryQty: number;
 };
 
 export type InvoiceableGoodsReceiptFilter = {
-  supplierId: string;
+  supplierId?: string;
   siteId?: string;
   purchaseOrderId?: string;
+  purchaseOrderIds?: string[];
   excludeLineId?: string;
 };
 
@@ -68,8 +70,8 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
     super(database, goodsReceiptItems);
   }
 
-  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site with primary quantity
-  // left to invoice, oldest receipt first
+  // Returns the posted receipt lots (or items without lots) of a supplier's or the given orders at a site with primary
+  // quantity left to invoice, oldest receipt first
   async findInvoiceable(filter: InvoiceableGoodsReceiptFilter): Promise<InvoiceableGoodsReceiptRow[]> {
     const accepted = this.acceptedPrimary();
     const invoiced = this.invoicedPrimary(filter.excludeLineId);
@@ -80,15 +82,16 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .innerJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
       .innerJoin(inventoryItems, eq(inventoryItems.id, goodsReceiptItems.inventoryItemId))
-      .leftJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
-      .leftJoin(uom, eq(uom.id, inventoryItems.uomId))
+      .innerJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
+      .innerJoin(uom, eq(uom.id, inventoryItems.uomId))
       .leftJoin(goodsReceiptLots, eq(goodsReceiptLots.goodsReceiptItemId, goodsReceiptItems.id))
       .where(
         and(
-          eq(purchaseOrders.supplierId, filter.supplierId),
+          filter.supplierId ? eq(purchaseOrders.supplierId, filter.supplierId) : undefined,
           eq(purchaseOrders.siteId, filter.siteId ?? currentSiteId()),
           eq(goodsReceipts.status, GoodsReceiptStatusValues.POSTED),
           filter.purchaseOrderId ? eq(purchaseOrders.id, filter.purchaseOrderId) : undefined,
+          filter.purchaseOrderIds ? inArray(purchaseOrders.id, filter.purchaseOrderIds) : undefined,
           sql`${accepted} - ${invoiced} > 0`,
         ),
       )
@@ -116,8 +119,8 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .innerJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
       .innerJoin(inventoryItems, eq(inventoryItems.id, goodsReceiptItems.inventoryItemId))
-      .leftJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
-      .leftJoin(uom, eq(uom.id, inventoryItems.uomId))
+      .innerJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
+      .innerJoin(uom, eq(uom.id, inventoryItems.uomId))
       .leftJoin(goodsReceiptLots, lotJoin as SQL)
       .where(eq(goodsReceiptItems.id, goodsReceiptItemId))
       .limit(1);
@@ -134,8 +137,8 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
       .innerJoin(purchaseOrders, eq(purchaseOrders.id, purchaseOrderItems.purchaseOrderId))
       .innerJoin(inventoryItems, eq(inventoryItems.id, goodsReceiptItems.inventoryItemId))
-      .leftJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
-      .leftJoin(uom, eq(uom.id, inventoryItems.uomId))
+      .innerJoin(receiptUom, eq(receiptUom.id, goodsReceiptItems.uomId))
+      .innerJoin(uom, eq(uom.id, inventoryItems.uomId))
       .leftJoin(goodsReceiptLots, eq(goodsReceiptLots.id, supplierInvoiceLines.goodsReceiptLotId))
       .where(
         and(
@@ -159,6 +162,7 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
       mrp: goodsReceiptLots.mrp,
       lotCount: this.db.$count(goodsReceiptLots, eq(goodsReceiptLots.goodsReceiptItemId, goodsReceiptItems.id)),
       purchaseOrderId: purchaseOrders.id,
+      purchaseId: purchaseOrders.purchaseId,
       poNumber: purchaseOrders.poNumber,
       poStatus: purchaseOrders.status,
       poSupplierId: purchaseOrders.supplierId,

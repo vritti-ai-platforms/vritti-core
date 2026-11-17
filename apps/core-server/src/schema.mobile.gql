@@ -506,12 +506,12 @@ type InventoryItem {
   tracking: String!
   pickStrategy: String!
   categoryId: String!
-  categoryName: String
+  categoryName: String!
   description: String
   uomId: String!
-  uomSymbol: String
+  uomSymbol: String!
   taxClassId: String!
-  taxClassName: String
+  taxClassName: String!
   hsnCode: String
   canDelete: Boolean!
   createdAt: String!

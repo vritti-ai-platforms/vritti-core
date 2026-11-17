@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { SupplierItemPriceResponseDto } from './supplier-item-price-response.dto';
 
 export class ItemSupplierPriceResponseDto extends SupplierItemPriceResponseDto {
@@ -11,6 +11,6 @@ export class ItemSupplierPriceResponseDto extends SupplierItemPriceResponseDto {
   @ApiProperty({ description: 'Code of the supplier' })
   supplierCode: string;
 
-  @ApiPropertyOptional({ description: 'Unit the price is per', nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: 'Unit the price is per' })
+  uomSymbol: string;
 }

@@ -9,6 +9,7 @@ import type { AllocationWithLegRow } from '@domain/purchase-item-allocations/rep
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { PurchaseTypeLabels } from '@domain/purchase-suppliers/dto/entity/purchase-supplier.dto';
+import { PurchaseSuppliersDomainRepository } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type {
   ReceiveWithInvoiceDto,
@@ -16,7 +17,7 @@ import type {
 } from '@domain/purchases/dto/request/receive-with-invoice.dto';
 import type { ReceiveWithInvoiceOpenLinesQueryDto } from '@domain/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import type { UpdateReceiveWithInvoiceDto } from '@domain/purchases/dto/request/update-receive-with-invoice.dto';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import type { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
 import type { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
@@ -71,8 +72,9 @@ export class PurchasesReceiveWithInvoicesService {
 
   constructor(
     private readonly database: PrimaryDatabaseService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly legsService: PurchaseSuppliersDomainService,
+    private readonly purchaseSuppliersRepository: PurchaseSuppliersDomainRepository,
     private readonly allocationsService: PurchaseItemAllocationsDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly deliveryLinesService: InboundDeliveryLinesDomainService,
@@ -285,8 +287,10 @@ export class PurchasesReceiveWithInvoicesService {
     const plans: ReceiveWithInvoicePurchasePlan[] = [];
     for (const purchaseLines of Object.values(_.groupBy(lines, (planned) => planned.allocation.purchaseId))) {
       const [{ allocation }] = purchaseLines;
-      const purchase = await this.purchasesService.findDetailOrThrow(allocation.purchaseId);
-      const leg = await this.legsService.findOnPurchaseOrThrow(purchase.id, allocation.purchaseSupplierId);
+      const [purchase, leg] = await Promise.all([
+        this.purchasesRepository.findDetailOrThrow(allocation.purchaseId),
+        this.purchaseSuppliersRepository.findOnPurchaseOrThrow(allocation.purchaseId, allocation.purchaseSupplierId),
+      ]);
       const unordered = _.uniqBy(
         purchaseLines.filter((planned) => planned.allocation.purchaseOrderItemId === null),
         (planned) => planned.allocation.id,
@@ -436,9 +440,14 @@ export class PurchasesReceiveWithInvoicesService {
 
   // Rejects a default or line location that is not the site's
   private async assertLocationsAtSite(dto: ReceiveWithInvoiceDto, siteId?: string): Promise<void> {
-    await this.locationsService.assertAtSite(dto.defaultLocationId, 'defaultLocationId', siteId);
-    const lineLocationIds = _.uniq(dto.lines.flatMap((line) => (line.locationId ? [line.locationId] : [])));
-    for (const locationId of lineLocationIds) await this.locationsService.assertAtSite(locationId, 'lines', siteId);
+    await Promise.all([
+      this.locationsService.assertAtSite(dto.defaultLocationId, 'defaultLocationId', siteId),
+      this.locationsService.assertAllAtSite(
+        dto.lines.flatMap((line) => (line.locationId ? [line.locationId] : [])),
+        'lines',
+        siteId,
+      ),
+    ]);
   }
 
   // Rejects changing the supplier or currency of a drafted invoice; a different one is a new invoice
@@ -467,23 +476,19 @@ export class PurchasesReceiveWithInvoicesService {
   }
 
   // Loads the supplier's legs on the purchases an invoice names
-  private async findLegsOf(invoice: SupplierInvoiceRow): Promise<PurchaseSupplier[]> {
-    const legs: PurchaseSupplier[] = [];
-    for (const purchase of invoice.purchases) {
-      const leg = await this.legsService.findForSupplier(purchase.id, invoice.supplierId);
-      if (leg) legs.push(leg);
-    }
-    return legs;
+  private findLegsOf(invoice: SupplierInvoiceRow): Promise<PurchaseSupplier[]> {
+    return this.purchaseSuppliersRepository.findForSupplierOnPurchases(
+      invoice.purchases.map((purchase) => purchase.id),
+      invoice.supplierId,
+    );
   }
 
   // Loads the receipt lines of an invoice's receipt items, with their lots and locations
-  private async findReceiptLines(documents: ReceiveWithInvoiceDocuments): Promise<GoodsReceiptLineRow[]> {
+  private findReceiptLines(documents: ReceiveWithInvoiceDocuments): Promise<GoodsReceiptLineRow[]> {
     const itemIds = _.uniq(
       documents.lines.flatMap((line) => (line.goodsReceiptItemId ? [line.goodsReceiptItemId] : [])),
     );
-    const lines: GoodsReceiptLineRow[] = [];
-    for (const itemId of itemIds) lines.push(...(await this.receiptLinesService.findLinesOfItem(itemId)));
-    return lines;
+    return this.receiptLinesService.findLinesOfItems(itemIds);
   }
 
   // Loads a Receive with Invoice, throwing when the invoice is out of reach, cancelled or not received with its invoice

@@ -17,11 +17,11 @@ export class SiteSelectQueryDto extends SelectOptionsQueryDto {
   ids?: string[];
 
   @ApiPropertyOptional({
-    description: 'Lists only the sites this inventory item has no stock levels at yet, the ones they can be set at',
+    description: 'Lists only the sites that do not carry this inventory item yet, the ones it can be added to',
   })
   @IsOptional()
   @IsUUID('7')
-  withoutStockLevelsOf?: string;
+  notCarrying?: string;
 
   @ApiPropertyOptional({ description: "Lists sites by this supplier's enrollments; not with inventoryItemId" })
   @IsOptional()

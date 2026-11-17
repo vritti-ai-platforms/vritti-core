@@ -27,11 +27,13 @@ export const ORG_INVENTORY_ITEMS = {
 export const LE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'le.inventory-items.view',
-  siteStockLevels: {
-    view: 'le.inventory-items.site-stock-levels.view',
-    add: 'le.inventory-items.site-stock-levels.add',
-    edit: 'le.inventory-items.site-stock-levels.edit',
-    delete: 'le.inventory-items.site-stock-levels.delete',
+  // The sites that carry the item: add it to a site, change its replenishment there, block its purchasing, remove it
+  sites: {
+    view: 'le.inventory-items.sites.view',
+    add: 'le.inventory-items.sites.add',
+    edit: 'le.inventory-items.sites.edit',
+    block: 'le.inventory-items.sites.block',
+    delete: 'le.inventory-items.sites.delete',
   },
   prices: {
     view: 'le.inventory-items.prices.view',
@@ -47,11 +49,13 @@ export const LE_INVENTORY_ITEMS = {
 export const SITE_INVENTORY_ITEMS = {
   featureCode: 'inventory-items',
   view: 'site.inventory-items.view',
-  stockLevels: {
-    view: 'site.inventory-items.stock-levels.view',
-    add: 'site.inventory-items.stock-levels.add',
-    edit: 'site.inventory-items.stock-levels.edit',
-    delete: 'site.inventory-items.stock-levels.delete',
+  // How this site carries the item: add it to the site, change its replenishment, block its purchasing, remove it
+  setup: {
+    view: 'site.inventory-items.setup.view',
+    add: 'site.inventory-items.setup.add',
+    edit: 'site.inventory-items.setup.edit',
+    block: 'site.inventory-items.setup.block',
+    delete: 'site.inventory-items.setup.delete',
   },
   prices: {
     view: 'site.inventory-items.prices.view',

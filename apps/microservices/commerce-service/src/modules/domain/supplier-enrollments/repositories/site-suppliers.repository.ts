@@ -6,6 +6,7 @@ import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import {
   currentSiteId,
+  hasSupplierItem,
   type PartyIdentifierType,
   parties,
   partyBankAccounts,
@@ -82,13 +83,14 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
     return row;
   }
 
-  // Paginated supplier options of the legal entity with each one's enrollment at the site; a picked value resolves even
-  // when it no longer passes the picker's filters
+  // Paginated supplier options of the legal entity with each one's enrollment at the site and, with suppliedItemIds,
+  // whether it supplies the item there; a picked value resolves even when it no longer passes the picker's filters
   findForSiteSelect(
     legalEntityId: string,
     query: SupplierEnrollmentSelectQueryDto,
-    siteId?: string,
+    { siteId, onlySupplying }: { siteId?: string; onlySupplying?: boolean } = {},
   ): Promise<SelectQueryResult> {
+    const supplies = query.suppliedItemIds?.length ? hasSupplierItem(suppliers.id, query.suppliedItemIds) : undefined;
     const conditions: SQL[] = [eq(suppliers.legalEntityId, legalEntityId)];
     if (!query.values) {
       if (query.enrollmentStatus) {
@@ -104,6 +106,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
           or(isNull(supplierEnrollments.id), eq(supplierEnrollments.isActive, true)) as SQL,
         );
       }
+      if (supplies && onlySupplying) conditions.push(supplies);
     }
     return this.findForSelect({
       ...selectPageOptions(query),
@@ -121,6 +124,7 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
       additionalExpressions: {
         enrollmentStatus: sql`case when ${supplierEnrollments.id} is null then ${SupplierEnrollmentStatusValues.NOT_ENROLLED} else ${SupplierEnrollmentStatusValues.ENROLLED} end`,
         isActive: sql`${suppliers.isActive} and coalesce(${supplierEnrollments.isActive}, true)`,
+        ...(supplies ? { suppliesItem: sql<boolean>`${supplies}` } : {}),
       },
       searchKeys: ['displayName', 'code'],
       orderByKey: 'displayName',

@@ -9,7 +9,7 @@ export class ItemSupplierPriceComparisonDto {
   supplierName: string;
   supplierCode: string;
   // The unit the supplier quotes the item in
-  quotedUomSymbol: string | null;
+  quotedUomSymbol: string;
   isPreferred: boolean;
   // The price in force on the date, per the quoted unit, and its window
   currentPrice: CurrencyAmountDto | null;

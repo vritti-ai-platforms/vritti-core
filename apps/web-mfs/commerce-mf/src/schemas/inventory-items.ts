@@ -2,6 +2,12 @@ import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCodeField } from '@vritti/quantum-ui/zod';
 import type { MeasureFigures } from './measures';
+import {
+  type ReplenishmentMethod,
+  ReplenishmentMethodValues,
+  type SiteItemStatus,
+  SiteItemStatusValues,
+} from './site-items';
 
 const INVENTORY_ITEM_TYPES = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'PACKAGING', 'CONSUMABLE'] as const;
 
@@ -101,12 +107,14 @@ export interface InventoryItemData extends MeasureFigures {
   tracking: InventoryTracking;
   pickStrategy: InventoryPickStrategy;
   categoryId: string;
-  categoryName: string | null;
+  categoryName: string;
   description: string | null;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
+  // Whether the item's primary unit can be counted in fractions
+  uomAllowDecimal: boolean;
   taxClassId: string;
-  taxClassName: string | null;
+  taxClassName: string;
   hsnCode: string | null;
   defaultMrp: CurrencyValue | null;
   canDelete: boolean;
@@ -114,20 +122,25 @@ export interface InventoryItemData extends MeasureFigures {
   updatedAt: string;
 }
 
-// Where a site's on-hand quantity of an item sits against its stock levels
+// Where a site's on-hand quantity of an item sits: against its levels with a reorder point, only whether there is any
+// with manual replenishment
 export const StockStatusValues = {
   OUT_OF_STOCK: 'OUT_OF_STOCK',
   BELOW_SAFETY_STOCK: 'BELOW_SAFETY_STOCK',
   REORDER: 'REORDER',
   HEALTHY: 'HEALTHY',
   OVER_MAX: 'OVER_MAX',
+  IN_STOCK: 'IN_STOCK',
 } as const;
 export type StockStatus = (typeof StockStatusValues)[keyof typeof StockStatusValues];
 
-// The site stock table's status filter options: whether an item has stock levels set at all, each stock status, and
-// the band between the safety stock and the reorder point on its own
+// The site stock table's status filter options: whether the site carries an item at all, whether it has blocked
+// buying it, whether it keeps no stock levels (manual replenishment), each stock status, and the band between the
+// safety stock and the reorder point on its own
 export const StockStatusFilterValues = {
-  HAS_STOCK_LEVELS: 'HAS_STOCK_LEVELS',
+  AT_SITE: 'AT_SITE',
+  NOT_AT_SITE: 'NOT_AT_SITE',
+  BLOCKED: 'BLOCKED',
   NO_STOCK_LEVELS: 'NO_STOCK_LEVELS',
   BETWEEN_SAFETY_STOCK_AND_REORDER: 'BETWEEN_SAFETY_STOCK_AND_REORDER',
   ...StockStatusValues,
@@ -157,36 +170,52 @@ export const stockStatusConfig: Record<
   },
   [StockStatusValues.HEALTHY]: {
     label: 'Healthy',
-    tip: 'Above the reorder point and within the max level',
+    tip: 'Above the reorder point and within the maximum stock',
     variant: 'success',
     fill: 'bg-success',
   },
   [StockStatusValues.OVER_MAX]: {
-    label: 'Over Max',
-    tip: 'Above the max level',
+    label: 'Above Maximum',
+    tip: 'Above the maximum stock',
     variant: 'excess',
     fill: 'bg-group-violet',
   },
+  [StockStatusValues.IN_STOCK]: {
+    label: 'In Stock',
+    tip: 'Some on hand; replenished manually, so no levels are kept',
+    variant: 'success',
+    fill: 'bg-success',
+  },
 };
 
-// An item's stock at one site, as the stock level cell draws it
 export interface SiteStockData {
   stockStatus: StockStatus | null;
+  replenishment: ReplenishmentMethod | null;
   onHand: number;
   stockValue: CurrencyValue;
   reorderPoint: number | null;
   safetyStock: number | null;
-  maxStockLevel: number | null;
+  maxStock: number | null;
   locations: SiteStockLocationData[];
 }
 
-// An item's stock at a site and its levels there, as the inventory item picker returns them in each option's additionals
-// once it is asked for the items with stock levels at a site
-export const siteStockLevelsAdditionalsSchema = z.object({
+// An item's primary unit, as the inventory item picker returns it in every option's additionals
+export const itemUnitAdditionalsSchema = z.object({
+  uomSymbol: z.string(),
+  // Whether the unit can be counted in fractions
+  allowDecimal: z.boolean(),
+});
+
+// An item's stock at a site and how the site carries it, as the inventory item picker returns them in each option's
+// additionals once it is asked for the items at a site
+export const siteItemAdditionalsSchema = itemUnitAdditionalsSchema.extend({
   onHand: z.number(),
-  safetyStock: z.number(),
-  reorderPoint: z.number(),
-  maxStockLevel: z.number(),
+  siteItemStatus: z.enum(SiteItemStatusValues),
+  blockedReason: z.string().nullable(),
+  replenishment: z.enum(ReplenishmentMethodValues),
+  safetyStock: z.number().nullable(),
+  reorderPoint: z.number().nullable(),
+  maxStock: z.number().nullable(),
   stockStatus: z.enum(StockStatusValues),
   stockValue: z.object({ currency: z.string(), value: z.string() }),
   locations: z.array(
@@ -199,16 +228,15 @@ export const siteStockLevelsAdditionalsSchema = z.object({
       earliestExpiry: z.string().nullable(),
     }),
   ),
-  uomSymbol: z.string().nullable(),
-  // Whether the item's primary unit can be counted in fractions; false without a unit
-  allowDecimal: z.boolean().nullable(),
 });
-export type SiteStockLevelsAdditionals = z.infer<typeof siteStockLevelsAdditionalsSchema>;
+export type SiteItemAdditionals = z.infer<typeof siteItemAdditionalsSchema>;
 
 // The status context filter both stock tables share: the server widens a shortfall to every worse one, so Below Reorder
 // also lists Below Safety Stock and Out of Stock, while Between Safety Stock and Reorder is that band alone
 export const stockStatusFilterOptions = [
-  { label: 'Has Stock Levels', value: StockStatusFilterValues.HAS_STOCK_LEVELS },
+  { label: 'At Site', value: StockStatusFilterValues.AT_SITE },
+  { label: 'Not at Site', value: StockStatusFilterValues.NOT_AT_SITE },
+  { label: 'Purchasing Blocked', value: StockStatusFilterValues.BLOCKED },
   { label: 'No Stock Levels', value: StockStatusFilterValues.NO_STOCK_LEVELS },
   { label: stockStatusConfig.OUT_OF_STOCK.label, value: StockStatusFilterValues.OUT_OF_STOCK },
   { label: stockStatusConfig.BELOW_SAFETY_STOCK.label, value: StockStatusFilterValues.BELOW_SAFETY_STOCK },
@@ -216,13 +244,16 @@ export const stockStatusFilterOptions = [
   { label: stockStatusConfig.REORDER.label, value: StockStatusFilterValues.REORDER },
   { label: stockStatusConfig.HEALTHY.label, value: StockStatusFilterValues.HEALTHY },
   { label: stockStatusConfig.OVER_MAX.label, value: StockStatusFilterValues.OVER_MAX },
+  { label: stockStatusConfig.IN_STOCK.label, value: StockStatusFilterValues.IN_STOCK },
 ];
 
-// The status filter for items that all have stock levels set: every option but whether they are set at all
-export const stockLevelStatusFilterOptions = stockStatusFilterOptions.filter(
+// The status filter of the purchase item picker, which lists only the items the site carries and can buy: every option
+// but whether it carries them at all and whether buying them is blocked
+export const purchasableStatusFilterOptions = stockStatusFilterOptions.filter(
   (option) =>
-    option.value !== StockStatusFilterValues.HAS_STOCK_LEVELS &&
-    option.value !== StockStatusFilterValues.NO_STOCK_LEVELS,
+    option.value !== StockStatusFilterValues.AT_SITE &&
+    option.value !== StockStatusFilterValues.NOT_AT_SITE &&
+    option.value !== StockStatusFilterValues.BLOCKED,
 );
 
 export interface SiteStockLocationData {
@@ -235,10 +266,13 @@ export interface SiteStockLocationData {
 }
 
 export interface SiteStockTableItemData extends InventoryItemData {
-  hasStockLevels: boolean;
+  atSite: boolean;
+  siteItemStatus: SiteItemStatus | null;
+  blockedReason: string | null;
+  replenishment: ReplenishmentMethod | null;
   reorderPoint: number | null;
   safetyStock: number | null;
-  maxStockLevel: number | null;
+  maxStock: number | null;
   onHand: number;
   stockValue: CurrencyValue;
   stockStatus: StockStatus | null;

@@ -24,7 +24,7 @@ interface StorageTabProps {
 
 export const StorageTab: React.FC<StorageTabProps> = ({ item }) => {
   const editFiguresDialog = useDialog();
-  const unit = item.uomSymbol ?? 'unit';
+  const unit = item.uomSymbol;
 
   return (
     <div className="flex flex-col gap-6">

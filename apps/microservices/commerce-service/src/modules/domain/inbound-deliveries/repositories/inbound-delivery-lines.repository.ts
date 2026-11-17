@@ -27,7 +27,7 @@ export type InboundDeliveryLineRow = InboundDeliveryLine & {
   inventoryItemId: string;
   inventoryItemName: string | null;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   allowDecimal: boolean;
   poUomQty: number;
   poPrimaryUomQty: number;

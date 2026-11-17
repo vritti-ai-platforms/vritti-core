@@ -154,6 +154,22 @@ export class PurchaseLegProgressResponseDto {
   invoicedPrimaryQty: number;
 }
 
+export class PurchaseLegBlockersResponseDto {
+  @ApiPropertyOptional({ description: 'Why the supplier cannot be cancelled now', type: String, nullable: true })
+  cancel: string | null;
+
+  @ApiPropertyOptional({ description: 'Why the supplier cannot be closed now', type: String, nullable: true })
+  close: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Why the supplier cannot be submitted or its orders placed: the site has blocked buying an item allocated to it',
+    type: String,
+    nullable: true,
+  })
+  order: string | null;
+}
+
 export class PurchaseLegResponseDto {
   @ApiProperty({ description: 'Leg ID' })
   id: string;
@@ -191,6 +207,19 @@ export class PurchaseLegResponseDto {
   @ApiPropertyOptional({ description: 'Why the supplier was closed', type: String, nullable: true })
   closeReason: string | null;
 
+  @ApiPropertyOptional({
+    description: 'When the supplier stopped expecting goods; it closes once invoiced',
+    type: String,
+    nullable: true,
+  })
+  receivingClosedAt: string | null;
+
+  @ApiPropertyOptional({ description: 'When the supplier was cancelled', type: String, nullable: true })
+  cancelledAt: string | null;
+
+  @ApiPropertyOptional({ description: 'Why the supplier was cancelled', type: String, nullable: true })
+  cancelReason: string | null;
+
   @ApiPropertyOptional({ description: 'Last time the leg was started', type: String, nullable: true })
   submittedAt: string | null;
 
@@ -225,7 +254,13 @@ export class PurchaseLegResponseDto {
   })
   rejection: PurchaseLegRejectionResponseDto | null;
 
-  @ApiProperty({ type: [PurchaseAllocationResponseDto], description: "The leg's allocations" })
+  @ApiProperty({ description: 'Number of allocated lines' })
+  lineCount: number;
+
+  @ApiProperty({
+    type: [PurchaseAllocationResponseDto],
+    description: "The leg's allocations; empty on a table row, where only the count comes",
+  })
   allocations: PurchaseAllocationResponseDto[];
 
   @ApiProperty({
@@ -246,4 +281,7 @@ export class PurchaseLegResponseDto {
     isArray: true,
   })
   availableActions: PurchaseLegAction[];
+
+  @ApiProperty({ type: () => PurchaseLegBlockersResponseDto, description: 'Why the leg cannot be cancelled or closed' })
+  blockers: PurchaseLegBlockersResponseDto;
 }

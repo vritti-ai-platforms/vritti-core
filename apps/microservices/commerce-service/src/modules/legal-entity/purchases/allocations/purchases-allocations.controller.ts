@@ -26,7 +26,7 @@ export class LePurchasesAllocationsController {
   @MessagePattern({ cmd: 'le.purchases.allocations.createFromQuotation' })
   createFromQuotation(@Payload() dto: CreatePurchaseAllocationsFromQuotationDto): Promise<SuccessResponseDto> {
     this.logger.log(
-      `le.purchases.allocations.createFromQuotation — id: ${dto.id}, lines: ${dto.supplierQuotationItemIds.length}`,
+      `le.purchases.allocations.createFromQuotation — id: ${dto.id}, quotation: ${dto.supplierQuotationId ?? 'lines'}`,
     );
     return this.service.createFromQuotation(dto);
   }

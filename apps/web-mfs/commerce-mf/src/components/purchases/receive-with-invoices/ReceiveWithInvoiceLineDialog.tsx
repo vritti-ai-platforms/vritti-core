@@ -64,10 +64,13 @@ export const ReceiveWithInvoiceLineDialog: React.FC<ReceiveWithInvoiceLineDialog
       openLines.map((open) => ({
         value: open.allocationId,
         label: open.inventoryItemName,
-        description: [
-          open.purchaseNumber,
-          `${fmt.number(open.openQty).primary}${open.uomSymbol ? ` ${open.uomSymbol}` : ''} left to receive`,
-        ].join(' · '),
+        disabled: open.orderBlockedReason !== null,
+        description:
+          open.orderBlockedReason !== null
+            ? `Purchasing blocked at this site: ${open.orderBlockedReason}`
+            : [open.purchaseNumber, `${fmt.number(open.openQty).primary} ${open.uomSymbol} left to receive`].join(
+                ' · ',
+              ),
       })),
     [openLines, fmt],
   );
@@ -82,7 +85,7 @@ export const ReceiveWithInvoiceLineDialog: React.FC<ReceiveWithInvoiceLineDialog
     }
   };
 
-  const unit = picked?.uomSymbol ? ` (${picked.uomSymbol})` : '';
+  const unit = picked ? ` (${picked.uomSymbol})` : '';
 
   return (
     <Form form={form} onSubmit={onSave} onCancel={onCancel}>
@@ -134,7 +137,7 @@ export const ReceiveWithInvoiceLineDialog: React.FC<ReceiveWithInvoiceLineDialog
           <DatePicker name="manufacturingDate" label="Manufactured (optional)" />
           <CurrencyField
             name="mrp"
-            label={`MRP${picked.primaryUomSymbol ? ` per ${picked.primaryUomSymbol}` : ''}`}
+            label={`MRP per ${picked.primaryUomSymbol}`}
             currencyCode={leCurrencyCode}
             permission={binding.mrpEditPermission}
           />

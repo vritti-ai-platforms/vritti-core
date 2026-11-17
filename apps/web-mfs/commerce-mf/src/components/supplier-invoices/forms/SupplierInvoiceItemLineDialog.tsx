@@ -86,7 +86,7 @@ export const SupplierInvoiceItemLineDialog: React.FC<SupplierInvoiceItemLineDial
           receipt.grNumber,
           receipt.poNumber,
           receipt.lotNumber ? `Batch ${receipt.lotNumber}` : null,
-          `${fmt.number(receipt.openQty).primary}${receipt.uomSymbol ? ` ${receipt.uomSymbol}` : ''} to invoice`,
+          `${fmt.number(receipt.openQty).primary} ${receipt.uomSymbol} to invoice`,
         ]
           .filter(Boolean)
           .join(' · '),
@@ -126,7 +126,7 @@ export const SupplierInvoiceItemLineDialog: React.FC<SupplierInvoiceItemLineDial
     description: data.description.trim() || undefined,
   });
 
-  const unit = picked?.uomSymbol ? ` (${picked.uomSymbol})` : '';
+  const unit = picked ? ` (${picked.uomSymbol})` : '';
   const body = (
     <>
       <div className="flex flex-col gap-6">
@@ -152,7 +152,7 @@ export const SupplierInvoiceItemLineDialog: React.FC<SupplierInvoiceItemLineDial
             <DetailField className="px-4 py-2" label="MRP" type="currency" value={invoiceLineMrp(picked)} />
             <DetailField className="px-4 py-2" label="Order Price" type="currency" value={picked.poUnitPrice} />
             <DetailField className="px-4 py-2" label={`Left to Invoice${unit}`} type="number" value={picked.openQty} />
-            {picked.primaryUomSymbol && picked.primaryUomSymbol !== picked.uomSymbol && (
+            {picked.primaryUomSymbol !== picked.uomSymbol && (
               <DetailField
                 className="px-4 py-2"
                 label={`Left to Invoice (${picked.primaryUomSymbol})`}

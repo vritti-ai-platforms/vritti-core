@@ -21,14 +21,15 @@ export interface ReceiveWithInvoiceOpenLine {
   inventoryItemName: string;
   isLotTracked: boolean;
   uomId: string;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   allocatedQty: number;
   receivedQty: number;
   openQty: number;
   unitPrice: CurrencyValue;
   isPriced: boolean;
   purchaseOrderItemId: string | null;
+  orderBlockedReason: string | null;
 }
 
 export interface ReceiveWithInvoiceLinePayload {
@@ -63,7 +64,7 @@ export interface ReceiveWithInvoicePayload {
 export interface ReceiveWithInvoiceLine {
   allocationId: string;
   inventoryItemName: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   isLotTracked: boolean;
   purchaseId: string;
   purchaseNumber: string;

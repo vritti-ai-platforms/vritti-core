@@ -3,7 +3,7 @@ import {
   type PurchaseLegAction,
   PurchaseSupplierDto,
 } from '@domain/purchase-suppliers/dto/entity/purchase-supplier.dto';
-import type { LegProgress } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
+import type { LegBlockers, LegProgress } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type {
   GoodsReceiptStatus,
@@ -97,16 +97,27 @@ export class PurchaseLegDocumentsDto {
   }
 }
 
+export interface PurchaseSupplierDocumentsDto {
+  legId: string;
+  supplierId: string;
+  supplierName: string;
+  documents: PurchaseLegDocumentsDto;
+}
+
+export type PurchaseLegBlockers = LegBlockers & { order: string | null };
+
 export interface PurchaseLegDetails {
   submittedAt: string | null;
   approverUserIds: string[];
   sourcedTotal: CurrencyAmountDto;
   hasUnpricedAllocations: boolean;
   rejection: PurchaseLegRejection | null;
+  lineCount: number;
   allocations: PurchaseAllocationDto[];
   documents: PurchaseLegDocumentsDto;
   progress: LegProgress;
   availableActions: PurchaseLegAction[];
+  blockers: PurchaseLegBlockers;
 }
 
 export class PurchaseLegDto extends PurchaseSupplierDto {
@@ -115,13 +126,15 @@ export class PurchaseLegDto extends PurchaseSupplierDto {
   sourcedTotal: CurrencyAmountDto;
   hasUnpricedAllocations: boolean;
   rejection: PurchaseLegRejection | null;
+  lineCount: number;
   allocations: PurchaseAllocationDto[];
   documents: PurchaseLegDocumentsDto;
   progress: LegProgress;
   availableActions: PurchaseLegAction[];
+  blockers: PurchaseLegBlockers;
 
-  // Shapes a leg with its allocations, current approvers, last start and rejection, documents, progress and what the
-  // caller may do
+  // Shapes a leg with its allocations, current approvers, last start and rejection, documents, progress, what the caller
+  // may do and why it cannot be cancelled, closed or ordered
   static fromLeg(leg: PurchaseSupplierDto, details: PurchaseLegDetails): PurchaseLegDto {
     const dto = Object.assign(new PurchaseLegDto(), leg);
     dto.submittedAt = details.submittedAt;
@@ -129,10 +142,12 @@ export class PurchaseLegDto extends PurchaseSupplierDto {
     dto.sourcedTotal = details.sourcedTotal;
     dto.hasUnpricedAllocations = details.hasUnpricedAllocations;
     dto.rejection = details.rejection;
+    dto.lineCount = details.lineCount;
     dto.allocations = details.allocations;
     dto.documents = details.documents;
     dto.progress = details.progress;
     dto.availableActions = details.availableActions;
+    dto.blockers = details.blockers;
     return dto;
   }
 }

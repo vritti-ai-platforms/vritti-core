@@ -12,33 +12,37 @@ import { Eye, Plus, ShoppingCart } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  type PurchaseData,
-  type PurchaseTableRow,
-  purchaseStatusConfig,
-  purchaseStepConfig,
-} from '@/schemas/purchases';
+import { type PurchaseData, type PurchaseTableRow, purchaseStatusConfig } from '@/schemas/purchases';
 import { SiteFilter } from '@/selectors/site';
 import type { PurchasesBinding } from './bindings';
 import { CreatePurchaseDialog } from './forms/CreatePurchaseDialog';
-import { PurchaseStageBadge } from './PurchaseStageBadge';
 import { PurchaseStatusBadge } from './PurchaseStatusBadge';
+import { PurchaseSummaryBadge } from './PurchaseSummaryBadge';
 import { PurchasesListActions } from './PurchasesListActions';
-import { PURCHASE_PROGRESS, purchaseProgressCaption, purchaseStageTip } from './purchaseState';
+import { PURCHASE_PROGRESS, purchaseProgressCaption } from './purchaseState';
 
 interface PurchasesTableProps {
   binding: PurchasesBinding;
   title: string;
   description: string;
+  // Beside the title, such as the purchasing rules a site follows
+  titleSlot?: React.ReactNode;
+  // Before the header's own actions, such as where the legal entity sets its sites' purchasing rules
+  extraActions?: React.ReactNode;
 }
 
 const STATUS_OPTIONS = Object.entries(purchaseStatusConfig).map(([value, { label }]) => ({ label, value }));
-const STEP_OPTIONS = Object.entries(purchaseStepConfig).map(([value, { label }]) => ({ label, value }));
 
 // Purchases, newest first — at the legal entity, every site's or only the site filtered in the context bar; a row opens
 // its purchase, New Purchase creates one at a site it picks, and the header creates a supplier invoice or opens a
 // Receive with Invoice at the filtered site
-export const PurchasesTable: React.FC<PurchasesTableProps> = ({ binding, title, description }) => {
+export const PurchasesTable: React.FC<PurchasesTableProps> = ({
+  binding,
+  title,
+  description,
+  titleSlot,
+  extraActions,
+}) => {
   const { permissions, SupplierFilter } = binding;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -88,7 +92,7 @@ export const PurchasesTable: React.FC<PurchasesTableProps> = ({ binding, title, 
         cell: ({ row }) => (
           <div className="flex min-w-32 flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
-              <PurchaseStageBadge purchase={row.original} tip={purchaseStageTip(row.original)} />
+              <PurchaseSummaryBadge purchase={row.original} />
               <Typography variant="caption" intent="muted">
                 Created {fmt.date(row.original.createdAt).primary}
               </Typography>
@@ -162,8 +166,14 @@ export const PurchasesTable: React.FC<PurchasesTableProps> = ({ binding, title, 
     <div className="flex flex-col gap-6">
       <PageHeader
         title={title}
+        titleSlot={titleSlot}
         description={description}
-        actions={<PurchasesListActions binding={binding} siteId={siteId} needsSite={needsSite} />}
+        actions={
+          <div className="flex items-center gap-2">
+            {extraActions}
+            <PurchasesListActions binding={binding} siteId={siteId} needsSite={needsSite} />
+          </div>
+        }
       />
       <DataTable
         table={purchasesTable}
@@ -172,7 +182,6 @@ export const PurchasesTable: React.FC<PurchasesTableProps> = ({ binding, title, 
           <>
             {binding.spansSites && <SiteFilter name="siteId" label="Site" placeholder="All sites" mode="context" />}
             <SelectFilter key="status" name="status" label="Status" multiple options={STATUS_OPTIONS} mode="context" />
-            <SelectFilter key="step" name="step" label="Stage" multiple options={STEP_OPTIONS} mode="context" />
           </>
         }
         searchConfig={{

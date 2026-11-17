@@ -3,7 +3,7 @@ import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { PurchaseLegRef } from '@/schemas/purchases';
 import { approvePurchaseLeg } from '@/services/legal-entity/purchases.service';
-import { invalidatePurchase, PURCHASE_SOURCING_ITEMS_KEY, PURCHASE_SUPPLIERS_KEY } from './keys';
+import { invalidatePurchase } from './keys';
 
 // Approves a supplier leg of a purchase and refreshes the purchase's header, suppliers and sourcing items
 export function useApprovePurchaseLeg(
@@ -15,7 +15,7 @@ export function useApprovePurchaseLeg(
     mutationFn: approvePurchaseLeg,
     onSuccess: (...args) => {
       const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id, [PURCHASE_SUPPLIERS_KEY, PURCHASE_SOURCING_ITEMS_KEY]);
+      invalidatePurchase(queryClient, variables.id);
       options?.onSuccess?.(...args);
     },
   });

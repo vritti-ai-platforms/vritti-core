@@ -1,13 +1,11 @@
 import type { BadgeProps } from '@vritti/quantum-ui/Badge';
 import Decimal from '@vritti/quantum-ui/decimal';
 import type { Formatters } from '@vritti/quantum-ui/hooks';
-import { uniq } from '@vritti/quantum-ui/lodash';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import {
-  PurchaseActionValues,
-  type PurchaseFlowStepState,
   PurchaseFlowStepStateValues,
-  type PurchaseHeader,
+  type PurchaseItemProgressSummary,
+  type PurchaseItemSupplierProgress,
   type PurchaseLeg,
   type PurchaseLegFlowStep,
   PurchaseLegStatusValues,
@@ -15,12 +13,6 @@ import {
   PurchaseLegStepValues,
   type PurchaseProgress,
   type PurchaseProgressSegments,
-  type PurchaseQuotation,
-  type PurchaseSourcingItem,
-  PurchaseStatusValues,
-  type PurchaseStep,
-  PurchaseStepValues,
-  type PurchaseTableRow,
   purchaseLegStepConfig,
   purchaseTypeConfig,
 } from '@/schemas/purchases';
@@ -28,13 +20,6 @@ import {
 export interface PurchaseBadgeState {
   label: string;
   variant: BadgeProps['variant'];
-}
-
-export interface PurchaseStageEntry {
-  step: PurchaseStep;
-  state: PurchaseFlowStepState;
-  isSkipped: boolean;
-  isViewable: boolean;
 }
 
 // The progress bar's stages in pipeline order (lightest to darkest), and the grey track for the rest
@@ -52,71 +37,9 @@ export const PURCHASE_PROGRESS: {
   ],
 };
 
-const STAGE_ORDER: PurchaseStep[] = [
-  PurchaseStepValues.REQUESTING,
-  PurchaseStepValues.QUOTING,
-  PurchaseStepValues.SOURCING,
-  PurchaseStepValues.PROCURING,
-];
-
-// The purchase's item count, followed by how far its stage has got
-export function purchaseProgressCaption(
-  { stage, itemCount, quotations, segments }: PurchaseProgress,
-  fmt: Formatters,
-): string {
-  const items = pluralize('item', itemCount, true);
-  switch (stage) {
-    case PurchaseStepValues.REQUESTING:
-      return items;
-    case PurchaseStepValues.QUOTING:
-      return `${items} · ${quotations.posted} of ${pluralize('quotation', quotations.needed, true)}`;
-    case PurchaseStepValues.SOURCING:
-      return `${items} · ${fmt.percent(100 - segments.unallocated).primary} allocated`;
-    case PurchaseStepValues.PROCURING:
-      return `${items} · ${fmt.percent(segments.received + segments.invoiced).primary} received`;
-  }
-}
-
-// What an open procuring purchase still waits on: goods while any are allocated, ordered or in transit, then invoices
-export function purchaseStageTip({
-  step,
-  status,
-  progress,
-}: Pick<PurchaseTableRow, 'step' | 'status' | 'progress'>): string | undefined {
-  if (status !== PurchaseStatusValues.OPEN || step !== PurchaseStepValues.PROCURING) return undefined;
-  const { allocated, ordered, inTransit, received } = progress.segments;
-  if (allocated + ordered + inTransit > 0) return 'Waiting for goods';
-  if (received > 0) return 'Waiting for invoices';
-  return undefined;
-}
-
-// The stages a purchase walks — Quoting skipped when it collects no quotations — each done, current or ahead; the
-// current one and those behind it can be opened, and a completed purchase has every stage done
-export function purchaseStages(
-  purchase: Pick<PurchaseHeader, 'step' | 'status' | 'quotationsRequired'>,
-): PurchaseStageEntry[] {
-  const currentIndex = STAGE_ORDER.indexOf(purchase.step);
-  const isCompleted = purchase.status === PurchaseStatusValues.COMPLETED;
-  return STAGE_ORDER.map((step, index) => {
-    const isSkipped = step === PurchaseStepValues.QUOTING && !purchase.quotationsRequired;
-    let state: PurchaseFlowStepState = PurchaseFlowStepStateValues.UPCOMING;
-    if (index < currentIndex || (isCompleted && index === currentIndex)) state = PurchaseFlowStepStateValues.DONE;
-    else if (index === currentIndex) state = PurchaseFlowStepStateValues.CURRENT;
-    return { step, state, isSkipped, isViewable: !isSkipped && index <= currentIndex };
-  });
-}
-
-// Whether a stage's view only shows what happened: every stage of a completed or cancelled purchase, and every stage
-// behind an open one's — except Sourcing while allocations stay open in Procuring for suppliers sent back to sourcing
-export function isStageReadOnly(
-  purchase: Pick<PurchaseHeader, 'step' | 'status' | 'availableActions'>,
-  stage: PurchaseStep,
-) {
-  if (purchase.status !== PurchaseStatusValues.OPEN) return true;
-  if (stage === purchase.step) return false;
-  return !(
-    stage === PurchaseStepValues.SOURCING && purchase.availableActions.includes(PurchaseActionValues.EDIT_ALLOCATIONS)
-  );
+// The purchase's item count and how much of it is received
+export function purchaseProgressCaption({ itemCount, segments }: PurchaseProgress, fmt: Formatters): string {
+  return `${pluralize('item', itemCount, true)} · ${fmt.percent(segments.received + segments.invoiced).primary} received`;
 }
 
 // A supplier leg's badge: closed or cancelled, back in sourcing (rejected or not), awaiting approval, or its next step
@@ -167,12 +90,42 @@ export function legNeedsApproval(
   return new Decimal(leg.sourcedTotal.value).greaterThanOrEqualTo(leg.approvalThreshold.value);
 }
 
-// How much of an item's requested quantity its allocations cover, capped at 100
-export function itemCoveragePercent({ primaryQty, allocatedPrimaryQty }: PurchaseSourcingItem): number {
-  return primaryQty > 0 ? Math.min(100, (allocatedPrimaryQty / primaryQty) * 100) : 0;
+// How much of a quantity another covers, capped at 100
+export function coveragePercent(part: number, whole: number): number {
+  return whole > 0 ? Math.min(100, (part / whole) * 100) : 0;
 }
 
-// The suppliers with a posted quotation on the purchase
-export function quotedSupplierIds(quotations: PurchaseQuotation[]): string[] {
-  return uniq(quotations.filter((quotation) => quotation.isPosted).map((quotation) => quotation.supplierId));
+// How far a quantity has got as shares of a whole, each stage's share net of the stages ahead of it
+export function progressSegments(
+  quantities: Omit<PurchaseItemSupplierProgress, 'legId' | 'supplierId' | 'supplierName'>,
+  whole: number,
+): PurchaseProgressSegments {
+  const share = (qty: number) => coveragePercent(qty, whole);
+  const invoiced = share(quantities.invoiced);
+  const received = Math.max(invoiced, share(quantities.received));
+  const inTransit = Math.max(received, share(quantities.received + quantities.inTransit));
+  const ordered = Math.max(inTransit, share(quantities.ordered));
+  const allocated = Math.max(ordered, share(quantities.allocated));
+  return {
+    invoiced,
+    received: received - invoiced,
+    inTransit: inTransit - received,
+    ordered: ordered - inTransit,
+    allocated: allocated - ordered,
+    unallocated: 100 - allocated,
+  };
+}
+
+// How far one item has got as shares of its quantity
+export function itemProgressSegments(item: PurchaseItemProgressSummary): PurchaseProgressSegments {
+  return progressSegments(
+    {
+      allocated: item.allocatedPrimaryQty,
+      ordered: item.orderedPrimaryQty,
+      inTransit: item.inTransitPrimaryQty,
+      received: item.receivedPrimaryQty,
+      invoiced: item.invoicedPrimaryQty,
+    },
+    item.primaryQty,
+  );
 }

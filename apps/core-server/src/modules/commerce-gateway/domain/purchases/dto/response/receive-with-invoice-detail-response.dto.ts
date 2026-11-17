@@ -27,8 +27,8 @@ export class ReceiveWithInvoiceLineResponseDto {
   @ApiProperty({ description: 'Inventory item name' })
   inventoryItemName: string;
 
-  @ApiPropertyOptional({ description: "Symbol of the allocation's unit", type: String, nullable: true })
-  uomSymbol: string | null;
+  @ApiProperty({ description: "Symbol of the allocation's unit" })
+  uomSymbol: string;
 
   @ApiProperty({ description: 'Whether a batch number and expiry are required' })
   isLotTracked: boolean;

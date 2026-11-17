@@ -3,7 +3,7 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 
 interface FreeQtyPreviewProps {
   value: number;
-  uomSymbol?: string | null;
+  uomSymbol?: string;
 }
 
 // Read-only preview of the scheme-derived free quantity; the persisted value is computed server-side.

@@ -6,7 +6,7 @@ import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inboun
 import { InventoryItemLedgerDomainModule } from '@domain/inventory-item-ledger/inventory-item-ledger.module';
 import { InventoryItemLotsDomainModule } from '@domain/inventory-item-lots/inventory-item-lots.module';
 import { InventoryItemQuantsDomainModule } from '@domain/inventory-item-quants/inventory-item-quants.module';
-import { InventoryItemSiteStockLevelsDomainModule } from '@domain/inventory-item-site-stock-levels/inventory-item-site-stock-levels.module';
+import { InventoryItemSitesDomainModule } from '@domain/inventory-item-sites/inventory-item-sites.module';
 import { PurchaseOrderItemsDomainModule } from '@domain/purchase-order-items/purchase-order-items.module';
 import { PurchaseOrdersDomainModule } from '@domain/purchase-orders/purchase-orders.module';
 import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
@@ -39,7 +39,7 @@ import { GoodsReceiptsService } from './root/services/goods-receipts-root.servic
     InventoryItemQuantsDomainModule,
     InventoryItemLedgerDomainModule,
     InventoryItemLotsDomainModule,
-    InventoryItemSiteStockLevelsDomainModule,
+    InventoryItemSitesDomainModule,
     UomConversionsDomainModule,
     PurchasesDomainModule,
     SitePurchaseProgressModule,

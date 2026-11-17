@@ -13,7 +13,7 @@ export class InboundDeliveryLineDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   allowDecimal: boolean;
   orderedQty: number;
   poReceivedQty: number;

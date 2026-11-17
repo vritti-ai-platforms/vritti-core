@@ -10,7 +10,7 @@ import type { InventoryItemLedgerData, InventoryItemLedgerType } from '@/schemas
 
 interface LedgerTabProps {
   inventoryItemId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 const TYPE_CONFIG: Record<

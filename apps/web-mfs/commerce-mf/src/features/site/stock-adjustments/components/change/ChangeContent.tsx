@@ -74,7 +74,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
         header: 'Quantity',
         cell: ({ row }) => (
           <span className="font-mono">
-            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol ?? uomSymbol}
+            <NumberCell value={row.original.uomQty} /> {row.original.uomSymbol}
           </span>
         ),
         enableSorting: true,

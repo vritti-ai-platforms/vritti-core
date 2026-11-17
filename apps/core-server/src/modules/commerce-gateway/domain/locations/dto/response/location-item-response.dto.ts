@@ -6,7 +6,7 @@ export class LocationItemResponseDto {
   @ApiProperty() inventoryItemId: string;
   @ApiProperty() itemName: string;
   @ApiProperty() itemSku: string;
-  @ApiPropertyOptional({ nullable: true }) uomSymbol: string | null;
+  @ApiProperty() uomSymbol: string;
   @ApiProperty() totalQuantity: number;
   @ApiProperty() availableQuantity: number;
   @ApiPropertyOptional({ type: CurrencyAmountDto, nullable: true }) totalValue: CurrencyAmountDto | null;

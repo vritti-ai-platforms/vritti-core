@@ -7,12 +7,12 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { type PurchaseHeader, type UpdatePurchaseFormData, updatePurchaseSchema } from '@/schemas/purchases';
+import { type PurchaseDetail, type UpdatePurchaseFormData, updatePurchaseSchema } from '@/schemas/purchases';
 import type { PurchasesBinding } from '../bindings';
 
 interface UpdatePurchaseDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   onSuccess: () => void;
   onCancel: () => void;
 }

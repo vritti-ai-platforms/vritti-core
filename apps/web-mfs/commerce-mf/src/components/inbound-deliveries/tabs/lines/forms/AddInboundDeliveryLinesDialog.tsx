@@ -106,7 +106,7 @@ export const AddInboundDeliveryLinesDialog: React.FC<AddInboundDeliveryLinesDial
       <div className="flex flex-col gap-3">
         {lineFields.fields.map((field, index) => {
           const line = pickedLinesRef.current.get(field.purchaseOrderItemId);
-          const unit = line?.uomSymbol ? ` ${line.uomSymbol}` : '';
+          const unit = line ? ` ${line.uomSymbol}` : '';
           return (
             <div key={field.id} className="flex items-start gap-3 rounded-lg border p-3">
               <div className="flex min-w-0 flex-1 flex-col gap-1">

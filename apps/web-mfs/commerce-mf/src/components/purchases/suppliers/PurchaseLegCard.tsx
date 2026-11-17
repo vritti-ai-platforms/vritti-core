@@ -8,7 +8,7 @@ import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
 import {
-  type PurchaseHeader,
+  type PurchaseDetail,
   type PurchaseLeg,
   PurchaseLegStatusValues,
   PurchaseLegStepValues,
@@ -25,25 +25,19 @@ import { PurchaseLegProgressBars } from './PurchaseLegProgressBars';
 
 interface PurchaseLegCardProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
-  preview?: boolean;
   readOnly: boolean;
 }
 
 // One supplier of the purchase: its flow and where it is on the flow's steps, who approves it and what it will order;
 // a rejected supplier shows why it went back to sourcing and a closed one why it was closed, and once fulfilling how
 // far it is received and invoiced, the documents its actions created and the actions its step offers
-export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
-  binding,
-  purchase,
-  leg,
-  preview = false,
-  readOnly,
-}) => {
+export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({ binding, purchase, leg, readOnly }) => {
   const fmt = useFormatters();
   const flow = purchaseTypeConfig[leg.type];
-  const isRejected = leg.step === PurchaseLegStepValues.SOURCING && leg.rejection !== null;
+  const isSourcing = leg.status === PurchaseLegStatusValues.OPEN && leg.step === PurchaseLegStepValues.SOURCING;
+  const isRejected = isSourcing && leg.rejection !== null;
   const state = purchaseLegState(leg, isRejected);
   const isPastApproval =
     leg.status === PurchaseLegStatusValues.OPEN &&
@@ -51,7 +45,6 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
     leg.step !== PurchaseLegStepValues.APPROVAL;
   const { purchaseOrders, deliveries, receipts, invoices } = leg.documents;
   const hasDocuments = purchaseOrders.length + deliveries.length + receipts.length + invoices.length > 0;
-  const showActions = !preview && !readOnly;
 
   return (
     <Card>
@@ -64,7 +57,7 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
           <CardDescription>
             {[
               leg.submittedAt && `Submitted ${fmt.date(leg.submittedAt).primary}`,
-              pluralize('item', leg.allocations.length, true),
+              pluralize('line', leg.lineCount, true),
               `${fmt.currency(leg.sourcedTotal).primary} sourced`,
               leg.hasUnpricedAllocations && 'some lines priced on the supplier invoice',
             ]
@@ -72,7 +65,7 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
               .join(' · ')}
           </CardDescription>
         </div>
-        {showActions && (
+        {!readOnly && (
           <div className="flex flex-wrap items-center gap-2">
             <PurchaseLegActions binding={binding} purchase={purchase} leg={leg} />
             <PurchaseLegFulfilmentActions binding={binding} purchase={purchase} leg={leg} />
@@ -91,7 +84,17 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
               {`Closed: “${leg.closeReason}”`}
             </Typography>
           )}
-          {preview && leg.step === PurchaseLegStepValues.SOURCING && (
+          {leg.cancelReason && (
+            <Typography variant="caption" intent="muted">
+              {`Cancelled: “${leg.cancelReason}”`}
+            </Typography>
+          )}
+          {leg.receivingClosedAt && leg.status === PurchaseLegStatusValues.OPEN && (
+            <Typography variant="caption" intent="muted">
+              {`Receiving closed ${fmt.date(leg.receivingClosedAt).primary} — waiting for the invoice of what was received`}
+            </Typography>
+          )}
+          {isSourcing && (
             <Typography variant="caption" intent="muted">
               {legNeedsApproval(leg)
                 ? `On Submit: needs approval by ${leg.approverNames.join(', ')}`
@@ -106,8 +109,8 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
             description={`“${leg.rejection.reason}”`}
           />
         )}
-        {!preview && (isPastApproval || hasDocuments) && <PurchaseLegProgressBars progress={leg.progress} />}
-        {!preview && hasDocuments && <PurchaseLegDocuments binding={binding} leg={leg} />}
+        {(isPastApproval || hasDocuments) && <PurchaseLegProgressBars progress={leg.progress} />}
+        {hasDocuments && <PurchaseLegDocuments binding={binding} leg={leg} />}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
           <DetailField
             label="Approvers"
@@ -131,7 +134,7 @@ export const PurchaseLegCard: React.FC<PurchaseLegCardProps> = ({
             value={leg.allocations
               .map(
                 (allocation) =>
-                  `${allocation.inventoryItemName} — ${fmt.number(allocation.uomQty).primary} ${allocation.uomSymbol ?? ''}`,
+                  `${allocation.inventoryItemName} — ${fmt.number(allocation.uomQty).primary} ${allocation.uomSymbol}`,
               )
               .join(' · ')}
           />

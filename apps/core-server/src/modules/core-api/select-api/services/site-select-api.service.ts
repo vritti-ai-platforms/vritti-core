@@ -15,23 +15,19 @@ export class SiteSelectApiService {
   ) {}
 
   // The legal entity's active sites as select options, kept to the asked ids and, for a supplier or an inventory item,
-  // to the sites enrolled at (or not yet), or to the sites an item has no stock levels at yet — commerce-service resolves
-  // the enrollments and stock levels to site ids
+  // to the sites enrolled at (or not yet), or to the sites that do not carry an item yet — commerce-service resolves the
+  // enrollments and site items to site ids
   async findForSelect(legalEntityId: string | undefined, query: SiteSelectQueryDto): Promise<SelectQueryResult> {
-    const { ids, supplierId, inventoryItemId, isEnrolled, isActive, withoutStockLevelsOf, ...select } = query;
+    const { ids, supplierId, inventoryItemId, isEnrolled, isActive, notCarrying, ...select } = query;
     SiteSelectApiService.assertEnrollmentParams(query);
-    if (withoutStockLevelsOf) {
-      this.logger.log(`le.inventoryItems.siteStockLevels.siteIds — inventoryItemId: ${withoutStockLevelsOf}`);
-      const siteIdsWithLevels = await this.nats.send<string[]>(
-        'commerce',
-        'le.inventoryItems.siteStockLevels.siteIds',
-        {
-          inventoryItemId: withoutStockLevelsOf,
-        },
-      );
+    if (notCarrying) {
+      this.logger.log(`le.inventoryItems.sites.siteIds — inventoryItemId: ${notCarrying}`);
+      const carryingSiteIds = await this.nats.send<string[]>('commerce', 'le.inventoryItems.sites.siteIds', {
+        inventoryItemId: notCarrying,
+      });
       return this.siteService.findForLegalEntitySelect(legalEntityId, select, {
         siteIds: ids,
-        excludeSiteIds: siteIdsWithLevels,
+        excludeSiteIds: carryingSiteIds,
       });
     }
     if (!supplierId && !inventoryItemId)

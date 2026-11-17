@@ -1,6 +1,6 @@
 import Decimal from '@vritti/api-sdk/decimal';
 import _ from '@vritti/api-sdk/lodash';
-import { type PurchaseStatus, type PurchaseStep, PurchaseStepValues } from '@/db/schema';
+import { type PurchaseStatus, PurchaseStatusValues } from '@/db/schema';
 import type { PurchaseProgressItemRow, PurchaseTableRow } from '../../repositories/purchases.repository';
 
 export interface PurchaseProgressSegments {
@@ -12,23 +12,20 @@ export interface PurchaseProgressSegments {
   unallocated: number;
 }
 
-export interface PurchaseProgressQuotations {
-  posted: number;
-  needed: number;
-}
-
-interface PurchaseProgressBase {
+export interface PurchaseProgress {
   itemCount: number;
   segments: PurchaseProgressSegments;
 }
 
-// Quotations are counted only while the purchase is Quoting
-export type PurchaseProgress =
-  | (PurchaseProgressBase & { stage: typeof PurchaseStepValues.QUOTING; quotations: PurchaseProgressQuotations })
-  | (PurchaseProgressBase & {
-      stage: Exclude<PurchaseStep, typeof PurchaseStepValues.QUOTING>;
-      quotations: null;
-    });
+export const PurchaseSummaryValues = {
+  NOT_STARTED: 'NOT_STARTED',
+  SOURCING: 'SOURCING',
+  ORDERED: 'ORDERED',
+  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
+  RECEIVED: 'RECEIVED',
+} as const;
+
+export type PurchaseSummary = (typeof PurchaseSummaryValues)[keyof typeof PurchaseSummaryValues];
 
 type ProgressSegment = keyof PurchaseProgressSegments;
 
@@ -80,39 +77,43 @@ function progressSegments(items: PurchaseProgressItemRow[]): PurchaseProgressSeg
   };
 }
 
-// Shapes a purchase's progress through its step; only QUOTING reports its posted quotations against the minimum
-export function purchaseProgress(row: PurchaseTableRow): PurchaseProgress {
-  const base = { itemCount: row.itemCount, segments: progressSegments(row.progress.items) };
-  if (row.step === PurchaseStepValues.QUOTING) {
-    return {
-      ...base,
-      stage: row.step,
-      quotations: { posted: row.progress.postedSuppliers ?? 0, needed: row.minQuotations },
-    };
-  }
-  return { ...base, stage: row.step, quotations: null };
+// Shapes a purchase's progress: the average share of each item that is allocated, ordered, on its way, received and invoiced
+export function purchaseProgress(row: Pick<PurchaseTableRow, 'itemCount' | 'progress'>): PurchaseProgress {
+  return { itemCount: row.itemCount, segments: progressSegments(row.progress.items) };
+}
+
+// Sums up where an open purchase stands from its progress: everything received, some received, something ordered,
+// something allocated, or nothing yet; null once it is completed or cancelled
+export function purchaseSummary(status: PurchaseStatus, segments: PurchaseProgressSegments): PurchaseSummary | null {
+  if (status !== PurchaseStatusValues.OPEN) return null;
+  const received = segments.received + segments.invoiced;
+  if (received >= 100) return PurchaseSummaryValues.RECEIVED;
+  if (received > 0) return PurchaseSummaryValues.PARTIALLY_RECEIVED;
+  if (segments.ordered + segments.inTransit > 0) return PurchaseSummaryValues.ORDERED;
+  if (segments.allocated > 0) return PurchaseSummaryValues.SOURCING;
+  return PurchaseSummaryValues.NOT_STARTED;
 }
 
 export class PurchaseTableRowDto {
   id: string;
   purchaseNumber: string;
-  step: PurchaseStep;
   status: PurchaseStatus;
+  summary: PurchaseSummary | null;
   siteId: string;
   itemCount: number;
   progress: PurchaseProgress;
   createdAt: string;
 
-  // Shapes a purchase row with its progress through its step
+  // Shapes a purchase row with its progress and where it stands
   static from(row: PurchaseTableRow): PurchaseTableRowDto {
     const dto = new PurchaseTableRowDto();
     dto.id = row.id;
     dto.purchaseNumber = row.purchaseNumber;
-    dto.step = row.step;
     dto.status = row.status;
     dto.siteId = row.siteId;
     dto.itemCount = row.itemCount;
     dto.progress = purchaseProgress(row);
+    dto.summary = purchaseSummary(row.status, dto.progress.segments);
     dto.createdAt = row.createdAt.toISOString();
     return dto;
   }

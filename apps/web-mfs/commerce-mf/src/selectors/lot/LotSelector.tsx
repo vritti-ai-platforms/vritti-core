@@ -1,9 +1,10 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
 export type LotSelectorParams = { inventoryItemId?: string };
 
-export type LotSelectorProps = Omit<SelectProps, 'optionsEndpoint' | 'params'> & {
+export type LotSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint' | 'params'> & {
   params?: LotSelectorParams;
 };
 

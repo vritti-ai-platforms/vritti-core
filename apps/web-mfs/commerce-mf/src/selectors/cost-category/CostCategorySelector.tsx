@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type CostCategorySelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type CostCategorySelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select over the organization's cost categories, each described by its kind
 export const CostCategorySelector = forwardRef<HTMLButtonElement, CostCategorySelectorProps>((props, ref) => (

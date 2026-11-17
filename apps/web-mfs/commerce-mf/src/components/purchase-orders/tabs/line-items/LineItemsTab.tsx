@@ -13,6 +13,7 @@ import {
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
+import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
@@ -49,7 +50,7 @@ function linesLockedReason(purchaseOrder: PurchaseOrderDetail): string | undefin
 const PrimaryQuantityCell = ({ line, qty }: { line: PurchaseOrderItemData; qty: number }) => (
   <span className="flex items-baseline gap-1">
     <NumberCell value={qty} />
-    {line.primaryUomSymbol && <span className="text-xs text-muted-foreground">{line.primaryUomSymbol}</span>}
+    <span className="text-xs text-muted-foreground">{line.primaryUomSymbol}</span>
   </span>
 );
 
@@ -146,6 +147,13 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
             <span className="inline-flex items-center gap-1.5">
               <span>{row.original.inventoryItemName}</span>
               {row.original.cancelledPrimaryQty > 0 && <Badge variant="secondary">Delivery completed</Badge>}
+              {row.original.purchasingBlockedReason !== null && (
+                <Tooltip
+                  content={`Purchasing is blocked at this site: ${row.original.purchasingBlockedReason}. The line can be lowered but not raised.`}
+                >
+                  <Badge variant="destructive">Purchasing blocked</Badge>
+                </Tooltip>
+              )}
               {lineProblems && (
                 <LineProblemsMenu
                   itemName={row.original.inventoryItemName}
@@ -245,7 +253,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
                   <span>{fmt.currency(unitPrice).primary}</span>
                   {isCrossUom && (
                     <span className="text-xs text-muted-foreground">
-                      {`${fmt.currency(primaryUomUnitPrice).primary}${primaryUomSymbol ? ` / ${primaryUomSymbol}` : ''}`}
+                      {`${fmt.currency(primaryUomUnitPrice).primary} / ${primaryUomSymbol}`}
                     </span>
                   )}
                   {sourceUnitPrice && (

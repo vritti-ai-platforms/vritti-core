@@ -12,6 +12,7 @@ import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/requ
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
+import { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
@@ -372,5 +373,19 @@ export function ApiFindPurchaseOrderInvoicesSummary() {
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Summary retrieved.', type: PurchaseOrderInvoiceSummaryResponseDto }),
+  );
+}
+
+export function ApiFindItemDefaults() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'What a new line of an item starts with',
+      description:
+        "Returns the supplier's unit for the item at the purchase order's site (unless one is given), the price in force " +
+        "there for the supplier's item in that unit with its scheme, and the delivery its lead time gives; each empty " +
+        'where the supplier has nothing set up.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase order ID' }),
+    ApiResponse({ status: 200, description: 'Defaults retrieved.', type: PurchaseOrderItemDefaultsResponseDto }),
   );
 }

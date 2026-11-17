@@ -6,7 +6,7 @@ export class GoodsReceiptItemCostDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomSymbol: string;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   acceptedQty: number;
   acceptedPrimaryQty: number;
   unitCost: CurrencyAmountDto;
@@ -24,7 +24,7 @@ export class GoodsReceiptItemsCostDto {
       id: cost.item.id,
       inventoryItemId: cost.item.inventoryItemId,
       inventoryItemName: cost.item.inventoryItemName ?? '',
-      uomSymbol: cost.item.uomSymbol ?? '',
+      uomSymbol: cost.item.uomSymbol,
       primaryUomSymbol: cost.item.primaryUomSymbol,
       acceptedQty: cost.acceptedQty,
       acceptedPrimaryQty: cost.acceptedPrimaryQty,

@@ -1,8 +1,9 @@
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 import { LEVEL_LABELS, LEVELS } from '@/schemas/tax-jurisdictions';
 
-export type JurisdictionSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
+export type JurisdictionSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & {
   country: string | undefined;
 };
 

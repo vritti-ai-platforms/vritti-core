@@ -27,6 +27,17 @@ export class UomDomainRepository extends PrimaryBaseRepository<typeof uom> {
     return this.model.findFirst({ where: { symbol } });
   }
 
+  // The units a supplier sells an item in — its supplier items' units — as a condition on the unit
+  soldBySupplierCondition(supplierId: string, inventoryItemId: string): SQL {
+    return inArray(
+      uom.id,
+      this.db
+        .select({ uomId: supplierItems.uomId })
+        .from(supplierItems)
+        .where(and(eq(supplierItems.supplierId, supplierId), eq(supplierItems.inventoryItemId, inventoryItemId))),
+    );
+  }
+
   // Returns a subquery resolving to the UOM IDs an inventory item is allowed to transact in: (a) per-item conversion
   // overrides in inventory_item_uom_conversions (b) every UOM in the global "family" (sharing COALESCE(base_unit_id,
   // id) with the item's primary) Used as an inArray filter inside findForSelect.

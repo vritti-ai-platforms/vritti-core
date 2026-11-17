@@ -3,13 +3,7 @@ import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { CancelPurchasePayload } from '@/schemas/purchases';
 import { cancelPurchase } from '@/services/legal-entity/purchases.service';
-import {
-  invalidatePurchase,
-  PURCHASE_ITEMS_KEY,
-  PURCHASE_QUOTATIONS_KEY,
-  PURCHASE_SOURCING_ITEMS_KEY,
-  PURCHASE_SUPPLIERS_KEY,
-} from './keys';
+import { invalidatePurchase } from './keys';
 
 // Cancels a purchase and refreshes the purchase's header, items, quotations, sourcing items and suppliers
 export function useCancelPurchase(
@@ -21,12 +15,7 @@ export function useCancelPurchase(
     mutationFn: cancelPurchase,
     onSuccess: (...args) => {
       const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id, [
-        PURCHASE_ITEMS_KEY,
-        PURCHASE_QUOTATIONS_KEY,
-        PURCHASE_SOURCING_ITEMS_KEY,
-        PURCHASE_SUPPLIERS_KEY,
-      ]);
+      invalidatePurchase(queryClient, variables.id);
       options?.onSuccess?.(...args);
     },
   });

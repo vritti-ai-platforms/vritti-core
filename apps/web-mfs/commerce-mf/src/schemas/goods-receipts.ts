@@ -70,7 +70,7 @@ export interface GoodsReceiptItemData {
   uomId: string;
   uomSymbol: string;
   uomAllowDecimal: boolean;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   receivedQty: number;
   rejectedQuantity: number;
   receivedPrimaryQty: number;
@@ -93,7 +93,7 @@ export interface GoodsReceiptItemCostRow {
   inventoryItemId: string;
   inventoryItemName: string;
   uomSymbol: string;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   acceptedQty: number;
   acceptedPrimaryQty: number;
   unitCost: CurrencyValue;
@@ -148,7 +148,7 @@ export interface GoodsReceiptLineData {
   expiryDate: string | null;
   quantity: number;
   primaryUomQty: number;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   resolvedQuantId: string | null;
   isBalanced: boolean;
   lineItemsCount: number;

@@ -13,14 +13,17 @@ export class ReceiveWithInvoiceOpenLineDto {
   inventoryItemName: string;
   isLotTracked: boolean;
   uomId: string;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   allocatedQty: number;
   receivedQty: number;
   openQty: number;
   unitPrice: CurrencyAmountDto;
   isPriced: boolean;
   purchaseOrderItemId: string | null;
+  // Why receiving it is refused: it has no purchase order line yet, so receiving would order an item the site has blocked
+  // buying; null when it may be received
+  orderBlockedReason: string | null;
 
   // Shapes an allocation an invoice may receive, its quantities in the allocation's unit: open is what is allocated less what
   // is received and what other draft invoices carry (given in primary units)
@@ -46,6 +49,7 @@ export class ReceiveWithInvoiceOpenLineDto {
     dto.unitPrice = CurrencyAmountDto.from(row.unitPrice ?? 0n, row.currencyCode);
     dto.isPriced = row.unitPrice !== null;
     dto.purchaseOrderItemId = row.purchaseOrderItemId;
+    dto.orderBlockedReason = row.purchaseOrderItemId === null ? row.purchasingBlockedReason : null;
     return dto;
   }
 

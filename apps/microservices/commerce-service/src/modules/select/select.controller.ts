@@ -11,7 +11,6 @@ import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/serv
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSerialsDomainService } from '@domain/inventory-item-serials/services/inventory-item-serials.service';
-import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { LocationsDomainService } from '@domain/locations/services/locations.service';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
@@ -26,7 +25,6 @@ import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/pu
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
 import { StorageTypesDomainService } from '@domain/storage-types/services/storage-types.service';
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
-import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { TaxClassesDomainService } from '@domain/tax-classes/services/tax-classes.service';
 import { TaxComponentsDomainService } from '@domain/tax-components/services/tax-components.service';
 import { TaxGroupsDomainService } from '@domain/tax-groups/services/tax-groups.service';
@@ -61,6 +59,7 @@ import { TaxComponentsSelectQueryDto } from './dto/request/tax-components-select
 import { TaxGroupsSelectQueryDto } from './dto/request/tax-groups-select-query.dto';
 import { TaxJurisdictionsSelectQueryDto } from './dto/request/tax-jurisdictions-select-query.dto';
 import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
+import { PurchasingPickersService } from './services/purchasing-pickers.service';
 
 @Controller()
 export class SelectController {
@@ -68,7 +67,6 @@ export class SelectController {
 
   constructor(
     private readonly categoriesService: CategoriesDomainService,
-    private readonly inventoryItemsService: InventoryItemsDomainService,
     private readonly attributeTemplatesService: AttributeTemplatesDomainService,
     private readonly dimensionTemplatesService: DimensionTemplatesDomainService,
     private readonly offeringsService: OfferingsDomainService,
@@ -90,7 +88,6 @@ export class SelectController {
     private readonly purchasesService: PurchasesDomainService,
     private readonly costCategoriesService: CostCategoriesDomainService,
     private readonly supplierItemsService: SupplierItemsDomainService,
-    private readonly suppliersService: SuppliersDomainService,
     private readonly partyCommunicationsService: PartyCommunicationsDomainService,
     private readonly taxClassesService: TaxClassesDomainService,
     private readonly paymentTermsService: PaymentTermsDomainService,
@@ -100,6 +97,7 @@ export class SelectController {
     private readonly taxJurisdictionsService: TaxJurisdictionsDomainService,
     private readonly partyBankAccountsService: PartyBankAccountsDomainService,
     private readonly partyRelationshipsService: PartyRelationshipsDomainService,
+    private readonly purchasingPickersService: PurchasingPickersService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -109,29 +107,17 @@ export class SelectController {
     return this.categoriesService.findForSelect(data);
   }
 
-  // Returns paginated inventory item options for the select component; with a site named, only the items with stock
-  // levels there, each with its stock and levels, its value in the legal entity's currency
+  // Returns paginated inventory item options for the select component; with a site named, only the items it carries,
+  // each with its stock and levels there valued in the legal entity's currency, or only those it does not carry
   @MessagePattern({ cmd: 'select.inventoryItems' })
-  async inventoryItems(
+  inventoryItems(
     @Payload() data: InventoryItemsSelectQueryDto,
     @RpcNatsHeaders() headers: NatsHeaders,
   ): Promise<SelectQueryResult> {
-    const { excludeOnSupplierId, stockLevelsAtSiteId, stockStatus, categoryIds, ...query } = data;
-    this.logger.log(`select.inventoryItems — stockLevelsAtSiteId: ${stockLevelsAtSiteId ?? '-'}`);
-    return this.inventoryItemsService.findForSelect(query, {
-      excludeOnSupplierId,
-      categoryIds,
-      stockLevelsAt: stockLevelsAtSiteId
-        ? { siteId: stockLevelsAtSiteId, stockStatus, leCurrencyCode: headers.leCurrencyCode as CurrencyCode }
-        : undefined,
-    });
-  }
-
-  // Returns inventory item options without stock levels at the current site, the ones that can have them set
-  @MessagePattern({ cmd: 'select.inventoryItems.withoutStockLevels' })
-  async inventoryItemsWithoutStockLevels(@Payload() query: SelectOptionsQueryDto): Promise<SelectQueryResult> {
-    this.logger.log('select.inventoryItems.withoutStockLevels');
-    return this.inventoryItemsService.findForSelect(query, { withoutStockLevels: true });
+    this.logger.log(
+      `select.inventoryItems — atSiteId: ${data.atSiteId ?? '-'}, notAtSiteId: ${data.notAtSiteId ?? '-'}, supplierId: ${data.supplierId ?? '-'}`,
+    );
+    return this.purchasingPickersService.findInventoryItems(data, headers.leCurrencyCode as CurrencyCode);
   }
 
   // Returns paginated offering options for the select component
@@ -172,6 +158,7 @@ export class SelectController {
       inventoryItemId: data.inventoryItemId,
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
+      soldBySupplierId: data.soldBySupplierId,
     });
   }
 
@@ -339,14 +326,11 @@ export class SelectController {
     return this.supplierItemsService.findForSelect(query, { supplierId, purchaseOrderId, excludeOnGoodsReceiptId });
   }
 
-  // Returns paginated supplier options for the select component, only those enrolled at a site with enrolledAtSiteId
+  // Returns paginated supplier options for the select component, narrowed by enrollment at a site and by the picker's items
   @MessagePattern({ cmd: 'select.suppliers' })
-  async suppliers(@Payload() data: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
-    const { activeOnly, inventoryItemId, enrolledAtSiteId, ...query } = data;
-    this.logger.log(
-      `select.suppliers — inventoryItemId: ${inventoryItemId ?? '-'}, enrolledAtSiteId: ${enrolledAtSiteId ?? '-'}`,
-    );
-    return this.suppliersService.findForSelect(query, { activeOnly, inventoryItemId, enrolledAtSiteId });
+  suppliers(@Payload() data: SuppliersSelectQueryDto): Promise<SelectQueryResult> {
+    this.logger.log(`select.suppliers — enrolledAtSiteId: ${data.enrolledAtSiteId ?? '-'}`);
+    return this.purchasingPickersService.findSuppliers(data);
   }
 
   // Returns paginated tax class options for the select component

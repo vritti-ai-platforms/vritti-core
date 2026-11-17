@@ -1,10 +1,18 @@
 import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
+import { Alert } from '@vritti/quantum-ui/Alert';
+import { Badge } from '@vritti/quantum-ui/Badge';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { useConfirm, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { Dialog } from '@vritti/quantum-ui/Dialog';
+import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
+import { Tooltip } from '@vritti/quantum-ui/Tooltip';
+import { Ban } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useInventoryItem, useItemStockLevels, useRemoveStockLevels } from '@/hooks/site/inventory-items';
+import { useInventoryItem, useRemoveFromSite, useSiteItem, useUnblockSiteItem } from '@/hooks/site/inventory-items';
+import { SiteItemStatusValues } from '@/schemas/site-items';
+import { BlockSiteItemForm } from './forms/BlockSiteItemForm';
 import { LedgerTab } from './tabs/LedgerTab';
 import { LotsTab } from './tabs/LotsTab';
 import { LocationsTab } from './tabs/locations/LocationsTab';
@@ -19,23 +27,76 @@ export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const { data: item } = useInventoryItem(id);
   const [activeTab, setActiveTab] = useState('overview');
-  const { data: stockLevels } = useItemStockLevels(id);
-  const removeStockLevels = useRemoveStockLevels(id);
+  const { data: siteItem } = useSiteItem(id);
+  const removeFromSite = useRemoveFromSite(id);
+  const unblockMutation = useUnblockSiteItem();
+  const blockDialog = useDialog();
   const confirm = useConfirm();
+  const isBlocked = siteItem?.status === SiteItemStatusValues.BLOCKED;
 
-  const handleRemoveStockLevels = useCallback(async () => {
+  // Switching purchasing off asks why in a dialog; switching it back on confirms and unblocks
+  const handleBlockedChange = useCallback(
+    async (blocked: boolean) => {
+      if (blocked) {
+        blockDialog.open();
+        return;
+      }
+      const confirmed = await confirm({
+        title: 'Unblock purchasing?',
+        description: `This site can add ${item.name} to purchases and purchase orders again.`,
+        confirmLabel: 'Unblock',
+      });
+      if (confirmed) unblockMutation.mutate(id);
+    },
+    [blockDialog, confirm, id, item.name, unblockMutation],
+  );
+
+  const handleRemoveFromSite = useCallback(async () => {
     const confirmed = await confirm({
-      title: 'Remove stock levels at this site?',
-      description: `This site can no longer buy, receive or stock ${item.name} until stock levels are set again.`,
+      title: 'Remove from this site?',
+      description: `This site can no longer buy, receive or stock ${item.name} until it is added again.`,
       confirmLabel: 'Remove',
       variant: 'destructive',
     });
-    if (confirmed) removeStockLevels.mutate();
-  }, [confirm, item.name, removeStockLevels]);
+    if (confirmed) removeFromSite.mutate();
+  }, [confirm, item.name, removeFromSite]);
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={item.name} description={item.description ?? 'No description'} />
+      <PageHeader
+        title={item.name}
+        description={item.description ?? 'No description'}
+        titleSlot={
+          <div className="flex items-center gap-2">
+            <StatusSwitch
+              checked={isBlocked}
+              onCheckedChange={handleBlockedChange}
+              ariaLabel={`Block purchasing of ${item.name} at this site`}
+              activeLabel="Purchasing Blocked"
+              inactiveLabel="Purchasing Allowed"
+              tone="destructive"
+              size="md"
+              permission={SITE_INVENTORY_ITEMS.setup.block}
+              disabled={!siteItem}
+              disabledTip="Add the item to this site first."
+              isLoading={unblockMutation.isPending}
+            />
+            {siteItem?.supplierItemsRequired && (
+              <Tooltip content="This site buys the item only from suppliers that have it set up here; the legal entity sets this.">
+                <Badge variant="info">Supplier items required</Badge>
+              </Tooltip>
+            )}
+          </div>
+        }
+      />
+
+      {isBlocked && (
+        <Alert
+          variant="warning"
+          title={`Purchasing blocked: ${siteItem.blockedReason}`}
+          description="Stock on hand and goods already ordered still move; new purchases of it are refused at this site."
+        />
+      )}
 
       <Tabs
         tabs={[
@@ -96,15 +157,23 @@ export const InventoryItemDetailPage = () => {
         onValueChange={setActiveTab}
       />
 
-      {stockLevels && (
+      <Dialog
+        handle={blockDialog}
+        icon={Ban}
+        title="Block Purchasing"
+        description={`This site stops adding ${item.name} to purchases and purchase orders. Stock on hand and goods already ordered still move.`}
+        content={(close) => <BlockSiteItemForm inventoryItemId={id} onSuccess={close} onCancel={close} />}
+      />
+
+      {siteItem && (
         <DangerZone
-          title="Remove stock levels"
-          description="The site stops buying, receiving and stocking this item until its stock levels are set again. Not allowed while the site holds stock of it or has it on an open purchase."
-          buttonText="Remove Stock Levels"
-          onClick={handleRemoveStockLevels}
-          isLoading={removeStockLevels.isPending}
-          disabled={removeStockLevels.isPending}
-          permission={SITE_INVENTORY_ITEMS.stockLevels.delete}
+          title="Remove from site"
+          description="The site stops buying, receiving and stocking this item until it is added again. Not allowed while the site holds stock of it or has it on an open purchase."
+          buttonText="Remove from Site"
+          onClick={handleRemoveFromSite}
+          isLoading={removeFromSite.isPending}
+          disabled={removeFromSite.isPending}
+          permission={SITE_INVENTORY_ITEMS.setup.delete}
         />
       )}
     </div>

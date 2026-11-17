@@ -2,26 +2,30 @@ import type { SupplierItemPriceDto } from '@domain/supplier-item-prices/dto/enti
 import type { SupplierItemPriceHistoryDto } from '@domain/supplier-item-prices/dto/entity/supplier-item-price-history.dto';
 import { AddSupplierSiteItemPriceDto } from '@domain/supplier-item-prices/dto/request/add-supplier-site-item-price.dto';
 import { UpdateSupplierSiteItemPriceDto } from '@domain/supplier-item-prices/dto/request/update-supplier-site-item-price.dto';
-import { SupplierItemPricesDomainService } from '@domain/supplier-item-prices/services/supplier-item-prices.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { FilterCondition } from '@vritti/api-sdk/conditions';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SiteSupplierSiteItemPricesService } from './services/site-supplier-site-item-prices.service';
 
 @Controller()
 export class SiteSupplierSiteItemPricesController {
   private readonly logger = new Logger(SiteSupplierSiteItemPricesController.name);
 
-  constructor(private readonly service: SupplierItemPricesDomainService) {}
+  constructor(private readonly service: SiteSupplierSiteItemPricesService) {}
 
-  // Adds a price row for the caller's site
+  // Adds a price row for the caller's site, setting the item up there first when it is not yet
   @MessagePattern({ cmd: 'site.suppliers.siteItems.prices.create' })
-  create(@Payload() dto: AddSupplierSiteItemPriceDto): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
+  create(
+    @Payload() dto: AddSupplierSiteItemPriceDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<CreateResponseDto<SupplierItemPriceDto[]>> {
     this.logger.log(
       `site.suppliers.siteItems.prices.create — supplierItemId: ${dto.supplierItemId}, validFrom: ${dto.validFrom}`,
     );
-    return this.service.addPrice(dto);
+    return this.service.addPrice(dto, headers.siteId);
   }
 
   // Updates a price row of the caller's site; RLS hides other sites' rows, and the legal entity's prices it only reads
@@ -48,8 +52,7 @@ export class SiteSupplierSiteItemPricesController {
     @Payload() data: { supplierItemId: string; context: FilterCondition[] },
   ): Promise<SupplierItemPriceHistoryDto> {
     this.logger.log(`site.suppliers.siteItems.prices.priceHistory — supplierItemId: ${data.supplierItemId}`);
-    const context = data.context.filter((condition) => condition.field !== 'sites');
-    return this.service.findPriceHistory(data.supplierItemId, context);
+    return this.service.findPriceHistory(data.supplierItemId, data.context);
   }
 
   // Deletes a future price row of the caller's site; RLS hides other sites' rows, and the legal entity's prices it only reads

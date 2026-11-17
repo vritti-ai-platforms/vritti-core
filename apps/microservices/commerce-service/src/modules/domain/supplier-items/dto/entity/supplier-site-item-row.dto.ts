@@ -17,8 +17,8 @@ export class SupplierSiteItemRowDto extends SupplierItemDto {
   // Maps a supplier item joined with one site's terms to a SupplierSiteItemRowDto
   static fromSite(
     entity: SupplierItem & SupplierSiteItemTermsRow,
-    itemName?: string | null,
-    uomSymbol?: string | null,
+    itemName: string | null,
+    uomSymbol: string,
   ): SupplierSiteItemRowDto {
     const dto = new SupplierSiteItemRowDto();
     Object.assign(dto, SupplierItemDto.from(entity, itemName, uomSymbol));

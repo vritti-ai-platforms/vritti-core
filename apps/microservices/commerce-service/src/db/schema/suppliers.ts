@@ -1,19 +1,24 @@
-import { sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, exists, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type AnyPgColumn,
   boolean,
   check,
   decimal,
   index,
   integer,
+  QueryBuilder,
   timestamp,
   uniqueIndex,
   uuid,
   varchar,
 } from '@vritti/api-sdk/drizzle-pg-core';
 import { commerceSchema } from './commerce-schema';
+import { inventoryItemSites } from './inventory-item-sites';
 import { inventoryItems } from './inventory-items';
 import { parties } from './parties';
 import { paymentTerms } from './payment-terms';
+import { sitePurchasingSettings } from './site-purchasing-settings';
+import { supplierEnrollments } from './supplier-enrollments';
 import { uom } from './uom';
 import {
   legalEntityIdColumn,
@@ -91,9 +96,45 @@ export const supplierItems = commerceSchema.table(
     uniqueIndex('uq_supplier_items_supplier_item_uom').on(table.supplierId, table.inventoryItemId, table.uomId),
     check('supplier_items_default_lead_time_chk', sql`${table.defaultLeadTimeDays} between 0 and 365`),
     index('idx_supplier_items_supplier').on(table.supplierId),
-    ...scopeFromOwnerPolicies({ owner: suppliers, fk: table.supplierId }),
+    ...scopeFromOwnerPolicies({
+      owner: suppliers,
+      fk: table.supplierId,
+      siteInsertsThrough: {
+        table: supplierEnrollments,
+        fk: (enrollment) => enrollment.supplierId,
+        active: (enrollment) => enrollment.isActive,
+        unlessFlagged: [
+          { flag: sitePurchasingSettings.supplierItemsRequired },
+          {
+            flag: inventoryItemSites.supplierItemsRequired,
+            item: { column: inventoryItemSites.inventoryItemId, childColumn: table.inventoryItemId },
+          },
+        ],
+      },
+    }),
   ],
 );
 
 export type SupplierItem = typeof supplierItems.$inferSelect;
 export type NewSupplierItem = typeof supplierItems.$inferInsert;
+
+// Whether the legal entity has set the item, or any of the items, up as one of the supplier's items, in any unit — what a
+// site whose rules require supplier items buys it by
+export function hasSupplierItem(
+  supplierId: AnyPgColumn | string,
+  inventoryItemId: AnyPgColumn | string | string[],
+): SQL {
+  return exists(
+    new QueryBuilder()
+      .select({ one: sql`1` })
+      .from(supplierItems)
+      .where(
+        and(
+          eq(supplierItems.supplierId, supplierId),
+          Array.isArray(inventoryItemId)
+            ? inArray(supplierItems.inventoryItemId, inventoryItemId)
+            : eq(supplierItems.inventoryItemId, inventoryItemId),
+        ),
+      ),
+  );
+}

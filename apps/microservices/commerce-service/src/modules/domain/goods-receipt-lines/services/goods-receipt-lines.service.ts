@@ -150,6 +150,11 @@ export class GoodsReceiptLinesDomainService {
     return this.repository.findByItemId(itemId);
   }
 
+  // Returns the lines of the given receipt items, newest first
+  findLinesOfItems(itemIds: string[]): Promise<GoodsReceiptLineRow[]> {
+    return this.repository.findByItemIds(itemIds);
+  }
+
   // Removes a line, with its serials, from a draft receipt item
   async removeLine(item: DistributedReceiptItem, lineId: string): Promise<SuccessResponseDto> {
     const line = await this.findOnItemOrThrow(item.id, lineId);

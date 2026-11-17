@@ -284,7 +284,7 @@ export interface OfferingVariantData {
   externalSku: string | null;
   name: string;
   salesUomId: string;
-  salesUomName: string | null;
+  salesUomName: string;
   isActive: boolean;
   isOfferingActive: boolean;
   sortOrder: number;
@@ -294,7 +294,7 @@ export interface OfferingVariantData {
   canMarkActive: boolean;
   canDelete: boolean;
   taxClassId: string;
-  taxClassName: string | null;
+  taxClassName: string;
   isTaxClassOverridden: boolean;
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;

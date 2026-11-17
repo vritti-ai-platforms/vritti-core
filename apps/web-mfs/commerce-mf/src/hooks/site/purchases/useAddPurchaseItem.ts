@@ -3,7 +3,7 @@ import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { AddPurchaseItemPayload, PurchaseItem } from '@/schemas/purchases';
 import { addPurchaseItem } from '@/services/site/purchases.service';
-import { invalidatePurchase, PURCHASE_ITEMS_KEY } from './keys';
+import { invalidatePurchase } from './keys';
 
 // Adds an item to a purchase's items and refreshes the purchase's header, items
 export function useAddPurchaseItem(
@@ -15,7 +15,7 @@ export function useAddPurchaseItem(
     mutationFn: addPurchaseItem,
     onSuccess: (...args) => {
       const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id, [PURCHASE_ITEMS_KEY]);
+      invalidatePurchase(queryClient, variables.id);
       options?.onSuccess?.(...args);
     },
   });

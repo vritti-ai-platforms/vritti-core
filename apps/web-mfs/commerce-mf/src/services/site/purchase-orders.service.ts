@@ -9,6 +9,7 @@ import type {
   CreatePurchaseOrderPayload,
   PurchaseOrderData,
   PurchaseOrderDetail,
+  PurchaseOrderItemDefaults,
   PurchaseOrderItemRef,
   PurchaseOrderItemsTableResponse,
   PurchaseOrderProblemsResponse,
@@ -34,6 +35,19 @@ export function createPurchaseOrder(data: CreatePurchaseOrderPayload): Promise<C
 // Fetches one purchase order
 export function getPurchaseOrder(id: string): Promise<PurchaseOrderDetail> {
   return axios.get<PurchaseOrderDetail>(`commerce-api/site/purchase-orders/${id}`).then((r) => r.data);
+}
+
+// Fetches what a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery
+export function getPurchaseOrderItemDefaults(
+  id: string,
+  inventoryItemId: string,
+  uomId?: string,
+): Promise<PurchaseOrderItemDefaults> {
+  return axios
+    .get<PurchaseOrderItemDefaults>(`commerce-api/site/purchase-orders/${id}/items/defaults`, {
+      params: { inventoryItemId, uomId },
+    })
+    .then((r) => r.data);
 }
 
 // Fetches the inventory items ordered on a purchase order

@@ -12,7 +12,7 @@ import {
   uom,
 } from '@/db/schema';
 
-export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string | null };
+export type InventoryItemMrpWithUom = InventoryItemMrp & { uomSymbol: string };
 
 @Injectable()
 export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typeof inventoryItemMrps> {
@@ -34,7 +34,7 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     if (currencyCode) conditions.push(eq(inventoryItemMrps.currencyCode, currencyCode) as SQL);
     return this.findForSelect({
       ...config,
-      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'left' }],
+      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'inner' }],
       conditions,
     });
   }
@@ -69,7 +69,7 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
 
     return this.findForSelect({
       ...config,
-      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'left' }],
+      joins: [{ table: uom, on: eq(uom.id, inventoryItemMrps.uomId), type: 'inner' }],
       conditions,
     });
   }
@@ -231,6 +231,16 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
     return row;
   }
 
+  // One MRP with its unit's symbol, read back after it is written
+  async findByIdWithUom(id: string): Promise<InventoryItemMrpWithUom> {
+    const [row] = await this.db
+      .select({ ...getColumns(inventoryItemMrps), uomSymbol: uom.symbol })
+      .from(inventoryItemMrps)
+      .innerJoin(uom, eq(uom.id, inventoryItemMrps.uomId))
+      .where(eq(inventoryItemMrps.id, id));
+    return row;
+  }
+
   // One item's MRPs with their unit's symbol for the data table — filtered, sorted and paged by the table's own state
   findForTable(
     inventoryItemId: string,
@@ -238,7 +248,7 @@ export class InventoryItemMrpsDomainRepository extends PrimaryBaseRepository<typ
   ): Promise<{ result: InventoryItemMrpWithUom[]; count: number }> {
     return this.findAllAndCount<InventoryItemMrpWithUom>({
       select: { ...getColumns(inventoryItemMrps), uomSymbol: uom.symbol },
-      leftJoin: { table: uom, on: eq(uom.id, inventoryItemMrps.uomId) },
+      innerJoin: { table: uom, on: eq(uom.id, inventoryItemMrps.uomId) },
       where: and(eq(inventoryItemMrps.inventoryItemId, inventoryItemId), options.where),
       orderBy: options.orderBy,
       limit: options.limit,

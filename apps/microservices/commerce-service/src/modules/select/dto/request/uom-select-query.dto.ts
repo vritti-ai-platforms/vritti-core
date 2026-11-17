@@ -28,4 +28,9 @@ export class UomSelectQueryDto extends SelectOptionsQueryDto {
   @IsOptional()
   @IsUUID('7')
   purchaseOrderId?: string;
+
+  // With inventoryItemId, only the units this supplier sells the item in — its supplier items' units
+  @IsOptional()
+  @IsUUID('7')
+  soldBySupplierId?: string;
 }

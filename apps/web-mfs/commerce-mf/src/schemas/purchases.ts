@@ -9,6 +9,7 @@ import {
   noteDatedByExpectedDay,
   noteDateRefinement,
 } from './inbound-deliveries';
+import type { SiteStockData } from './inventory-items';
 import {
   enforceSchemeRatio,
   type PurchaseOrderInvoiceStatus,
@@ -16,15 +17,34 @@ import {
   type PurchaseOrderStatus,
   poSchemeShape,
 } from './purchase-orders';
+import type { SiteItemStatus } from './site-items';
 import type { SupplierInvoiceStatus } from './supplier-invoices';
 
-export const PurchaseStepValues = {
-  REQUESTING: 'REQUESTING',
-  QUOTING: 'QUOTING',
+export const PurchaseSummaryValues = {
+  NOT_STARTED: 'NOT_STARTED',
   SOURCING: 'SOURCING',
-  PROCURING: 'PROCURING',
+  ORDERED: 'ORDERED',
+  PARTIALLY_RECEIVED: 'PARTIALLY_RECEIVED',
+  RECEIVED: 'RECEIVED',
 } as const;
-export type PurchaseStep = (typeof PurchaseStepValues)[keyof typeof PurchaseStepValues];
+export type PurchaseSummary = (typeof PurchaseSummaryValues)[keyof typeof PurchaseSummaryValues];
+
+export const PurchaseItemBucketValues = {
+  NOT_ALLOCATED: 'NOT_ALLOCATED',
+  NEEDS_QUOTATIONS: 'NEEDS_QUOTATIONS',
+  ALLOCATED: 'ALLOCATED',
+  ORDERED: 'ORDERED',
+  IN_TRANSIT: 'IN_TRANSIT',
+  RECEIVED: 'RECEIVED',
+  INVOICED: 'INVOICED',
+} as const;
+export type PurchaseItemBucket = (typeof PurchaseItemBucketValues)[keyof typeof PurchaseItemBucketValues];
+
+export const CancelledQuantityValues = {
+  RETURN: 'RETURN',
+  DROP: 'DROP',
+} as const;
+export type CancelledQuantity = (typeof CancelledQuantityValues)[keyof typeof CancelledQuantityValues];
 
 export const PurchaseStatusValues = {
   OPEN: 'OPEN',
@@ -71,14 +91,13 @@ export type PurchaseItemSource = (typeof PurchaseItemSourceValues)[keyof typeof 
 
 export const PurchaseActionValues = {
   EDIT: 'EDIT',
-  CANCEL: 'CANCEL',
-  DELETE: 'DELETE',
   EDIT_ITEMS: 'EDIT_ITEMS',
-  SUBMIT_ITEMS: 'SUBMIT_ITEMS',
   REQUEST_QUOTATION: 'REQUEST_QUOTATION',
-  COMPLETE_QUOTATIONS: 'COMPLETE_QUOTATIONS',
   EDIT_ALLOCATIONS: 'EDIT_ALLOCATIONS',
   SUBMIT: 'SUBMIT',
+  CLOSE: 'CLOSE',
+  CANCEL: 'CANCEL',
+  DELETE: 'DELETE',
 } as const;
 export type PurchaseAction = (typeof PurchaseActionValues)[keyof typeof PurchaseActionValues];
 
@@ -94,6 +113,7 @@ export const PurchaseLegActionValues = {
   RECEIVE_WITH_INVOICE: 'RECEIVE_WITH_INVOICE',
   CREATE_SUPPLIER_INVOICE: 'CREATE_SUPPLIER_INVOICE',
   CLOSE_SUPPLIER: 'CLOSE_SUPPLIER',
+  CANCEL_SUPPLIER: 'CANCEL_SUPPLIER',
 } as const;
 export type PurchaseLegAction = (typeof PurchaseLegActionValues)[keyof typeof PurchaseLegActionValues];
 
@@ -106,11 +126,22 @@ export type PurchaseFlowStepState = (typeof PurchaseFlowStepStateValues)[keyof t
 
 type BadgeVariant = BadgeProps['variant'];
 
-export const purchaseStepConfig: Record<PurchaseStep, { label: string; variant: BadgeVariant }> = {
-  REQUESTING: { label: 'Requesting', variant: 'outline' },
-  QUOTING: { label: 'Quoting', variant: 'warning' },
+export const purchaseSummaryConfig: Record<PurchaseSummary, { label: string; variant: BadgeVariant }> = {
+  NOT_STARTED: { label: 'Not started', variant: 'outline' },
   SOURCING: { label: 'Sourcing', variant: 'secondary' },
-  PROCURING: { label: 'Procuring', variant: 'default' },
+  ORDERED: { label: 'Ordered', variant: 'info' },
+  PARTIALLY_RECEIVED: { label: 'Partially received', variant: 'info' },
+  RECEIVED: { label: 'Received', variant: 'success' },
+};
+
+export const purchaseItemBucketConfig: Record<PurchaseItemBucket, { label: string }> = {
+  NOT_ALLOCATED: { label: 'Not allocated' },
+  NEEDS_QUOTATIONS: { label: 'Needs quotations' },
+  ALLOCATED: { label: 'Allocated, not ordered' },
+  ORDERED: { label: 'Ordered' },
+  IN_TRANSIT: { label: 'In transit' },
+  RECEIVED: { label: 'Received, not invoiced' },
+  INVOICED: { label: 'Fully invoiced' },
 };
 
 export const purchaseStatusConfig: Record<PurchaseStatus, { label: string; variant: BadgeVariant }> = {
@@ -193,11 +224,6 @@ export const purchaseItemSourceConfig: Record<PurchaseItemSource, { label: strin
   MANUAL: { label: 'Manual' },
 };
 
-export interface PurchaseProgressQuotations {
-  posted: number;
-  needed: number;
-}
-
 export interface PurchaseProgressSegments {
   invoiced: number;
   received: number;
@@ -207,24 +233,23 @@ export interface PurchaseProgressSegments {
   unallocated: number;
 }
 
-interface PurchaseProgressBase {
+export interface PurchaseProgress {
   itemCount: number;
   segments: PurchaseProgressSegments;
 }
 
-// Quotations are counted only while the purchase is Quoting
-export type PurchaseProgress =
-  | (PurchaseProgressBase & { stage: typeof PurchaseStepValues.QUOTING; quotations: PurchaseProgressQuotations })
-  | (PurchaseProgressBase & {
-      stage: Exclude<PurchaseStep, typeof PurchaseStepValues.QUOTING>;
-      quotations: null;
-    });
+export interface PurchaseBlockers {
+  submit: string | null;
+  close: string | null;
+  cancel: string | null;
+  delete: string | null;
+}
 
 export interface PurchaseTableRow {
   id: string;
   purchaseNumber: string;
-  step: PurchaseStep;
   status: PurchaseStatus;
+  summary: PurchaseSummary | null;
   siteId: string;
   siteName: string;
   siteCode: string;
@@ -238,7 +263,6 @@ export type PurchasesTableResponse = TableResponse<PurchaseTableRow>;
 export interface PurchaseData {
   id: string;
   purchaseNumber: string;
-  step: PurchaseStep;
   status: PurchaseStatus;
   siteId: string;
   legalEntityId: string;
@@ -248,6 +272,7 @@ export interface PurchaseData {
   submittedAt: string | null;
   completedAt: string | null;
   cancelledAt: string | null;
+  cancelReason: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -257,7 +282,7 @@ export interface PurchaseItem {
   inventoryItemId: string;
   inventoryItemName: string;
   inventoryItemCode: string;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   primaryQty: number;
   allocatedPrimaryQty: number;
   source: PurchaseItemSource;
@@ -274,7 +299,7 @@ export interface PurchaseAllocation {
   supplierQuotationItemId: string | null;
   quotationNumber: string | null;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   uomQty: number;
   primaryUomQty: number;
   unitPrice: CurrencyValue;
@@ -296,9 +321,53 @@ export interface PurchaseSourcingAllocation extends PurchaseAllocation {
   isEditable: boolean;
 }
 
-export interface PurchaseSourcingItem extends PurchaseItem {
-  allocations: PurchaseSourcingAllocation[];
+export interface PurchaseItemSupplierProgress {
+  legId: string;
+  supplierId: string;
+  supplierName: string;
+  allocated: number;
+  ordered: number;
+  inTransit: number;
+  received: number;
+  invoiced: number;
 }
+
+export interface PurchaseItemTableRow {
+  id: string;
+  inventoryItemId: string;
+  inventoryItemName: string;
+  inventoryItemCode: string;
+  categoryName: string;
+  primaryUomSymbol: string;
+  primaryQty: number;
+  allocatedPrimaryQty: number;
+  orderedPrimaryQty: number;
+  inTransitPrimaryQty: number;
+  receivedPrimaryQty: number;
+  invoicedPrimaryQty: number;
+  quotingSupplierCount: number;
+  suppliers: PurchaseItemSupplierProgress[];
+  problems: PurchaseItemProblem[];
+  supplierItemsRequired: boolean;
+  neededBy: string | null;
+  notes: string | null;
+}
+
+// What needs a buyer's attention on a purchase item before it can be bought
+export const PurchaseItemProblemCodeValues = {
+  PURCHASING_BLOCKED: 'PURCHASING_BLOCKED',
+} as const;
+export type PurchaseItemProblemCode =
+  (typeof PurchaseItemProblemCodeValues)[keyof typeof PurchaseItemProblemCodeValues];
+
+export interface PurchaseItemProblem {
+  code: PurchaseItemProblemCode;
+  detail: string;
+}
+
+export type PurchaseItemsTableResponse = TableResponse<PurchaseItemTableRow>;
+
+export type PurchaseItemFacets = Record<PurchaseItemBucket | 'ALL', number>;
 
 export interface PurchaseLegRejection {
   reason: string;
@@ -380,10 +449,31 @@ export interface PurchaseLeg {
   hasUnpricedAllocations: boolean;
   rejection: PurchaseLegRejection | null;
   closeReason: string | null;
+  receivingClosedAt: string | null;
+  cancelledAt: string | null;
+  cancelReason: string | null;
+  lineCount: number;
   allocations: PurchaseAllocation[];
   documents: PurchaseLegDocuments;
   progress: PurchaseLegProgress;
   availableActions: PurchaseLegAction[];
+  blockers: { cancel: string | null; close: string | null; order: string | null };
+}
+
+export type PurchaseLegsTableResponse = TableResponse<PurchaseLeg>;
+
+export interface PurchaseLegCount {
+  step: PurchaseLegStep;
+  status: PurchaseLegStatus;
+  count: number;
+  lineCount: number;
+}
+
+export interface PurchaseSupplierDocuments {
+  legId: string;
+  supplierId: string;
+  supplierName: string;
+  documents: PurchaseLegDocuments;
 }
 
 export interface PurchaseQuotationItem {
@@ -392,7 +482,7 @@ export interface PurchaseQuotationItem {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   unitPrice: CurrencyValue;
   unitPricePerPrimary: CurrencyValue;
   schemeBuyQty: number | null;
@@ -415,23 +505,149 @@ export interface PurchaseQuotation {
   currencyCode: string;
   pricedItemCount: number;
   itemCount: number;
-  items: PurchaseQuotationItem[];
 }
+
+export type PurchaseQuotationsTableResponse = TableResponse<PurchaseQuotation>;
+
+export interface PurchaseItemQuote {
+  quotationId: string;
+  quotationNumber: string;
+  supplierId: string;
+  supplierName: string;
+  isPosted: boolean;
+  validFrom: string;
+  validTo: string | null;
+  line: PurchaseQuotationItem;
+}
+
+export interface PurchaseItemView extends PurchaseItem {
+  categoryName: string;
+  taxClassName: string;
+  primaryUomAllowDecimal: boolean;
+  problems: PurchaseItemProblem[];
+  supplierItemsRequired: boolean;
+}
+
+export interface PurchaseItemCounts {
+  allocationCount: number;
+  quoteCount: number;
+  documentCount: number;
+}
+
+export interface PurchaseItemProgressSummary {
+  primaryQty: number;
+  allocatedPrimaryQty: number;
+  orderedPrimaryQty: number;
+  inTransitPrimaryQty: number;
+  receivedPrimaryQty: number;
+  invoicedPrimaryQty: number;
+  suppliers: PurchaseItemSupplierProgress[];
+}
+
+export interface PurchaseItemAllocationRow extends PurchaseSourcingAllocation {
+  poNumber: string | null;
+  poStatus: PurchaseOrderStatus | null;
+  receivedPrimaryQty: number | null;
+  invoicedPrimaryQty: number | null;
+}
+export type PurchaseItemAllocationsTableResponse = TableResponse<PurchaseItemAllocationRow>;
+
+export interface PurchaseItemQuoteRow extends PurchaseItemQuote {
+  isLowest: boolean;
+}
+export type PurchaseItemQuotesTableResponse = TableResponse<PurchaseItemQuoteRow>;
+
+// The kinds of document that move a purchase item once it is ordered
+export const PurchaseItemDocumentTypeValues = {
+  PURCHASE_ORDER: 'PURCHASE_ORDER',
+  INBOUND_DELIVERY: 'INBOUND_DELIVERY',
+  GOODS_RECEIPT: 'GOODS_RECEIPT',
+  SUPPLIER_INVOICE: 'SUPPLIER_INVOICE',
+} as const;
+export type PurchaseItemDocumentType =
+  (typeof PurchaseItemDocumentTypeValues)[keyof typeof PurchaseItemDocumentTypeValues];
+
+export const purchaseItemDocumentTypeConfig: Record<PurchaseItemDocumentType, { label: string }> = {
+  [PurchaseItemDocumentTypeValues.PURCHASE_ORDER]: { label: 'Purchase Order' },
+  [PurchaseItemDocumentTypeValues.INBOUND_DELIVERY]: { label: 'Inbound Delivery' },
+  [PurchaseItemDocumentTypeValues.GOODS_RECEIPT]: { label: 'Goods Receipt' },
+  [PurchaseItemDocumentTypeValues.SUPPLIER_INVOICE]: { label: 'Supplier Invoice' },
+};
+
+export const purchaseItemDocumentTypeOptions = Object.values(PurchaseItemDocumentTypeValues).map((value) => ({
+  value,
+  label: purchaseItemDocumentTypeConfig[value].label,
+}));
+
+interface PurchaseItemDocumentLine {
+  lineId: string;
+  documentId: string;
+  documentNumber: string;
+  date: string;
+  supplierId: string;
+  supplierName: string;
+  primaryQty: number;
+}
+
+export type PurchaseItemDocument = PurchaseItemDocumentLine &
+  (
+    | { type: typeof PurchaseItemDocumentTypeValues.PURCHASE_ORDER; status: PurchaseOrderStatus }
+    | { type: typeof PurchaseItemDocumentTypeValues.INBOUND_DELIVERY; status: InboundDeliveryStatus }
+    | { type: typeof PurchaseItemDocumentTypeValues.GOODS_RECEIPT; status: GoodsReceiptStatus }
+    | { type: typeof PurchaseItemDocumentTypeValues.SUPPLIER_INVOICE; status: SupplierInvoiceStatus }
+  );
+export type PurchaseItemDocumentsTableResponse = TableResponse<PurchaseItemDocument>;
+
+export interface PurchaseItemSiteStock extends SiteStockData {
+  status: SiteItemStatus;
+  blockedReason: string | null;
+}
+
+export interface PurchaseSettings {
+  siteId: string;
+  supplierItemsRequired: boolean;
+  updateSupplierItemsFromOrders: boolean;
+}
+
+export interface PurchaseSettingsRow extends PurchaseSettings {
+  siteName: string;
+  siteCode: string;
+}
+
+export type UpdatePurchaseSettingsPayload = Pick<PurchaseSettings, 'siteId'> &
+  Partial<Pick<PurchaseSettings, 'supplierItemsRequired' | 'updateSupplierItemsFromOrders'>>;
+
+export interface PurchaseItemComparison {
+  item: PurchaseItemTableRow;
+  quotes: PurchaseItemQuote[];
+  allocations: PurchaseSourcingAllocation[];
+}
+
+export type PurchaseItemComparisonTableResponse = TableResponse<PurchaseItemComparison>;
 
 export interface PurchaseLegFlowStep {
   step: PurchaseLegStep;
   state: PurchaseFlowStepState;
 }
 
-export interface PurchaseHeader extends PurchaseData {
+export interface PurchaseDetail extends PurchaseData {
   siteName: string;
   siteCode: string;
+}
+
+export interface PurchaseCounts {
   itemCount: number;
-  quotationCount: number;
   supplierCount: number;
-  cancelReason: string | null;
-  progress: PurchaseProgress;
+  quotationCount: number;
+}
+
+export interface PurchaseProgressSummary extends PurchaseProgress {
+  summary: PurchaseSummary | null;
+}
+
+export interface PurchaseActions {
   availableActions: PurchaseAction[];
+  blockers: PurchaseBlockers;
 }
 
 export interface CreatePurchasePayload {
@@ -499,7 +715,8 @@ export interface AddPurchaseAllocationPayload {
 
 export interface AddPurchaseAllocationsFromQuotationPayload {
   id: string;
-  supplierQuotationItemIds: string[];
+  supplierQuotationId?: string;
+  supplierQuotationItemIds?: string[];
 }
 
 export interface UpdatePurchaseAllocationPayload extends PurchaseAllocationRef {
@@ -568,6 +785,16 @@ export interface CreatedPurchaseLegGoodsReceipt {
 }
 
 export interface ClosePurchaseLegPayload extends PurchaseLegRef {
+  reason?: string;
+}
+
+export interface CancelPurchaseLegPayload extends PurchaseLegRef {
+  quantity: CancelledQuantity;
+  reason: string;
+}
+
+export interface ClosePurchasePayload {
+  id: string;
   reason?: string;
 }
 
@@ -643,12 +870,6 @@ export const requestPurchaseQuotationSchema = z.object({
 });
 
 export type RequestPurchaseQuotationFormData = z.infer<typeof requestPurchaseQuotationSchema>;
-
-export const applyPurchaseQuotationSchema = z.object({
-  quotationId: z.uuid('Quotation is required'),
-});
-
-export type ApplyPurchaseQuotationFormData = z.infer<typeof applyPurchaseQuotationSchema>;
 
 const purchaseAllocationShape = {
   uomId: z.uuid('Unit is required'),
@@ -744,11 +965,22 @@ export function buildPurchaseLegGoodsReceiptSchema({ deliveryRequired }: { deliv
 
 export type PurchaseLegGoodsReceiptFormData = z.infer<ReturnType<typeof buildPurchaseLegGoodsReceiptSchema>>;
 
-export const closePurchaseLegSchema = z.object({
+export const purchaseCloseReasonSchema = z.object({
   reason: z.string().max(1000, 'Reason must be at most 1000 characters'),
 });
 
-export type ClosePurchaseLegFormData = z.infer<typeof closePurchaseLegSchema>;
+export type PurchaseCloseReasonFormData = z.infer<typeof purchaseCloseReasonSchema>;
+
+export const cancelPurchaseLegSchema = z.object({
+  quantity: z.enum(Object.values(CancelledQuantityValues) as [CancelledQuantity, ...CancelledQuantity[]]),
+  reason: z
+    .string({ error: 'Reason is required' })
+    .trim()
+    .min(1, 'Reason is required')
+    .max(1000, 'Reason must be at most 1000 characters'),
+});
+
+export type CancelPurchaseLegFormData = z.infer<typeof cancelPurchaseLegSchema>;
 
 // The supplier invoice header of a supplier; the exchange rate is asked only for a currency other than the legal entity's
 export function buildPurchaseSupplierInvoiceSchema({ leCurrencyCode }: { leCurrencyCode: string }) {

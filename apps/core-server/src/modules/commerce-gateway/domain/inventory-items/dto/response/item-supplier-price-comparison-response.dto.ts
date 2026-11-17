@@ -8,8 +8,8 @@ export class ItemSupplierPriceComparisonResponseDto {
   @ApiProperty() supplierName: string;
   @ApiProperty() supplierCode: string;
 
-  @ApiPropertyOptional({ description: 'Unit the supplier quotes the item in', nullable: true })
-  quotedUomSymbol: string | null;
+  @ApiProperty({ description: 'Unit the supplier quotes the item in' })
+  quotedUomSymbol: string;
 
   @ApiProperty({ description: 'Whether the supplier is preferred for the item at the site' })
   isPreferred: boolean;

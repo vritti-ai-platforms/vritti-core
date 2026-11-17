@@ -1,10 +1,10 @@
 import { Select, type SelectOption, type SelectProps } from '@vritti/quantum-ui/Select';
 import { forwardRef } from 'react';
 
-export interface OfferingVariantSelectorProps extends SelectProps {
+export type OfferingVariantSelectorProps = SelectProps & {
   offeringId?: string;
   catalogId?: string;
-}
+};
 
 const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'name', descriptionKey: 'code' } as const;
 

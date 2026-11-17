@@ -119,7 +119,7 @@ export class PurchaseOrderItemsDomainService {
   ): Promise<void> {
     this.assertLinesEditable(po);
     this.assertDeliveryNotBeforeOrder(po, line.expectedDeliveryDate);
-    await this.assertNotOnPurchaseOrder(po.id, line, 'supplierItemId');
+    await this.assertNotOnPurchaseOrder(po.id, line);
 
     const quotedCurrency = dto.unitPrice.currency;
     const quotedPrice = majorToMinor(dto.unitPrice.value, quotedCurrency as CurrencyCode, 'unitPrice');
@@ -200,7 +200,7 @@ export class PurchaseOrderItemsDomainService {
     const inventoryItemId = dto.inventoryItemId ?? item.inventoryItemId;
     if (inventoryItemId !== item.inventoryItemId) {
       await this.assertNotOnGoodsReceipt(item.id, 'Cannot Change Item');
-      await this.assertNotOnPurchaseOrder(po.id, { inventoryItemId, uomId: item.uomId }, 'inventoryItemId', item.id);
+      await this.assertNotOnPurchaseOrder(po.id, { inventoryItemId, uomId: item.uomId }, item.id);
     }
 
     const uomQty = dto.uomQty ?? item.uomQty;
@@ -489,7 +489,6 @@ export class PurchaseOrderItemsDomainService {
   private async assertNotOnPurchaseOrder(
     purchaseOrderId: string,
     line: { inventoryItemId: string; uomId: string },
-    field: 'supplierItemId' | 'inventoryItemId',
     excludeItemId?: string,
   ): Promise<void> {
     const isOrdered = await this.repository.isOrderedInUnit(purchaseOrderId, line, excludeItemId);
@@ -497,7 +496,7 @@ export class PurchaseOrderItemsDomainService {
     throw new ConflictException({
       label: 'Already Ordered',
       detail: 'This item is already on the purchase order in the same unit. Edit that line instead.',
-      errors: [{ field, message: 'Already on this order' }],
+      errors: [{ field: 'inventoryItemId', message: 'Already on this order' }],
     });
   }
 

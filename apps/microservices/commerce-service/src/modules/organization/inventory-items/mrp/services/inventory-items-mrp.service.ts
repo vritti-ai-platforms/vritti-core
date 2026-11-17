@@ -28,7 +28,7 @@ export class InventoryItemsMrpService {
       });
     }
     const row = await this.mrpsService.create(dto);
-    return InventoryItemMrpDto.from(row);
+    return InventoryItemMrpDto.from(await this.mrpsService.findByIdWithUom(row.id));
   }
 
   // Updates an existing MRP row's amount by id; the unit is fixed on edit
@@ -38,7 +38,7 @@ export class InventoryItemsMrpService {
     if (!row) {
       throw new NotFoundException({ label: 'MRP Not Found', detail: 'MRP not found.' });
     }
-    return InventoryItemMrpDto.from(row);
+    return InventoryItemMrpDto.from(await this.mrpsService.findByIdWithUom(row.id));
   }
 
   // Promotes one recorded MRP to the current one shown on listings
@@ -48,7 +48,7 @@ export class InventoryItemsMrpService {
     if (!row) {
       throw new NotFoundException({ label: 'MRP Not Found', detail: 'MRP not found.' });
     }
-    return InventoryItemMrpDto.from(row);
+    return InventoryItemMrpDto.from(await this.mrpsService.findByIdWithUom(row.id));
   }
 
   // Returns one item's MRPs for the data table

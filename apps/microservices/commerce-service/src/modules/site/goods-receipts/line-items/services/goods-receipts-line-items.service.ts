@@ -4,7 +4,7 @@ import { GoodsReceiptLineItemsDomainService } from '@domain/goods-receipt-line-i
 import { GoodsReceiptLinesDomainService } from '@domain/goods-receipt-lines/services/goods-receipt-lines.service';
 import type { GoodsReceiptItemContext } from '@domain/goods-receipts/repositories/goods-receipt-items.repository';
 import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/goods-receipt-items.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { Injectable } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -17,7 +17,7 @@ export class GoodsReceiptsLineItemsService {
     private readonly lineItemsService: GoodsReceiptLineItemsDomainService,
     private readonly linesService: GoodsReceiptLinesDomainService,
     private readonly itemsService: GoodsReceiptItemsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
   ) {}
 
   // Registers a serial on a line of a draft receipt and re-checks whether the line's serials are complete
@@ -52,6 +52,6 @@ export class GoodsReceiptsLineItemsService {
   // Rejects a change to an item of a Receive with Invoice receipt, which is edited with its supplier invoice (409)
   private assertNotReceiveWithInvoice(item: GoodsReceiptItemContext): void {
     if (item.deliverySource !== InboundDeliverySourceValues.SUPPLIER_INVOICE) return;
-    this.purchasesService.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase('This goods receipt', [item.purchaseNumber]);
   }
 }

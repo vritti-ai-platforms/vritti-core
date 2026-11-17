@@ -1,4 +1,4 @@
-import { InventoryItemSiteStockLevelsDomainService } from '@domain/inventory-item-site-stock-levels/services/inventory-item-site-stock-levels.service';
+import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import type { AddPurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/update-purchase-order-item.dto';
 import {
@@ -8,16 +8,20 @@ import {
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import type { PurchaseOrderRow } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierItemPricesDomainService } from '@domain/supplier-item-prices/services/supplier-item-prices.service';
 import { SupplierItemsDomainService } from '@domain/supplier-items/services/supplier-items.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { BadRequestException, ValidationException } from '@vritti/api-sdk/exceptions';
+import Decimal from '@vritti/api-sdk/decimal';
+import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { addDays, formatISO, parseISO } from 'date-fns';
+import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
+import type { PurchaseOrderItemDefaultsDto } from '../dto/entity/purchase-order-item-defaults.dto';
+import type { PurchaseOrderItemDefaultsQueryDto } from '../dto/request/purchase-order-item-defaults-query.dto';
 
 @Injectable()
 export class PurchaseOrdersItemsService {
@@ -31,52 +35,42 @@ export class PurchaseOrdersItemsService {
     private readonly supplierItemsService: SupplierItemsDomainService,
     private readonly supplierItemPricesService: SupplierItemPricesDomainService,
     private readonly uomConversionsService: UomConversionsDomainService,
-    private readonly siteStockLevelsService: InventoryItemSiteStockLevelsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
+    private readonly purchasesRepository: PurchasesDomainRepository,
+    private readonly purchasingRulesService: PurchasingRulesService,
   ) {}
 
-  // Orders a supplier item set up and enabled at the PO's site, defaulting its scheme and delivery from the site's price and lead time
+  // Orders an item the PO's site carries, in one of its units, defaulting the scheme from the price in force for the
+  // supplier's item in that unit and the delivery from its lead time at the site, when the supplier has one; a site whose
+  // rules buy the item only from suppliers set up for it needs this supplier set up there
   async addItem(dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.purchaseOrderId);
     this.assertNotPartOfPurchase(po);
-    const supplierItem = await this.supplierItemsService.findById(dto.supplierItemId);
-    if (!supplierItem || supplierItem.supplierId !== po.supplierId) {
-      throw new ValidationException({
-        label: 'Unknown Supplier Item',
-        detail: "The item is not one of the purchase order supplier's items.",
-        errors: [{ field: 'supplierItemId', message: "Not this supplier's item" }],
-      });
-    }
-    const supplierSiteItem = await this.supplierItemsService.findSiteItem(supplierItem.id, po.siteId);
-    if (!supplierSiteItem) {
-      throw new BadRequestException({
-        label: 'Item Not At Site',
-        detail: "This supplier item is not set up at the purchase order's site.",
-        errors: [{ field: 'supplierItemId', message: 'Not set up at this site' }],
-      });
-    }
-
-    await this.siteStockLevelsService.ensureStockLevels([supplierItem.inventoryItemId], 'supplierItemId', po.siteId);
-    const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
-      supplierItem.inventoryItemId,
-      supplierItem.uomId,
-      dto.uomQty,
+    await this.inventoryItemSitesRepository.ensurePurchasable([dto.inventoryItemId], 'inventoryItemId', po.siteId);
+    await this.purchasingRulesService.assertSourced(po.supplierId, po.siteId, [dto], 'inventoryItemId');
+    const supplierItem = await this.supplierItemsService.findByItemAndUnit(
+      po.supplierId,
+      dto.inventoryItemId,
+      dto.uomId,
     );
-    const price = await this.supplierItemPricesService.resolvePriceForOrderLine(
-      supplierItem.id,
-      po.siteId,
-      po.orderDate,
-    );
-    const supplier = await this.suppliersService.findByIdOrThrow(po.supplierId);
+    const [primaryUomQty, price, leadTimes, supplier] = await Promise.all([
+      this.uomConversionsService.toPrimaryUomQuantity(dto.inventoryItemId, dto.uomId, dto.uomQty),
+      supplierItem
+        ? this.supplierItemPricesService.resolvePriceForOrderLine(supplierItem.id, po.siteId, po.orderDate)
+        : undefined,
+      this.supplierItemsService.findSiteLeadTimes(po.supplierId, po.siteId, [dto]),
+      this.suppliersService.findByIdOrThrow(po.supplierId),
+    ]);
+    const leadTimeDays = leadTimes.get(SupplierItemsDomainService.leadTimeKey(dto)) ?? 0;
 
     await this.database.runInTransaction(async () => {
       const pricedPo = await this.withConversionRate(po, dto.unitPrice.currency, dto.conversionRate);
       await this.itemsService.addItem(pricedPo, dto, {
-        inventoryItemId: supplierItem.inventoryItemId,
-        uomId: supplierItem.uomId,
+        inventoryItemId: dto.inventoryItemId,
+        uomId: dto.uomId,
         expectedDeliveryDate:
           dto.expectedDeliveryDate ??
-          formatISO(addDays(parseISO(po.orderDate), supplierSiteItem.leadTimeDays), { representation: 'date' }),
+          formatISO(addDays(parseISO(po.orderDate), leadTimeDays), { representation: 'date' }),
         primaryUomQty,
         scheme: {
           buyQty: dto.schemeBuyQty ?? price?.schemeBuyQty ?? null,
@@ -88,7 +82,7 @@ export class PurchaseOrdersItemsService {
       await this.purchaseOrdersService.syncTotalAmount(po.id);
     });
 
-    this.logger.log(`purchaseOrders.addItem — PO: ${po.poNumber}, supplierItem: ${supplierItem.id}`);
+    this.logger.log(`purchaseOrders.addItem — PO: ${po.poNumber}, item: ${dto.inventoryItemId}`);
     return {
       success: true,
       message: `Line item added to purchase order "${po.poNumber}".`,
@@ -96,20 +90,23 @@ export class PurchaseOrdersItemsService {
     };
   }
 
-  // Changes a line's item, quantity, price, scheme or expected delivery and syncs the PO total
+  // Changes a line's item, quantity, price, scheme or expected delivery and syncs the PO total; a line of an item the site
+  // has blocked buying may be lowered, repriced or rescheduled, but not raised
   async updateItem(dto: UpdatePurchaseOrderItemDto): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.purchaseOrderId);
     this.assertNotPartOfPurchase(po);
     const item = await this.itemsService.findOnPurchaseOrderOrThrow(po.id, dto.itemId);
     const inventoryItemId = dto.inventoryItemId ?? item.inventoryItemId;
-    if (inventoryItemId !== item.inventoryItemId) {
-      await this.siteStockLevelsService.ensureStockLevels([inventoryItemId], 'inventoryItemId', po.siteId);
-    }
     const primaryUomQty = await this.uomConversionsService.toPrimaryUomQuantity(
       inventoryItemId,
       item.uomId,
       dto.uomQty ?? item.uomQty,
     );
+    if (inventoryItemId !== item.inventoryItemId) {
+      await this.inventoryItemSitesRepository.ensurePurchasable([inventoryItemId], 'inventoryItemId', po.siteId);
+    } else if (new Decimal(primaryUomQty).gt(item.primaryUomQty)) {
+      await this.inventoryItemSitesRepository.ensurePurchasable([inventoryItemId], 'uomQty', po.siteId);
+    }
     const supplier = await this.suppliersService.findByIdOrThrow(po.supplierId);
 
     return this.database.runInTransaction(async () => {
@@ -130,6 +127,44 @@ export class PurchaseOrdersItemsService {
     });
   }
 
+  // What a new line of an item starts with on the PO: the supplier's unit for it at the site unless one is given, the
+  // price in force there for the supplier's item in that unit with its scheme, and the delivery its lead time gives — each
+  // empty where the supplier has nothing set up
+  async findItemDefaults(query: PurchaseOrderItemDefaultsQueryDto): Promise<PurchaseOrderItemDefaultsDto> {
+    const po = await this.purchaseOrdersService.findDetailOrThrow(query.id);
+    const uomId =
+      query.uomId ??
+      (await this.supplierItemsService.findSiteUnits(po.supplierId, po.siteId, [query.inventoryItemId])).get(
+        query.inventoryItemId,
+      ) ??
+      null;
+    const supplierItem = uomId
+      ? await this.supplierItemsService.findByItemAndUnit(po.supplierId, query.inventoryItemId, uomId)
+      : undefined;
+    const [price, leadTimes] = await Promise.all([
+      supplierItem
+        ? this.supplierItemPricesService.resolvePriceForOrderLine(supplierItem.id, po.siteId, po.orderDate)
+        : undefined,
+      uomId
+        ? this.supplierItemsService.findSiteLeadTimes(po.supplierId, po.siteId, [
+            { inventoryItemId: query.inventoryItemId, uomId },
+          ])
+        : new Map<string, number>(),
+    ]);
+    const leadTimeDays = uomId
+      ? (leadTimes.get(SupplierItemsDomainService.leadTimeKey({ inventoryItemId: query.inventoryItemId, uomId })) ?? 0)
+      : 0;
+    return {
+      uomId,
+      supplierItemCode: supplierItem?.supplierItemCode ?? null,
+      minOrderQuantity: supplierItem?.minOrderQuantity ?? null,
+      unitPrice: price ? CurrencyAmountDto.from(price.unitPrice, price.currencyCode) : null,
+      schemeBuyQty: price?.schemeBuyQty ?? null,
+      schemeFreeQty: price?.schemeFreeQty ?? null,
+      expectedDeliveryDate: formatISO(addDays(parseISO(po.orderDate), leadTimeDays), { representation: 'date' }),
+    };
+  }
+
   // Removes a line and syncs the PO total
   async removeItem(purchaseOrderId: string, itemId: string): Promise<SuccessResponseDto> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(purchaseOrderId);
@@ -143,7 +178,9 @@ export class PurchaseOrdersItemsService {
 
   // Rejects a line change on a PO a purchase created; its lines are the purchase's approved allocations (409)
   private assertNotPartOfPurchase(po: PurchaseOrderRow): void {
-    this.purchasesService.assertNotPartOfPurchase(`The lines of purchase order "${po.poNumber}"`, [po.purchaseNumber]);
+    this.purchasesRepository.assertNotPartOfPurchase(`The lines of purchase order "${po.poNumber}"`, [
+      po.purchaseNumber,
+    ]);
   }
 
   // Stores a rate sent with a line for its quoted currency, converting the PO's other lines in it, and returns the PO

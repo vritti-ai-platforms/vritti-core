@@ -87,7 +87,7 @@ export interface SupplierQuotationItemData {
   uomId: string;
   inventoryItemName: string;
   supplierItemCode: string | null;
-  uomSymbol: string | null;
+  uomSymbol: string;
   unitPrice: CurrencyValue;
   mrpId: string | null;
   mrp: CurrencyValue | null;

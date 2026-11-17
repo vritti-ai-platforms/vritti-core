@@ -8,8 +8,10 @@ import type {
   AddPurchaseAllocationPayload,
   AddPurchaseAllocationsFromQuotationPayload,
   AddPurchaseItemPayload,
+  CancelPurchaseLegPayload,
   CancelPurchasePayload,
   ClosePurchaseLegPayload,
+  ClosePurchasePayload,
   ConfirmPurchaseLegPurchaseOrderPayload,
   CreatedPurchaseLegGoodsReceipt,
   CreatedPurchaseLegInboundDelivery,
@@ -20,16 +22,31 @@ import type {
   CreatePurchaseLegPurchaseOrdersPayload,
   CreatePurchasePayload,
   CreatePurchaseSupplierInvoicePayload,
+  PurchaseActions,
   PurchaseAllocation,
   PurchaseAllocationRef,
+  PurchaseCounts,
   PurchaseData,
-  PurchaseHeader,
+  PurchaseDetail,
   PurchaseItem,
+  PurchaseItemAllocationsTableResponse,
+  PurchaseItemComparisonTableResponse,
+  PurchaseItemCounts,
+  PurchaseItemDocumentsTableResponse,
+  PurchaseItemFacets,
+  PurchaseItemProgressSummary,
+  PurchaseItemQuotesTableResponse,
   PurchaseItemRef,
+  PurchaseItemSiteStock,
+  PurchaseItemsTableResponse,
+  PurchaseItemView,
   PurchaseLeg,
+  PurchaseLegCount,
   PurchaseLegRef,
-  PurchaseQuotation,
-  PurchaseSourcingItem,
+  PurchaseLegsTableResponse,
+  PurchaseProgressSummary,
+  PurchaseQuotationsTableResponse,
+  PurchaseSupplierDocuments,
   PurchasesTableResponse,
   RejectPurchaseLegPayload,
   RequestedPurchaseQuotation,
@@ -56,6 +73,7 @@ export interface PurchasePermissions {
   receive: string;
   invoice: string;
   close: string;
+  quotations: { view: string; add: string };
 }
 
 // The quotation a purchase links to, as far as the Quotations feature needs it to open the quotation
@@ -68,7 +86,7 @@ export interface PurchaseQuotationLink {
 
 export type PurchaseQuotationPath = (quotation: PurchaseQuotationLink) => string;
 
-export type PurchaseSupplierSelector = ComponentType<Omit<SelectProps, 'optionsEndpoint'>>;
+export type PurchaseSupplierSelector = ComponentType<DistributiveOmit<SelectProps, 'optionsEndpoint'>>;
 export type PurchaseSupplierFilter = ComponentType<
   DistributiveOmit<SelectFilterProps, 'optionsEndpoint' | 'name'> & { name?: string }
 >;
@@ -82,15 +100,39 @@ export type UsePurchasesTable = () => {
   isLoading: boolean;
   isFetching: boolean;
 };
-export type UsePurchase = (id: string) => { data: PurchaseHeader };
-export type UsePurchaseItems = (id: string) => { data: PurchaseItem[] };
-export type UsePurchaseQuotations = (id: string) => { data: PurchaseQuotation[] };
-export type UsePurchaseSourcingItems = (id: string) => { data: PurchaseSourcingItem[] };
-export type UsePurchaseSuppliers = (id: string) => { data: PurchaseLeg[] };
+export type UsePurchase = (id: string) => { data: PurchaseDetail };
+export type UsePurchaseCounts = (id: string) => { data: PurchaseCounts | undefined; isLoading: boolean };
+export type UsePurchaseProgress = (id: string) => { data: PurchaseProgressSummary | undefined; isLoading: boolean };
+export type UsePurchaseActions = (id: string) => { data: PurchaseActions | undefined; isLoading: boolean };
+type TableQuery<T> = (id: string) => { data: T | undefined; isLoading: boolean; isFetching: boolean };
+export type UsePurchaseItemsTable = TableQuery<PurchaseItemsTableResponse>;
+export type UsePurchaseItemComparison = TableQuery<PurchaseItemComparisonTableResponse>;
+export type UsePurchaseQuotationsTable = TableQuery<PurchaseQuotationsTableResponse>;
+export type UsePurchaseSuppliersTable = TableQuery<PurchaseLegsTableResponse>;
+export type UsePurchaseItemFacets = (id: string) => { data: PurchaseItemFacets | undefined; isLoading: boolean };
+export type UsePurchaseSupplierCounts = (id: string) => { data: PurchaseLegCount[] | undefined; isLoading: boolean };
+export type UsePurchaseDocuments = (id: string) => {
+  data: PurchaseSupplierDocuments[] | undefined;
+  isLoading: boolean;
+};
+export type UsePurchaseItem = (id: string, itemId: string) => { data: PurchaseItemView };
+type ItemQuery<T> = (id: string, itemId: string) => { data: T | undefined; isLoading: boolean };
+type ItemTableQuery<T> = (
+  id: string,
+  itemId: string,
+) => { data: T | undefined; isLoading: boolean; isFetching: boolean };
+export type UsePurchaseItemCounts = ItemQuery<PurchaseItemCounts>;
+export type UsePurchaseItemProgress = ItemQuery<PurchaseItemProgressSummary>;
+export type UsePurchaseItemSiteStock = ItemQuery<PurchaseItemSiteStock | null>;
+export type UsePurchaseItemAllocationsTable = ItemTableQuery<PurchaseItemAllocationsTableResponse>;
+export type UsePurchaseItemQuotesTable = ItemTableQuery<PurchaseItemQuotesTableResponse>;
+export type UsePurchaseItemDocumentsTable = ItemTableQuery<PurchaseItemDocumentsTableResponse>;
+export type UsePurchaseSupplier = (id: string, legId: string) => { data: PurchaseLeg | undefined; isLoading: boolean };
 
 export type UseCreatePurchase = Mutation<CreateResponse<PurchaseData>, CreatePurchasePayload>;
 export type UseUpdatePurchase = Mutation<SuccessResponse, UpdatePurchasePayload>;
 export type UseCancelPurchase = Mutation<SuccessResponse, CancelPurchasePayload>;
+export type UseClosePurchase = Mutation<SuccessResponse, ClosePurchasePayload>;
 export type UseDeletePurchase = Mutation<SuccessResponse, string>;
 export type UsePurchaseAction = Mutation<SuccessResponse, string>;
 
@@ -128,6 +170,7 @@ export type UseCreatePurchaseLegGoodsReceipt = Mutation<
   CreatePurchaseLegGoodsReceiptPayload
 >;
 export type UseClosePurchaseLeg = Mutation<SuccessResponse, ClosePurchaseLegPayload>;
+export type UseCancelPurchaseLeg = Mutation<SuccessResponse, CancelPurchaseLegPayload>;
 export type UseCreatePurchaseSupplierInvoice = Mutation<
   CreateResponse<CreatedPurchaseSupplierInvoice>,
   CreatePurchaseSupplierInvoicePayload

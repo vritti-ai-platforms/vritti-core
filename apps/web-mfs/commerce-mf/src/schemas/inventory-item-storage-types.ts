@@ -6,7 +6,7 @@ export interface InventoryItemStorageTypeData {
   storageTypeName: string;
   maxQuantity: number;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 }
 
 export const updateInventoryItemStorageTypeSchema = z.object({

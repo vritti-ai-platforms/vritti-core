@@ -1,5 +1,7 @@
-import { SetStockLevelsDto } from '@domain/inventory-item-site-stock-levels/dto/request/set-stock-levels.dto';
-import { UpdateStockLevelsDto } from '@domain/inventory-item-site-stock-levels/dto/request/update-stock-levels.dto';
+import type { InventoryItemSiteDto } from '@domain/inventory-item-sites/dto/entity/inventory-item-site.dto';
+import { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block-site-item.dto';
+import { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
+import { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import type { SiteStockTableItemDto } from '@domain/inventory-items/dto/entity/scoped-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
@@ -9,7 +11,6 @@ import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { InventoryItemSiteStockLevel } from '@/db/schema';
 import { SiteInventoryItemsService } from './services/inventory-items-root.service';
 
 @Controller()
@@ -21,18 +22,32 @@ export class InventoryItemsRootController {
     private readonly rootService: SiteInventoryItemsService,
   ) {}
 
-  // Updates an item's stock levels at the current site
-  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.update' })
-  async updateStockLevels(@Payload() dto: UpdateStockLevelsDto): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.stockLevels.update — inventoryItemId: ${dto.inventoryItemId}`);
-    return this.rootService.updateStockLevels(dto);
+  // Adds an item to the current site with how it is replenished here
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.create' })
+  addToSite(@Payload() dto: ReplenishmentDto): Promise<CreateResponseDto<InventoryItemSiteDto>> {
+    this.logger.log(`site.inventoryItems.setup.create — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.addToSite(dto);
   }
 
-  // Sets a master item's stock levels at the current site
-  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.create' })
-  async setStockLevels(@Payload() dto: SetStockLevelsDto): Promise<CreateResponseDto<InventoryItemSiteStockLevel>> {
-    this.logger.log(`inventoryItems.stockLevels.create — inventoryItemId: ${dto.inventoryItemId}`);
-    return this.rootService.setStockLevels(dto);
+  // Changes how the current site replenishes an item
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.update' })
+  updateReplenishment(@Payload() dto: ReplenishmentDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.update — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.updateReplenishment(dto);
+  }
+
+  // Stops the current site buying an item, with why
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.block' })
+  block(@Payload() dto: BlockSiteItemDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.block — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.block(dto);
+  }
+
+  // Lets the current site buy an item again
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.unblock' })
+  unblock(@Payload() dto: SiteItemRefDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.unblock — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.unblock(dto.inventoryItemId);
   }
 
   // Returns a single master inventory item by ID (shared detail)
@@ -42,7 +57,7 @@ export class InventoryItemsRootController {
     return this.service.findById(data.id);
   }
 
-  // Every master item, with its stock levels at this site and the stock it holds here, by location
+  // Every master item, with how this site carries it and the stock it holds here, by location
   @MessagePattern({ cmd: 'site.inventoryItems.stockTable' })
   async stockTable(
     @Payload() state: TableState,
@@ -52,17 +67,17 @@ export class InventoryItemsRootController {
     return this.service.findForSiteStockTable(state, leCurrencyCode as CurrencyCode);
   }
 
-  // Returns an item's stock levels at the current site, or null while none are set
-  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.find' })
-  async findStockLevels(@Payload() data: { inventoryItemId: string }): Promise<InventoryItemSiteStockLevel | null> {
-    this.logger.log(`inventoryItems.stockLevels.find — inventoryItemId: ${data.inventoryItemId}`);
-    return this.rootService.findStockLevels(data.inventoryItemId);
+  // Returns how the current site carries an item, or null while it does not
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.find' })
+  findSiteItem(@Payload() dto: SiteItemRefDto): Promise<InventoryItemSiteDto | null> {
+    this.logger.log(`site.inventoryItems.setup.find — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.findSiteItem(dto.inventoryItemId);
   }
 
-  // Removes an item's stock levels at the current site
-  @MessagePattern({ cmd: 'site.inventoryItems.stockLevels.delete' })
-  async removeStockLevels(@Payload() data: { inventoryItemId: string }): Promise<SuccessResponseDto> {
-    this.logger.log(`inventoryItems.stockLevels.delete — inventoryItemId: ${data.inventoryItemId}`);
-    return this.rootService.removeStockLevels(data.inventoryItemId);
+  // Removes an item from the current site
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.delete' })
+  removeFromSite(@Payload() dto: SiteItemRefDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.delete — inventoryItemId: ${dto.inventoryItemId}`);
+    return this.rootService.removeFromSite(dto);
   }
 }

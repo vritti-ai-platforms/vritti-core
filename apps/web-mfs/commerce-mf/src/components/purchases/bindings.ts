@@ -8,6 +8,8 @@ import type {
   UseAddPurchaseAllocationsFromQuotation,
   UseAddPurchaseItem,
   UseCancelPurchase,
+  UseCancelPurchaseLeg,
+  UseClosePurchase,
   UseClosePurchaseLeg,
   UseConfirmPurchaseLegPurchaseOrder,
   UseCreatePurchase,
@@ -19,11 +21,25 @@ import type {
   UseDeletePurchase,
   UsePurchase,
   UsePurchaseAction,
-  UsePurchaseItems,
+  UsePurchaseActions,
+  UsePurchaseCounts,
+  UsePurchaseDocuments,
+  UsePurchaseItem,
+  UsePurchaseItemAllocationsTable,
+  UsePurchaseItemComparison,
+  UsePurchaseItemCounts,
+  UsePurchaseItemDocumentsTable,
+  UsePurchaseItemFacets,
+  UsePurchaseItemProgress,
+  UsePurchaseItemQuotesTable,
+  UsePurchaseItemSiteStock,
+  UsePurchaseItemsTable,
   UsePurchaseLegAction,
-  UsePurchaseQuotations,
-  UsePurchaseSourcingItems,
-  UsePurchaseSuppliers,
+  UsePurchaseProgress,
+  UsePurchaseQuotationsTable,
+  UsePurchaseSupplier,
+  UsePurchaseSupplierCounts,
+  UsePurchaseSuppliersTable,
   UsePurchasesTable,
   UseReceiveWithInvoice,
   UseReceiveWithInvoiceAction,
@@ -55,6 +71,9 @@ export interface ReceiveWithInvoicesBinding {
   useDiscard: UseReceiveWithInvoiceAction;
 }
 
+export type PurchaseDetailTable = 'items' | 'comparison' | 'suppliers' | 'quotations';
+export type PurchaseItemTable = 'allocations' | 'quotes' | 'documents';
+
 export interface PurchasesBinding {
   permissions: PurchasePermissions;
   // The legal entity lists every site's purchases, narrowed by the context bar's site filter, and picks a site per purchase
@@ -72,26 +91,47 @@ export interface PurchasesBinding {
 
   tableKey: readonly unknown[];
   tableSlug: string;
+  // The saved-state slug of one purchase's table, matching the gateway's: items, comparison, suppliers or quotations
+  purchaseTableSlug: (id: string, table: PurchaseDetailTable) => string;
+  // The query keys of one purchase's tables, refreshed when their saved state changes
+  purchaseTableKeys: Record<PurchaseDetailTable, (id: string) => readonly unknown[]>;
+  // The saved-state slug of one purchase item's table, matching the gateway's: allocations, quotes or documents
+  purchaseItemTableSlug: (id: string, itemId: string, table: PurchaseItemTable) => string;
+  // The query keys of one purchase item's tables, refreshed when their saved state changes
+  purchaseItemTableKeys: Record<PurchaseItemTable, (id: string, itemId: string) => readonly unknown[]>;
 
   useTable: UsePurchasesTable;
   usePurchase: UsePurchase;
-  usePurchaseItems: UsePurchaseItems;
-  usePurchaseQuotations: UsePurchaseQuotations;
-  usePurchaseSourcingItems: UsePurchaseSourcingItems;
-  usePurchaseSuppliers: UsePurchaseSuppliers;
+  usePurchaseCounts: UsePurchaseCounts;
+  usePurchaseProgress: UsePurchaseProgress;
+  usePurchaseActions: UsePurchaseActions;
+  usePurchaseItemsTable: UsePurchaseItemsTable;
+  usePurchaseItemFacets: UsePurchaseItemFacets;
+  usePurchaseItem: UsePurchaseItem;
+  usePurchaseItemCounts: UsePurchaseItemCounts;
+  usePurchaseItemProgress: UsePurchaseItemProgress;
+  usePurchaseItemSiteStock: UsePurchaseItemSiteStock;
+  usePurchaseItemAllocationsTable: UsePurchaseItemAllocationsTable;
+  usePurchaseItemQuotesTable: UsePurchaseItemQuotesTable;
+  usePurchaseItemDocumentsTable: UsePurchaseItemDocumentsTable;
+  usePurchaseItemComparison: UsePurchaseItemComparison;
+  usePurchaseQuotationsTable: UsePurchaseQuotationsTable;
+  usePurchaseSuppliersTable: UsePurchaseSuppliersTable;
+  usePurchaseSupplier: UsePurchaseSupplier;
+  usePurchaseSupplierCounts: UsePurchaseSupplierCounts;
+  usePurchaseDocuments: UsePurchaseDocuments;
 
   useCreate: UseCreatePurchase;
   useUpdate: UseUpdatePurchase;
+  useClose: UseClosePurchase;
   useCancel: UseCancelPurchase;
   useDelete: UseDeletePurchase;
 
   useAddItem: UseAddPurchaseItem;
   useUpdateItem: UseUpdatePurchaseItem;
   useRemoveItem: UseRemovePurchaseItem;
-  useSubmitItems: UsePurchaseAction;
 
   useRequestQuotation: UseRequestPurchaseQuotation;
-  useCompleteQuotations: UsePurchaseAction;
 
   useAddAllocation: UseAddPurchaseAllocation;
   useAddAllocationsFromQuotation: UseAddPurchaseAllocationsFromQuotation;
@@ -108,6 +148,7 @@ export interface PurchasesBinding {
   useCreateLegInboundDelivery: UseCreatePurchaseLegInboundDelivery;
   useCreateLegGoodsReceipt: UseCreatePurchaseLegGoodsReceipt;
   useCloseSupplier: UseClosePurchaseLeg;
+  useCancelSupplier: UseCancelPurchaseLeg;
   useCreateSupplierInvoice: UseCreatePurchaseSupplierInvoice;
   receiveWithInvoices: ReceiveWithInvoicesBinding;
 }

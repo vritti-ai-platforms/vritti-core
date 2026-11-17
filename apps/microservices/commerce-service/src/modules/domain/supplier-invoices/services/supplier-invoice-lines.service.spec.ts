@@ -34,6 +34,7 @@ const receipt = (overrides: Partial<InvoiceableGoodsReceiptRow> = {}): Invoiceab
   mrp: 12000n,
   lotCount: 1,
   purchaseOrderId: 'po-1',
+  purchaseId: 'pur-1',
   poNumber: 'PO-1',
   poStatus: 'CONFIRMED',
   poSupplierId: 'sup-1',

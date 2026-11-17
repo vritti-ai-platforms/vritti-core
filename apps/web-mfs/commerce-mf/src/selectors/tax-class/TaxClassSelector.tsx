@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type TaxClassSelectorProps = Omit<SelectProps, 'optionsEndpoint'>;
+export type TaxClassSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'>;
 
 // Pre-configured Select for tax-class selection (id → name, code as description); BU-scoped server-side via RLS
 export const TaxClassSelector = forwardRef<HTMLButtonElement, TaxClassSelectorProps>((props, ref) => (

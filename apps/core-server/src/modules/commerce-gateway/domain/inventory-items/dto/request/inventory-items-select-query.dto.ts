@@ -11,16 +11,22 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
 
   @ApiPropertyOptional({
     description:
-      "Only the items with stock levels set at this site — the user's site, or one of the legal entity's sites",
+      "Only the items this site carries, each with its stock and levels there — the user's site, or one of the legal entity's sites",
   })
   @IsOptional()
   @IsUUID('7')
-  stockLevelsAtSiteId?: string;
+  atSiteId?: string;
+
+  @ApiPropertyOptional({
+    description: "Only the items this site does not carry yet — the user's site, or one of the legal entity's sites",
+  })
+  @IsOptional()
+  @IsUUID('7')
+  notAtSiteId?: string;
 
   @ApiPropertyOptional({
     type: [String],
-    description:
-      'With stockLevelsAtSiteId, only the items whose stock there has one of these statuses (comma-separated)',
+    description: 'With atSiteId, only the items whose stock there has one of these statuses (comma-separated)',
   })
   @IsOptional()
   @Transform(({ value }) => (Array.isArray(value) ? value : String(value).split(',').filter(Boolean)))
@@ -37,4 +43,12 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsArray()
   @IsUUID('7', { each: true })
   categoryIds?: string[];
+
+  @ApiPropertyOptional({
+    description:
+      "With atSiteId, marks the items this supplier supplies there and leaves out those the site's rules keep from it",
+  })
+  @IsOptional()
+  @IsUUID('7')
+  supplierId?: string;
 }

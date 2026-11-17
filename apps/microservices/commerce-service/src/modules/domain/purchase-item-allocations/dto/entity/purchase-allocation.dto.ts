@@ -10,7 +10,7 @@ export class PurchaseAllocationDto {
   supplierQuotationItemId: string | null;
   quotationNumber: string | null;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   uomQty: number;
   primaryUomQty: number;
   unitPrice: CurrencyAmountDto;

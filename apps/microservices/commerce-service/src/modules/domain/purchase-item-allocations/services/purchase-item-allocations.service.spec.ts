@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import type { PurchaseItemAllocation } from '@/db/schema';
-import type { PurchaseItemAllocationsDomainRepository } from '../repositories/purchase-item-allocations.repository';
+import { PurchaseItemAllocationsDomainRepository } from '../repositories/purchase-item-allocations.repository';
 import { type AllocationContext, PurchaseItemAllocationsDomainService } from './purchase-item-allocations.service';
 
 beforeAll(() => Logger.overrideLogger(false));
@@ -12,7 +12,6 @@ const context = (overrides: Partial<AllocationContext> = {}): AllocationContext 
     id: 'pur-1',
     purchaseNumber: 'PUR-202611-0001',
     status: 'OPEN',
-    step: 'SOURCING',
     quotationsRequired: false,
   },
   leg: { id: 'leg-1', step: 'SOURCING', status: 'OPEN', allowsUnpriced: false },
@@ -79,9 +78,9 @@ describe('PurchaseItemAllocationsDomainService.quotedQuantity', () => {
 
 describe('PurchaseItemAllocationsDomainService entered allocations', () => {
   it('is refused on a purchase that requires quotations', () => {
-    const { service } = setup();
-    expect(() => service.assertEnteredAllowed(context().purchase)).not.toThrow();
-    expect(() => service.assertEnteredAllowed({ ...context().purchase, quotationsRequired: true })).toThrow(
+    const { assertEnteredAllowed } = PurchaseItemAllocationsDomainRepository.prototype;
+    expect(() => assertEnteredAllowed(context().purchase)).not.toThrow();
+    expect(() => assertEnteredAllowed({ ...context().purchase, quotationsRequired: true })).toThrow(
       BadRequestException,
     );
   });
@@ -150,17 +149,16 @@ describe('PurchaseItemAllocationsDomainService locking', () => {
     expect(repository.delete).not.toHaveBeenCalled();
   });
 
-  it('keeps a rejected leg back in sourcing editable while the purchase is in PROCURING', async () => {
+  it("keeps a leg in sourcing editable however far the purchase's other suppliers are", async () => {
     const { service, repository } = setup();
-    const rejected = context({ purchase: { ...context().purchase, step: 'PROCURING' } });
-    await expect(service.remove(rejected, allocation())).resolves.toBe(0);
+    await expect(service.remove(context(), allocation())).resolves.toBe(0);
     expect(repository.delete).toHaveBeenCalledWith('alloc-1');
   });
 
-  it('refuses allocation changes before the purchase is sourcing', async () => {
+  it('refuses allocation changes once the purchase is no longer open', async () => {
     const { service } = setup();
-    const inQuoting = context({ purchase: { ...context().purchase, step: 'QUOTING' } });
-    await expect(service.remove(inQuoting, allocation())).rejects.toBeInstanceOf(ConflictException);
+    const cancelled = context({ purchase: { ...context().purchase, status: 'CANCELLED' } });
+    await expect(service.remove(cancelled, allocation())).rejects.toBeInstanceOf(ConflictException);
   });
 });
 
@@ -217,7 +215,7 @@ describe('PurchaseItemAllocationsDomainService sourcing totals', () => {
       total: 5249n,
       unpricedCount: 0,
     });
-    expect(service.sourcedTotal([priced(1250n, 2)])).toEqual({
+    expect(service.sourcedTotal([priced(1250n, 2)], 'OMR')).toEqual({
       sourcedTotal: { currency: 'INR', value: '25.00' },
       hasUnpricedAllocations: false,
     });
@@ -229,15 +227,22 @@ describe('PurchaseItemAllocationsDomainService sourcing totals', () => {
   });
 
   it('shows the priced allocations’ total and flags the unpriced ones, zero across currencies', () => {
-    expect(service.sourcedTotal([priced(1250n, 2), priced(null, 1)])).toEqual({
+    expect(service.sourcedTotal([priced(1250n, 2), priced(null, 1)], 'OMR')).toEqual({
       sourcedTotal: { currency: 'INR', value: '25.00' },
       hasUnpricedAllocations: true,
     });
-    expect(service.sourcedTotal([priced(null, 1)])).toEqual({
+    expect(service.sourcedTotal([priced(null, 1)], 'OMR')).toEqual({
       sourcedTotal: { currency: 'INR', value: '0.00' },
       hasUnpricedAllocations: true,
     });
-    expect(service.sourcedTotal([priced(1250n, 2), priced(100n, 1, 'USD')]).sourcedTotal.value).toBe('0.00');
+    expect(service.sourcedTotal([priced(1250n, 2), priced(100n, 1, 'USD')], 'OMR').sourcedTotal.value).toBe('0.00');
+  });
+
+  it('totals zero in the fallback currency for a leg without allocations', () => {
+    expect(service.sourcedTotal([], 'OMR')).toEqual({
+      sourcedTotal: { currency: 'OMR', value: '0.000' },
+      hasUnpricedAllocations: false,
+    });
   });
 });
 

@@ -1,7 +1,8 @@
 import { Select, type SelectProps } from '@vritti/quantum-ui/Select';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import { forwardRef } from 'react';
 
-export type EnrolledSiteSelectorProps = Omit<SelectProps, 'optionsEndpoint'> & {
+export type EnrolledSiteSelectorProps = DistributiveOmit<SelectProps, 'optionsEndpoint'> & {
   supplierId: string | undefined;
   isEnrolled?: boolean;
 };

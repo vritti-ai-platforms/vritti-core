@@ -67,7 +67,7 @@ function setup(takenNumbers: string[] = [], items: PurchaseQuotationItemRow[] = 
         currencyCode: 'INR',
       },
     ]),
-    findItemsForPurchase: jest.fn().mockResolvedValue(items),
+    findItemsForPurchaseItems: jest.fn().mockResolvedValue(items),
     findPostedItemsForPurchase: jest.fn().mockResolvedValue([]),
   } as unknown as SupplierQuotationsDomainRepository;
   return { service: new SupplierQuotationsDomainService(repository), create, insertItems, repository };
@@ -110,7 +110,7 @@ describe('SupplierQuotationsDomainService draft for a purchase', () => {
 });
 
 describe('SupplierQuotationsDomainService quotations of a purchase', () => {
-  it('groups lines under their quotation and counts the priced ones, each priced in its own unit', async () => {
+  it('groups the lines quoting the items under their quotation and counts the priced ones, each in its own unit', async () => {
     const { service } = setup(
       [],
       [
@@ -119,7 +119,7 @@ describe('SupplierQuotationsDomainService quotations of a purchase', () => {
         itemRow({ id: 'qi-3', quotationId: 'q-2', uomId: 'tablet', unitPrice: 333n }),
       ],
     );
-    const [posted, draftQuotation] = await service.findForPurchase('pur-1', 'site-1');
+    const [posted, draftQuotation] = await service.findForPurchaseItems('pur-1', 'site-1', ['pi-1', 'pi-2']);
     expect(posted).toMatchObject({ id: 'q-1', isPosted: true, itemCount: 2, pricedItemCount: 1 });
     expect(posted.items[0]).toEqual({
       id: 'qi-1',

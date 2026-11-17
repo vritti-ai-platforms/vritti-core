@@ -17,8 +17,8 @@ export class InvoiceableGoodsReceiptDto {
   inventoryItemId: string;
   inventoryItemName: string;
   uomId: string;
-  uomSymbol: string | null;
-  primaryUomSymbol: string | null;
+  uomSymbol: string;
+  primaryUomSymbol: string;
   poUnitPrice: CurrencyAmountDto;
   poExchangeRate: number;
   acceptedPrimaryQty: number;

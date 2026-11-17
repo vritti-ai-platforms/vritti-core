@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { type FieldMap, FilterProcessor } from '@vritti/api-sdk/conditions';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import Decimal from '@vritti/api-sdk/decimal';
-import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import { asc } from '@vritti/api-sdk/drizzle-orm';
+import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import { CurrencyAmountDto, majorToMinor } from '@vritti/api-sdk/money';
 import { pluralize } from '@vritti/api-sdk/pluralize';
@@ -11,24 +14,26 @@ import {
   PurchaseLegStatusValues,
   PurchaseLegStepValues,
   PurchaseStatusValues,
-  PurchaseStepValues,
   type PurchaseSupplier,
+  purchaseItemAllocations,
+  purchaseOrders,
+  purchaseSuppliers,
 } from '@/db/schema';
 import { PurchaseAllocationDto } from '../dto/entity/purchase-allocation.dto';
 import type { CreatePurchaseAllocationDto } from '../dto/request/create-purchase-allocation.dto';
 import type { UpdatePurchaseAllocationDto } from '../dto/request/update-purchase-allocation.dto';
+import type { AllocationPurchase } from '../repositories/purchase-item-allocations.repository';
 import {
   type AllocationWithLegFilter,
   type AllocationWithLegRow,
   type PurchaseAllocationRow,
   PurchaseItemAllocationsDomainRepository,
+  type PurchaseItemAllocationTableRow,
 } from '../repositories/purchase-item-allocations.repository';
-
-export type AllocationPurchase = Pick<Purchase, 'id' | 'purchaseNumber' | 'status' | 'step' | 'quotationsRequired'>;
 
 export type AllocationLeg = Pick<PurchaseSupplier, 'id' | 'step' | 'status'> & { allowsUnpriced: boolean };
 
-type EditablePurchase = Pick<Purchase, 'status' | 'step'>;
+type EditablePurchase = Pick<Purchase, 'status'>;
 
 type EditableLeg = Pick<PurchaseSupplier, 'status' | 'step'>;
 
@@ -37,6 +42,12 @@ export interface AllocationContext {
   leg: AllocationLeg;
   purchaseItemId: string;
   supplierCurrencies: string[];
+}
+
+export interface QuotedAllocation {
+  context: AllocationContext;
+  terms: QuotedAllocationTerms;
+  quantity: AllocationQuantity;
 }
 
 export interface AllocationQuantity {
@@ -107,31 +118,41 @@ export class PurchaseItemAllocationsDomainService {
     return allocation;
   }
 
-  // Allocates a purchase item to a leg on the terms of a posted quotation line: its unit, currency, price and scheme
-  async createFromQuotation(
-    context: AllocationContext,
-    terms: QuotedAllocationTerms,
-    quantity: AllocationQuantity,
-  ): Promise<PurchaseItemAllocation> {
-    this.assertEditable(context);
-    await this.assertNotAllocated(context, 'supplierQuotationItemIds');
-    const scheme = this.schemeOf(terms.schemeBuyQty, terms.schemeFreeQty);
-
-    const allocation = await this.repository.create({
-      purchaseItemId: context.purchaseItemId,
-      purchaseSupplierId: context.leg.id,
-      supplierQuotationItemId: terms.id,
-      uomId: terms.uomId,
-      ...quantity,
-      currencyCode: terms.currencyCode,
-      unitPrice: terms.unitPrice,
-      ...scheme,
-      freePrimaryQty: this.freePrimaryQty(quantity, scheme),
-    });
-    this.logger.log(
-      `Allocated item ${context.purchaseItemId} from quotation line ${terms.id} on ${context.purchase.purchaseNumber}`,
+  // Allocates purchase items from quotation lines at the lines' unit, price and scheme in one insert, rejecting an item
+  // already allocated to the line's supplier
+  async createFromQuotation(lines: QuotedAllocation[]): Promise<void> {
+    for (const line of lines) this.assertEditable(line.context);
+    const existing = await this.repository.findForItemsOnLegs(
+      lines.map((line) => line.context.purchaseItemId),
+      lines.map((line) => line.context.leg.id),
     );
-    return allocation;
+    const taken = new Set(
+      existing.map((allocation) => `${allocation.purchaseItemId}:${allocation.purchaseSupplierId}`),
+    );
+    if (lines.some((line) => taken.has(`${line.context.purchaseItemId}:${line.context.leg.id}`))) {
+      throw new ConflictException({
+        label: 'Already Allocated',
+        detail: 'An item is already allocated to the supplier. Edit that allocation instead.',
+        errors: [{ field: 'supplierQuotationItemIds', message: 'Already allocated to this supplier' }],
+      });
+    }
+    await this.repository.createMany(
+      lines.map(({ context, terms, quantity }) => {
+        const scheme = this.schemeOf(terms.schemeBuyQty, terms.schemeFreeQty);
+        return {
+          purchaseItemId: context.purchaseItemId,
+          purchaseSupplierId: context.leg.id,
+          supplierQuotationItemId: terms.id,
+          uomId: terms.uomId,
+          ...quantity,
+          currencyCode: terms.currencyCode,
+          unitPrice: terms.unitPrice,
+          ...scheme,
+          freePrimaryQty: this.freePrimaryQty(quantity, scheme),
+        };
+      }),
+    );
+    this.logger.log(`Allocated ${lines.length} quotation lines on ${lines[0]?.context.purchase.purchaseNumber}`);
   }
 
   // Changes an allocation's unit, quantity, price or scheme while its leg is in sourcing; on a purchase that requires
@@ -182,7 +203,7 @@ export class PurchaseItemAllocationsDomainService {
 
   // Returns one allocation of a purchase
   async findById(purchaseId: string, allocationId: string): Promise<PurchaseAllocationDto> {
-    return PurchaseAllocationDto.from(await this.findOnPurchaseOrThrow(purchaseId, allocationId));
+    return PurchaseAllocationDto.from(await this.repository.findOnPurchaseOrThrow(purchaseId, allocationId));
   }
 
   // Returns every allocation of a purchase's items
@@ -195,25 +216,41 @@ export class PurchaseItemAllocationsDomainService {
     return this.repository.findByLegId(purchaseSupplierId);
   }
 
-  // Returns allocations narrowed by the filter with their purchase, leg, item tracking and units
-  findWithLegs(filter: AllocationWithLegFilter): Promise<AllocationWithLegRow[]> {
-    return this.repository.findWithLegs(filter);
+  // Returns every allocation of the given legs with its item and unit names and its quotation number
+  findByLegIds(purchaseSupplierIds: string[]): Promise<PurchaseAllocationRow[]> {
+    return this.repository.findDetailByLegIds(purchaseSupplierIds);
   }
 
-  // Returns the unit price an allocation is ordered at, rejecting one without a price and naming its item
-  requireUnitPrice(allocation: Pick<PurchaseItemAllocation, 'unitPrice'> & { inventoryItemName: string }): bigint {
-    if (allocation.unitPrice !== null) return allocation.unitPrice;
-    throw new BadRequestException({
-      label: 'Price Missing',
-      detail: `"${allocation.inventoryItemName}" has no unit price on its allocation. Price it before ordering.`,
+  // Returns every allocation of the given purchase items with its item and unit names and its quotation number
+  findByItemIds(purchaseItemIds: string[]): Promise<PurchaseAllocationRow[]> {
+    return this.repository.findDetailByItemIds(purchaseItemIds);
+  }
+
+  // Returns one page of a purchase item's allocations with the PO each became, narrowed and ordered by the table's state
+  findForItemTable(
+    purchaseId: string,
+    itemId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseItemAllocationTableRow[]; count: number }> {
+    const fieldMap: FieldMap = {
+      supplierId: { column: purchaseSuppliers.supplierId, type: 'string' },
+      poStatus: { column: purchaseOrders.status, type: 'string' },
+      uomQty: { column: purchaseItemAllocations.uomQty, type: 'number' },
+      primaryUomQty: { column: purchaseItemAllocations.primaryUomQty, type: 'number' },
+    };
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
+    const { limit = 50, offset = 0 } = state.pagination;
+    return this.repository.findForItemTable(purchaseId, itemId, {
+      where: FilterProcessor.buildWhere(state.filters, fieldMap),
+      orderBy: orderBy.length > 0 ? orderBy : [asc(purchaseItemAllocations.createdAt)],
+      limit,
+      offset,
     });
   }
 
-  // Loads an allocation of the given purchase, throwing when it is not on it
-  async findOnPurchaseOrThrow(purchaseId: string, allocationId: string): Promise<PurchaseAllocationRow> {
-    const allocation = await this.repository.findDetailOnPurchase(purchaseId, allocationId);
-    if (!allocation) throw new NotFoundException('Allocation not found.');
-    return allocation;
+  // Returns allocations narrowed by the filter with their purchase, leg, item tracking and units
+  findWithLegs(filter: AllocationWithLegFilter): Promise<AllocationWithLegRow[]> {
+    return this.repository.findWithLegs(filter);
   }
 
   // Sums a leg's allocations as Σ unit price × quantity in their one currency; the total is null when there are none,
@@ -236,13 +273,13 @@ export class PurchaseItemAllocationsDomainService {
   }
 
   // Returns a leg's sourced total as money: Σ unit price × quantity of its priced allocations in their currency (zero
-  // when they span currencies), and whether any allocation is still unpriced
-  sourcedTotal(allocations: PricedAllocation[]): PurchaseLegSourcedTotal {
+  // when they span currencies, zero in the fallback currency when it has none), and whether any is still unpriced
+  sourcedTotal(allocations: PricedAllocation[], fallbackCurrencyCode: string): PurchaseLegSourcedTotal {
     const priced = allocations.filter(
       (allocation): allocation is PricedAllocation & { unitPrice: bigint } => allocation.unitPrice !== null,
     );
     const currencyCodes = _.uniq(priced.map((allocation) => allocation.currencyCode));
-    const currencyCode = currencyCodes[0] ?? allocations[0]?.currencyCode ?? '';
+    const currencyCode = currencyCodes[0] ?? allocations[0]?.currencyCode ?? fallbackCurrencyCode;
     const total =
       currencyCodes.length > 1
         ? new Decimal(0)
@@ -257,15 +294,6 @@ export class PurchaseItemAllocationsDomainService {
       ),
       hasUnpricedAllocations: priced.length < allocations.length,
     };
-  }
-
-  // Rejects an entered allocation on a purchase that requires quotations; its allocations come from quotation lines
-  assertEnteredAllowed(purchase: AllocationPurchase): void {
-    if (!purchase.quotationsRequired) return;
-    throw new BadRequestException({
-      label: 'Allocate From Quotations',
-      detail: `"${purchase.purchaseNumber}" requires quotations, so its items are allocated from posted quotation lines.`,
-    });
   }
 
   // Keeps the quotation lines that quote a item line, rejecting any requested line that is not a posted, valid line of
@@ -301,7 +329,7 @@ export class PurchaseItemAllocationsDomainService {
     };
   }
 
-  // Whether an allocation on the leg may change: the purchase is sourcing and the leg is still open in SOURCING
+  // Whether an allocation on the leg may change: the purchase is open and the leg is still open in SOURCING
   isEditable(purchase: EditablePurchase, leg: EditableLeg): boolean {
     return this.isPurchaseSourcing(purchase) && this.isLegSourcing(leg);
   }
@@ -312,6 +340,21 @@ export class PurchaseItemAllocationsDomainService {
     await this.repository.delete(allocation.id);
     this.logger.log(`Removed allocation ${allocation.id} from ${context.purchase.purchaseNumber}`);
     return this.repository.countByLeg(context.leg.id);
+  }
+
+  // Removes every allocation of a cancelled leg, in the caller's transaction, returning how much of each purchase item it
+  // held in primary units
+  async removeForLeg(legId: string): Promise<{ itemId: string; primaryQty: number }[]> {
+    const allocations = await this.repository.findByLegId(legId);
+    await this.repository.unlinkOrderLines(
+      allocations.flatMap((allocation) => (allocation.purchaseOrderItemId ? [allocation.purchaseOrderItemId] : [])),
+    );
+    await this.repository.deleteByLegId(legId);
+    this.logger.log(`Removed ${pluralize('allocation', allocations.length, true)} of cancelled leg ${legId}`);
+    return allocations.map((allocation) => ({
+      itemId: allocation.purchaseItemId,
+      primaryQty: allocation.primaryUomQty,
+    }));
   }
 
   // Frees the allocations of PO lines about to be deleted, in the caller's transaction
@@ -354,7 +397,7 @@ export class PurchaseItemAllocationsDomainService {
     if (!this.isPurchaseSourcing(purchase)) {
       throw new ConflictException({
         label: 'Allocations Locked',
-        detail: `"${purchase.purchaseNumber}" is not sourcing, so its allocations cannot change.`,
+        detail: `"${purchase.purchaseNumber}" is ${purchase.status.toLowerCase()}, so its allocations cannot change.`,
       });
     }
     if (!this.isLegSourcing(leg)) {
@@ -366,10 +409,9 @@ export class PurchaseItemAllocationsDomainService {
     }
   }
 
-  // Whether the purchase is open in SOURCING or PROCURING, where its allocations may change
+  // Whether the purchase is open, where its allocations may change
   private isPurchaseSourcing(purchase: EditablePurchase): boolean {
-    const isSourcing = purchase.step === PurchaseStepValues.SOURCING || purchase.step === PurchaseStepValues.PROCURING;
-    return purchase.status === PurchaseStatusValues.OPEN && isSourcing;
+    return purchase.status === PurchaseStatusValues.OPEN;
   }
 
   // Whether the leg is still open in SOURCING, before it is submitted

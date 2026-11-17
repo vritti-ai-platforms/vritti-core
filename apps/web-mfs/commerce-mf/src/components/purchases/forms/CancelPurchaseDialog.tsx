@@ -5,12 +5,12 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
-import { type PurchaseHeader, type PurchaseReasonFormData, purchaseReasonSchema } from '@/schemas/purchases';
+import { type PurchaseDetail, type PurchaseReasonFormData, purchaseReasonSchema } from '@/schemas/purchases';
 import type { PurchasesBinding } from '../bindings';
 
 interface CancelPurchaseDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   onSuccess: () => void;
   onCancel: () => void;
 }

@@ -105,8 +105,9 @@ export interface PurchaseOrderItemData {
   taxDate: string;
   isTaxDateOverridden: boolean;
   isTaxDateLocked: boolean;
+  purchasingBlockedReason: string | null;
   uomId: string;
-  orderUomSymbol: string | null;
+  orderUomSymbol: string;
   uomQty: number;
   expectedFreeQty: number;
   receivedQty: number;
@@ -120,7 +121,7 @@ export interface PurchaseOrderItemData {
   duePrimaryQty: number;
   openToReceivePrimaryQty: number;
   openToInvoicePrimaryQty: number;
-  primaryUomSymbol: string | null;
+  primaryUomSymbol: string;
   currencyCode: string;
   unitPrice: CurrencyValue;
   primaryUomUnitPrice: CurrencyValue;
@@ -190,9 +191,20 @@ export interface PurchaseOrderItemRef {
   itemId: string;
 }
 
+export interface PurchaseOrderItemDefaults {
+  uomId: string | null;
+  supplierItemCode: string | null;
+  minOrderQuantity: number | null;
+  unitPrice: CurrencyValue | null;
+  schemeBuyQty: number | null;
+  schemeFreeQty: number | null;
+  expectedDeliveryDate: string;
+}
+
 export interface AddPurchaseOrderItemPayload {
   id: string;
-  supplierItemId: string;
+  inventoryItemId: string;
+  uomId: string;
   uomQty: number;
   unitPrice: CurrencyValue;
   conversionRate?: number;
@@ -303,7 +315,8 @@ export function enforceSchemeRatio(
 export function buildAddPurchaseOrderItemSchema(orderDate: string) {
   return z
     .object({
-      supplierItemId: z.uuid('Item is required'),
+      inventoryItemId: z.uuid('Item is required'),
+      uomId: z.uuid('Unit is required'),
       uomQty: zodNumericField({ required: 'Quantity is required', positive: true }),
       unitPrice: zodCurrencyField({ required: 'Unit price is required.' }),
       rateCurrency: z.string().optional(),

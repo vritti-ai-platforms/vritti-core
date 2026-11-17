@@ -474,10 +474,10 @@ export class InventoryItemQuantsDomainService {
     const hasItemFilter = !!query.inventoryItemId;
     // inventoryItems is listed first so resolveColumn('name') resolves to inventoryItems.name, not locations.name
     const joins = [
-      { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id), type: 'left' as const },
+      { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id), type: 'inner' as const },
       { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id), type: 'left' as const },
       { table: locations, on: eq(inventoryItemQuants.locationId, locations.id), type: 'left' as const },
-      { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'left' as const },
+      { table: uom, on: eq(inventoryItems.uomId, uom.id), type: 'inner' as const },
     ];
     return this.repository.findForSelect({
       ...selectPageOptions(query),

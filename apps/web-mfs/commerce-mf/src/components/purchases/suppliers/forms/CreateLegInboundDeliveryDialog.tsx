@@ -14,7 +14,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import {
   buildPurchaseLegInboundDeliverySchema,
   type PurchaseAllocation,
-  type PurchaseHeader,
+  type PurchaseDetail,
   type PurchaseLeg,
   type PurchaseLegInboundDeliveryFormData,
 } from '@/schemas/purchases';
@@ -22,7 +22,7 @@ import type { PurchasesBinding } from '../../bindings';
 
 interface CreateLegInboundDeliveryDialogProps {
   binding: PurchasesBinding;
-  purchase: PurchaseHeader;
+  purchase: PurchaseDetail;
   leg: PurchaseLeg;
   onSuccess: () => void;
   onCancel: () => void;
@@ -101,7 +101,7 @@ export const CreateLegInboundDeliveryDialog: React.FC<CreateLegInboundDeliveryDi
       >
         {lineFields.fields.map((field, index) => {
           const allocation = orderedAllocations.get(field.purchaseOrderItemId);
-          const unit = allocation?.uomSymbol ? ` ${allocation.uomSymbol}` : '';
+          const unit = allocation ? ` ${allocation.uomSymbol}` : '';
           return (
             <div key={field.id} className="flex items-start gap-3 rounded-lg border p-3">
               <div className="flex min-w-0 flex-1 flex-col gap-1">

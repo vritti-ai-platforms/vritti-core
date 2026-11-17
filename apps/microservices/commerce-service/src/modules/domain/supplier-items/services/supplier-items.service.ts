@@ -43,7 +43,10 @@ export interface QuotedItem {
   inventoryItemId: string;
   uomId: string;
   supplierItemCode: string | null;
+  defaultLeadTimeDays?: number;
 }
+
+export type SupplierItemLine = { inventoryItemId: string; uomId?: string };
 
 @Injectable()
 export class SupplierItemsDomainService {
@@ -191,6 +194,12 @@ export class SupplierItemsDomainService {
       message: 'Item set up at site successfully.',
       data: SupplierSiteItemDto.from(supplierSiteItem),
     };
+  }
+
+  // Sets supplier items up at sites as planned by findMissingSiteItems, inside the caller's transaction
+  async addSiteItems(siteItems: NewSupplierSiteItem[]): Promise<void> {
+    if (siteItems.length === 0) return;
+    await this.repository.insertSiteItems(siteItems);
   }
 
   async updateItem(
@@ -512,6 +521,7 @@ export class SupplierItemsDomainService {
         inventoryItemId: line.inventoryItemId,
         supplierItemCode: line.supplierItemCode,
         uomId: line.uomId,
+        defaultLeadTimeDays: line.defaultLeadTimeDays,
       });
     }
     if (siteId && !(await this.repository.findSiteItem(item.id, siteId))) {
@@ -528,8 +538,40 @@ export class SupplierItemsDomainService {
     return item.id;
   }
 
-  // Returns the unit the supplier sells each item in at the site, keyed by inventory item; items it does not supply there
-  // are left out
+  // Returns the site items a supplier item still needs at the given sites, following its default lead time; refuses a
+  // site the supplier is not enrolled at
+  async findMissingSiteItems(supplierItemId: string, siteIds: string[]): Promise<NewSupplierSiteItem[]> {
+    if (siteIds.length === 0) return [];
+    const item = await this.repository.findById(supplierItemId);
+    if (!item) throw new NotFoundException('Supplier item not found.');
+    const supplier = await this.requireSupplier(item.supplierId);
+    await this.assertEnrolled(item.supplierId, siteIds);
+    const carried = new Set(await this.repository.findCarriedSiteIds(supplierItemId));
+    return [...new Set(siteIds)]
+      .filter((siteId) => !carried.has(siteId))
+      .map((siteId) => ({
+        legalEntityId: supplier.legalEntityId,
+        siteId,
+        supplierItemId,
+        inventoryItemId: item.inventoryItemId,
+        leadTimeDays: item.defaultLeadTimeDays,
+      }));
+  }
+
+  // Returns the supplier's item for an inventory item in a unit, or undefined when it has none
+  findByItemAndUnit(supplierId: string, inventoryItemId: string, uomId: string): Promise<SupplierItem | undefined> {
+    return this.repository.findItemBySupplierInventoryItemAndUom(supplierId, inventoryItemId, uomId);
+  }
+
+  // Returns which of the items the legal entity has set up as the supplier's items, in any unit
+  async findSetUpItemIds(supplierId: string, inventoryItemIds: string[]): Promise<Set<string>> {
+    if (inventoryItemIds.length === 0) return new Set();
+    const keys = await this.repository.findSetUpKeys(supplierId, [...new Set(inventoryItemIds)]);
+    return new Set(keys.map((key) => key.inventoryItemId));
+  }
+
+  // Returns the unit the supplier sells each item in at the site — its site item's, else its supplier item's — keyed by
+  // inventory item; items the supplier has no item for are left out
   async findSiteUnits(supplierId: string, siteId: string, inventoryItemIds: string[]): Promise<Map<string, string>> {
     if (inventoryItemIds.length === 0) return new Map();
     const rows = await this.repository.findSiteUnits(supplierId, siteId, [...new Set(inventoryItemIds)]);
@@ -537,7 +579,8 @@ export class SupplierItemsDomainService {
   }
 
   // Returns the supplier's lead time at the site for each item in its unit, keyed by item and unit: the site item in that
-  // unit, else the item's preferred (or first) site item; items it does not supply there are left out
+  // unit, else the item's preferred (or first) site item, else its supplier item's default; items the supplier has no
+  // item for are left out
   async findSiteLeadTimes(
     supplierId: string,
     siteId: string,
@@ -556,43 +599,21 @@ export class SupplierItemsDomainService {
     return leadTimes;
   }
 
-  // Rejects quoted lines the supplier has no item for in their unit, naming them; only the legal entity adds a supplier's
-  // items, so a site posts only quotations of items the supplier already has
-  async assertHasItemsFor(
-    supplierId: string,
-    lines: { inventoryItemId: string; uomId: string; inventoryItemName: string; uomSymbol: string | null }[],
-  ): Promise<void> {
-    const missing: string[] = [];
-    for (const line of lines) {
-      const item = await this.repository.findItemBySupplierInventoryItemAndUom(
-        supplierId,
-        line.inventoryItemId,
-        line.uomId,
-      );
-      if (!item)
-        missing.push(
-          line.uomSymbol ? `"${line.inventoryItemName}" (${line.uomSymbol})` : `"${line.inventoryItemName}"`,
-        );
-    }
-    if (missing.length === 0) return;
-    throw new BadRequestException({
-      label: 'Items Not With Supplier',
-      detail: `The supplier has no item for ${missing.join(', ')}. Ask the legal entity to add them to the supplier before posting.`,
-    });
+  // Whether the legal entity has set up every line's item as one of the supplier's items — in the line's unit when it has
+  // one, in any unit otherwise
+  async isEverySetUp(supplierId: string, lines: SupplierItemLine[]): Promise<boolean> {
+    return (await this.findNotSetUp(supplierId, lines)).length === 0;
   }
 
-  // Rejects items the supplier does not supply at the site, naming them
-  async assertSuppliedAt(supplierId: string, siteId: string, inventoryItemIds: string[], field: string): Promise<void> {
-    if (inventoryItemIds.length === 0) return;
-    const missingNames = await this.repository.findNamesNotSuppliedAt(supplierId, siteId, [
-      ...new Set(inventoryItemIds),
-    ]);
-    if (missingNames.length === 0) return;
-    const quotedNames = missingNames.map((name) => `"${name}"`).join(', ');
+  // Rejects lines whose item the legal entity has not set up as one of the supplier's items — in the line's unit when it
+  // has one, in any unit otherwise
+  async assertSetUp(supplierId: string, lines: SupplierItemLine[], field: string): Promise<void> {
+    if (await this.isEverySetUp(supplierId, lines)) return;
     throw new BadRequestException({
-      label: 'Item Not Supplied at Site',
-      detail: `This supplier does not supply ${quotedNames} at this site. Set it up on the supplier's items for this site first.`,
-      errors: [{ field, message: 'Not supplied at this site' }],
+      label: 'Not Set Up For Supplier',
+      detail:
+        "This site buys only what the legal entity has set up as the supplier's items. Ask the legal entity to add it to the supplier's items in this unit.",
+      errors: [{ field, message: "Not one of the supplier's items" }],
     });
   }
 
@@ -682,5 +703,18 @@ export class SupplierItemsDomainService {
       limit,
       offset,
     };
+  }
+
+  // The lines whose item is not one of the supplier's items, in the line's unit when it has one
+  private async findNotSetUp(supplierId: string, lines: SupplierItemLine[]): Promise<SupplierItemLine[]> {
+    if (lines.length === 0) return [];
+    const keys = await this.repository.findSetUpKeys(supplierId, [
+      ...new Set(lines.map((line) => line.inventoryItemId)),
+    ]);
+    const items = new Set(keys.map((key) => key.inventoryItemId));
+    const units = new Set(keys.map((key) => `${key.inventoryItemId}:${key.uomId}`));
+    return lines.filter((line) =>
+      line.uomId ? !units.has(`${line.inventoryItemId}:${line.uomId}`) : !items.has(line.inventoryItemId),
+    );
   }
 }

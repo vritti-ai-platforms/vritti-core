@@ -80,7 +80,8 @@ const newLine = {
 
 const addDto: AddPurchaseOrderItemDto = {
   purchaseOrderId: 'po-1',
-  supplierItemId: 'si-1',
+  inventoryItemId: 'item-1',
+  uomId: 'uom-1',
   uomQty: 1,
   unitPrice: { currency: 'INR', value: '10.00' },
 };
@@ -124,7 +125,7 @@ describe('PurchaseOrderItemsDomainService validations', () => {
   it('refuses an item already ordered in the same unit', async () => {
     const service = serviceWith({ isOrderedInUnit: jest.fn().mockResolvedValue(true) });
     await expect(service.addItem(po(), addDto, newLine)).rejects.toMatchObject(
-      rejection('Already Ordered', 'supplierItemId'),
+      rejection('Already Ordered', 'inventoryItemId'),
     );
   });
 

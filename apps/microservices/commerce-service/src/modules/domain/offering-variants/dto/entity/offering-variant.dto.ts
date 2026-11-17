@@ -22,9 +22,9 @@ export class OfferingVariantDto {
   code: string;
   externalSku: string | null;
   salesUomId: string;
-  salesUomName: string | null;
+  salesUomName: string;
   taxClassId: string;
-  taxClassName: string | null;
+  taxClassName: string;
   isTaxClassOverridden: boolean;
   fulfilmentType: FulfilmentType;
   isFulfilmentOverridden: boolean;
@@ -47,22 +47,22 @@ export class OfferingVariantDto {
       values?: OfferingVariantValueRefDto[];
       attributeValues?: OfferingVariantAttributeValueRefDto[];
       bomLineCount?: number;
-      salesUomName?: string | null;
+      salesUomName: string;
       canMarkActive?: boolean;
       canDelete?: boolean;
-      taxClassName?: string | null;
+      taxClassName: string;
       listed?: boolean;
       availableHere?: boolean;
-    } = {},
+    },
   ): OfferingVariantTableRowDto {
     const {
       values = [],
       attributeValues = [],
       bomLineCount = 0,
-      salesUomName = null,
+      salesUomName,
       canMarkActive = false,
       canDelete = true,
-      taxClassName = null,
+      taxClassName,
     } = options;
     return {
       id: entity.id,
@@ -96,11 +96,11 @@ export class OfferingVariantDto {
       values?: OfferingVariantValueRefDto[];
       attributeValues?: OfferingVariantAttributeValueRefDto[];
       bomLineCount?: number;
-      salesUomName?: string | null;
+      salesUomName: string;
       canMarkActive?: boolean;
       canDelete?: boolean;
-      taxClassName?: string | null;
-    } = {},
+      taxClassName: string;
+    },
   ): OfferingVariantDto {
     return OfferingVariantDto.fromTableRow(entity, options);
   }

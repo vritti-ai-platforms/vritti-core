@@ -2,7 +2,7 @@ import { PaymentTermRulesDomainService } from '@domain/payment-term-rules/servic
 import { PaymentTermsDomainService } from '@domain/payment-terms/services/payment-terms.service';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
-import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
+import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { SupplierEnrollmentsDomainService } from '@domain/supplier-enrollments/services/supplier-enrollments.service';
 import type { SupplierInvoiceDto } from '@domain/supplier-invoices/dto/entity/supplier-invoice.dto';
 import type { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
@@ -40,7 +40,7 @@ export class SupplierInvoicesService {
     private readonly paymentTermRulesService: PaymentTermRulesDomainService,
     private readonly purchaseOrdersService: PurchaseOrdersDomainService,
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
-    private readonly purchasesService: PurchasesDomainService,
+    private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly purchaseProgressService: PurchaseProgressService,
   ) {}
 
@@ -144,7 +144,7 @@ export class SupplierInvoicesService {
   // Rejects a change to a draft Receive with Invoice, which is edited, posted and discarded with its receipts (409)
   assertNotReceiveWithInvoiceDraft(invoice: SupplierInvoiceRow): void {
     if (!invoice.isReceiveWithInvoice || invoice.status !== SupplierInvoiceStatusValues.DRAFT) return;
-    this.purchasesService.assertNotPartOfPurchase(
+    this.purchasesRepository.assertNotPartOfPurchase(
       `Invoice "${invoice.invoiceNumber}"`,
       invoice.purchases.map((purchase) => purchase.purchaseNumber),
     );

@@ -31,10 +31,13 @@ import { TaxJurisdictionsDomainModule } from '@domain/tax-jurisdictions/tax-juri
 import { UomDomainModule } from '@domain/uom/uom.module';
 import { UomDimensionsDomainModule } from '@domain/uom-dimensions/uom-dimensions.module';
 import { Module } from '@nestjs/common';
+import { SitePurchasingRulesModule } from '@/modules/site/purchasing-rules/purchasing-rules.module';
 import { SelectController } from './select.controller';
+import { PurchasingPickersService } from './services/purchasing-pickers.service';
 
 @Module({
   imports: [
+    SitePurchasingRulesModule,
     CategoriesDomainModule,
     InventoryItemsDomainModule,
     AttributeTemplatesDomainModule,
@@ -69,5 +72,6 @@ import { SelectController } from './select.controller';
     TaxJurisdictionsDomainModule,
   ],
   controllers: [SelectController],
+  providers: [PurchasingPickersService],
 })
 export class SelectModule {}

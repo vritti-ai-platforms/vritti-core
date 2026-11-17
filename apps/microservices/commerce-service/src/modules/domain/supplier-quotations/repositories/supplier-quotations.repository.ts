@@ -9,6 +9,7 @@ import {
   getColumns,
   gte,
   inArray,
+  isNotNull,
   isNull,
   like,
   lte,
@@ -43,7 +44,7 @@ export type SupplierQuotationSiteRow = SupplierQuotationSite & { canRemove: bool
 
 export type SupplierQuotationItemRow = SupplierQuotationItem & {
   inventoryItemName: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   currencyCode: string;
   mrpAmount: bigint | null;
 };
@@ -61,6 +62,8 @@ export type PurchaseQuotationRow = {
   currencyCode: string;
 };
 
+export type PurchaseQuotationTableRow = PurchaseQuotationRow & { itemCount: number; pricedItemCount: number };
+
 export type PurchaseQuotationItemRow = {
   id: string;
   quotationId: string;
@@ -75,6 +78,15 @@ export type PurchaseQuotationItemRow = {
   currencyCode: string;
 };
 
+export type PurchaseItemQuoteRow = PurchaseQuotationItemRow & {
+  quotationNumber: string;
+  supplierId: string;
+  supplierName: string;
+  isPosted: boolean;
+  validFrom: string;
+  validTo: string | null;
+};
+
 export type PurchaseQuotationItemTermsRow = {
   id: string;
   quotationId: string;
@@ -87,6 +99,8 @@ export type PurchaseQuotationItemTermsRow = {
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
 };
+
+export type SiteOwnedQuotation = SupplierQuotation & { siteId: string };
 
 @Injectable()
 export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<typeof supplierQuotations> {
@@ -150,6 +164,18 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     return { ...getColumns(supplierQuotations), canWrite: writableWithLegalEntitySitesExpression(supplierQuotations) };
   }
 
+  // Loads a quotation the request's site owns, rejecting one another site posted to it
+  async findOwnedByRequestSiteOrThrow(quotationId: string): Promise<SiteOwnedQuotation> {
+    const [quotation] = await this.findAllWithSelect<SiteOwnedQuotation>({
+      where: and(eq(supplierQuotations.id, quotationId), eq(supplierQuotations.siteId, currentSiteId())),
+    });
+    if (quotation) return quotation;
+    throw new BadRequestException({
+      label: 'Quotation of Another Site',
+      detail: 'This quotation is posted to this site from elsewhere. Only its owner and the legal entity change it.',
+    });
+  }
+
   // Rejects changing a quotation the request's site does not own — one another site posted to it
   async assertOwnedByRequestSite(quotationId: string): Promise<void> {
     const owned = await this.exists(
@@ -187,49 +213,98 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
   // Returns the quotations a purchase requested with the supplier's name and whether each is posted to the site
   findForPurchase(purchaseId: string, siteId: string): Promise<PurchaseQuotationRow[]> {
     return this.findAllWithSelect<PurchaseQuotationRow>({
+      select: this.purchaseQuotationSelection(siteId),
+      innerJoins: this.supplierJoins(),
+      where: eq(supplierQuotations.purchaseId, purchaseId),
+      orderBy: [asc(supplierQuotations.createdAt)],
+    });
+  }
+
+  // Returns one page of the quotations a purchase requested with the supplier's name, whether each is posted to the site
+  // and how many of its lines are priced
+  findForPurchaseTable(
+    purchaseId: string,
+    siteId: string,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: PurchaseQuotationTableRow[]; count: number }> {
+    return this.findAllAndCount<PurchaseQuotationTableRow>({
       select: {
-        id: supplierQuotations.id,
-        legalEntityId: supplierQuotations.legalEntityId,
-        siteId: supplierQuotations.siteId,
+        ...this.purchaseQuotationSelection(siteId),
+        itemCount: this.db.$count(
+          supplierQuotationItems,
+          eq(supplierQuotationItems.quotationId, supplierQuotations.id),
+        ),
+        pricedItemCount: this.db.$count(
+          supplierQuotationItems,
+          and(
+            eq(supplierQuotationItems.quotationId, supplierQuotations.id),
+            sql`${supplierQuotationItems.unitPrice} > 0`,
+          ),
+        ),
+      },
+      innerJoins: this.supplierJoins(),
+      where: and(eq(supplierQuotations.purchaseId, purchaseId), options.where),
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
+    });
+  }
+
+  // Returns one page of the purchase's quotation lines that quote a purchase item, each with its quotation and supplier and
+  // whether it is posted to the site, filtered and ordered by already-built clauses
+  findForPurchaseItemTable(
+    purchaseId: string,
+    purchaseItemId: string,
+    siteId: string,
+    options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
+  ): Promise<{ result: PurchaseItemQuoteRow[]; count: number }> {
+    return this.findAllAndCount<PurchaseItemQuoteRow>({
+      select: {
+        ...this.purchaseQuotationItemSelection(),
         quotationNumber: supplierQuotations.quotationNumber,
         supplierId: supplierQuotations.supplierId,
         supplierName: parties.displayName,
         isPosted: this.postedToSite(siteId),
         validFrom: supplierQuotations.validFrom,
         validTo: supplierQuotations.validTo,
-        currencyCode: supplierQuotations.currencyCode,
       },
-      innerJoins: [
-        { table: suppliers, on: eq(suppliers.id, supplierQuotations.supplierId) },
-        { table: parties, on: eq(parties.id, suppliers.partyId) },
-      ],
-      where: eq(supplierQuotations.purchaseId, purchaseId),
-      orderBy: [asc(supplierQuotations.createdAt)],
+      innerJoins: [...this.supplierJoins(), ...this.purchaseQuotationItemJoins()],
+      where: and(
+        eq(supplierQuotations.purchaseId, purchaseId),
+        eq(supplierQuotationItems.purchaseItemId, purchaseItemId),
+        options.where,
+      ),
+      orderBy: options.orderBy,
+      limit: options.limit,
+      offset: options.offset,
     });
   }
 
-  // Returns the lines of every quotation a purchase requested with the item's name and the unit's symbol
-  findItemsForPurchase(purchaseId: string): Promise<PurchaseQuotationItemRow[]> {
+  // Returns the ids of a quotation's lines that quote an item of the purchase it was requested for
+  async findLineIdsForPurchase(purchaseId: string, quotationId: string): Promise<string[]> {
+    const rows = await this.findAllWithSelect<{ id: string }>({
+      select: { id: supplierQuotationItems.id },
+      innerJoin: { table: supplierQuotationItems, on: eq(supplierQuotationItems.quotationId, supplierQuotations.id) },
+      where: and(
+        eq(supplierQuotations.id, quotationId),
+        eq(supplierQuotations.purchaseId, purchaseId),
+        isNotNull(supplierQuotationItems.purchaseItemId),
+      ),
+    });
+    return rows.map((row) => row.id);
+  }
+
+  // Returns the lines of a purchase's quotations that quote the given purchase items, with the item's name and the
+  // unit's symbol
+  findItemsForPurchaseItems(purchaseId: string, purchaseItemIds: string[]): Promise<PurchaseQuotationItemRow[]> {
+    if (purchaseItemIds.length === 0) return Promise.resolve([]);
     return this.findAllWithSelect<PurchaseQuotationItemRow>({
-      select: {
-        id: supplierQuotationItems.id,
-        quotationId: supplierQuotationItems.quotationId,
-        purchaseItemId: supplierQuotationItems.purchaseItemId,
-        inventoryItemId: supplierQuotationItems.inventoryItemId,
-        inventoryItemName: inventoryItems.name,
-        uomId: supplierQuotationItems.uomId,
-        uomSymbol: uom.symbol,
-        unitPrice: supplierQuotationItems.unitPrice,
-        schemeBuyQty: supplierQuotationItems.schemeBuyQty,
-        schemeFreeQty: supplierQuotationItems.schemeFreeQty,
-        currencyCode: supplierQuotations.currencyCode,
-      },
-      innerJoins: [
-        { table: supplierQuotationItems, on: eq(supplierQuotationItems.quotationId, supplierQuotations.id) },
-        { table: inventoryItems, on: eq(inventoryItems.id, supplierQuotationItems.inventoryItemId) },
-        { table: uom, on: eq(uom.id, supplierQuotationItems.uomId) },
-      ],
-      where: eq(supplierQuotations.purchaseId, purchaseId),
+      select: this.purchaseQuotationItemSelection(),
+      innerJoins: this.purchaseQuotationItemJoins(),
+      where: and(
+        eq(supplierQuotations.purchaseId, purchaseId),
+        inArray(supplierQuotationItems.purchaseItemId, purchaseItemIds),
+      ),
       orderBy: [asc(inventoryItems.name)],
     });
   }
@@ -266,23 +341,93 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
     });
   }
 
+  // Counts, per purchase item, the suppliers whose quotation for the purchase quotes it, is posted to the site or its
+  // legal entity and is valid on the day
+  async countQuotingSuppliersByItem(
+    purchaseId: string,
+    siteId: string,
+    purchaseItemIds: string[],
+    onDate: string,
+  ): Promise<Map<string, number>> {
+    if (purchaseItemIds.length === 0) return new Map();
+    const rows = await this.db
+      .select({
+        purchaseItemId: supplierQuotationItems.purchaseItemId,
+        count: sql<number>`count(distinct ${supplierQuotations.supplierId})::int`.mapWith(Number),
+      })
+      .from(supplierQuotations)
+      .innerJoin(supplierQuotationItems, eq(supplierQuotationItems.quotationId, supplierQuotations.id))
+      .where(
+        and(
+          eq(supplierQuotations.purchaseId, purchaseId),
+          inArray(supplierQuotationItems.purchaseItemId, purchaseItemIds),
+          this.postedToSite(siteId),
+          lte(supplierQuotations.validFrom, onDate),
+          or(isNull(supplierQuotations.validTo), gte(supplierQuotations.validTo, onDate)),
+        ),
+      )
+      .groupBy(supplierQuotationItems.purchaseItemId);
+    return new Map(rows.flatMap((row) => (row.purchaseItemId ? [[row.purchaseItemId, row.count] as const] : [])));
+  }
+
   // Counts the quotations linked to the purchase
   countForPurchase(purchaseId: string): Promise<number> {
     return this.count(eq(supplierQuotations.purchaseId, purchaseId));
   }
 
-  // Counts the suppliers with a quotation for the purchase posted to the site or its legal entity
-  async countPostedSuppliersForPurchase(purchaseId: string, siteId: string): Promise<number> {
-    const [row] = await this.db
-      .select({ count: sql<number>`count(distinct ${supplierQuotations.supplierId})::int`.mapWith(Number) })
-      .from(supplierQuotations)
-      .where(and(eq(supplierQuotations.purchaseId, purchaseId), this.postedToSite(siteId)));
-    return row?.count ?? 0;
-  }
-
   // Inserts quotation lines
   async insertItems(rows: Omit<NewSupplierQuotationItem, 'organizationId'>[]): Promise<void> {
     await this.db.insert(supplierQuotationItems).values(rows);
+  }
+
+  // Selects a quotation a purchase requested with its supplier's name and whether it is posted to the site
+  private purchaseQuotationSelection(siteId: string) {
+    return {
+      id: supplierQuotations.id,
+      legalEntityId: supplierQuotations.legalEntityId,
+      siteId: supplierQuotations.siteId,
+      quotationNumber: supplierQuotations.quotationNumber,
+      supplierId: supplierQuotations.supplierId,
+      supplierName: parties.displayName,
+      isPosted: this.postedToSite(siteId),
+      validFrom: supplierQuotations.validFrom,
+      validTo: supplierQuotations.validTo,
+      currencyCode: supplierQuotations.currencyCode,
+    };
+  }
+
+  // Joins a quotation's supplier and its party for the supplier's name
+  private supplierJoins() {
+    return [
+      { table: suppliers, on: eq(suppliers.id, supplierQuotations.supplierId) },
+      { table: parties, on: eq(parties.id, suppliers.partyId) },
+    ];
+  }
+
+  // Selects a purchase quotation line with the item's name, the unit's symbol and the quotation's currency
+  private purchaseQuotationItemSelection() {
+    return {
+      id: supplierQuotationItems.id,
+      quotationId: supplierQuotationItems.quotationId,
+      purchaseItemId: supplierQuotationItems.purchaseItemId,
+      inventoryItemId: supplierQuotationItems.inventoryItemId,
+      inventoryItemName: inventoryItems.name,
+      uomId: supplierQuotationItems.uomId,
+      uomSymbol: uom.symbol,
+      unitPrice: supplierQuotationItems.unitPrice,
+      schemeBuyQty: supplierQuotationItems.schemeBuyQty,
+      schemeFreeQty: supplierQuotationItems.schemeFreeQty,
+      currencyCode: supplierQuotations.currencyCode,
+    };
+  }
+
+  // Joins a quotation line's quotation, item and unit
+  private purchaseQuotationItemJoins() {
+    return [
+      { table: supplierQuotationItems, on: eq(supplierQuotationItems.quotationId, supplierQuotations.id) },
+      { table: inventoryItems, on: eq(inventoryItems.id, supplierQuotationItems.inventoryItemId) },
+      { table: uom, on: eq(uom.id, supplierQuotationItems.uomId) },
+    ];
   }
 
   // Matches a quotation posted to the site or to its whole legal entity
@@ -317,7 +462,7 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
       .from(supplierQuotationItems)
       .innerJoin(supplierQuotations, eq(supplierQuotations.id, supplierQuotationItems.quotationId))
       .innerJoin(inventoryItems, eq(inventoryItems.id, supplierQuotationItems.inventoryItemId))
-      .leftJoin(uom, eq(uom.id, supplierQuotationItems.uomId))
+      .innerJoin(uom, eq(uom.id, supplierQuotationItems.uomId))
       .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, supplierQuotationItems.mrpId))
       .where(eq(supplierQuotationItems.quotationId, quotationId))
       .orderBy(asc(inventoryItems.name));

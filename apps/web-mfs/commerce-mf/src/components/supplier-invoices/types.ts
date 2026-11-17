@@ -1,6 +1,7 @@
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import type { SelectProps } from '@vritti/quantum-ui/Select';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
+import type { DistributiveOmit } from '@vritti/quantum-ui/types/utility';
 import type { AxiosError } from 'axios';
 import type { ComponentType } from 'react';
 import type {
@@ -32,7 +33,7 @@ export type SupplierInvoiceLink = Pick<SupplierInvoice, 'id' | 'invoiceNumber' |
 
 export type SupplierInvoicePath = (invoice: SupplierInvoiceLink) => string;
 
-export type SupplierSelectorComponent = ComponentType<Omit<SelectProps, 'optionsEndpoint'>>;
+export type SupplierSelectorComponent = ComponentType<DistributiveOmit<SelectProps, 'optionsEndpoint'>>;
 
 export type UsePurchaseOrderInvoicesTable = (purchaseOrderId: string) => {
   data: SupplierInvoicesTableResponse | undefined;

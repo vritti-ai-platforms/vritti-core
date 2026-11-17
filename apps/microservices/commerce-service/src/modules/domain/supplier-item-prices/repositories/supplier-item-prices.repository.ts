@@ -23,7 +23,7 @@ export type ItemSupplierPriceRow = SupplierItemPriceRow & {
   supplierId: string;
   supplierName: string;
   supplierCode: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
 };
 
 export type PriceHistoryRow = SupplierItemPrice & { requestSiteId: string | null };
@@ -33,7 +33,7 @@ export type ItemPriceAtSiteRow = SupplierItemPrice & {
   supplierName: string;
   supplierCode: string;
   uomId: string;
-  uomSymbol: string | null;
+  uomSymbol: string;
   mrpAmount: bigint | null;
 };
 
@@ -94,11 +94,9 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
         { table: supplierItems, on: eq(supplierItems.id, supplierItemPrices.supplierItemId) },
         { table: suppliers, on: eq(suppliers.id, supplierItems.supplierId) },
         { table: parties, on: eq(parties.id, suppliers.partyId) },
-      ],
-      leftJoins: [
-        { table: inventoryItemMrps, on: eq(inventoryItemMrps.id, supplierItemPrices.mrpId) },
         { table: uom, on: eq(uom.id, supplierItems.uomId) },
       ],
+      leftJoin: { table: inventoryItemMrps, on: eq(inventoryItemMrps.id, supplierItemPrices.mrpId) },
       where: and(
         eq(supplierItems.inventoryItemId, inventoryItemId),
         atSiteOrLegalEntity(siteId ?? currentSiteId()),
@@ -145,7 +143,7 @@ export class SupplierItemPricesDomainRepository extends PrimaryBaseRepository<ty
       .innerJoin(supplierItems, eq(supplierItems.id, supplierItemPrices.supplierItemId))
       .innerJoin(suppliers, eq(suppliers.id, supplierItems.supplierId))
       .innerJoin(parties, eq(parties.id, suppliers.partyId))
-      .leftJoin(uom, eq(uom.id, supplierItems.uomId))
+      .innerJoin(uom, eq(uom.id, supplierItems.uomId))
       .leftJoin(inventoryItemMrps, eq(inventoryItemMrps.id, supplierItemPrices.mrpId))
       .where(
         and(
