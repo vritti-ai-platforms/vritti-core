@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { StockAdjustmentLotDisplayResponseDto } from './stock-adjustment-lot-response.dto';
 
 export class StockAdjustmentLotDetailResponseDto {
   @ApiProperty() id: string;
@@ -13,4 +14,10 @@ export class StockAdjustmentLotDetailResponseDto {
   @ApiProperty({ type: [String], description: 'Line ids under this lot, ordered by createdAt' })
   lineIds: string[];
   @ApiProperty() createdAt: string;
+
+  @ApiProperty({
+    type: StockAdjustmentLotDisplayResponseDto,
+    description: "These quantities in the item's display unit",
+  })
+  display: StockAdjustmentLotDisplayResponseDto;
 }

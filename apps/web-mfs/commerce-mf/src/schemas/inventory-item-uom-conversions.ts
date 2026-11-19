@@ -12,9 +12,24 @@ export interface InventoryItemUomConversionData extends MeasureFigures {
   uomQty: number;
   toPrimaryConversionFactor: number;
   toUomConversionFactor: number;
+  isDisplayUnit: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface InventoryItemUnitData {
+  uomId: string;
+  name: string;
+  symbol: string;
+  primaryUomQty: number;
+  uomQty: number;
+}
+
+export interface InventoryItemUnitsData {
+  primaryUomId: string;
+  displayUomId: string;
+  units: InventoryItemUnitData[];
 }
 
 export type InventoryItemUomConversionsTableResponse = TableResponse<InventoryItemUomConversionData>;

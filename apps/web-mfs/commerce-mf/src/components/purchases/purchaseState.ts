@@ -97,7 +97,7 @@ export function coveragePercent(part: number, whole: number): number {
 
 // How far a quantity has got as shares of a whole, each stage's share net of the stages ahead of it
 export function progressSegments(
-  quantities: Omit<PurchaseItemSupplierProgress, 'legId' | 'supplierId' | 'supplierName'>,
+  quantities: Omit<PurchaseItemSupplierProgress, 'legId' | 'supplierId' | 'supplierName' | 'display'>,
   whole: number,
 ): PurchaseProgressSegments {
   const share = (qty: number) => coveragePercent(qty, whole);

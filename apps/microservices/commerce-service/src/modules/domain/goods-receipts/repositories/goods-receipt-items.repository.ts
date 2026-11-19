@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, asc, desc, eq, getColumns, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type GoodsReceiptItem,
   type GoodsReceiptStatus,
   GoodsReceiptStatusValues,
@@ -49,6 +51,7 @@ export type GoodsReceiptItemRow = GoodsReceiptItem & {
   unbalancedLinesCount: number;
   earliestExpiryDate: string | null;
   earliestExpiryLotNumber: string | null;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type PurchaseOrderReceiptItemRow = GoodsReceiptItemRow & {
@@ -188,7 +191,8 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
     await this.db.insert(goodsReceiptItems).values(rows);
   }
 
-  // Selects an item with its units, PO line, earlier posted receipts, distribution progress and earliest expiry
+  // Selects an item with its units, PO line, earlier posted receipts, distribution progress, earliest expiry and what
+  // turns the item into its display unit
   private selection() {
     const ownLines = eq(goodsReceiptLines.goodsReceiptItemId, goodsReceiptItems.id);
     const ownLots = eq(goodsReceiptLots.goodsReceiptItemId, goodsReceiptItems.id);
@@ -240,6 +244,7 @@ export class GoodsReceiptItemsDomainRepository extends PrimaryBaseRepository<typ
       unbalancedLinesCount: this.db.$count(goodsReceiptLines, and(ownLines, eq(goodsReceiptLines.isBalanced, false))),
       earliestExpiryDate: sql<string | null>`(${earliestExpiryDate})`.mapWith(goodsReceiptLots.expiryDate),
       earliestExpiryLotNumber: sql<string | null>`(${earliestExpiryLotNumber})`,
+      displayUnitRatios: displayUnitRatios(),
     };
   }
 

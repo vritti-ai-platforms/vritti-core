@@ -1,3 +1,4 @@
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { StockAdjustmentLotWithStats } from '../../repositories/stock-adjustment-lots.repository';
 
 export class StockAdjustmentLotDto {
@@ -10,6 +11,7 @@ export class StockAdjustmentLotDto {
   linesCount: number;
   totalQuantity: number;
   createdAt: string;
+  displayUnitRatios: DisplayUnitRatios;
 
   static from(row: StockAdjustmentLotWithStats): StockAdjustmentLotDto {
     const dto = new StockAdjustmentLotDto();
@@ -22,6 +24,7 @@ export class StockAdjustmentLotDto {
     dto.linesCount = row.linesCount;
     dto.totalQuantity = row.totalQuantity;
     dto.createdAt = row.createdAt.toISOString();
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

@@ -155,9 +155,9 @@ export const SupplierInvoiceItemLineDialog: React.FC<SupplierInvoiceItemLineDial
             {picked.primaryUomSymbol !== picked.uomSymbol && (
               <DetailField
                 className="px-4 py-2"
-                label={`Left to Invoice (${picked.primaryUomSymbol})`}
-                type="number"
-                value={picked.openPrimaryQty}
+                label="Left to Invoice (Item Units)"
+                type="string"
+                value={fmt.quantity(picked.display.openPrimaryQty).primary}
               />
             )}
           </DetailSection>

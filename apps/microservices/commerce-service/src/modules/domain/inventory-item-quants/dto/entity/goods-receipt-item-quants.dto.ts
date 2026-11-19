@@ -1,5 +1,6 @@
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { GrItemQuantCostRow } from '../../repositories/inventory-item-quants.repository';
 
 export class GoodsReceiptItemQuantRowDto {
@@ -11,6 +12,7 @@ export class GoodsReceiptItemQuantRowDto {
   totalCost: CurrencyAmountDto | null;
   quantCost: CurrencyAmountDto | null;
   quantValue: CurrencyAmountDto | null;
+  displayUnitRatios: DisplayUnitRatios;
 }
 
 export class GoodsReceiptItemQuantsDto {
@@ -31,6 +33,7 @@ export class GoodsReceiptItemQuantsDto {
       row.locationName = r.locationName;
       row.lotNumber = r.lotNumber;
       row.quantity = Number(r.quantity ?? 0);
+      row.displayUnitRatios = r.displayUnitRatios;
       if (r.costCurrency) {
         currencyCode ??= r.costCurrency;
         const totalMinor = BigInt(new Decimal(r.unitCost.toString()).times(row.quantity).toFixed(0));

@@ -1,5 +1,6 @@
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { PurchaseOrderItemRow } from '../../repositories/purchase-order-items.repository';
 
 export class PurchaseOrderItemDto {
@@ -96,3 +97,5 @@ export class PurchaseOrderItemDto {
     return dto;
   }
 }
+
+export type PurchaseOrderItemWithRatiosDto = PurchaseOrderItemDto & { displayUnitRatios: DisplayUnitRatios };

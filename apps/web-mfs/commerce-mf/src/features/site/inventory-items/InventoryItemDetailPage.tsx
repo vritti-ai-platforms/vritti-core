@@ -115,7 +115,7 @@ export const InventoryItemDetailPage = () => {
                 {
                   value: 'lots',
                   label: 'Lots',
-                  content: <LotsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
+                  content: <LotsTab inventoryItemId={item.id} />,
                 },
               ]
             : []),
@@ -150,7 +150,7 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'quants',
             label: 'Quants',
-            content: <QuantsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
+            content: <QuantsTab inventoryItemId={item.id} />,
           },
         ]}
         value={activeTab}

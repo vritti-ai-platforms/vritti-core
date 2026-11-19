@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, desc, eq, gt, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type InventoryItemQuant,
   type InventoryItemSerial,
   type InventoryTracking,
@@ -21,6 +23,7 @@ export type InventoryItemQuantWithRefs = InventoryItemQuant & {
   lotNumber: string | null;
   manufacturingDate: string | null;
   expiryDate: string | null;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export interface LocationItemRow {
@@ -33,6 +36,7 @@ export interface LocationItemRow {
   totalValueMinor: bigint;
   costCurrency: string | null;
   batchCount: number;
+  displayUnitRatios: DisplayUnitRatios;
 }
 
 export interface LocationItemQuantRow {
@@ -44,6 +48,7 @@ export interface LocationItemQuantRow {
   unitCost: bigint;
   costCurrency: string | null;
   quantValue: bigint;
+  displayUnitRatios: DisplayUnitRatios;
 }
 
 export interface GrItemQuantCostRow {
@@ -55,6 +60,7 @@ export interface GrItemQuantCostRow {
   quantCost: bigint;
   quantValue: bigint;
   costCurrency: string | null;
+  displayUnitRatios: DisplayUnitRatios;
 }
 
 @Injectable()
@@ -90,7 +96,9 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
+        displayUnitRatios: displayUnitRatios(),
       },
+      innerJoins: [{ table: inventoryItems, on: eq(inventoryItems.id, inventoryItemQuants.inventoryItemId) }],
       leftJoins: [
         { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
@@ -128,8 +136,10 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
+        displayUnitRatios: displayUnitRatios(),
       },
       leftJoins: [
+        { table: inventoryItems, on: eq(inventoryItems.id, inventoryItemQuants.inventoryItemId) },
         { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
       ],
@@ -161,7 +171,9 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         lotNumber: inventoryItemLots.lotNumber,
         manufacturingDate: inventoryItemLots.manufacturingDate,
         expiryDate: inventoryItemLots.expiryDate,
+        displayUnitRatios: displayUnitRatios(),
       },
+      innerJoins: [{ table: inventoryItems, on: eq(inventoryItems.id, inventoryItemQuants.inventoryItemId) }],
       leftJoins: [
         { table: locations, on: eq(inventoryItemQuants.locationId, locations.id) },
         { table: inventoryItemLots, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) },
@@ -240,8 +252,10 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         quantCost: inventoryItemQuants.quantCost,
         quantValue: inventoryItemQuants.quantValue,
         costCurrency: inventoryItemQuants.costCurrency,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(inventoryItemQuants)
+      .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryItemQuants.inventoryItemId))
       .leftJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(
@@ -430,12 +444,19 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         totalValueMinor: sql<bigint>`SUM(${inventoryItemQuants.quantValue})`.mapWith((v) => BigInt(v ?? '0')),
         costCurrency: sql<string | null>`MAX(${inventoryItemQuants.costCurrency})`,
         batchCount: sql<number>`COUNT(*)`.mapWith(Number),
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [
         { table: inventoryItems, on: eq(inventoryItemQuants.inventoryItemId, inventoryItems.id) },
         { table: uom, on: eq(inventoryItems.uomId, uom.id) },
       ],
-      groupBy: [inventoryItemQuants.inventoryItemId, inventoryItems.name, inventoryItems.sku, uom.symbol],
+      groupBy: [
+        inventoryItemQuants.inventoryItemId,
+        inventoryItems.id,
+        inventoryItems.name,
+        inventoryItems.sku,
+        uom.symbol,
+      ],
       where,
       orderBy: options.orderBy?.length ? options.orderBy : [asc(inventoryItems.name)],
       limit: options.limit,
@@ -456,8 +477,10 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
         unitCost: inventoryItemQuants.unitCost,
         costCurrency: inventoryItemQuants.costCurrency,
         quantValue: inventoryItemQuants.quantValue,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(inventoryItemQuants)
+      .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryItemQuants.inventoryItemId))
       .innerJoin(locations, eq(inventoryItemQuants.locationId, locations.id))
       .leftJoin(inventoryItemLots, eq(inventoryItemQuants.lotId, inventoryItemLots.id))
       .where(
@@ -478,6 +501,7 @@ export class InventoryItemQuantsDomainRepository extends PrimaryBaseRepository<t
       unitCost: BigInt(r.unitCost as unknown as string),
       costCurrency: r.costCurrency,
       quantValue: BigInt(r.quantValue as unknown as string),
+      displayUnitRatios: r.displayUnitRatios,
     }));
   }
 }

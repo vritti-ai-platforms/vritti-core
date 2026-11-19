@@ -1,0 +1,1 @@
+ALTER TABLE "commerce"."inventory_items" ALTER COLUMN "display_uom_id" SET NOT NULL;

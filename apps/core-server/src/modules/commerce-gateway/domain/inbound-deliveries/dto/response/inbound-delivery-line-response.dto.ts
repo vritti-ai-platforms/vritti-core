@@ -1,4 +1,13 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
+
+export class InboundDeliveryLineDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryUomQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  receivedOnDeliveryPrimaryQty: DisplayUomQuantityResponseDto | null;
+}
 
 export class InboundDeliveryLineResponseDto {
   @ApiProperty({ description: 'Delivery line ID' })
@@ -68,4 +77,10 @@ export class InboundDeliveryLineResponseDto {
 
   @ApiProperty({ description: 'ISO timestamp of creation' })
   createdAt: string;
+
+  @ApiProperty({
+    type: InboundDeliveryLineDisplayResponseDto,
+    description: "Each primary-unit quantity of the line in its item's display unit",
+  })
+  display: InboundDeliveryLineDisplayResponseDto;
 }

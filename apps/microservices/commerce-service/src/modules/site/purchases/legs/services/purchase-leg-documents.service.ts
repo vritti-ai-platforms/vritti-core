@@ -191,7 +191,7 @@ export class PurchaseLegDocumentsService {
       purchase.siteId,
     );
     const itemIds = _.uniq(allocations.map((allocation) => allocation.inventoryItemId));
-    await this.inventoryItemSitesRepository.ensurePurchasable(itemIds, 'allocations', purchase.siteId);
+    await this.inventoryItemSitesRepository.canPurchaseAtSite(itemIds, 'allocations', purchase.siteId);
     await this.purchasingRulesService.assertSourced(leg.supplierId, purchase.siteId, allocations, 'allocations');
     const leadTimes = await this.supplierItemsService.findSiteLeadTimes(leg.supplierId, purchase.siteId, allocations);
 

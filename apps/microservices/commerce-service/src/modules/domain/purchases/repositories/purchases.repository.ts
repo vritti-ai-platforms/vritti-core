@@ -4,11 +4,13 @@ import { eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-
 import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import _ from '@vritti/api-sdk/lodash';
 import {
+  type NewPurchaseQuotationChange,
   type Purchase,
   PurchaseStatusValues,
   purchaseItemProgress,
   purchaseItems,
   purchaseNumberSeq,
+  purchaseQuotationChanges,
   purchaseSuppliers,
   purchases,
 } from '@/db/schema';
@@ -38,6 +40,7 @@ export type PurchaseProgressDetailRow = Pick<PurchaseTableRow, 'status' | 'itemC
 export type PurchaseState = Pick<Purchase, 'purchaseNumber' | 'status'>;
 
 export interface PurchaseBlockers {
+  enableQuotations: string | null;
   submit: string | null;
   close: string | null;
   cancel: string | null;
@@ -128,6 +131,11 @@ export class PurchasesDomainRepository extends PrimaryBaseRepository<typeof purc
     const progress = await this.findProgress(id);
     if (!progress) throw new NotFoundException('Purchase not found.');
     return progress;
+  }
+
+  // Records a change to whether a purchase requires quotations, or to its minimum, with who made it and why
+  async recordQuotationChange(change: NewPurchaseQuotationChange): Promise<void> {
+    await this.db.insert(purchaseQuotationChanges).values(change);
   }
 
   // Rejects an action on a purchase that is no longer open (409)

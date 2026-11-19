@@ -29,10 +29,12 @@ import { TaxComponentsDomainModule } from '@domain/tax-components/tax-components
 import { TaxGroupsDomainModule } from '@domain/tax-groups/tax-groups.module';
 import { TaxJurisdictionsDomainModule } from '@domain/tax-jurisdictions/tax-jurisdictions.module';
 import { UomDomainModule } from '@domain/uom/uom.module';
+import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { UomDimensionsDomainModule } from '@domain/uom-dimensions/uom-dimensions.module';
 import { Module } from '@nestjs/common';
 import { SitePurchasingRulesModule } from '@/modules/site/purchasing-rules/purchasing-rules.module';
 import { SelectController } from './select.controller';
+import { InventoryItemUnitsService } from './services/inventory-item-units.service';
 import { PurchasingPickersService } from './services/purchasing-pickers.service';
 
 @Module({
@@ -46,6 +48,7 @@ import { PurchasingPickersService } from './services/purchasing-pickers.service'
     OfferingVariantsDomainModule,
     UomDomainModule,
     UomDimensionsDomainModule,
+    UomConversionsDomainModule,
     PartiesDomainModule,
     CustomersDomainModule,
     LocationsDomainModule,
@@ -72,6 +75,6 @@ import { PurchasingPickersService } from './services/purchasing-pickers.service'
     TaxJurisdictionsDomainModule,
   ],
   controllers: [SelectController],
-  providers: [PurchasingPickersService],
+  providers: [PurchasingPickersService, InventoryItemUnitsService],
 })
 export class SelectModule {}

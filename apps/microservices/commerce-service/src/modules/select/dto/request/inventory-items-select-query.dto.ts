@@ -20,6 +20,11 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsUUID('7')
   notAtSiteId?: string;
 
+  // Only the items not on this purchase yet; RLS keeps a purchase the caller cannot see from leaving anything out
+  @IsOptional()
+  @IsUUID('7')
+  notOnPurchaseId?: string;
+
   // With atSiteId, only the items whose stock there has one of these statuses
   @IsOptional()
   @Transform(({ value }) => (Array.isArray(value) ? value : String(value).split(',').filter(Boolean)))

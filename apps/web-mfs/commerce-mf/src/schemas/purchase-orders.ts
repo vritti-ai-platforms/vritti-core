@@ -1,5 +1,6 @@
 import type { BadgeProps } from '@vritti/quantum-ui/Badge';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { GoodsReceiptItemFlagCode, GoodsReceiptStatus } from '@/schemas/goods-receipts';
@@ -130,6 +131,19 @@ export interface PurchaseOrderItemData {
   schemeBuyQty: number | null;
   schemeFreeQty: number | null;
   hasScheme: boolean;
+  display: Record<
+    | 'primaryUomQty'
+    | 'expectedFreePrimaryQty'
+    | 'receivedPrimaryQty'
+    | 'rejectedPrimaryQty'
+    | 'invoicedPrimaryQty'
+    | 'returnedPrimaryQty'
+    | 'cancelledPrimaryQty'
+    | 'duePrimaryQty'
+    | 'openToReceivePrimaryQty'
+    | 'openToInvoicePrimaryQty',
+    DisplayQuantity | null
+  >;
 }
 
 export type PurchaseOrdersTableResponse = TableResponse<PurchaseOrderData>;

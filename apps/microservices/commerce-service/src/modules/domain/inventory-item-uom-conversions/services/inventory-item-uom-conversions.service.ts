@@ -132,15 +132,20 @@ export class InventoryItemUomConversionsDomainService {
       offset,
     });
 
-    const usedUomIds = new Set(await this.repository.findUomIdsUsedBySupplierItems(inventoryItemId));
+    const [usedUomIds, displayUomId] = await Promise.all([
+      this.repository.findUomIdsUsedBySupplierItems(inventoryItemId).then((ids) => new Set(ids)),
+      this.repository.findInventoryItemDisplayUomId(inventoryItemId),
+    ]);
 
     return {
-      result: result.map((row) => InventoryItemUomConversionDto.from(row, usedUomIds.has(row.uomId))),
+      result: result.map((row) =>
+        InventoryItemUomConversionDto.from(row, usedUomIds.has(row.uomId), row.uomId === displayUomId),
+      ),
       count,
     };
   }
 
-  // Deletes a UOM conversion by ID
+  // Deletes a UOM conversion unless a supplier item is priced in its unit or it is the item's display unit
   async delete(id: string): Promise<SuccessResponseDto> {
     const existing = await this.repository.findByIdWithUom(id);
     if (!existing) throw new NotFoundException('UOM conversion not found.');
@@ -150,6 +155,14 @@ export class InventoryItemUomConversionsDomainService {
       throw new ConflictException(
         `Can't delete the ${unit ?? 'unit'} conversion — a supplier item is priced in this unit. Remove or repoint those supplier items first.`,
       );
+    }
+
+    if ((await this.repository.findInventoryItemDisplayUomId(existing.inventoryItemId)) === existing.uomId) {
+      throw new ConflictException({
+        label: 'Display Unit',
+        detail: "This is the item's display unit. Change the display unit first.",
+        errors: [{ field: 'uomId', message: "The item's display unit" }],
+      });
     }
 
     await this.repository.delete(id);

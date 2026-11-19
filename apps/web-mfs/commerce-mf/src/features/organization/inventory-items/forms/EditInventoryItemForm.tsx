@@ -38,6 +38,7 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       categoryId: item.categoryId,
       description: item.description ?? '',
       uomId: item.uomId,
+      displayUomId: item.displayUomId,
       hsnCode: item.hsnCode ?? '',
       taxClassId: item.taxClassId,
     },
@@ -50,9 +51,9 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
       form={form}
       mutation={updateMutation}
       onCancel={onCancel}
-      transformSubmit={(data) => ({
+      transformSubmit={({ displayUomId, ...data }) => ({
         id: item.id,
-        data,
+        data: displayUomId === item.displayUomId ? data : { ...data, displayUomId },
       })}
     >
       <div className="flex flex-col gap-6">
@@ -62,6 +63,13 @@ export const EditInventoryItemForm: React.FC<EditInventoryItemFormProps> = ({ it
             <TextField name="sku" label="SKU" placeholder="e.g. raw-rice-bas" />
             <Select name="type" label="Type" placeholder="Select type" options={inventoryItemTypeOptions} />
             <UomSelector name="uomId" label="Unit of Measure" placeholder="Select unit" />
+            <UomSelector
+              name="displayUomId"
+              label="Display Unit"
+              placeholder="Select unit"
+              params={{ inventoryItemId: item.id }}
+              description="How stock and quantities of this item are shown — its unit or one it converts to"
+            />
             <div className="col-span-2">
               <CategorySelector
                 name="categoryId"

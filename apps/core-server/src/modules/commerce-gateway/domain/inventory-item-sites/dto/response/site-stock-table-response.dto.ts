@@ -10,6 +10,7 @@ import {
   type StockStatus,
 } from '../../constants/stock-status.constants';
 import { SiteInventoryItemResponseDto } from './inventory-item-response.dto';
+import { SiteStockDisplayResponseDto } from './site-stock-display-response.dto';
 import { SiteStockLocationResponseDto } from './site-stock-location-response.dto';
 
 export class SiteStockTableRowDto extends SiteInventoryItemResponseDto {
@@ -72,6 +73,11 @@ export class SiteStockTableRowDto extends SiteInventoryItemResponseDto {
     type: [SiteStockLocationResponseDto],
   })
   locations: SiteStockLocationResponseDto[];
+  @ApiProperty({
+    description: "On hand and the levels in the item's display unit; a level not set is null",
+    type: SiteStockDisplayResponseDto,
+  })
+  display: SiteStockDisplayResponseDto;
 }
 
 export class SiteStockTableResponseDto extends TableResponseDto<SiteStockTableRowDto> {

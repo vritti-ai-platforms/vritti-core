@@ -1,3 +1,5 @@
+import type { DisplayUnitRatios } from '@/db/schema';
+
 export interface StockAdjustmentTreeNode {
   id: string;
   name: string;
@@ -9,4 +11,8 @@ export interface StockAdjustmentTreeNode {
   lineItemsCount?: number;
   isBalanced: boolean;
   children?: StockAdjustmentTreeNode[];
+}
+
+export interface StockAdjustmentTreeLotNode extends StockAdjustmentTreeNode {
+  displayUnitRatios: DisplayUnitRatios;
 }

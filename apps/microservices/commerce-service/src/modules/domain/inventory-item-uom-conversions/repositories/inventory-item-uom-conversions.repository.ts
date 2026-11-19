@@ -88,6 +88,16 @@ export class InventoryItemUomConversionsDomainRepository extends PrimaryBaseRepo
     return row?.uomId;
   }
 
+  // Returns the unit an inventory item is displayed in
+  async findInventoryItemDisplayUomId(inventoryItemId: string): Promise<string | undefined> {
+    const [row] = await this.db
+      .select({ displayUomId: inventoryItems.displayUomId })
+      .from(inventoryItems)
+      .where(eq(inventoryItems.id, inventoryItemId))
+      .limit(1);
+    return row?.displayUomId;
+  }
+
   // True when a supplier item is priced in this (inventory item, UOM) pair — deleting the conversion would orphan it,
   // so the delete is blocked.
   async isUsedBySupplierItem(inventoryItemId: string, uomId: string): Promise<boolean> {

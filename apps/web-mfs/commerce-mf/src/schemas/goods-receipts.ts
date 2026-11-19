@@ -1,4 +1,5 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InboundDeliverySource } from '@/schemas/inbound-deliveries';
@@ -98,6 +99,7 @@ export interface GoodsReceiptItemCostRow {
   acceptedPrimaryQty: number;
   unitCost: CurrencyValue;
   value: CurrencyValue;
+  display: Record<'acceptedPrimaryQty', DisplayQuantity | null>;
 }
 
 export interface GoodsReceiptItemsCostData {
@@ -155,6 +157,10 @@ export interface GoodsReceiptLineData {
   createdAt: string;
 }
 
+export interface GoodsReceiptLineTableRow extends GoodsReceiptLineData {
+  display: Record<'primaryUomQty', DisplayQuantity | null>;
+}
+
 export interface GoodsReceiptLineItemData {
   id: string;
   goodsReceiptLineId: string;
@@ -172,7 +178,7 @@ export interface GoodsReceiptTreeNode {
 }
 
 export type GoodsReceiptsTableResponse = TableResponse<GoodsReceiptData>;
-export type GoodsReceiptLinesTableResponse = TableResponse<GoodsReceiptLineData>;
+export type GoodsReceiptLinesTableResponse = TableResponse<GoodsReceiptLineTableRow>;
 export type GoodsReceiptLineItemsTableResponse = TableResponse<GoodsReceiptLineItemData>;
 
 export interface CreateGoodsReceiptFromDeliveryPayload {

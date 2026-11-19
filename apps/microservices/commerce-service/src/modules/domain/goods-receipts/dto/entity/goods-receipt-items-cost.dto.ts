@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { GoodsReceiptItemCost } from '../../services/goods-receipt-items.service';
 
 export class GoodsReceiptItemCostDto {
@@ -11,6 +12,7 @@ export class GoodsReceiptItemCostDto {
   acceptedPrimaryQty: number;
   unitCost: CurrencyAmountDto;
   value: CurrencyAmountDto;
+  displayUnitRatios: DisplayUnitRatios;
 }
 
 export class GoodsReceiptItemsCostDto {
@@ -30,6 +32,7 @@ export class GoodsReceiptItemsCostDto {
       acceptedPrimaryQty: cost.acceptedPrimaryQty,
       unitCost: CurrencyAmountDto.from(cost.unitCost, leCurrencyCode),
       value: CurrencyAmountDto.from(cost.value, leCurrencyCode),
+      displayUnitRatios: cost.item.displayUnitRatios,
     }));
     dto.currencyCode = leCurrencyCode;
     dto.grandTotal = CurrencyAmountDto.from(

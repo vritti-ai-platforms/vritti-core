@@ -1,6 +1,6 @@
 import type React from 'react';
 import { type Control, useWatch } from 'react-hook-form';
-import type { StockStatus } from '@/schemas/inventory-items';
+import type { SiteStockDisplay, StockStatus } from '@/schemas/inventory-items';
 import type { ReplenishmentFormData, ReplenishmentMethod } from '@/schemas/site-items';
 import { StockLevelBar } from './stock-level-bar/StockLevelBar';
 
@@ -14,6 +14,8 @@ interface StockLevelsPreviewProps {
   // Colours the on-hand bar for levels already set; left out for levels still being typed
   status?: StockStatus;
   uomSymbol: string;
+  // The stock on hand and levels in the item's display unit for levels already set; left out for levels being typed
+  display?: SiteStockDisplay;
 }
 
 // An item's stock at a site against its stock levels, drawn on the same bar the stock tables show

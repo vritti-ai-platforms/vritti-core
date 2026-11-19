@@ -1,7 +1,8 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import { PRIMARY_UNIT_PLACEHOLDER, quantityPlaceholder } from '@vritti/quantum-ui/QuantityField';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
-import type { SiteStockLocationData, StockStatus } from './inventory-items';
+import type { SiteStockDisplay, SiteStockLocationData, StockStatus } from './inventory-items';
 
 // Whether a site may buy an item it carries; a blocked item still receives, moves and sells the stock it has
 export const SiteItemStatusValues = {
@@ -62,6 +63,7 @@ export interface SiteItemRowData {
   stockValue: CurrencyValue;
   stockStatus: StockStatus | null;
   locations: SiteStockLocationData[];
+  display: SiteStockDisplay;
 }
 
 export type SiteItemsTableResponse = TableResponse<SiteItemRowData>;
@@ -70,6 +72,8 @@ export interface ReplenishmentBounds {
   reorderPoint: number | null;
   allowDecimal: boolean;
 }
+
+const WHOLE_PRIMARY_UNIT = `Must come to a whole number of ${PRIMARY_UNIT_PLACEHOLDER}`;
 
 // The replenishment fields, every level nullable so an empty input stays controlled: the safety stock at most the
 // reorder point and the maximum stock at least it once one is entered, each a whole number in a unit that cannot be split
@@ -81,16 +85,18 @@ function replenishmentFields({ reorderPoint, allowDecimal }: ReplenishmentBounds
     safetyStock: zodNumericField({
       min: 0,
       max: bound,
-      maxMessage: `Must be at most the reorder point (${bound})`,
+      maxMessage: `Must be at most the reorder point (${bound === undefined ? '' : quantityPlaceholder(bound)})`,
       integer,
+      integerMessage: WHOLE_PRIMARY_UNIT,
       nullable: true,
     }),
-    reorderPoint: zodNumericField({ positive: true, integer, nullable: true }),
+    reorderPoint: zodNumericField({ positive: true, integer, integerMessage: WHOLE_PRIMARY_UNIT, nullable: true }),
     maxStock: zodNumericField({
       positive: true,
       min: bound,
-      minMessage: `Must be at least the reorder point (${bound})`,
+      minMessage: `Must be at least the reorder point (${bound === undefined ? '' : quantityPlaceholder(bound)})`,
       integer,
+      integerMessage: WHOLE_PRIMARY_UNIT,
       nullable: true,
     }),
   });

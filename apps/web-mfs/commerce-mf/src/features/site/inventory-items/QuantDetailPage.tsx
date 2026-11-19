@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Spinner } from '@vritti/quantum-ui/Spinner';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
@@ -30,6 +31,7 @@ const STATUS_CONFIG: Record<
 export const QuantDetailPage = () => {
   const { quantId } = useParams<{ quantId: string }>();
   const [activeTab, setActiveTab] = useState('overview');
+  const fmt = useFormatters();
 
   const { data: quant, isLoading } = useInventoryItemQuant(quantId ?? null);
 
@@ -76,13 +78,25 @@ export const QuantDetailPage = () => {
                     }
                   />
                   <DetailField label="Lot Number" type="string" mono value={quant.lotNumber} />
-                  <DetailField label="Quantity" type="number" value={quant.quantity} />
-                  <DetailField label="Reserved" type="number" value={quant.reservedQuantity} />
+                  <DetailField
+                    label="Quantity"
+                    type="string"
+                    mono
+                    value={fmt.quantity(quant.display.quantity).primary}
+                  />
+                  <DetailField
+                    label="Reserved"
+                    type="string"
+                    mono
+                    value={fmt.quantity(quant.display.reservedQuantity).primary}
+                  />
                   <DetailField
                     label="Available"
                     type="string"
                     mono
-                    value={<span className="text-success">{quant.availableQuantity}</span>}
+                    value={
+                      <span className="text-success">{fmt.quantity(quant.display.availableQuantity).primary}</span>
+                    }
                   />
                   <DetailField
                     label="Status"

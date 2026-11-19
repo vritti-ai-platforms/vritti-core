@@ -6,6 +6,8 @@ import type {
   AddPurchaseItemPayload,
   CancelPurchaseLegPayload,
   CancelPurchasePayload,
+  ChangePurchaseMinQuotationsPayload,
+  ChangePurchaseNotesPayload,
   ClosePurchaseLegPayload,
   ClosePurchasePayload,
   ConfirmPurchaseLegPurchaseOrderPayload,
@@ -18,6 +20,8 @@ import type {
   CreatePurchaseLegPurchaseOrdersPayload,
   CreatePurchasePayload,
   CreatePurchaseSupplierInvoicePayload,
+  DisablePurchaseQuotationsPayload,
+  EnablePurchaseQuotationsPayload,
   PurchaseActions,
   PurchaseAllocation,
   PurchaseAllocationRef,
@@ -50,7 +54,6 @@ import type {
   RequestPurchaseQuotationPayload,
   UpdatePurchaseAllocationPayload,
   UpdatePurchaseItemPayload,
-  UpdatePurchasePayload,
   UpdatePurchaseSettingsPayload,
 } from '@/schemas/purchases';
 import type {
@@ -176,9 +179,27 @@ export function getPurchaseDocuments(id: string): Promise<PurchaseSupplierDocume
   return axios.get<PurchaseSupplierDocuments[]>(`${BASE}/${id}/documents`).then((r) => r.data);
 }
 
-// Updates an open purchase's details
-export function updatePurchase({ id, ...data }: UpdatePurchasePayload): Promise<SuccessResponse> {
-  return axios.patch<SuccessResponse>(`${BASE}/${id}`, data).then((r) => r.data);
+// Changes an open purchase's notes
+export function changePurchaseNotes({ id, ...data }: ChangePurchaseNotesPayload): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${id}/notes`, data).then((r) => r.data);
+}
+
+// Requires quotations on a purchase none of whose suppliers is submitted yet
+export function enablePurchaseQuotations({ id, ...data }: EnablePurchaseQuotationsPayload): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/quotations/enable`, data).then((r) => r.data);
+}
+
+// Stops requiring quotations on an open purchase, recording why
+export function disablePurchaseQuotations({ id, ...data }: DisablePurchaseQuotationsPayload): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/${id}/quotations/disable`, data).then((r) => r.data);
+}
+
+// Changes how many posted quotations each item needs before its supplier is submitted
+export function changePurchaseMinQuotations({
+  id,
+  ...data
+}: ChangePurchaseMinQuotationsPayload): Promise<SuccessResponse> {
+  return axios.patch<SuccessResponse>(`${BASE}/${id}/quotations/minimum`, data).then((r) => r.data);
 }
 
 // Cancels a purchase, recording why
@@ -196,7 +217,7 @@ export function deletePurchase(id: string): Promise<SuccessResponse> {
   return axios.delete<SuccessResponse>(`${BASE}/${id}`).then((r) => r.data);
 }
 
-// Adds an item to a purchase's items; an item already there gets the quantity added
+// Adds an item the purchase does not have yet to its items
 export function addPurchaseItem({ id, ...data }: AddPurchaseItemPayload): Promise<CreateResponse<PurchaseItem>> {
   return axios.post<CreateResponse<PurchaseItem>>(`${BASE}/${id}/items`, data).then((r) => r.data);
 }

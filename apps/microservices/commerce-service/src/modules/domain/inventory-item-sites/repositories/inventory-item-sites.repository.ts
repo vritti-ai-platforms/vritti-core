@@ -4,6 +4,8 @@ import { and, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/dri
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   currentSiteId,
+  type DisplayUnitRatios,
+  displayUnitRatios,
   GoodsReceiptStatusValues,
   goodsReceiptItems,
   goodsReceipts,
@@ -48,6 +50,7 @@ export type ItemSiteStockRow = InventoryItemSite & {
   stockValue: bigint;
   stockStatus: StockStatus;
   locations: SiteStockLocation[];
+  displayUnitRatios: DisplayUnitRatios;
   matchesFilter: boolean;
 };
 
@@ -89,7 +92,8 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Every site the request reaches that carries the item, with the stock held there by location, where it sits against
-  // the site's levels and whether the row passes the given filter; RLS narrows the rows to the request's sites
+  // the site's levels, the ratios to the item's display unit and whether the row passes the given filter; RLS narrows the
+  // rows to the request's sites
   findStockBySite(inventoryItemId: string, filter: SQL | undefined): Promise<ItemSiteStockRow[]> {
     return this.db
       .select({
@@ -98,9 +102,11 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
         stockValue: sql<bigint>`${siteStockValue}`.mapWith(BigInt),
         stockStatus: sql<StockStatus>`${siteStockStatus}`,
         locations: siteStockLocations,
+        displayUnitRatios: displayUnitRatios(),
         matchesFilter: filter ? sql<boolean>`coalesce(${filter}, false)` : sql<boolean>`true`,
       })
       .from(inventoryItemSites)
+      .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryItemSites.inventoryItemId))
       .leftJoin(
         siteStockByItem,
         and(
@@ -134,7 +140,7 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
   }
 
   // Returns how the site carries the item and the stock it holds there by location, valued and placed against the site's
-  // levels; undefined while the site does not carry it
+  // levels, with the ratios to the item's display unit; undefined while the site does not carry it
   async findStockAtSite(inventoryItemId: string, siteId: string): Promise<SiteItemStockRow | undefined> {
     const stock = itemStockAtSite(inventoryItemSites.inventoryItemId, inventoryItemSites.siteId);
     const [row] = await this.db
@@ -144,8 +150,10 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
         stockValue: sql<bigint>`${stock.value}`.mapWith(BigInt),
         stockStatus: sql<StockStatus>`${stockStatusSql(stock.onHand)}`,
         locations: stock.locations,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(inventoryItemSites)
+      .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryItemSites.inventoryItemId))
       .where(and(eq(inventoryItemSites.inventoryItemId, inventoryItemId), eq(inventoryItemSites.siteId, siteId)));
     return row;
   }
@@ -249,13 +257,13 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
 
   // Rejects items the named site, else the request's site, does not carry; nothing of them is bought, received or
   // stocked there until they are added to it
-  async ensureAtSite(inventoryItemIds: string[], field: string, siteId?: string): Promise<void> {
+  async isAddedToSite(inventoryItemIds: string[], field: string, siteId?: string): Promise<void> {
     this.assertCarried(await this.countAtSite(inventoryItemIds, siteId), field);
   }
 
   // Rejects items the site does not carry or has blocked from purchasing, from one count; the purchase's items mark which
   // and why
-  async ensurePurchasable(inventoryItemIds: string[], field: string, siteId?: string): Promise<void> {
+  async canPurchaseAtSite(inventoryItemIds: string[], field: string, siteId?: string): Promise<void> {
     const counts = await this.countAtSite(inventoryItemIds, siteId);
     this.assertCarried(counts, field);
     if (counts.blocked === 0) return;

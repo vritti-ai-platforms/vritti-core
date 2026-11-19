@@ -376,6 +376,18 @@ export const PurchaseStatusValues = {
   CANCELLED: 'CANCELLED',
 } as const satisfies Record<PurchaseStatus, PurchaseStatus>;
 
+export const purchaseQuotationChangeTypeEnum = commerceSchema.enum('purchase_quotation_change_type', [
+  'ENABLED',
+  'DISABLED',
+  'MINIMUM_CHANGED',
+]);
+export type PurchaseQuotationChangeType = (typeof purchaseQuotationChangeTypeEnum.enumValues)[number];
+export const PurchaseQuotationChangeTypeValues = {
+  ENABLED: 'ENABLED',
+  DISABLED: 'DISABLED',
+  MINIMUM_CHANGED: 'MINIMUM_CHANGED',
+} as const satisfies Record<PurchaseQuotationChangeType, PurchaseQuotationChangeType>;
+
 export const purchaseLegStepEnum = commerceSchema.enum('purchase_leg_step', [
   'SOURCING',
   'APPROVAL',

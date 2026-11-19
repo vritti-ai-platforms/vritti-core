@@ -2,11 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { type FieldMap, FilterOperators, FilterProcessor } from '@vritti/api-sdk/conditions';
 import { type TableState } from '@vritti/api-sdk/data-table';
 import { and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { ConflictException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, ConflictException } from '@vritti/api-sdk/exceptions';
 import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
-import { type Purchase, PurchaseStatusValues, purchaseSuppliers, purchases } from '@/db/schema';
+import {
+  type Purchase,
+  PurchaseQuotationChangeTypeValues,
+  PurchaseStatusValues,
+  purchaseSuppliers,
+  purchases,
+} from '@/db/schema';
 import {
   type PurchaseAction,
   PurchaseActionValues,
@@ -14,8 +20,8 @@ import {
   PurchaseStatusLabels,
 } from '../dto/entity/purchase.dto';
 import { PurchaseTableRowDto } from '../dto/entity/purchase-table-row.dto';
+import type { ChangePurchaseMinQuotationsDto } from '../dto/request/change-purchase-min-quotations.dto';
 import type { CreatePurchaseDto } from '../dto/request/create-purchase.dto';
-import type { UpdatePurchaseDto } from '../dto/request/update-purchase.dto';
 import type { PurchaseBlockers, PurchaseState } from '../repositories/purchases.repository';
 import { type PurchaseRow, PurchasesDomainRepository } from '../repositories/purchases.repository';
 
@@ -71,16 +77,98 @@ export class PurchasesDomainService {
     return purchase;
   }
 
-  // Changes an open purchase's header; a null note clears it
-  async update(purchase: PurchaseState & Pick<Purchase, 'id'>, dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.repository.assertOpen(purchase, 'Cannot Edit Purchase');
-    await this.repository.update(purchase.id, {
-      notes: dto.notes,
-      quotationsRequired: dto.quotationsRequired,
-      minQuotations: dto.minQuotations,
+  // Changes an open purchase's notes; a null note clears them
+  async changeNotes(purchase: PurchaseRow, notes: string | null): Promise<SuccessResponseDto> {
+    this.repository.assertOpen(purchase, 'Cannot Change Notes');
+    await this.repository.update(purchase.id, { notes });
+    this.logger.log(`Changed the notes of purchase ${purchase.purchaseNumber}`);
+    return { success: true, message: `Notes of "${purchase.purchaseNumber}" changed.` };
+  }
+
+  // Starts requiring quotations, at the given minimum per item, on an open purchase none of whose suppliers is submitted
+  // yet, recording who did it
+  async enableQuotations(
+    purchase: PurchaseRow,
+    minQuotations: number,
+    blockers: PurchaseBlockers,
+    userId: string | null,
+  ): Promise<SuccessResponseDto> {
+    if (blockers.enableQuotations) {
+      throw new ConflictException({ label: 'Cannot Enable Quotations', detail: blockers.enableQuotations });
+    }
+    await this.repository.transaction(async () => {
+      await this.repository.update(purchase.id, { quotationsRequired: true, minQuotations });
+      await this.repository.recordQuotationChange({
+        purchaseId: purchase.id,
+        type: PurchaseQuotationChangeTypeValues.ENABLED,
+        toMinQuotations: minQuotations,
+        changedBy: userId,
+      });
     });
-    this.logger.log(`Updated purchase ${purchase.purchaseNumber}`);
-    return { success: true, message: `Purchase "${purchase.purchaseNumber}" updated.` };
+    this.logger.log(`Purchase ${purchase.purchaseNumber} requires ${minQuotations} quotations per item`);
+    return {
+      success: true,
+      message: `"${purchase.purchaseNumber}" now requires ${pluralize('posted quotation', minQuotations, true)} per item.`,
+    };
+  }
+
+  // Stops requiring quotations on an open purchase, recording who did it and why
+  async disableQuotations(purchase: PurchaseRow, reason: string, userId: string | null): Promise<SuccessResponseDto> {
+    this.assertQuotationsRequired(purchase, 'Cannot Disable Quotations');
+    await this.repository.transaction(async () => {
+      await this.repository.update(purchase.id, { quotationsRequired: false });
+      await this.repository.recordQuotationChange({
+        purchaseId: purchase.id,
+        type: PurchaseQuotationChangeTypeValues.DISABLED,
+        fromMinQuotations: purchase.minQuotations,
+        reason,
+        changedBy: userId,
+      });
+    });
+    this.logger.log(`Purchase ${purchase.purchaseNumber} no longer requires quotations`);
+    return { success: true, message: `"${purchase.purchaseNumber}" no longer requires quotations.` };
+  }
+
+  // Changes how many posted quotations each item of an open purchase needs before its supplier is submitted, recording
+  // who did it; lowering it needs a reason
+  async changeMinQuotations(
+    purchase: PurchaseRow,
+    dto: ChangePurchaseMinQuotationsDto,
+    userId: string | null,
+  ): Promise<SuccessResponseDto> {
+    this.assertQuotationsRequired(purchase, 'Cannot Change Minimum');
+    if (dto.minQuotations === purchase.minQuotations) {
+      throw new BadRequestException({
+        label: 'Minimum Unchanged',
+        detail: `"${purchase.purchaseNumber}" already requires ${pluralize('quotation', dto.minQuotations, true)} per item.`,
+        errors: [{ field: 'minQuotations', message: 'Same as the current minimum' }],
+      });
+    }
+    if (dto.minQuotations < purchase.minQuotations && !dto.reason) {
+      throw new BadRequestException({
+        label: 'Reason Required',
+        detail: 'Say why fewer quotations are enough; lowering the minimum is recorded.',
+        errors: [{ field: 'reason', message: 'Reason is required to lower the minimum' }],
+      });
+    }
+    await this.repository.transaction(async () => {
+      await this.repository.update(purchase.id, { minQuotations: dto.minQuotations });
+      await this.repository.recordQuotationChange({
+        purchaseId: purchase.id,
+        type: PurchaseQuotationChangeTypeValues.MINIMUM_CHANGED,
+        fromMinQuotations: purchase.minQuotations,
+        toMinQuotations: dto.minQuotations,
+        reason: dto.reason ?? null,
+        changedBy: userId,
+      });
+    });
+    this.logger.log(
+      `Purchase ${purchase.purchaseNumber} minimum quotations ${purchase.minQuotations} → ${dto.minQuotations}`,
+    );
+    return {
+      success: true,
+      message: `"${purchase.purchaseNumber}" now requires ${pluralize('posted quotation', dto.minQuotations, true)} per item.`,
+    };
   }
 
   // Starts every supplier still in sourcing; stamps when the purchase was first submitted. The caller starts the legs in
@@ -154,20 +242,26 @@ export class PurchasesDomainService {
 
   // Explains what keeps each purchase-level action from running, or null when it may: delete while no supplier is
   // added; cancel while every open supplier can be cancelled; close once something is received and no supplier has goods
-  // on their way or a draft open; submit while a supplier is still in sourcing
+  // on their way or a draft open; submit while a supplier is still in sourcing; requiring quotations before any supplier
+  // is submitted
   blockersOf(
-    purchase: PurchaseState,
-    legs: { count: number; closedCount: number; open: PurchaseLegFacts[] },
+    purchase: PurchaseState & Pick<Purchase, 'quotationsRequired'>,
+    legs: { count: number; closedCount: number; submittedCount: number; open: PurchaseLegFacts[] },
   ): PurchaseBlockers {
     if (purchase.status !== PurchaseStatusValues.OPEN) {
       const state = `"${purchase.purchaseNumber}" is ${PurchaseStatusLabels[purchase.status].toLowerCase()}.`;
-      return { submit: state, close: state, cancel: state, delete: state };
+      return { enableQuotations: state, submit: state, close: state, cancel: state, delete: state };
     }
     const receivedCount = legs.open.filter((leg) => leg.hasPostedDocument).length + legs.closedCount;
     const uncancellable = legs.open.find((leg) => leg.blockers.cancel);
     const unclosable = legs.open.find((leg) => !leg.receivingClosed && leg.blockers.close && leg.blockers.cancel);
     const receivedDetail = `Goods are received from ${pluralize('supplier', receivedCount, true)}; close the purchase instead.`;
     return {
+      enableQuotations: purchase.quotationsRequired
+        ? 'Quotations are already required.'
+        : legs.submittedCount > 0
+          ? `${pluralize('supplier', legs.submittedCount, true)} already submitted without quotations; quotations can only be required before the first is submitted.`
+          : null,
       submit: legs.open.some((leg) => leg.isSourcing)
         ? null
         : 'No supplier is waiting to be submitted; allocate items first.',
@@ -187,19 +281,26 @@ export class PurchasesDomainService {
     };
   }
 
-  // Lists the actions an open purchase offers: editing, items and allocations at any time, quotations when it requires
-  // them, the rest unless something blocks them
+  // Lists the actions an open purchase offers: notes, items and allocations at any time; requesting quotations, changing
+  // their minimum and dropping them while it requires them; the rest unless something blocks them
   availableActions(
     purchase: PurchaseState & Pick<Purchase, 'quotationsRequired'>,
     blockers: PurchaseBlockers,
   ): PurchaseAction[] {
     if (purchase.status !== PurchaseStatusValues.OPEN) return [];
     const actions: PurchaseAction[] = [
-      PurchaseActionValues.EDIT,
+      PurchaseActionValues.CHANGE_NOTES,
       PurchaseActionValues.EDIT_ITEMS,
-      ...(purchase.quotationsRequired ? [PurchaseActionValues.REQUEST_QUOTATION] : []),
+      ...(purchase.quotationsRequired
+        ? [
+            PurchaseActionValues.REQUEST_QUOTATION,
+            PurchaseActionValues.CHANGE_MIN_QUOTATIONS,
+            PurchaseActionValues.DISABLE_QUOTATIONS,
+          ]
+        : []),
       PurchaseActionValues.EDIT_ALLOCATIONS,
     ];
+    if (!blockers.enableQuotations) actions.push(PurchaseActionValues.ENABLE_QUOTATIONS);
     if (!blockers.submit) actions.push(PurchaseActionValues.SUBMIT);
     if (!blockers.close) actions.push(PurchaseActionValues.CLOSE);
     if (!blockers.cancel) actions.push(PurchaseActionValues.CANCEL);
@@ -212,5 +313,12 @@ export class PurchasesDomainService {
     if (blockers.delete) throw new ConflictException({ label: 'Cannot Delete Purchase', detail: blockers.delete });
     await this.repository.delete(purchase.id, eq(purchases.status, PurchaseStatusValues.OPEN));
     this.logger.log(`Deleted purchase ${purchase.purchaseNumber}`);
+  }
+
+  // Rejects changing the quotation requirement of a purchase that is not open or does not require quotations (409)
+  private assertQuotationsRequired(purchase: PurchaseRow, label: string): void {
+    this.repository.assertOpen(purchase, label);
+    if (purchase.quotationsRequired) return;
+    throw new ConflictException({ label, detail: `"${purchase.purchaseNumber}" does not require quotations.` });
   }
 }

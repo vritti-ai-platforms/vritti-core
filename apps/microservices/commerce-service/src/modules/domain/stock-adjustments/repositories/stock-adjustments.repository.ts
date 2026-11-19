@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type InventoryTracking,
   inventoryItems,
   type NewStockAdjustment,
@@ -21,6 +23,7 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
   inventoryItemTracking: InventoryTracking;
   totalQuantity: number;
   isPublishable?: boolean;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type StockAdjustmentWithItem = StockAdjustment & {
@@ -85,6 +88,7 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
         inventoryItemUomSymbol: uom.symbol,
         inventoryItemTracking: inventoryItems.tracking,
         totalQuantity: totalQuantitySql,
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
@@ -133,6 +137,7 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
             )
           )
         )`,
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [
         { table: inventoryItems, on: eq(stockAdjustments.inventoryItemId, inventoryItems.id) },
@@ -151,6 +156,7 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
         stockAdjustments.unitCost,
         stockAdjustments.publishedAt,
         stockAdjustments.createdAt,
+        inventoryItems.id,
         inventoryItems.name,
         inventoryItems.uomId,
         uom.symbol,

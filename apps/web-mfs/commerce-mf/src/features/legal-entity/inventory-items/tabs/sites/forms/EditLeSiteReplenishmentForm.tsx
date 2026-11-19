@@ -48,10 +48,7 @@ export const EditLeSiteReplenishmentForm: React.FC<EditLeSiteReplenishmentFormPr
       maxStock: row.maxStock,
     },
   });
-  const [replenishment, safetyStock, reorderPoint] = useWatch({
-    control: form.control,
-    name: ['replenishment', 'safetyStock', 'reorderPoint'],
-  });
+  const replenishment = useWatch({ control: form.control, name: 'replenishment' });
 
   const updateMutation = useUpdateLeSiteReplenishment(inventoryItemId, { onSuccess });
 
@@ -64,10 +61,8 @@ export const EditLeSiteReplenishmentForm: React.FC<EditLeSiteReplenishmentFormPr
     >
       <div className="flex flex-col gap-6">
         {replenishmentSections({
+          inventoryItemId,
           replenishment,
-          safetyStock,
-          reorderPoint,
-          allowDecimal,
           uomSymbol,
           preview: <StockLevelsFormPreview control={form.control} onHand={row.onHand} uomSymbol={uomSymbol} />,
         })}

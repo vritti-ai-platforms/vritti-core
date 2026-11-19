@@ -37,6 +37,12 @@ export class InventoryItemResponseDto {
   @ApiProperty({ description: "Whether the item's primary unit can be counted in fractions" })
   uomAllowDecimal: boolean;
 
+  @ApiProperty({ description: 'Unit the item is displayed in; its primary unit until changed' })
+  displayUomId: string;
+
+  @ApiProperty()
+  displayUomSymbol: string;
+
   @ApiPropertyOptional({
     description: 'Tax class override, or null when inheriting the category default',
     nullable: true,

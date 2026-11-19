@@ -5,6 +5,8 @@ import { type AnyPgColumn, alias, QueryBuilder, union } from '@vritti/api-sdk/dr
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
+  type DisplayUnitRatios,
+  displayUnitRatios,
   hasSupplierItem,
   type InventoryItem,
   inventoryItemQuants,
@@ -13,6 +15,7 @@ import {
   inventoryItemUomConversions,
   itemStockAtSite,
   locations,
+  purchaseItems,
   purchaseOrderItems,
   type ReplenishmentMethod,
   type SiteItemStatus,
@@ -35,6 +38,7 @@ import {
 export type InventoryItemNames = {
   uomSymbol: string;
   uomAllowDecimal: boolean;
+  displayUomSymbol: string;
   categoryName: string;
   taxClassName: string;
 };
@@ -53,14 +57,20 @@ export type SiteStockTableRow = TableRow & {
   stockValue: bigint;
   stockStatus: StockStatus | null;
   locations: SiteStockLocation[];
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 // A UOM's family: the base unit it converts to, or itself when it is a base unit
 const uomFamily = (unit: { id: AnyPgColumn; baseUnitId: AnyPgColumn }) => sql`coalesce(${unit.baseUnitId}, ${unit.id})`;
 
-// The UOMs the inventory item read alongside can transact in: every UOM in its primary UOM's family, and every per-item
-// conversion
-function allowedUomsOfItem() {
+// The UOMs an inventory item can transact in: every UOM in its primary UOM's family, and every per-item conversion; by
+// default those of the item read alongside
+function allowedUomsOfItem(
+  item: { id: AnyPgColumn | string; uomId: AnyPgColumn | string } = {
+    id: inventoryItems.id,
+    uomId: inventoryItems.uomId,
+  },
+) {
   const primaryUom = alias(uom, 'primary_uom');
   const familyUom = alias(uom, 'family_uom');
   return union(
@@ -68,13 +78,17 @@ function allowedUomsOfItem() {
       .select({ uomId: familyUom.id })
       .from(familyUom)
       .innerJoin(primaryUom, eq(uomFamily(familyUom), uomFamily(primaryUom)))
-      .where(eq(primaryUom.id, inventoryItems.uomId)),
+      .where(eq(primaryUom.id, item.uomId)),
     new QueryBuilder()
       .select({ uomId: inventoryItemUomConversions.uomId })
       .from(inventoryItemUomConversions)
-      .where(eq(inventoryItemUomConversions.inventoryItemId, inventoryItems.id)),
+      .where(eq(inventoryItemUomConversions.inventoryItemId, item.id)),
   ).as('allowed_uoms');
 }
+
+// The symbol of the unit the inventory item read alongside is displayed in
+const displayUomSymbol = () =>
+  sql<string>`(${new QueryBuilder().select({ symbol: uom.symbol }).from(uom).where(eq(uom.id, inventoryItems.displayUomId))})`;
 
 // Whether the site holds stock of the item in any of the given locations or anywhere below them
 export function stockHeldUnderLocationsSql(locationIds: string[]): SQL {
@@ -102,6 +116,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
       excludeOnSupplierId?: string;
       // Only the items this site does not carry yet
       notAtSiteId?: string;
+      notOnPurchaseId?: string;
       // Only the items filed under one of these categories
       categoryIds?: string[];
       // Only the items this site carries, each with its stock and levels there
@@ -126,6 +141,19 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
           ),
         );
       conditions.push(notExists(atSite));
+    }
+
+    if (options?.notOnPurchaseId) {
+      const onPurchase = this.db
+        .select({ id: purchaseItems.id })
+        .from(purchaseItems)
+        .where(
+          and(
+            eq(purchaseItems.purchaseId, options.notOnPurchaseId),
+            eq(purchaseItems.inventoryItemId, inventoryItems.id),
+          ),
+        );
+      conditions.push(notExists(onPurchase));
     }
 
     // Only the items the site carries, through the inner join on its site items below; each row's stock is read per
@@ -179,8 +207,8 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
             ]
           : []),
       ],
-      // Each item's unit and, at a site, its stock there against its levels and how the site carries it, for the picker to
-      // show beside it
+      // Each item's unit and, at a site, its stock there against its levels, how the site carries it and the ratios that
+      // turn its quantities into the item's display unit, for the picker to show beside it
       additionalExpressions: {
         uomSymbol: sql<string>`${uom.symbol}`,
         allowDecimal: sql<boolean>`${uom.allowDecimal}`,
@@ -196,6 +224,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
               stockStatus,
               stockValue: stock.value,
               locations: stock.locations,
+              displayUnitRatios: displayUnitRatios(),
             }
           : {}),
         ...(options?.atSiteId && options.supplier && supplied
@@ -223,11 +252,20 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return rows.map((row) => row.uomId);
   }
 
+  // The UOMs an inventory item can transact in once its primary UOM is the given one: that UOM's family and every
+  // per-item conversion
+  async findAllowedUomIdsFor(inventoryItemId: string, primaryUomId: string): Promise<string[]> {
+    const allowedUoms = allowedUomsOfItem({ id: inventoryItemId, uomId: primaryUomId });
+    const rows = await this.db.select({ uomId: allowedUoms.uomId }).from(allowedUoms);
+    return rows.map((row) => row.uomId);
+  }
+
   // Returns paginated inventory items with their unit's symbol
   async findAllWithUom(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: (typeof inventoryItems.$inferSelect & {
       uomSymbol: string;
       uomAllowDecimal: boolean;
+      displayUomSymbol: string;
       categoryName: string;
       taxClassName: string;
     })[];
@@ -238,6 +276,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         ...inventoryItems,
         uomSymbol: uom.symbol,
         uomAllowDecimal: uom.allowDecimal,
+        displayUomSymbol: displayUomSymbol(),
         categoryName: sql<string>`(
           SELECT c.name
           FROM ${categories} c
@@ -262,6 +301,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     rows: (typeof inventoryItems.$inferSelect & {
       uomSymbol: string;
       uomAllowDecimal: boolean;
+      displayUomSymbol: string;
       categoryName: string;
       taxClassName: string;
     })[];
@@ -272,6 +312,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         ...inventoryItems,
         uomSymbol: uom.symbol,
         uomAllowDecimal: uom.allowDecimal,
+        displayUomSymbol: displayUomSymbol(),
         categoryName: sql<string>`(
           SELECT c.name
           FROM ${categories} c
@@ -295,6 +336,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     | (typeof inventoryItems.$inferSelect & {
         uomSymbol: string;
         uomAllowDecimal: boolean;
+        displayUomSymbol: string;
         categoryName: string;
         taxClassName: string;
       })
@@ -305,6 +347,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         ...getColumns(inventoryItems),
         uomSymbol: uom.symbol,
         uomAllowDecimal: uom.allowDecimal,
+        displayUomSymbol: displayUomSymbol(),
         categoryName: categories.name,
         taxClassName: taxClasses.name,
       })
@@ -338,6 +381,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         .select({ allowDecimal: uom.allowDecimal })
         .from(uom)
         .where(eq(uom.id, inventoryItems.uomId))})`,
+      displayUomSymbol: displayUomSymbol(),
       categoryName: sql<string>`(${this.db
         .select({ name: categories.name })
         .from(categories)
@@ -371,6 +415,7 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
         stockValue: sql<bigint>`${siteStockValue}`.mapWith(BigInt),
         stockStatus: siteStockStatus,
         locations: siteStockLocations,
+        displayUnitRatios: displayUnitRatios(),
       },
       leftJoins: [
         {

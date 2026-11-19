@@ -164,7 +164,8 @@ export class InventoryItemSitesDomainService {
 
   // Works out what to store for a replenishment: a reorder point needs a reorder point above 0, a maximum at least that
   // and a safety stock at most the reorder point, each a whole number when the item's unit cannot be split; manual
-  // replenishment keeps no levels
+  // replenishment keeps no levels; field messages name quantities as {{qty:<primary>}} and the primary unit as
+  // {{primaryUnit}} for the quantity field to show in the unit being entered
   replenishmentOf(dto: ReplenishmentDto, allowsDecimal: boolean): Replenishment {
     if (dto.replenishment === ReplenishmentMethodValues.MANUAL) {
       return { replenishment: dto.replenishment, safetyStock: null, reorderPoint: null, maxStock: null };
@@ -175,15 +176,16 @@ export class InventoryItemSitesDomainService {
     if (reorderPoint == null || reorderPoint <= 0) errors.push({ field: 'reorderPoint', message: 'Must be above 0' });
     if (maxStock == null) errors.push({ field: 'maxStock', message: 'Maximum stock is required' });
     else if (reorderPoint != null && maxStock < reorderPoint) {
-      errors.push({ field: 'maxStock', message: `Must be at least the reorder point (${reorderPoint})` });
+      errors.push({ field: 'maxStock', message: `Must be at least the reorder point ({{qty:${reorderPoint}}})` });
     }
     if (safetyStock != null && reorderPoint != null && safetyStock > reorderPoint) {
-      errors.push({ field: 'safetyStock', message: `Must be at most the reorder point (${reorderPoint})` });
+      errors.push({ field: 'safetyStock', message: `Must be at most the reorder point ({{qty:${reorderPoint}}})` });
     }
     if (!allowsDecimal) {
       const levels = { safetyStock, reorderPoint, maxStock };
       for (const [field, level] of Object.entries(levels)) {
-        if (level != null && !Number.isInteger(level)) errors.push({ field, message: 'Must be a whole number' });
+        if (level != null && !Number.isInteger(level))
+          errors.push({ field, message: 'Must come to a whole number of {{primaryUnit}}' });
       }
     }
     if (errors.length > 0 || reorderPoint == null || maxStock == null) {

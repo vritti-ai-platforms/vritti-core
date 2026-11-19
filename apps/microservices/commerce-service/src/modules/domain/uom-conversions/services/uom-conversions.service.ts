@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
+import _ from '@vritti/api-sdk/lodash';
+import type { DisplayUnitRatios } from '@/db/schema';
+import { DisplayUomQuantityDto } from '../dto/entity/display-uom-quantity.dto';
+import type { UnitRatioDto } from '../dto/entity/unit-ratio.dto';
 import { UomFactorLookup } from '../dto/entity/uom-factor-lookup.dto';
 import {
   type ConversionPair,
@@ -10,6 +14,8 @@ import {
 
 const QTY_DP = 3;
 
+type UnitRatio = Pick<UomRow, 'baseUomQty' | 'uomQty'>;
+
 @Injectable()
 export class UomConversionsDomainService {
   constructor(private readonly repository: UomConversionsDomainRepository) {}
@@ -17,6 +23,61 @@ export class UomConversionsDomainService {
   async toPrimaryUomQuantity(inventoryItemId: string, uomId: string, qty: number): Promise<number> {
     const factor = await this.resolveFactor(inventoryItemId, uomId);
     return roundQty(new Decimal(qty).times(factor));
+  }
+
+  // Expresses a primary-unit quantity in the item's display unit, exactly and as whole display units plus the primary
+  // units left over; a negative quantity splits toward zero
+  toDisplayUomQuantity(primaryUomQty: number, ratios: DisplayUnitRatios): DisplayUomQuantityDto {
+    const factor = ratios.conversion
+      ? pairToFactor(ratios.conversion)
+      : globalPairToInventoryItemFactor(ratios.displayUom, ratios.primaryUom);
+    const exact = new Decimal(primaryUomQty).dividedBy(factor);
+    const whole = exact.trunc();
+    return {
+      primaryUomQty,
+      displayUomQty: roundQty(exact),
+      wholeDisplayUomQty: whole.toNumber(),
+      remainderPrimaryUomQty: roundQty(new Decimal(primaryUomQty).minus(whole.times(factor))),
+      displayUomSymbol: ratios.displayUom.symbol,
+      primaryUomSymbol: ratios.primaryUom.symbol,
+      isPack: ratios.conversion !== null,
+    };
+  }
+
+  // Expresses each named primary-unit quantity of one item in its display unit, keyed as given; a missing quantity
+  // stays null
+  toDisplayUomQuantities<K extends string>(
+    quantities: Record<K, number | null>,
+    ratios: DisplayUnitRatios,
+  ): Record<K, DisplayUomQuantityDto | null> {
+    return _.mapValues(quantities, (qty) => (qty === null ? null : this.toDisplayUomQuantity(qty, ratios))) as Record<
+      K,
+      DisplayUomQuantityDto | null
+    >;
+  }
+
+  // Returns each of the item's units with its exact ratio to the primary unit as whole numbers: 1 = 1 for the primary
+  // unit, the item's own conversion where it has one, else the ratio through the units' family base unit
+  async findUnitRatios(inventoryItemId: string, primaryUomId: string, uomIds: string[]): Promise<UnitRatioDto[]> {
+    const [conversions, uomRows] = await Promise.all([
+      this.repository.findInventoryItemConversions([inventoryItemId]),
+      this.repository.findUoms([...new Set([...uomIds, primaryUomId])]),
+    ]);
+    const conversionByUom = new Map(conversions.map((conversion) => [conversion.uomId, conversion]));
+    const primaryUom = uomRows.get(primaryUomId);
+    if (!primaryUom) throw new NotFoundException(`Inventory item primary UOM ${primaryUomId} not found.`);
+    return uomIds.flatMap((uomId) => {
+      const unit = uomRows.get(uomId);
+      if (!unit) return [];
+      return [
+        {
+          uomId,
+          name: unit.name,
+          symbol: unit.symbol,
+          ...unitRatio(uomId, primaryUomId, conversionByUom, unit, primaryUom),
+        },
+      ];
+    });
   }
 
   // Resolves the "primary units per uom unit" factor of many (inventory item, uom) pairs in three reads; a pair with
@@ -69,6 +130,23 @@ export class UomConversionsDomainService {
   }
 }
 
+// A unit's ratio to the item's primary unit as whole numbers: `primaryUomQty` primary units = `uomQty` of the unit
+function unitRatio(
+  uomId: string,
+  primaryUomId: string,
+  conversionByUom: Map<string, ConversionPair>,
+  unit: UnitRatio,
+  primaryUom: UnitRatio,
+): ConversionPair {
+  if (uomId === primaryUomId) return { primaryUomQty: 1, uomQty: 1 };
+  const conversion = conversionByUom.get(uomId);
+  if (conversion) return { primaryUomQty: conversion.primaryUomQty, uomQty: conversion.uomQty };
+  return {
+    primaryUomQty: new Decimal(unit.baseUomQty).times(primaryUom.uomQty).toNumber(),
+    uomQty: new Decimal(unit.uomQty).times(primaryUom.baseUomQty).toNumber(),
+  };
+}
+
 function roundQty(value: Decimal): number {
   return value.toDecimalPlaces(QTY_DP, Decimal.ROUND_HALF_UP).toNumber();
 }
@@ -79,7 +157,7 @@ function pairToFactor(pair: ConversionPair): Decimal {
 
 // factor = (target.baseUomQty × inventoryItemPrimary.uomQty) / (target.uomQty × inventoryItemPrimary.baseUomQty)
 // Reduces to target.baseUomQty/uomQty when inventory item primary is the dimension's base (baseUomQty=uomQty=1).
-function globalPairToInventoryItemFactor(targetUom: UomRow, inventoryItemPrimaryUom: UomRow): Decimal {
+function globalPairToInventoryItemFactor(targetUom: UnitRatio, inventoryItemPrimaryUom: UnitRatio): Decimal {
   return new Decimal(targetUom.baseUomQty)
     .times(inventoryItemPrimaryUom.uomQty)
     .dividedBy(new Decimal(targetUom.uomQty).times(inventoryItemPrimaryUom.baseUomQty));

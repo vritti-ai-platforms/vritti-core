@@ -1,7 +1,7 @@
-import type { InventoryItemLedgerDto } from '@domain/inventory-item-ledger/dto/entity/inventory-item-ledger.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import type { InventoryItemLedgerWithDisplayDto } from './dto/entity/inventory-item-ledger-with-display.dto';
 import { InventoryItemsLedgerService } from './services/inventory-items-ledger.service';
 
 @Controller()
@@ -14,14 +14,14 @@ export class InventoryItemsLedgerController {
   @MessagePattern({ cmd: 'site.inventoryItems.ledgerTable' })
   async ledgerTable(
     @Payload() data: { inventoryItemId: string } & TableState,
-  ): Promise<{ result: InventoryItemLedgerDto[]; count: number }> {
+  ): Promise<{ result: InventoryItemLedgerWithDisplayDto[]; count: number }> {
     this.logger.log(`inventoryItems.ledgerTable — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findForTable(data.inventoryItemId, data);
   }
 
   @MessagePattern({ cmd: 'site.inventoryItems.ledgerFeed' })
   async ledgerFeed(@Payload() data: { inventoryItemId: string; limit: number; cursor?: string }): Promise<{
-    edges: { cursor: string; node: InventoryItemLedgerDto }[];
+    edges: { cursor: string; node: InventoryItemLedgerWithDisplayDto }[];
     pageInfo: { hasNextPage: boolean; endCursor: string | null };
   }> {
     this.logger.log(`inventoryItems.ledgerFeed — inventoryItemId: ${data.inventoryItemId}`);

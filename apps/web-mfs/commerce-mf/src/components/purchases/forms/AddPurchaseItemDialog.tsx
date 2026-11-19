@@ -4,14 +4,14 @@ import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import Decimal from '@vritti/quantum-ui/decimal';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { ItemQuantityField } from '@/components/inventory-items/ItemQuantityField';
 import { StockLevelsPreview } from '@/components/inventory-items/StockLevelsPreview';
 import { type SiteItemAdditionals, siteItemAdditionalsSchema } from '@/schemas/inventory-items';
-import { type AddPurchaseItemFormData, addPurchaseItemSchema, type PurchaseDetail } from '@/schemas/purchases';
+import { type AddPurchaseItemFormData, buildAddPurchaseItemSchema, type PurchaseDetail } from '@/schemas/purchases';
 import { InventoryItemSelector } from '@/selectors/inventory-item';
 import type { PurchasesBinding } from '../bindings';
 
@@ -22,21 +22,23 @@ interface AddPurchaseItemDialogProps {
   onCancel: () => void;
 }
 
-// Adds an item to the purchase in its primary unit; an item already there gets the quantity added
+// Adds an item the purchase does not have yet, in its primary unit; the picker leaves out the items already on it
 export const AddPurchaseItemDialog: React.FC<AddPurchaseItemDialogProps> = ({
   binding,
   purchase,
   onSuccess,
   onCancel,
 }) => {
-  const form = useForm<AddPurchaseItemFormData>({
-    resolver: zodResolver(addPurchaseItemSchema),
-    defaultValues: { notes: '' },
-  });
-  const addMutation = binding.useAddItem({ onSuccess });
   // The picked item's stock at the purchase's site against its levels there, from the picker's option; with a reorder
   // point the quantity starts at what tops it up to the maximum stock
   const [stock, setStock] = useState<SiteItemAdditionals | null>(null);
+  const form = useForm<AddPurchaseItemFormData>({
+    resolver: (values, context, options) =>
+      zodResolver(buildAddPurchaseItemSchema({ allowDecimal: stock?.allowDecimal ?? true }))(values, context, options),
+    defaultValues: { notes: '' },
+  });
+  const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
+  const addMutation = binding.useAddItem({ onSuccess });
 
   return (
     <Form
@@ -56,6 +58,7 @@ export const AddPurchaseItemDialog: React.FC<AddPurchaseItemDialogProps> = ({
         name="inventoryItemId"
         label="Item"
         atSiteId={purchase.siteId}
+        notOnPurchaseId={purchase.id}
         onOptionSelect={(option) => {
           const parsed = siteItemAdditionalsSchema.safeParse(option.additionals);
           if (!parsed.success) {
@@ -82,17 +85,15 @@ export const AddPurchaseItemDialog: React.FC<AddPurchaseItemDialogProps> = ({
           maxStock={stock.maxStock}
           status={stock.stockStatus}
           uomSymbol={stock.uomSymbol}
+          display={stock.display}
         />
       )}
       <div className="grid grid-cols-2 gap-4">
-        <TextField
+        <ItemQuantityField
           name="primaryQty"
           label="Quantity"
-          type="number"
-          positive
-          nonZero
-          integer={stock?.allowDecimal === false}
-          description="In the item's primary unit — tablets, bottles, pieces"
+          inventoryItemId={inventoryItemId}
+          description="In any of the item's units"
         />
         <DatePicker name="neededBy" label="Needed By" />
       </div>

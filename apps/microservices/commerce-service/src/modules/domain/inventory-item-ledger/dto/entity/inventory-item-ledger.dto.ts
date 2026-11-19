@@ -1,4 +1,5 @@
-import type { InventoryItemLedgerEntry, InventoryItemLedgerType } from '@/db/schema';
+import type { DisplayUnitRatios, InventoryItemLedgerType } from '@/db/schema';
+import type { InventoryItemLedgerRow } from '../../repositories/inventory-item-ledger.repository';
 
 export class InventoryItemLedgerDto {
   id: string;
@@ -10,8 +11,9 @@ export class InventoryItemLedgerDto {
   referenceId: string | null;
   notes: string | null;
   createdAt: string;
+  displayUnitRatios: DisplayUnitRatios;
 
-  static from(entry: InventoryItemLedgerEntry, itemName?: string | null): InventoryItemLedgerDto {
+  static from(entry: InventoryItemLedgerRow, itemName?: string | null): InventoryItemLedgerDto {
     const dto = new InventoryItemLedgerDto();
     dto.id = entry.id;
     dto.inventoryItemId = entry.inventoryItemId;
@@ -22,6 +24,7 @@ export class InventoryItemLedgerDto {
     dto.referenceId = entry.referenceId ?? null;
     dto.notes = entry.notes ?? null;
     dto.createdAt = entry.createdAt.toISOString();
+    dto.displayUnitRatios = entry.displayUnitRatios;
     return dto;
   }
 }

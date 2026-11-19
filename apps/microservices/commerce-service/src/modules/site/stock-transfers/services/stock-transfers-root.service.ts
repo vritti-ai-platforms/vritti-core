@@ -2,15 +2,20 @@ import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/serv
 import { InventoryItemQuantsDomainRepository } from '@domain/inventory-item-quants/repositories/inventory-item-quants.repository';
 import { InventoryItemQuantsDomainService } from '@domain/inventory-item-quants/services/inventory-item-quants.service';
 import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
+import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
+import type { CreateStockTransferDto } from '@domain/stock-transfers/dto/request/create-stock-transfer.dto';
 import type { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
 import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
 import {
   InventoryItemLedgerReferenceTypeValues,
   InventoryItemLedgerTypeValues,
   StockTransferStatusValues,
 } from '@/db/schema';
+import type { StockTransferRowWithDisplayDto } from '../dto/entity/stock-transfer-row-with-display.dto';
 
 @Injectable()
 export class StockTransfersService {
@@ -22,7 +27,13 @@ export class StockTransfersService {
     private readonly quantsRepository: InventoryItemQuantsDomainRepository,
     private readonly lotsService: InventoryItemLotsDomainService,
     private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
+
+  // Requests a transfer of an item's stock from one site to another
+  create(data: CreateStockTransferDto): Promise<StockTransferDto> {
+    return this.stockTransfersService.create(data);
+  }
 
   // Updates transfer status, handling batch operations for IN_TRANSIT and RECEIVED transitions.
   async updateStatus(
@@ -50,7 +61,7 @@ export class StockTransfersService {
       if (!data.fromBatchId) {
         throw new BadRequestException('A source quant is required to receive a stock transfer.');
       }
-      await this.inventoryItemSitesRepository.ensureAtSite(
+      await this.inventoryItemSitesRepository.isAddedToSite(
         [transfer.inventoryItemId],
         'toLocationId',
         transfer.toSiteId,
@@ -93,5 +104,17 @@ export class StockTransfersService {
 
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${currentStatus} -> ${newStatus}`);
     return this.stockTransfersService.applyStatus(id, data);
+  }
+
+  // Returns one page of transfers, each quantity also in the item's display unit
+  async findForTable(state: TableState): Promise<{ result: StockTransferRowWithDisplayDto[]; count: number }> {
+    const { result, count } = await this.stockTransfersService.findForTable(state);
+    return {
+      result: result.map(({ displayUnitRatios, ...transfer }) => ({
+        ...transfer,
+        display: this.uomConversionsService.toDisplayUomQuantities({ quantity: transfer.quantity }, displayUnitRatios),
+      })),
+      count,
+    };
   }
 }

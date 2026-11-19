@@ -22,7 +22,7 @@ import {
   PurchaseOrderStatusValues,
   purchaseOrderItems,
 } from '@/db/schema';
-import { PurchaseOrderItemDto } from '../dto/entity/purchase-order-item.dto';
+import { PurchaseOrderItemDto, type PurchaseOrderItemWithRatiosDto } from '../dto/entity/purchase-order-item.dto';
 import type { AddPurchaseOrderItemDto } from '../dto/request/add-purchase-order-item.dto';
 import type { UpdatePurchaseOrderItemDto } from '../dto/request/update-purchase-order-item.dto';
 import {
@@ -310,11 +310,11 @@ export class PurchaseOrderItemsDomainService {
     return cancelledLines;
   }
 
-  // Returns one page of a PO's lines
+  // Returns one page of a PO's lines, each with what turns its item into its display unit
   async findForTable(
     purchaseOrderId: string,
     state: TableState,
-  ): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+  ): Promise<{ result: PurchaseOrderItemWithRatiosDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, PurchaseOrderItemsDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -327,7 +327,10 @@ export class PurchaseOrderItemsDomainService {
       limit,
       offset,
     });
-    return { result: result.map(PurchaseOrderItemDto.from), count };
+    return {
+      result: result.map((row) => ({ ...PurchaseOrderItemDto.from(row), displayUnitRatios: row.displayUnitRatios })),
+      count,
+    };
   }
 
   // Returns the lines of one PO as select options

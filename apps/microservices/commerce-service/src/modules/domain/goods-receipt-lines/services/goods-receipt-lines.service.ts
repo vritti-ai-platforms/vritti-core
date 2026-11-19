@@ -6,7 +6,7 @@ import { and, desc } from '@vritti/api-sdk/drizzle-orm';
 import { ConflictException, NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { goodsReceiptLines, type InventoryTracking, InventoryTrackingValues, locations } from '@/db/schema';
-import { GoodsReceiptLineDto } from '../dto/entity/goods-receipt-line.dto';
+import { GoodsReceiptLineDto, type GoodsReceiptLineWithRatiosDto } from '../dto/entity/goods-receipt-line.dto';
 import type { AddGoodsReceiptLineDto } from '../dto/request/add-goods-receipt-line.dto';
 import type { UpdateGoodsReceiptLineDto } from '../dto/request/update-goods-receipt-line.dto';
 import {
@@ -116,12 +116,13 @@ export class GoodsReceiptLinesDomainService {
     return GoodsReceiptLineDto.from(await this.findOnItemOrThrow(itemId, lineId));
   }
 
-  // Returns one page of a receipt item's lines, narrowed to one of its lots when given
+  // Returns one page of a receipt item's lines, narrowed to one of its lots when given, each with what turns its item
+  // into its display unit
   async findForTable(
     itemId: string,
     state: TableState,
     lotId?: string,
-  ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
+  ): Promise<{ result: GoodsReceiptLineWithRatiosDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, GoodsReceiptLinesDomainService.FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -135,7 +136,10 @@ export class GoodsReceiptLinesDomainService {
       offset,
       lotId,
     });
-    return { result: result.map(GoodsReceiptLineDto.from), count };
+    return {
+      result: result.map((row) => ({ ...GoodsReceiptLineDto.from(row), displayUnitRatios: row.displayUnitRatios })),
+      count,
+    };
   }
 
   // Loads a line of the given receipt item, throwing when it is not on it

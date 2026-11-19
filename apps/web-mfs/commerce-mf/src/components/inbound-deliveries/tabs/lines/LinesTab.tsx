@@ -10,7 +10,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -37,12 +37,13 @@ interface DeliveryLinesTableProps {
 }
 
 // The delivery's purchase order lines with how much of each comes on it and how much of that has been received, in the
-// line's unit and the item's primary unit
+// line's unit and the item's display unit
 const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delivery, rowActions, toolbarAction }) => {
   const deliveryId = delivery.id;
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
+  const fmt = useFormatters();
   const linesTableQuery = binding.useLinesTable(deliveryId);
 
   const openPurchaseOrder = useCallback(
@@ -106,8 +107,10 @@ const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delive
       },
       {
         accessorKey: 'primaryUomQty',
-        header: 'On Delivery (Primary)',
-        cell: ({ row }) => <NumberCell value={row.original.primaryUomQty} />,
+        header: 'On Delivery (Item Units)',
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.primaryUomQty).primary}</span>
+        ),
         enableSorting: false,
       },
       {
@@ -118,8 +121,10 @@ const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delive
       },
       {
         accessorKey: 'receivedOnDeliveryPrimaryQty',
-        header: 'Received (Primary)',
-        cell: ({ row }) => <NumberCell value={row.original.receivedOnDeliveryPrimaryQty} />,
+        header: 'Received (Item Units)',
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.receivedOnDeliveryPrimaryQty).primary}</span>
+        ),
         enableSorting: false,
       },
       {
@@ -140,7 +145,7 @@ const DeliveryLinesTable: React.FC<DeliveryLinesTableProps> = ({ binding, delive
           ]
         : []),
     ],
-    [openPurchaseOrder, rowActions],
+    [openPurchaseOrder, rowActions, fmt],
   );
 
   const linesTable = useDataTable({

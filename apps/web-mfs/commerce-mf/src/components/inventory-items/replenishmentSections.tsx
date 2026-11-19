@@ -1,17 +1,12 @@
 import { FormSection } from '@vritti/quantum-ui/Form';
 import { RadioGroup } from '@vritti/quantum-ui/RadioGroup';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import type React from 'react';
+import { ItemQuantityField } from '@/components/inventory-items/ItemQuantityField';
 import { type ReplenishmentMethod, ReplenishmentMethodValues, replenishmentOptions } from '@/schemas/site-items';
 
 interface ReplenishmentSectionsOptions {
+  inventoryItemId: string | undefined;
   replenishment: ReplenishmentMethod;
-  // The levels being typed: the safety stock bounds the reorder point below, the reorder point bounds the safety stock
-  // above and the maximum stock below
-  safetyStock: number | null;
-  reorderPoint: number | null;
-  // Whether the item's unit can be split; levels are whole numbers when it cannot
-  allowDecimal: boolean;
   uomSymbol: string;
   // The stock bar previewing the levels being typed, drawn above them
   preview: React.ReactNode;
@@ -20,10 +15,8 @@ interface ReplenishmentSectionsOptions {
 // How the site restocks the item and, for a reorder point, its three levels in the order the stock bar draws them;
 // plain sections rather than a component so <Form> wires each field by name
 export function replenishmentSections({
+  inventoryItemId,
   replenishment,
-  safetyStock,
-  reorderPoint,
-  allowDecimal,
   uomSymbol,
   preview,
 }: ReplenishmentSectionsOptions) {
@@ -35,42 +28,31 @@ export function replenishmentSections({
       {replenishment === ReplenishmentMethodValues.REORDER_POINT && (
         <FormSection
           title="Stock Levels"
-          description={`In ${uomSymbol}, the item's primary unit. Safety stock is optional.`}
+          description={`Typed in any of the item's units and kept in ${uomSymbol}, its primary unit. Safety stock is optional.`}
           contentClassName="flex flex-col gap-4"
         >
           {preview}
           <div className="grid grid-cols-3 gap-4">
-            <TextField
+            <ItemQuantityField
               name="safetyStock"
               label="Safety Stock"
-              type="number"
-              integer={!allowDecimal}
-              min={0}
-              max={reorderPoint ?? undefined}
+              inventoryItemId={inventoryItemId}
+              nullable
               placeholder="0"
-              endAdornment={uomSymbol}
               description="Kept back for demand spikes"
             />
-            <TextField
+            <ItemQuantityField
               name="reorderPoint"
               label="Reorder Point"
-              type="number"
-              integer={!allowDecimal}
-              positive
-              nonZero
-              min={safetyStock ?? undefined}
-              endAdornment={uomSymbol}
+              inventoryItemId={inventoryItemId}
+              nullable
               description="Reorder when stock falls to this"
             />
-            <TextField
+            <ItemQuantityField
               name="maxStock"
               label="Maximum Stock"
-              type="number"
-              integer={!allowDecimal}
-              positive
-              nonZero
-              min={reorderPoint ?? undefined}
-              endAdornment={uomSymbol}
+              inventoryItemId={inventoryItemId}
+              nullable
               description="The most the site should hold"
             />
           </div>

@@ -22,11 +22,12 @@ export class InventoryItemUomConversionDto {
   length: number | null;
   width: number | null;
   height: number | null;
+  isDisplayUnit: boolean;
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
 
-  static from(row: ConversionRow, isUsedBySupplierItem = false): InventoryItemUomConversionDto {
+  static from(row: ConversionRow, isUsedBySupplierItem = false, isDisplayUnit = false): InventoryItemUomConversionDto {
     const dto = new InventoryItemUomConversionDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
@@ -42,7 +43,8 @@ export class InventoryItemUomConversionDto {
     dto.length = row.length ?? null;
     dto.width = row.width ?? null;
     dto.height = row.height ?? null;
-    dto.canDelete = !isUsedBySupplierItem;
+    dto.isDisplayUnit = isDisplayUnit;
+    dto.canDelete = !isUsedBySupplierItem && !isDisplayUnit;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
     return dto;

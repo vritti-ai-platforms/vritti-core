@@ -1,13 +1,19 @@
 import { InventoryItemLotsDomainService } from '@domain/inventory-item-lots/services/inventory-item-lots.service';
-import { StockAdjustmentLotDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import type { InventoryItemLot } from '@/db/schema';
+import type { DisplayUnitRatios, InventoryItemLot } from '@/db/schema';
+import type {
+  StockAdjustmentLotDetailWithDisplayDto,
+  StockAdjustmentLotDisplayDto,
+  StockAdjustmentLotWithDisplayDto,
+  StockAdjustmentTreeLotNodeWithDisplayDto,
+} from '../dto/entity/stock-adjustment-lot-with-display.dto';
 
 // App-layer orchestrator for stock-adjustment lot writes that need inventory-aggregate awareness.
 @Injectable()
@@ -20,12 +26,13 @@ export class StockAdjustmentsLotsService {
     private readonly lotsService: StockAdjustmentLotsDomainService,
     private readonly lotsRepository: StockAdjustmentLotsDomainRepository,
     private readonly inventoryItemLotsService: InventoryItemLotsDomainService,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   async addLot(
     adjustmentId: string,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
-  ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
+  ): Promise<CreateResponseDto<StockAdjustmentLotWithDisplayDto>> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     const trimmed = data.lotNumber;
     if (trimmed) {
@@ -37,33 +44,55 @@ export class StockAdjustmentsLotsService {
         });
       }
     }
-    return this.lotsService.addLot(adjustment, data);
+    const created = await this.lotsService.addLot(adjustment, data);
+    const { displayUnitRatios, ...lot } = created.data;
+    return { ...created, data: { ...lot, display: this.toDisplay(lot.totalQuantity, displayUnitRatios) } };
   }
 
   async updateLot(
     adjustmentId: string,
     lotId: string,
     data: { lotNumber?: string; manufacturingDate?: string | null; expiryDate?: string; mrp?: bigint | null },
-  ): Promise<StockAdjustmentLotDto> {
-    if (data.lotNumber !== undefined) {
-      const trimmed = data.lotNumber;
-      if (trimmed) {
-        const adjustment = await this.adjustmentsService.findById(adjustmentId);
-        const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(
-          adjustment.inventoryItemId,
-          trimmed,
-        );
-        if (inventoryDup) {
-          throw new ValidationException({
-            detail: `Lot "${trimmed}" already exists in inventory.`,
-            errors: [{ field: 'lotNumber', message: 'Lot already exists in inventory.' }],
-          });
-        }
-        return this.lotsService.updateLot(adjustment, lotId, data);
+  ): Promise<StockAdjustmentLotWithDisplayDto> {
+    const adjustment = await this.adjustmentsService.findById(adjustmentId);
+    if (data.lotNumber) {
+      const inventoryDup = await this.inventoryItemLotsService.findByItemAndNumber(
+        adjustment.inventoryItemId,
+        data.lotNumber,
+      );
+      if (inventoryDup) {
+        throw new ValidationException({
+          detail: `Lot "${data.lotNumber}" already exists in inventory.`,
+          errors: [{ field: 'lotNumber', message: 'Lot already exists in inventory.' }],
+        });
       }
     }
-    const adjustment = await this.adjustmentsService.findById(adjustmentId);
-    return this.lotsService.updateLot(adjustment, lotId, data);
+    const { displayUnitRatios, ...lot } = await this.lotsService.updateLot(adjustment, lotId, data);
+    return { ...lot, display: this.toDisplay(lot.totalQuantity, displayUnitRatios) };
+  }
+
+  // Returns an adjustment's draft lots
+  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLotWithDisplayDto[]> {
+    const lots = await this.lotsService.listByAdjustment(adjustmentId);
+    return lots.map(({ displayUnitRatios, ...lot }) => ({
+      ...lot,
+      display: this.toDisplay(lot.totalQuantity, displayUnitRatios),
+    }));
+  }
+
+  // Returns one draft lot of an adjustment with its stats
+  async findLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailWithDisplayDto> {
+    const { displayUnitRatios, ...lot } = await this.lotsService.getLotDetail(adjustmentId, lotId);
+    return { ...lot, display: this.toDisplay(lot.totalQuantity, displayUnitRatios) };
+  }
+
+  // Returns an adjustment's draft lots with their lines as a tree
+  async findTree(adjustmentId: string): Promise<StockAdjustmentTreeLotNodeWithDisplayDto[]> {
+    const nodes = await this.lotsService.findTreeForAdjustment(adjustmentId);
+    return nodes.map(({ displayUnitRatios, ...node }) => ({
+      ...node,
+      display: this.toDisplay(node.totalQuantity ?? null, displayUnitRatios),
+    }));
   }
 
   // Used by the publish flow: creates the matching inventory_item_lots row from this draft lot.
@@ -92,5 +121,10 @@ export class StockAdjustmentsLotsService {
   async removeLot(adjustmentId: string, lotId: string): Promise<SuccessResponseDto> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     return this.lotsService.removeLot(adjustment, lotId);
+  }
+
+  // Expresses a lot's total primary quantity in the item's display unit
+  private toDisplay(totalQuantity: number | null, ratios: DisplayUnitRatios): StockAdjustmentLotDisplayDto {
+    return this.uomConversionsService.toDisplayUomQuantities({ totalQuantity }, ratios);
   }
 }

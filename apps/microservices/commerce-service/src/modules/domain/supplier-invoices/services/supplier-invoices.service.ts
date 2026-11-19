@@ -18,7 +18,10 @@ import {
   SupplierInvoiceStatusValues,
   supplierInvoices,
 } from '@/db/schema';
-import { InvoiceableGoodsReceiptDto } from '../dto/entity/invoiceable-goods-receipt.dto';
+import {
+  InvoiceableGoodsReceiptDto,
+  type InvoiceableGoodsReceiptWithRatiosDto,
+} from '../dto/entity/invoiceable-goods-receipt.dto';
 import { PurchaseOrderInvoiceSummaryDto } from '../dto/entity/purchase-order-invoice-summary.dto';
 import { SupplierInvoiceDetailDto, SupplierInvoiceDto } from '../dto/entity/supplier-invoice.dto';
 import { SupplierInvoiceHoldDto } from '../dto/entity/supplier-invoice-hold.dto';
@@ -182,13 +185,17 @@ export class SupplierInvoicesDomainService {
     return { result: result.map(SupplierInvoiceDto.from), count };
   }
 
-  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice
+  // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice, each with
+  // what turns its item into its display unit
   async findInvoiceableGoodsReceipts(
     filter: InvoiceableGoodsReceiptFilter,
     leCurrencyCode: string,
-  ): Promise<InvoiceableGoodsReceiptDto[]> {
+  ): Promise<InvoiceableGoodsReceiptWithRatiosDto[]> {
     const rows = await this.invoiceableRepository.findInvoiceable(filter);
-    return rows.map((row) => InvoiceableGoodsReceiptDto.from(row, leCurrencyCode));
+    return rows.map((row) => ({
+      ...InvoiceableGoodsReceiptDto.from(row, leCurrencyCode),
+      displayUnitRatios: row.displayUnitRatios,
+    }));
   }
 
   // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice, with

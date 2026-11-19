@@ -3,10 +3,10 @@ import { DatePicker } from '@vritti/quantum-ui/DatePicker';
 import { DialogActions } from '@vritti/quantum-ui/Dialog';
 import { Form } from '@vritti/quantum-ui/Form';
 import { TextArea } from '@vritti/quantum-ui/TextArea';
-import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm } from 'react-hook-form';
+import { ItemQuantityField } from '@/components/inventory-items/ItemQuantityField';
 import {
   type PurchaseDetail,
   type PurchaseItem,
@@ -18,7 +18,7 @@ import type { PurchasesBinding } from '../bindings';
 interface EditPurchaseItemDialogProps {
   binding: PurchasesBinding;
   purchase: PurchaseDetail;
-  item: Pick<PurchaseItem, 'id' | 'primaryQty' | 'neededBy' | 'notes' | 'primaryUomSymbol'>;
+  item: Pick<PurchaseItem, 'id' | 'inventoryItemId' | 'primaryQty' | 'neededBy' | 'notes'>;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -50,7 +50,7 @@ export const EditPurchaseItemDialog: React.FC<EditPurchaseItemDialogProps> = ({
         notes: data.notes.trim() || null,
       })}
     >
-      <TextField name="primaryQty" label={`Quantity (${item.primaryUomSymbol})`} type="number" positive nonZero />
+      <ItemQuantityField name="primaryQty" label="Quantity" inventoryItemId={item.inventoryItemId} />
       <DatePicker name="neededBy" label="Needed By" />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <DialogActions>

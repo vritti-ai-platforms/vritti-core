@@ -6,6 +6,7 @@ import type {
   InventoryItemMrpTableResponse,
   UpdateInventoryItemMrpFormData,
 } from '@/schemas/inventory-item-mrp';
+import type { InventoryItemUnitsData } from '@/schemas/inventory-item-uom-conversions';
 import type {
   CreateOrgInventoryItemFormData,
   InventoryItemData,
@@ -83,5 +84,12 @@ export function deleteOrgInventoryItemMrp({
 export function getOrgInventoryItemSuppliersTable(id: string): Promise<InventoryItemSuppliersTableResponse> {
   return axios
     .get<InventoryItemSuppliersTableResponse>(`${BASE}/${id}/suppliers/table`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches the units a quantity of the item can be entered in, with their ratios to its primary unit
+export function getInventoryItemUnits(inventoryItemId: string): Promise<InventoryItemUnitsData> {
+  return axios
+    .get<InventoryItemUnitsData>(`commerce-api/select-api/inventory-items/${inventoryItemId}/units`)
     .then((r) => r.data);
 }

@@ -21,7 +21,7 @@ import {
   getOrgInventoryItemUomConversionsTable,
   updateOrgInventoryItemUomConversion,
 } from '@/services/organization/inventory-item-uom-conversions.service';
-import { ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY } from './keys';
+import { ORG_INVENTORY_ITEM_UNITS_KEY, ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY } from './keys';
 
 export function useInventoryItemUomConversionsTable(
   inventoryItemId: string | null,
@@ -56,6 +56,7 @@ export function useCreateInventoryItemUomConversion(
     mutationFn: (data) => createOrgInventoryItemUomConversion(inventoryItemId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
+      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UNITS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -70,6 +71,7 @@ export function useUpdateInventoryItemUomConversion(
     mutationFn: ({ conversionId, ...data }) => updateOrgInventoryItemUomConversion(inventoryItemId, conversionId, data),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
+      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UNITS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -84,6 +86,7 @@ export function useDeleteInventoryItemUomConversion(
     mutationFn: (conversionId) => deleteOrgInventoryItemUomConversion(inventoryItemId, conversionId),
     onSuccess: (...args) => {
       queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY(inventoryItemId) });
+      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_UNITS_KEY(inventoryItemId) });
       options?.onSuccess?.(...args);
     },
   });

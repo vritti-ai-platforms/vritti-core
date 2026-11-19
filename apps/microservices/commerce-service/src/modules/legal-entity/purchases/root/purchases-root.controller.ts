@@ -4,8 +4,11 @@ import type { PurchaseCountsDto } from '@domain/purchases/dto/entity/purchase-co
 import type { PurchaseProgressDto } from '@domain/purchases/dto/entity/purchase-progress.dto';
 import type { PurchaseTableRowDto } from '@domain/purchases/dto/entity/purchase-table-row.dto';
 import { CancelPurchaseDto } from '@domain/purchases/dto/request/cancel-purchase.dto';
+import { ChangePurchaseMinQuotationsDto } from '@domain/purchases/dto/request/change-purchase-min-quotations.dto';
+import { ChangePurchaseNotesDto } from '@domain/purchases/dto/request/change-purchase-notes.dto';
 import { ClosePurchaseDto } from '@domain/purchases/dto/request/close-purchase.dto';
-import { UpdatePurchaseDto } from '@domain/purchases/dto/request/update-purchase.dto';
+import { DisablePurchaseQuotationsDto } from '@domain/purchases/dto/request/disable-purchase-quotations.dto';
+import { EnablePurchaseQuotationsDto } from '@domain/purchases/dto/request/enable-purchase-quotations.dto';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -31,11 +34,41 @@ export class LePurchasesRootController {
     return this.service.create(dto, dto.siteId);
   }
 
-  // Changes an open purchase's header
-  @MessagePattern({ cmd: 'le.purchases.update' })
-  update(@Payload() dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.update — id: ${dto.id}`);
-    return this.service.update(dto);
+  // Changes an open purchase's notes
+  @MessagePattern({ cmd: 'le.purchases.changeNotes' })
+  changeNotes(@Payload() dto: ChangePurchaseNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.changeNotes — id: ${dto.id}`);
+    return this.service.changeNotes(dto);
+  }
+
+  // Requires quotations on a purchase none of whose suppliers is submitted yet
+  @MessagePattern({ cmd: 'le.purchases.enableQuotations' })
+  enableQuotations(
+    @Payload() dto: EnablePurchaseQuotationsDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.enableQuotations — id: ${dto.id}, minQuotations: ${dto.minQuotations}`);
+    return this.service.enableQuotations(dto, headers);
+  }
+
+  // Stops requiring quotations on an open purchase, with why
+  @MessagePattern({ cmd: 'le.purchases.disableQuotations' })
+  disableQuotations(
+    @Payload() dto: DisablePurchaseQuotationsDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.disableQuotations — id: ${dto.id}`);
+    return this.service.disableQuotations(dto, headers);
+  }
+
+  // Changes how many posted quotations each item needs before its supplier is submitted
+  @MessagePattern({ cmd: 'le.purchases.changeMinQuotations' })
+  changeMinQuotations(
+    @Payload() dto: ChangePurchaseMinQuotationsDto,
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.changeMinQuotations — id: ${dto.id}, minQuotations: ${dto.minQuotations}`);
+    return this.service.changeMinQuotations(dto, headers);
   }
 
   // Starts every leg of a purchase still in sourcing, routing approval against the legal entity's currency

@@ -9,7 +9,17 @@ import type {
   PurchaseItemProgressRow,
   PurchaseItemViewRow,
 } from '@domain/purchase-items/repositories/purchase-items.repository';
-import type { PurchaseItemSupplierProgress } from '@/db/schema';
+import type { DisplayUomQuantityDto } from '@domain/uom-conversions/dto/entity/display-uom-quantity.dto';
+import type {
+  PurchaseItemProgressDisplayDto,
+  PurchaseItemProgressInDisplayUnit,
+  PurchaseItemSupplierProgressDto,
+} from './purchase-item-row.dto';
+
+export class PurchaseItemViewDisplayDto {
+  primaryQty: DisplayUomQuantityDto | null;
+  allocatedPrimaryQty: DisplayUomQuantityDto | null;
+}
 
 export class PurchaseItemViewDto extends PurchaseItemDto {
   categoryName: string;
@@ -19,15 +29,18 @@ export class PurchaseItemViewDto extends PurchaseItemDto {
   problems: PurchaseItemProblemDto[];
   // Whether the site's rules buy it only from what the legal entity set up as its suppliers' items
   supplierItemsRequired: boolean;
+  display: PurchaseItemViewDisplayDto;
 
-  // Shapes a purchase item for its own page: the item with its category, tax class and what stops it being bought
-  static fromView(row: PurchaseItemViewRow): PurchaseItemViewDto {
+  // Shapes a purchase item for its own page: the item with its category, tax class and what stops it being bought, its
+  // quantities also in the item's display unit
+  static fromView(row: PurchaseItemViewRow, display: PurchaseItemViewDisplayDto): PurchaseItemViewDto {
     const dto = Object.assign(new PurchaseItemViewDto(), PurchaseItemDto.from(row));
     dto.categoryName = row.categoryName;
     dto.taxClassName = row.taxClassName;
     dto.primaryUomAllowDecimal = row.primaryUomAllowDecimal;
     dto.problems = purchaseItemProblemsOf(row);
     dto.supplierItemsRequired = row.supplierItemsRequired;
+    dto.display = display;
     return dto;
   }
 }
@@ -54,10 +67,11 @@ export class PurchaseItemProgressDto {
   inTransitPrimaryQty: number;
   receivedPrimaryQty: number;
   invoicedPrimaryQty: number;
-  suppliers: PurchaseItemSupplierProgress[];
+  suppliers: PurchaseItemSupplierProgressDto[];
+  display: PurchaseItemProgressDisplayDto;
 
-  // Shapes how far a purchase item has got in primary units, in all and per supplier
-  static from(row: PurchaseItemProgressRow): PurchaseItemProgressDto {
+  // Shapes how far a purchase item has got in primary units, in all and per supplier, also in the item's display unit
+  static from(row: PurchaseItemProgressRow, progress: PurchaseItemProgressInDisplayUnit): PurchaseItemProgressDto {
     const dto = new PurchaseItemProgressDto();
     dto.primaryQty = Number(row.primaryQty);
     dto.allocatedPrimaryQty = row.allocatedPrimaryQty;
@@ -65,9 +79,14 @@ export class PurchaseItemProgressDto {
     dto.inTransitPrimaryQty = row.inTransitPrimaryQty;
     dto.receivedPrimaryQty = row.receivedPrimaryQty;
     dto.invoicedPrimaryQty = row.invoicedPrimaryQty;
-    dto.suppliers = row.suppliers;
+    dto.suppliers = progress.suppliers;
+    dto.display = progress.display;
     return dto;
   }
+}
+
+export class PurchaseItemDocumentDisplayDto {
+  primaryQty: DisplayUomQuantityDto | null;
 }
 
 export class PurchaseItemDocumentDto {
@@ -80,8 +99,10 @@ export class PurchaseItemDocumentDto {
   supplierId: string;
   supplierName: string;
   primaryQty: number;
+  display: PurchaseItemDocumentDisplayDto;
 
-  static from(row: PurchaseItemDocumentRow): PurchaseItemDocumentDto {
-    return Object.assign(new PurchaseItemDocumentDto(), row);
+  // Shapes a document line that moves a purchase item, its quantity also in the item's display unit
+  static from(row: PurchaseItemDocumentRow, display: PurchaseItemDocumentDisplayDto): PurchaseItemDocumentDto {
+    return Object.assign(new PurchaseItemDocumentDto(), row, { display });
   }
 }

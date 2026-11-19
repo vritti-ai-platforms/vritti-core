@@ -1,7 +1,10 @@
 import type { Purchase, PurchaseStatus } from '@/db/schema';
 
 export const PurchaseActionValues = {
-  EDIT: 'EDIT',
+  CHANGE_NOTES: 'CHANGE_NOTES',
+  ENABLE_QUOTATIONS: 'ENABLE_QUOTATIONS',
+  DISABLE_QUOTATIONS: 'DISABLE_QUOTATIONS',
+  CHANGE_MIN_QUOTATIONS: 'CHANGE_MIN_QUOTATIONS',
   CANCEL: 'CANCEL',
   DELETE: 'DELETE',
   EDIT_ITEMS: 'EDIT_ITEMS',

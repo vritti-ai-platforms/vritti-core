@@ -1,4 +1,5 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCodeField } from '@vritti/quantum-ui/zod';
 import type { MeasureFigures } from './measures';
@@ -32,6 +33,7 @@ export const updateOrgInventoryItemSchema = z.object({
   description: z.string().nullable().optional(),
   categoryId: z.uuid('Category is required').optional(),
   uomId: z.uuid('Unit of measure is required').optional(),
+  displayUomId: z.uuid('Display unit is required').optional(),
   pickStrategy: z.enum(['NONE', 'FIFO', 'FEFO']).optional(),
   hsnCode: z.string().max(20).nullable().optional(),
   taxClassId: z.uuid('Tax class is required').optional(),
@@ -113,6 +115,8 @@ export interface InventoryItemData extends MeasureFigures {
   uomSymbol: string;
   // Whether the item's primary unit can be counted in fractions
   uomAllowDecimal: boolean;
+  displayUomId: string;
+  displayUomSymbol: string;
   taxClassId: string;
   taxClassName: string;
   hsnCode: string | null;
@@ -188,6 +192,25 @@ export const stockStatusConfig: Record<
   },
 };
 
+export const displayQuantitySchema: z.ZodType<DisplayQuantity> = z.object({
+  primaryUomQty: z.number(),
+  displayUomQty: z.number(),
+  wholeDisplayUomQty: z.number(),
+  remainderPrimaryUomQty: z.number(),
+  displayUomSymbol: z.string(),
+  primaryUomSymbol: z.string(),
+  isPack: z.boolean(),
+});
+
+export const siteStockDisplaySchema = z.object({
+  onHand: displayQuantitySchema.nullable(),
+  safetyStock: displayQuantitySchema.nullable(),
+  reorderPoint: displayQuantitySchema.nullable(),
+  maxStock: displayQuantitySchema.nullable(),
+});
+
+export type SiteStockDisplay = z.infer<typeof siteStockDisplaySchema>;
+
 export interface SiteStockData {
   stockStatus: StockStatus | null;
   replenishment: ReplenishmentMethod | null;
@@ -197,6 +220,7 @@ export interface SiteStockData {
   safetyStock: number | null;
   maxStock: number | null;
   locations: SiteStockLocationData[];
+  display: SiteStockDisplay;
 }
 
 // An item's primary unit, as the inventory item picker returns it in every option's additionals
@@ -228,6 +252,7 @@ export const siteItemAdditionalsSchema = itemUnitAdditionalsSchema.extend({
       earliestExpiry: z.string().nullable(),
     }),
   ),
+  display: siteStockDisplaySchema,
 });
 export type SiteItemAdditionals = z.infer<typeof siteItemAdditionalsSchema>;
 
@@ -277,6 +302,7 @@ export interface SiteStockTableItemData extends InventoryItemData {
   stockValue: CurrencyValue;
   stockStatus: StockStatus | null;
   locations: SiteStockLocationData[];
+  display: SiteStockDisplay;
 }
 
 export interface InventoryItemStockData {
@@ -309,6 +335,7 @@ export interface InventoryItemLedgerData {
   referenceId: string | null;
   notes: string | null;
   createdAt: string;
+  display: Record<'quantity', DisplayQuantity | null>;
 }
 
 export type InventoryItemLedgerTableResponse = TableResponse<InventoryItemLedgerData>;

@@ -1,5 +1,6 @@
+import { InventoryItemUnitsResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-units-response.dto';
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 const BASE_SELECT_QUERIES = [
   ApiQuery({ name: 'search', description: 'Search term to filter by name', required: false }),
@@ -132,6 +133,19 @@ export function ApiInventoryItemSerialsSelect() {
   );
 }
 
+export function ApiInventoryItemUnits() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Get an inventory item's units",
+      description:
+        "Returns the units a quantity of the item can be entered in, each with its exact ratio to the item's primary unit, and which units are primary and displayed.",
+    }),
+    ApiParam({ name: 'id', description: 'Inventory item ID' }),
+    ApiResponse({ status: 200, description: 'Units retrieved.', type: InventoryItemUnitsResponseDto }),
+    ApiResponse({ status: 404, description: 'Inventory item not found.' }),
+  );
+}
+
 export function ApiInventoryItemsSelect() {
   return applyDecorators(
     ApiOperation({
@@ -146,12 +160,18 @@ export function ApiInventoryItemsSelect() {
     }),
     ApiQuery({
       name: 'atSiteId',
-      description: 'Only the items this site carries, each with its stock and levels there; blocked ones come disabled',
+      description:
+        "Only the items this site carries, each with its stock and levels there, also in the item's display unit under additionals.display; blocked ones come disabled",
       required: false,
     }),
     ApiQuery({
       name: 'notAtSiteId',
       description: 'Only the items this site does not carry yet',
+      required: false,
+    }),
+    ApiQuery({
+      name: 'notOnPurchaseId',
+      description: 'Only the items not on this purchase yet',
       required: false,
     }),
     ApiResponse({ status: 200, description: 'Inventory item select options retrieved successfully.' }),

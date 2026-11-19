@@ -6,9 +6,11 @@ import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lo
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { NotFoundException, ValidationException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InventoryTrackingValues } from '@/db/schema';
+import type { StockAdjustmentLineWithDisplayDto } from '../dto/entity/stock-adjustment-line-with-display.dto';
 
 // App-layer orchestrator for stock-adjustment line writes that need inventory-aggregate awareness.
 @Injectable()
@@ -32,7 +34,7 @@ export class StockAdjustmentsLinesService {
       uomQty: number;
       uomId: string;
     },
-  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+  ): Promise<CreateResponseDto<StockAdjustmentLineWithDisplayDto>> {
     const t0 = Date.now();
     this.logger.log(`addOpeningLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.uomQty}`);
 
@@ -54,7 +56,7 @@ export class StockAdjustmentsLinesService {
       this.logger.log(`addOpeningLine [validateLotOwnership] ${Date.now() - t0}ms`);
     }
 
-    await this.inventoryItemSitesRepository.ensureAtSite(
+    await this.inventoryItemSitesRepository.isAddedToSite(
       [adjustment.inventoryItemId],
       'inventoryItemId',
       adjustment.siteId,
@@ -65,7 +67,7 @@ export class StockAdjustmentsLinesService {
     return {
       success: true,
       message: `Line added to adjustment "${adjustment.code}" successfully.`,
-      data: line,
+      data: this.withDisplay(line),
     };
   }
 
@@ -76,7 +78,7 @@ export class StockAdjustmentsLinesService {
       uomQty: number;
       uomId: string;
     },
-  ): Promise<CreateResponseDto<StockAdjustmentLineDto>> {
+  ): Promise<CreateResponseDto<StockAdjustmentLineWithDisplayDto>> {
     this.logger.log(`addChangeLine — adjustment: ${adjustmentId}, uomId: ${data.uomId}, qty: ${data.uomQty}`);
     const adjustment = await this.getAdjustmentContext(adjustmentId);
     await this.validateUomId(adjustment, data.uomId);
@@ -85,7 +87,7 @@ export class StockAdjustmentsLinesService {
       data.uomId,
       data.uomQty,
     );
-    await this.inventoryItemSitesRepository.ensureAtSite(
+    await this.inventoryItemSitesRepository.isAddedToSite(
       [adjustment.inventoryItemId],
       'inventoryItemId',
       adjustment.siteId,
@@ -94,7 +96,7 @@ export class StockAdjustmentsLinesService {
     return {
       success: true,
       message: `Line added to adjustment "${adjustment.code}" successfully.`,
-      data: line,
+      data: this.withDisplay(line),
     };
   }
 
@@ -153,6 +155,27 @@ export class StockAdjustmentsLinesService {
     await this.linesService.updateChangeLine(adjustment, lineId, { ...data, primaryUomQty });
 
     return { success: true, message: 'Line updated successfully.' };
+  }
+
+  // Returns one line of an adjustment
+  async findById(adjustmentId: string, lineId: string): Promise<StockAdjustmentLineWithDisplayDto> {
+    return this.withDisplay(await this.linesService.findById(adjustmentId, lineId));
+  }
+
+  // Returns one page of an adjustment's lines, optionally only those of one lot
+  async findForTable(
+    adjustmentId: string,
+    state: TableState,
+    lotId?: string,
+  ): Promise<{ result: StockAdjustmentLineWithDisplayDto[]; count: number }> {
+    const { result, count } = await this.linesService.findForTable(adjustmentId, state, lotId);
+    return { result: result.map((line) => this.withDisplay(line)), count };
+  }
+
+  // Returns every line of an adjustment
+  async findByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentLineWithDisplayDto[]> {
+    const lines = await this.linesService.findByAdjustmentId(adjustmentId);
+    return lines.map((line) => this.withDisplay(line));
   }
 
   // Removes a line from a DRAFT adjustment — fetches the adjustment context then delegates to domain
@@ -223,5 +246,22 @@ export class StockAdjustmentsLinesService {
         errors: [{ field: 'uomId', message: 'UOM not allowed for this item.' }],
       });
     }
+  }
+
+  // Swaps a line's display-unit ratios for its primary-unit quantities expressed in the display unit; the line's own
+  // uomQty stays in the unit it was entered in
+  private withDisplay({ displayUnitRatios, ...line }: StockAdjustmentLineDto): StockAdjustmentLineWithDisplayDto {
+    return {
+      ...line,
+      display: this.uomConversionsService.toDisplayUomQuantities(
+        {
+          primaryUomQty: line.primaryUomQty,
+          quantTotalQuantity: line.quantTotalQuantity,
+          quantReservedQuantity: line.quantReservedQuantity,
+          quantAvailableQuantity: line.quantAvailableQuantity,
+        },
+        displayUnitRatios,
+      ),
+    };
   }
 }

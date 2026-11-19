@@ -1,5 +1,7 @@
 import { CancelPurchaseDto } from '@commerce/purchases/dto/request/cancel-purchase.dto';
 import { CancelSupplierDto } from '@commerce/purchases/dto/request/cancel-supplier.dto';
+import { ChangePurchaseMinQuotationsDto } from '@commerce/purchases/dto/request/change-purchase-min-quotations.dto';
+import { ChangePurchaseNotesDto } from '@commerce/purchases/dto/request/change-purchase-notes.dto';
 import { ClosePurchaseDto } from '@commerce/purchases/dto/request/close-purchase.dto';
 import { CloseSupplierDto } from '@commerce/purchases/dto/request/close-supplier.dto';
 import { CreateLegGoodsReceiptDto } from '@commerce/purchases/dto/request/create-leg-goods-receipt.dto';
@@ -8,13 +10,14 @@ import { CreateLegPurchaseOrderDto } from '@commerce/purchases/dto/request/creat
 import { CreatePurchaseAllocationDto } from '@commerce/purchases/dto/request/create-purchase-allocation.dto';
 import { CreatePurchaseAllocationsFromQuotationDto } from '@commerce/purchases/dto/request/create-purchase-allocations-from-quotation.dto';
 import { CreatePurchaseItemDto } from '@commerce/purchases/dto/request/create-purchase-item.dto';
+import { DisablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/disable-purchase-quotations.dto';
+import { EnablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/enable-purchase-quotations.dto';
 import { LeCreatePurchaseDto } from '@commerce/purchases/dto/request/le-create-purchase.dto';
 import { LeCreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/le-create-purchase-supplier-invoice.dto';
 import { LeCreateReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-create-receive-with-invoice.dto';
 import { LeReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-receive-with-invoice.dto';
 import { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
 import { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/request-purchase-quotation.dto';
-import { UpdatePurchaseDto } from '@commerce/purchases/dto/request/update-purchase.dto';
 import { UpdatePurchaseAllocationDto } from '@commerce/purchases/dto/request/update-purchase-allocation.dto';
 import { UpdatePurchaseItemDto } from '@commerce/purchases/dto/request/update-purchase-item.dto';
 import { UpdatePurchaseSettingsDto } from '@commerce/purchases/dto/request/update-purchase-settings.dto';
@@ -98,17 +101,67 @@ export function ApiFindById() {
   );
 }
 
-export function ApiUpdate() {
+export function ApiChangeNotes() {
   return applyDecorators(
     ApiOperation({
-      summary: 'Update a purchase',
-      description: "Changes the purchase's header while it is Requesting.",
+      summary: "Change a purchase's notes",
+      description: "Changes an open purchase's notes; null clears them.",
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
-    ApiBody({ type: UpdatePurchaseDto }),
-    ApiResponse({ status: 200, description: 'Purchase updated.', type: SuccessResponseDto }),
+    ApiBody({ type: ChangePurchaseNotesDto }),
+    ApiResponse({ status: 200, description: 'Notes changed.', type: SuccessResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase not found.' }),
-    ApiResponse({ status: 409, description: 'The purchase is no longer Requesting.' }),
+    ApiResponse({ status: 409, description: 'The purchase is no longer open.' }),
+  );
+}
+
+export function ApiEnableQuotations() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Require quotations on a purchase',
+      description:
+        'Requires each item to have the given number of posted quotations before its supplier is submitted. Only while no ' +
+        'supplier of the purchase has been submitted; the change is recorded with who made it.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiBody({ type: EnablePurchaseQuotationsDto }),
+    ApiResponse({ status: 200, description: 'Quotations required.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+    ApiResponse({
+      status: 409,
+      description: 'The purchase is not open, already requires quotations, or a supplier was submitted.',
+    }),
+  );
+}
+
+export function ApiDisableQuotations() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Stop requiring quotations on a purchase',
+      description: 'Stops requiring quotations on an open purchase; the reason is recorded with who made the change.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiBody({ type: DisablePurchaseQuotationsDto }),
+    ApiResponse({ status: 200, description: 'Quotations no longer required.', type: SuccessResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+    ApiResponse({ status: 409, description: 'The purchase is not open or does not require quotations.' }),
+  );
+}
+
+export function ApiChangeMinQuotations() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Change the minimum quotations of a purchase',
+      description:
+        'Changes how many posted quotations each item needs before its supplier is submitted; lowering it needs a reason. ' +
+        'The change is recorded with who made it.',
+    }),
+    ApiParam({ name: 'id', description: 'Purchase ID' }),
+    ApiBody({ type: ChangePurchaseMinQuotationsDto }),
+    ApiResponse({ status: 200, description: 'Minimum changed.', type: SuccessResponseDto }),
+    ApiResponse({ status: 400, description: 'The minimum is unchanged, or lowered without a reason.' }),
+    ApiResponse({ status: 404, description: 'Purchase not found.' }),
+    ApiResponse({ status: 409, description: 'The purchase is not open or does not require quotations.' }),
   );
 }
 
@@ -144,13 +197,14 @@ export function ApiCreateItem() {
   return applyDecorators(
     ApiOperation({
       summary: 'Add an item',
-      description: 'Adds an inventory item to the purchase; an item already on it gets the quantity added.',
+      description:
+        'Adds an inventory item the purchase does not have yet; an item already on it is refused — change its quantity instead.',
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
     ApiBody({ type: CreatePurchaseItemDto }),
     ApiResponse({ status: 201, description: 'Item added.', type: PurchaseItemResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase not found.' }),
-    ApiResponse({ status: 409, description: 'The purchase is no longer Requesting.' }),
+    ApiResponse({ status: 409, description: 'The purchase is no longer open, or already has the item.' }),
   );
 }
 

@@ -1,25 +1,23 @@
-import type { StockAdjustmentLotDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot.dto';
-import type { StockAdjustmentLotDetailDto } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-lot-detail.dto';
-import type { StockAdjustmentTreeNode } from '@domain/stock-adjustment-lots/dto/entity/stock-adjustment-tree.dto';
 import { AddLotDto } from '@domain/stock-adjustment-lots/dto/request/add-lot.dto';
 import { UpdateLotDto } from '@domain/stock-adjustment-lots/dto/request/update-lot.dto';
-import { StockAdjustmentLotsDomainService } from '@domain/stock-adjustment-lots/services/stock-adjustment-lots.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type {
+  StockAdjustmentLotDetailWithDisplayDto,
+  StockAdjustmentLotWithDisplayDto,
+  StockAdjustmentTreeLotNodeWithDisplayDto,
+} from './dto/entity/stock-adjustment-lot-with-display.dto';
 import { StockAdjustmentsLotsService } from './services/stock-adjustments-lots.service';
 
 @Controller()
 export class StockAdjustmentsLotsController {
   private readonly logger = new Logger(StockAdjustmentsLotsController.name);
 
-  constructor(
-    private readonly service: StockAdjustmentLotsDomainService,
-    private readonly appService: StockAdjustmentsLotsService,
-  ) {}
+  constructor(private readonly appService: StockAdjustmentsLotsService) {}
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addLot' })
-  addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
+  addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<StockAdjustmentLotWithDisplayDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${dto.adjustmentId}`);
     return this.appService.addLot(dto.adjustmentId, {
       lotNumber: dto.lotNumber,
@@ -30,7 +28,7 @@ export class StockAdjustmentsLotsController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.updateLot' })
-  updateLot(@Payload() dto: UpdateLotDto): Promise<StockAdjustmentLotDto> {
+  updateLot(@Payload() dto: UpdateLotDto): Promise<StockAdjustmentLotWithDisplayDto> {
     this.logger.log(`stockAdjustments.updateLot — lot: ${dto.lotId}`);
     return this.appService.updateLot(dto.adjustmentId, dto.lotId, {
       lotNumber: dto.lotNumber ?? undefined,
@@ -41,21 +39,21 @@ export class StockAdjustmentsLotsController {
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.lots' })
-  lots(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLotDto[]> {
+  lots(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentLotWithDisplayDto[]> {
     this.logger.log(`stockAdjustments.lots — adjustment: ${data.adjustmentId}`);
-    return this.service.listByAdjustment(data.adjustmentId);
+    return this.appService.findByAdjustmentId(data.adjustmentId);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.tree' })
-  tree(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentTreeNode[]> {
+  tree(@Payload() data: { adjustmentId: string }): Promise<StockAdjustmentTreeLotNodeWithDisplayDto[]> {
     this.logger.log(`stockAdjustments.tree — adjustment: ${data.adjustmentId}`);
-    return this.service.findTreeForAdjustment(data.adjustmentId);
+    return this.appService.findTree(data.adjustmentId);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.lotDetail' })
-  lotDetail(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLotDetailDto> {
+  lotDetail(@Payload() data: { adjustmentId: string; lotId: string }): Promise<StockAdjustmentLotDetailWithDisplayDto> {
     this.logger.log(`stockAdjustments.lotDetail — lot: ${data.lotId}`);
-    return this.service.getLotDetail(data.adjustmentId, data.lotId);
+    return this.appService.findLotDetail(data.adjustmentId, data.lotId);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.removeLot' })

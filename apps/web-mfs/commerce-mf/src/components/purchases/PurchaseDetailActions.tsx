@@ -1,29 +1,37 @@
 import { Button } from '@vritti/quantum-ui/Button';
-import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
-import { PackageCheck, Pencil, Send } from 'lucide-react';
+import { DropdownMenu } from '@vritti/quantum-ui/DropdownMenu';
+import { useConfirm } from '@vritti/quantum-ui/hooks';
+import { FileCheck, FileX, ListOrdered, MoreVertical, PackageCheck, Pencil, Send } from 'lucide-react';
 import type React from 'react';
-import { PurchaseActionValues, type PurchaseDetail, purchaseStatusConfig } from '@/schemas/purchases';
+import {
+  type PurchaseAction,
+  PurchaseActionValues,
+  type PurchaseDetail,
+  purchaseStatusConfig,
+} from '@/schemas/purchases';
 import type { PurchasesBinding } from './bindings';
+import { ChangePurchaseMinQuotationsDialog } from './forms/ChangePurchaseMinQuotationsDialog';
+import { ChangePurchaseNotesDialog } from './forms/ChangePurchaseNotesDialog';
 import { ClosePurchaseDialog } from './forms/ClosePurchaseDialog';
-import { UpdatePurchaseDialog } from './forms/UpdatePurchaseDialog';
+import { DisablePurchaseQuotationsDialog } from './forms/DisablePurchaseQuotationsDialog';
+import { EnablePurchaseQuotationsDialog } from './forms/EnablePurchaseQuotationsDialog';
 
 interface PurchaseDetailActionsProps {
   binding: PurchasesBinding;
   purchase: PurchaseDetail;
 }
 
-// The purchase's own actions: edit its details while open, submit the suppliers still in sourcing, and close it once
-// goods are received; each stays visible and says why when it can't run
+// The purchase's own actions: an Actions menu for its notes, whether it requires quotations, and closing it once goods
+// are received, beside Submit for the suppliers still in sourcing; each stays visible and says why when it can't run
 export const PurchaseDetailActions: React.FC<PurchaseDetailActionsProps> = ({ binding, purchase }) => {
   const { permissions } = binding;
   const confirm = useConfirm();
-  const editDialog = useDialog();
-  const closeDialog = useDialog();
   const submitMutation = binding.useSubmit();
   const { data: actions } = binding.usePurchaseActions(purchase.id);
   const closeBlocker = actions?.blockers.close ?? null;
   const submitBlocker = actions?.blockers.submit ?? null;
+  const closedTip = `The purchase is ${purchaseStatusConfig[purchase.status].label.toLowerCase()}.`;
+  const can = (action: PurchaseAction) => actions?.availableActions.includes(action) ?? false;
 
   // Confirms and starts every supplier still in sourcing — to approval or its first step
   const handleSubmit = async () => {
@@ -38,28 +46,119 @@ export const PurchaseDetailActions: React.FC<PurchaseDetailActionsProps> = ({ bi
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        size="sm"
-        variant="outline"
-        permission={permissions.edit}
-        startAdornment={<Pencil className="size-4" />}
-        onClick={editDialog.open}
-        disabled={!actions?.availableActions.includes(PurchaseActionValues.EDIT)}
-        disabledTip={`The purchase is ${purchaseStatusConfig[purchase.status].label.toLowerCase()}.`}
-      >
-        Edit
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        permission={permissions.close}
-        startAdornment={<PackageCheck className="size-4" />}
-        onClick={closeDialog.open}
-        disabled={!actions || closeBlocker !== null}
-        disabledTip={closeBlocker ?? undefined}
-      >
-        Close Purchase
-      </Button>
+      <DropdownMenu
+        align="end"
+        trigger={{
+          children: (
+            <Button size="sm" variant="outline" endAdornment={<MoreVertical className="size-4" />}>
+              Actions
+            </Button>
+          ),
+        }}
+        items={[
+          {
+            type: 'dialog',
+            id: 'change-notes',
+            icon: Pencil,
+            label: 'Change Notes',
+            permission: permissions.edit,
+            disabled: !can(PurchaseActionValues.CHANGE_NOTES),
+            disabledTip: closedTip,
+            dialog: {
+              title: 'Change Notes',
+              description: 'Notes everyone working on this purchase sees.',
+              content: (close) => (
+                <ChangePurchaseNotesDialog binding={binding} purchase={purchase} onSuccess={close} onCancel={close} />
+              ),
+            },
+          },
+          {
+            type: 'dialog',
+            id: 'enable-quotations',
+            icon: FileCheck,
+            label: 'Enable Quotations',
+            permission: permissions.edit,
+            hidden: purchase.quotationsRequired,
+            disabled: !can(PurchaseActionValues.ENABLE_QUOTATIONS),
+            disabledTip: actions?.blockers.enableQuotations ?? undefined,
+            dialog: {
+              title: 'Enable Quotations',
+              description:
+                'Items are then allocated from posted quotation lines, and a supplier is submitted only once each of its items has enough quotations.',
+              content: (close) => (
+                <EnablePurchaseQuotationsDialog
+                  binding={binding}
+                  purchase={purchase}
+                  onSuccess={close}
+                  onCancel={close}
+                />
+              ),
+            },
+          },
+          {
+            type: 'dialog',
+            id: 'change-min-quotations',
+            icon: ListOrdered,
+            label: 'Change Minimum Quotations',
+            permission: permissions.edit,
+            hidden: !purchase.quotationsRequired,
+            disabled: !can(PurchaseActionValues.CHANGE_MIN_QUOTATIONS),
+            disabledTip: closedTip,
+            dialog: {
+              title: 'Change Minimum Quotations',
+              description: 'How many posted quotations each item needs before its supplier is submitted.',
+              content: (close) => (
+                <ChangePurchaseMinQuotationsDialog
+                  binding={binding}
+                  purchase={purchase}
+                  onSuccess={close}
+                  onCancel={close}
+                />
+              ),
+            },
+          },
+          {
+            type: 'dialog',
+            id: 'disable-quotations',
+            icon: FileX,
+            label: 'Disable Quotations',
+            permission: permissions.edit,
+            hidden: !purchase.quotationsRequired,
+            disabled: !can(PurchaseActionValues.DISABLE_QUOTATIONS),
+            disabledTip: closedTip,
+            dialog: {
+              title: 'Disable Quotations',
+              description: 'Items can then be allocated to suppliers directly, without quotations.',
+              content: (close) => (
+                <DisablePurchaseQuotationsDialog
+                  binding={binding}
+                  purchase={purchase}
+                  onSuccess={close}
+                  onCancel={close}
+                />
+              ),
+            },
+          },
+          { type: 'separator' },
+          {
+            type: 'dialog',
+            id: 'close',
+            icon: PackageCheck,
+            label: 'Close Purchase',
+            permission: permissions.close,
+            disabled: !actions || closeBlocker !== null,
+            disabledTip: closeBlocker ?? undefined,
+            dialog: {
+              title: `Close "${purchase.purchaseNumber}"?`,
+              description:
+                'Suppliers with received goods stop receiving and stay open for their invoices; the others are cancelled, and what is not allocated is dropped.',
+              content: (close) => (
+                <ClosePurchaseDialog binding={binding} purchase={purchase} onSuccess={close} onCancel={close} />
+              ),
+            },
+          },
+        ]}
+      />
       <Button
         size="sm"
         permission={permissions.edit}
@@ -71,24 +170,6 @@ export const PurchaseDetailActions: React.FC<PurchaseDetailActionsProps> = ({ bi
       >
         Submit
       </Button>
-      <Dialog
-        handle={editDialog}
-        icon={Pencil}
-        title="Edit Purchase"
-        description="Change whether quotations are required and its notes."
-        content={(close) => (
-          <UpdatePurchaseDialog binding={binding} purchase={purchase} onSuccess={close} onCancel={close} />
-        )}
-      />
-      <Dialog
-        handle={closeDialog}
-        icon={PackageCheck}
-        title={`Close "${purchase.purchaseNumber}"?`}
-        description="Suppliers with received goods stop receiving and stay open for their invoices; the others are cancelled, and what is not allocated is dropped."
-        content={(close) => (
-          <ClosePurchaseDialog binding={binding} purchase={purchase} onSuccess={close} onCancel={close} />
-        )}
-      />
     </div>
   );
 };

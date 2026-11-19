@@ -1,3 +1,4 @@
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { PurchaseOrderReceiptStatus, PurchaseOrderStatus } from '@/schemas/purchase-orders';
@@ -101,6 +102,7 @@ export interface InboundDeliveryLineData {
   openQty: number;
   maxQuantity: number;
   createdAt: string;
+  display: Record<'primaryUomQty' | 'receivedOnDeliveryPrimaryQty', DisplayQuantity | null>;
 }
 
 export type InboundDeliveriesTableResponse = TableResponse<InboundDeliveryData>;

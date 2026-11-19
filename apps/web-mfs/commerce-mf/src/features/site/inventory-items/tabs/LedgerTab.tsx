@@ -58,7 +58,7 @@ export const LedgerTab: React.FC<LedgerTabProps> = ({ inventoryItemId, uomSymbol
           return (
             <span className={`font-mono ${q > 0 ? 'text-success' : q < 0 ? 'text-destructive' : ''}`}>
               {q > 0 ? '+' : ''}
-              {fmt.number(q).primary} {uomSymbol}
+              {fmt.quantity(row.original.display.quantity).primary}
             </span>
           );
         },

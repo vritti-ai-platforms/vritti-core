@@ -3,12 +3,12 @@ import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import type React from 'react';
 import { StockStatusValues, stockStatusConfig } from '@/schemas/inventory-items';
-import { type BarPosition, type StockZone, withUnit, type ZoneStatus } from './stockLevelLayout';
+import type { BarPosition, QuantityLabels, StockZone, ZoneStatus } from './stockLevelLayout';
 
 interface StockZonesProps {
   zones: StockZone[];
   position: BarPosition;
-  uomSymbol: string;
+  labels: QuantityLabels;
 }
 
 const ZONE_TINT: Record<ZoneStatus, string> = {
@@ -19,15 +19,18 @@ const ZONE_TINT: Record<ZoneStatus, string> = {
 };
 
 // The bar's track, split into the zones the levels mark out; hovering one names its status and range
-export const StockZones: React.FC<StockZonesProps> = ({ zones, position, uomSymbol }) => {
+export const StockZones: React.FC<StockZonesProps> = ({ zones, position, labels }) => {
   const fmt = useFormatters();
+  // A zone bound at a level reads as that level's label; the bottom of the bar is a bare 0
+  const bound = (quantity: number, level?: keyof QuantityLabels) =>
+    level && quantity > 0 ? labels[level].primary : fmt.number(quantity).primary;
   return (
     <div className="absolute inset-0 flex overflow-hidden rounded-sm">
       {zones.map((zone) => {
         const range =
           zone.status === StockStatusValues.OVER_MAX
-            ? `above ${withUnit(fmt, zone.from, uomSymbol)}`
-            : `${fmt.number(zone.from).primary} – ${withUnit(fmt, zone.to, uomSymbol)}`;
+            ? `above ${bound(zone.from, zone.fromLevel)}`
+            : `${bound(zone.from, zone.fromLevel)} – ${bound(zone.to, zone.toLevel)}`;
         return (
           <Tooltip key={zone.status} content={`${stockStatusConfig[zone.status].label} · ${range}`}>
             <span

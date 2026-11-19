@@ -1,4 +1,5 @@
-import type { InventoryItemQuant } from '@/db/schema';
+import type { DisplayUnitRatios } from '@/db/schema';
+import type { InventoryItemQuantWithRefs } from '../../repositories/inventory-item-quants.repository';
 
 export class InventoryItemQuantDto {
   id: string;
@@ -16,17 +17,9 @@ export class InventoryItemQuantDto {
   canDelete: boolean;
   createdAt: string;
   updatedAt: string;
+  displayUnitRatios: DisplayUnitRatios;
 
-  static from(
-    row: InventoryItemQuant & {
-      locationName?: string | null;
-      locationPath?: string | null;
-      lotNumber?: string | null;
-      manufacturingDate?: string | null;
-      expiryDate?: string | null;
-    },
-    canDelete = false,
-  ): InventoryItemQuantDto {
+  static from(row: InventoryItemQuantWithRefs, canDelete = false): InventoryItemQuantDto {
     const dto = new InventoryItemQuantDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
@@ -43,6 +36,7 @@ export class InventoryItemQuantDto {
     dto.canDelete = canDelete;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

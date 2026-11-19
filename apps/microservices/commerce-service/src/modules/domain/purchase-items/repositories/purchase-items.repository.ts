@@ -5,6 +5,8 @@ import { QueryBuilder } from '@vritti/api-sdk/drizzle-pg-core';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   categories,
+  type DisplayUnitRatios,
+  displayUnitRatios,
   inventoryItemSites,
   inventoryItems,
   type PurchaseItem,
@@ -45,6 +47,7 @@ export type PurchaseItemTableRow = PurchaseItem & {
   suppliers: PurchaseItemSupplierProgress[];
   purchasingBlockedReason: string | null;
   supplierItemsRequired: boolean;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type PurchaseItemViewRow = PurchaseItemRow & {
@@ -53,6 +56,7 @@ export type PurchaseItemViewRow = PurchaseItemRow & {
   primaryUomAllowDecimal: boolean;
   purchasingBlockedReason: string | null;
   supplierItemsRequired: boolean;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type PurchaseItemCountsRow = { allocationCount: number; quoteCount: number; documentCount: number };
@@ -65,6 +69,7 @@ export type PurchaseItemProgressRow = {
   receivedPrimaryQty: number;
   invoicedPrimaryQty: number;
   suppliers: PurchaseItemSupplierProgress[];
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type PurchaseItemDocumentRow = {
@@ -173,6 +178,7 @@ export class PurchaseItemsDomainRepository extends PrimaryBaseRepository<typeof 
           string | null
         >`case when ${inventoryItemSites.status} = ${SiteItemStatusValues.BLOCKED} then ${inventoryItemSites.blockedReason} end`,
         supplierItemsRequired: this.supplierItemsRequired(scope.siteId),
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [...this.joins(), { table: categories, on: eq(categories.id, inventoryItems.categoryId) }],
       leftJoin: {
@@ -244,6 +250,7 @@ export class PurchaseItemsDomainRepository extends PrimaryBaseRepository<typeof 
           string | null
         >`case when ${inventoryItemSites.status} = ${SiteItemStatusValues.BLOCKED} then ${inventoryItemSites.blockedReason} end`,
         supplierItemsRequired: this.supplierItemsRequired(siteId),
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [
         ...this.joins(),
@@ -295,11 +302,25 @@ export class PurchaseItemsDomainRepository extends PrimaryBaseRepository<typeof 
         receivedPrimaryQty: purchaseItemProgress.received(),
         invoicedPrimaryQty: purchaseItemProgress.invoiced(),
         suppliers: purchaseItemProgress.bySupplier(),
+        displayUnitRatios: displayUnitRatios(),
       },
+      innerJoins: [{ table: inventoryItems, on: eq(inventoryItems.id, purchaseItems.inventoryItemId) }],
       where: eq(purchaseItems.purchaseId, purchaseId),
     });
     if (!progress) throw new NotFoundException('Purchase item not found.');
     return progress;
+  }
+
+  // Returns how the item of a purchase item turns its primary unit into its display unit, throwing when the purchase item
+  // is not on the purchase
+  async findDisplayUnitRatiosOrThrow(purchaseId: string, itemId: string): Promise<DisplayUnitRatios> {
+    const row = await this.findById<{ displayUnitRatios: DisplayUnitRatios }>(itemId, {
+      select: { displayUnitRatios: displayUnitRatios() },
+      innerJoins: [{ table: inventoryItems, on: eq(inventoryItems.id, purchaseItems.inventoryItemId) }],
+      where: eq(purchaseItems.purchaseId, purchaseId),
+    });
+    if (!row) throw new NotFoundException('Purchase item not found.');
+    return row.displayUnitRatios;
   }
 
   // Returns one page of the document lines that move a purchase item, with each supplier's name, filtered and ordered by

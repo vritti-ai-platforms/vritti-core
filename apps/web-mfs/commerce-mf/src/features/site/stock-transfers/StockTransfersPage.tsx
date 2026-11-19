@@ -5,13 +5,12 @@ import {
   type ColumnDef,
   DataTable,
   DateCell,
-  NumberCell,
   RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { ArrowRightLeft, Eye, Plus } from 'lucide-react';
@@ -36,6 +35,7 @@ export const StockTransfersPage = () => {
   const queryClient = useQueryClient();
   const stockTransfersTableQuery = useStockTransfersTable();
   const addDialog = useDialog();
+  const fmt = useFormatters();
 
   const columns = useMemo<ColumnDef<StockTransferData>[]>(
     () => [
@@ -58,7 +58,7 @@ export const StockTransfersPage = () => {
       {
         accessorKey: 'quantity',
         header: 'Quantity',
-        cell: ({ row }) => <NumberCell value={row.original.quantity} />,
+        cell: ({ row }) => <span className="font-mono">{fmt.quantity(row.original.display.quantity).primary}</span>,
       },
       {
         accessorKey: 'status',
@@ -97,7 +97,7 @@ export const StockTransfersPage = () => {
         enableHiding: false,
       },
     ],
-    [navigate],
+    [navigate, fmt],
   );
 
   const stockTransfersTable = useDataTable({

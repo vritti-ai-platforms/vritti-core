@@ -1,4 +1,10 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class InventoryItemLedgerDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  quantity: DisplayUomQuantityResponseDto | null;
+}
 
 export class InventoryItemLedgerResponseDto {
   @ApiProperty()
@@ -36,4 +42,10 @@ export class InventoryItemLedgerResponseDto {
 
   @ApiProperty()
   createdAt: string;
+
+  @ApiProperty({
+    type: InventoryItemLedgerDisplayResponseDto,
+    description: "These quantities in the item's display unit",
+  })
+  display: InventoryItemLedgerDisplayResponseDto;
 }

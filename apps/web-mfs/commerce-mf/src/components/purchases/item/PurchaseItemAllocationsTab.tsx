@@ -1,14 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import {
-  type ColumnDef,
-  DataTable,
-  NumberCell,
-  RowActions,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
@@ -60,7 +53,6 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
   const removeMutation = binding.useRemoveAllocation();
   const allocateDialog = useDialog();
   const isFullyAllocated = item.allocatedPrimaryQty >= item.primaryQty;
-  const unit = item.primaryUomSymbol;
 
   // Confirms and removes an allocation; the supplier's leg closes with its last one
   const handleRemove = useCallback(
@@ -102,7 +94,7 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
           <div className="flex flex-col">
             <span className="font-mono">{`${fmt.number(row.original.uomQty).primary} ${row.original.uomSymbol}`}</span>
             <Typography variant="caption" intent="muted" className="font-mono">
-              {`${fmt.number(row.original.primaryUomQty).primary} ${unit}`.trim()}
+              {fmt.quantity(row.original.display.primaryUomQty).primary}
             </Typography>
           </div>
         ),
@@ -149,12 +141,16 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
       {
         accessorKey: 'receivedPrimaryQty',
         header: 'Received',
-        cell: ({ row }) => <NumberCell value={row.original.receivedPrimaryQty} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.receivedPrimaryQty).primary}</span>
+        ),
       },
       {
         accessorKey: 'invoicedPrimaryQty',
         header: 'Invoiced',
-        cell: ({ row }) => <NumberCell value={row.original.invoicedPrimaryQty} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.invoicedPrimaryQty).primary}</span>
+        ),
       },
       {
         id: 'actions',
@@ -215,7 +211,7 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
         },
       },
     ],
-    [binding, purchase, item, unit, fmt, permissions.edit, handleRemove, navigate, pathname],
+    [binding, purchase, item, fmt, permissions.edit, handleRemove, navigate, pathname],
   );
 
   const allocationsTable = useDataTable({

@@ -176,6 +176,7 @@ export class LeInventoryItemsGatewayService {
         stockValue: stock?.stockValue ?? CurrencyAmountDto.from(0n, leCurrencyCode),
         stockStatus: stock?.stockStatus ?? null,
         locations: stock?.locations ?? [],
+        display: stock?.display ?? { onHand: null, safetyStock: null, reorderPoint: null, maxStock: null },
       };
     });
     return { result, count, state, activeViewId };

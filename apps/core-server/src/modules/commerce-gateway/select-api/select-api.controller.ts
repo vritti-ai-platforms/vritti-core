@@ -5,6 +5,7 @@ import { LotsSelectQueryDto } from '@commerce/inventory-item-lots/dto/request/lo
 import { QuantsSelectQueryDto } from '@commerce/inventory-item-quants/dto/request/quants-select-query.dto';
 import { SerialsSelectQueryDto } from '@commerce/inventory-item-serials/dto/request/serials-select-query.dto';
 import { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
+import { InventoryItemUnitsResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-units-response.dto';
 import { LocationsSelectQueryDto } from '@commerce/locations/dto/request/locations-select-query.dto';
 import { PartyCommunicationSelectQueryDto } from '@commerce/parties/dto/request/party-communication-select-query.dto';
 import { PartyContactSelectQueryDto } from '@commerce/parties/dto/request/party-contact-select-query.dto';
@@ -20,7 +21,7 @@ import { TaxComponentsSelectQueryDto } from '@commerce/tax-components/dto/reques
 import { TaxGroupsSelectQueryDto } from '@commerce/tax-groups/dto/request/tax-groups-select-query.dto';
 import { TaxJurisdictionSelectQueryDto } from '@commerce/tax-jurisdictions/dto/request/tax-jurisdiction-select-query.dto';
 import { UomSelectQueryDto } from '@commerce/uom/dto/request/uom-select-query.dto';
-import { Controller, Get, Logger, Query } from '@nestjs/common';
+import { Controller, Get, Logger, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
@@ -39,6 +40,7 @@ import {
   ApiInventoryItemQuantsSelect,
   ApiInventoryItemSerialsSelect,
   ApiInventoryItemsSelect,
+  ApiInventoryItemUnits,
   ApiLocationsSelect,
   ApiOfferingsSelect,
   ApiOfferingVariantsSelect,
@@ -127,6 +129,14 @@ export class SelectApiController {
   selectInventoryItemSerials(@Query() query: SerialsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('GET /commerce-api/select-api/inventory-item-serials');
     return this.service.selectInventoryItemSerials(query);
+  }
+
+  // Returns the units a quantity of the item can be entered in, with their ratios to its primary unit
+  @Get('inventory-items/:id/units')
+  @ApiInventoryItemUnits()
+  findInventoryItemUnits(@Param('id', new ParseUUIDPipe()) id: string): Promise<InventoryItemUnitsResponseDto> {
+    this.logger.log(`GET /commerce-api/select-api/inventory-items/${id}/units`);
+    return this.service.findInventoryItemUnits(id);
   }
 
   // Returns inventory item options for select dropdowns, only those with, or without, stock levels at a site when one is

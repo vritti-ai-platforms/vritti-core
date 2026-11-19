@@ -15,6 +15,8 @@ export class InventoryItemDto {
   uomSymbol: string;
   // Whether the item's primary unit can be counted in fractions
   uomAllowDecimal: boolean;
+  displayUomId: string;
+  displayUomSymbol: string;
   hsnCode: string | null;
   taxClassId: string;
   taxClassName: string;
@@ -41,6 +43,8 @@ export class InventoryItemDto {
     dto.uomId = row.uomId;
     dto.uomSymbol = row.uomSymbol;
     dto.uomAllowDecimal = row.uomAllowDecimal;
+    dto.displayUomId = row.displayUomId;
+    dto.displayUomSymbol = row.displayUomSymbol;
     dto.hsnCode = row.hsnCode ?? null;
     dto.taxClassId = row.taxClassId;
     dto.taxClassName = row.taxClassName;

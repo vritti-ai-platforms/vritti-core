@@ -1,21 +1,17 @@
-import type { InboundDeliveryLineDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery-line.dto';
 import { AddInboundDeliveryLinesDto } from '@domain/inbound-deliveries/dto/request/add-inbound-delivery-lines.dto';
 import { UpdateInboundDeliveryLineDto } from '@domain/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
-import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { InboundDeliveryLineWithDisplayDto } from './dto/entity/inbound-delivery-line-with-display.dto';
 import { InboundDeliveriesLinesService } from './services/inbound-deliveries-lines.service';
 
 @Controller()
 export class InboundDeliveriesLinesController {
   private readonly logger = new Logger(InboundDeliveriesLinesController.name);
 
-  constructor(
-    private readonly linesService: InboundDeliveryLinesDomainService,
-    private readonly service: InboundDeliveriesLinesService,
-  ) {}
+  constructor(private readonly service: InboundDeliveriesLinesService) {}
 
   // Puts purchase order lines on an inbound delivery
   @MessagePattern({ cmd: 'site.inboundDeliveries.lines.add' })
@@ -39,10 +35,10 @@ export class InboundDeliveriesLinesController {
   @MessagePattern({ cmd: 'site.inboundDeliveries.lines.table' })
   table(
     @Payload() data: { inboundDeliveryId: string } & TableState,
-  ): Promise<{ result: InboundDeliveryLineDto[]; count: number }> {
+  ): Promise<{ result: InboundDeliveryLineWithDisplayDto[]; count: number }> {
     this.logger.log(`site.inboundDeliveries.lines.table — inboundDeliveryId: ${data.inboundDeliveryId}`);
     const { inboundDeliveryId, ...state } = data;
-    return this.linesService.findForTable(inboundDeliveryId, state);
+    return this.service.findForTable(inboundDeliveryId, state);
   }
 
   // Removes a line from an inbound delivery

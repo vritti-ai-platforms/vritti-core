@@ -1,5 +1,11 @@
 import type { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { ReplenishmentMethod, SiteItemStatus, SiteStockLocation, StockStatus } from '@/db/schema';
+import type {
+  DisplayUnitRatios,
+  ReplenishmentMethod,
+  SiteItemStatus,
+  SiteStockLocation,
+  StockStatus,
+} from '@/db/schema';
 import type { InventoryItemDto } from './inventory-item.dto';
 
 export type SiteStockLocationDto = SiteStockLocation;
@@ -16,4 +22,5 @@ export type SiteStockTableItemDto = InventoryItemDto & {
   stockValue: CurrencyAmountDto;
   stockStatus: StockStatus | null;
   locations: SiteStockLocationDto[];
+  displayUnitRatios: DisplayUnitRatios;
 };

@@ -17,24 +17,20 @@ import {
   purchaseItems,
 } from '@/db/schema';
 import { PurchaseItemDto } from '../dto/entity/purchase-item.dto';
-import { type PurchaseItemFacets, PurchaseItemTableRowDto } from '../dto/entity/purchase-item-table-row.dto';
+import type { PurchaseItemFacets } from '../dto/entity/purchase-item-table-row.dto';
 import type { PurchaseItemFieldsDto } from '../dto/request/purchase-item-fields.dto';
 import type { UpdatePurchaseItemDto } from '../dto/request/update-purchase-item.dto';
 import {
   type PurchaseItemDocumentRow,
   type PurchaseItemRow,
   PurchaseItemsDomainRepository,
+  type PurchaseItemTableRow,
   type QuotingScope,
 } from '../repositories/purchase-items.repository';
 
 export type ItemsPurchase = Pick<Purchase, 'id' | 'purchaseNumber' | 'status'>;
 
 export type QuotedPurchase = Pick<Purchase, 'id' | 'quotationsRequired' | 'minQuotations'>;
-
-export interface PurchaseItemAddition {
-  item: PurchaseItem;
-  isMerged: boolean;
-}
 
 @Injectable()
 export class PurchaseItemsDomainService {
@@ -47,21 +43,16 @@ export class PurchaseItemsDomainService {
 
   constructor(private readonly repository: PurchaseItemsDomainRepository) {}
 
-  // Adds an item to a purchase's items, or adds the quantity to the line that already requests it; a new line is needed
-  // by the purchase's date unless it names its own
-  async add(purchase: ItemsPurchase, fields: PurchaseItemFieldsDto): Promise<PurchaseItemAddition> {
-    this.assertItemsEditable(purchase);
+  // Adds an item the purchase does not have yet to its items, needed by the purchase's date unless it names its own
+  async add(purchase: ItemsPurchase, fields: PurchaseItemFieldsDto): Promise<PurchaseItem> {
+    this.isPurchaseOpen(purchase);
     const existing = await this.repository.findForInventoryItem(purchase.id, fields.inventoryItemId);
     if (existing) {
-      const item = await this.repository.update(existing.id, {
-        primaryQty: new Decimal(existing.primaryQty).plus(fields.primaryQty).toDecimalPlaces(3).toNumber(),
-        neededBy: fields.neededBy ?? existing.neededBy,
-        notes: fields.notes ?? existing.notes,
+      throw new ConflictException({
+        label: 'Item Already Added',
+        detail: `"${purchase.purchaseNumber}" already has this item; change its quantity there instead.`,
+        errors: [{ field: 'inventoryItemId', message: 'Already on this purchase' }],
       });
-      this.logger.log(
-        `Added ${fields.primaryQty} to item ${fields.inventoryItemId} on purchase ${purchase.purchaseNumber}`,
-      );
-      return { item, isMerged: true };
     }
     const item = await this.repository.create({
       purchaseId: purchase.id,
@@ -71,18 +62,19 @@ export class PurchaseItemsDomainService {
       notes: fields.notes ?? null,
     });
     this.logger.log(`Added item ${fields.inventoryItemId} to purchase ${purchase.purchaseNumber}`);
-    return { item, isMerged: false };
+    return item;
   }
 
   // Changes a purchase item's quantity, never below what is already allocated, needed-by date or note; null clears the
-  // date or note
+  // date or note; the quantity's field message names the allocated amount as {{qty:<primary>}} for the quantity field
+  // to show in the unit being entered
   async update(purchase: ItemsPurchase, item: PurchaseItemRow, dto: UpdatePurchaseItemDto): Promise<void> {
-    this.assertItemsEditable(purchase);
+    this.isPurchaseOpen(purchase);
     if (dto.primaryQty !== undefined && new Decimal(dto.primaryQty).lt(item.allocatedPrimaryQty)) {
       throw new ConflictException({
         label: 'Below Allocated',
         detail: `${item.allocatedPrimaryQty} ${item.primaryUomSymbol} of ${item.inventoryItemName} are already allocated; the quantity cannot go below that.`,
-        errors: [{ field: 'primaryQty', message: `At least ${item.allocatedPrimaryQty}` }],
+        errors: [{ field: 'primaryQty', message: `At least {{qty:${item.allocatedPrimaryQty}}}` }],
       });
     }
     await this.repository.update(item.id, {
@@ -94,11 +86,11 @@ export class PurchaseItemsDomainService {
   }
 
   // Returns one page of a purchase's items with how far each has got, filtered by the bucket the table is on
-  async findForTable(
+  findForTable(
     purchase: QuotedPurchase,
     scope: QuotingScope,
     state: TableState,
-  ): Promise<{ result: PurchaseItemTableRowDto[]; count: number }> {
+  ): Promise<{ result: PurchaseItemTableRow[]; count: number }> {
     const quoting = { required: purchase.quotationsRequired, minimum: purchase.minQuotations, ...scope };
     const fieldMap: FieldMap = {
       bucket: {
@@ -113,7 +105,7 @@ export class PurchaseItemsDomainService {
     };
     const orderBy = FilterProcessor.buildOrderBy(state.sort, fieldMap);
     const { limit = 50, offset = 0 } = state.pagination;
-    const { result, count } = await this.repository.findForTable(purchase.id, scope, {
+    return this.repository.findForTable(purchase.id, scope, {
       where: and(
         FilterProcessor.buildWhere(state.filters, fieldMap),
         FilterProcessor.buildSearch(state.search, PurchaseItemsDomainService.SEARCH_FIELD_MAP),
@@ -122,7 +114,6 @@ export class PurchaseItemsDomainService {
       limit,
       offset,
     });
-    return { result: result.map(PurchaseItemTableRowDto.from), count };
   }
 
   // Returns one page of the document lines that move a purchase item, narrowed by kind, status or supplier and ordered by
@@ -219,7 +210,7 @@ export class PurchaseItemsDomainService {
 
   // Removes an item from a purchase's items while nothing of it is allocated
   async remove(purchase: ItemsPurchase, item: PurchaseItemRow): Promise<void> {
-    this.assertItemsEditable(purchase);
+    this.isPurchaseOpen(purchase);
     if (new Decimal(item.allocatedPrimaryQty).gt(0)) {
       throw new ConflictException({
         label: 'Item Allocated',
@@ -231,7 +222,7 @@ export class PurchaseItemsDomainService {
   }
 
   // Rejects an items change unless the purchase is open (409)
-  private assertItemsEditable(purchase: ItemsPurchase): void {
+  private isPurchaseOpen(purchase: ItemsPurchase): void {
     if (purchase.status === PurchaseStatusValues.OPEN) return;
     throw new ConflictException({
       label: 'Items Locked',

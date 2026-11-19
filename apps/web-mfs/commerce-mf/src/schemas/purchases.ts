@@ -1,5 +1,7 @@
 import type { BadgeProps } from '@vritti/quantum-ui/Badge';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
+import { PRIMARY_UNIT_PLACEHOLDER } from '@vritti/quantum-ui/QuantityField';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { GoodsReceiptStatus } from './goods-receipts';
@@ -90,7 +92,10 @@ export const PurchaseItemSourceValues = {
 export type PurchaseItemSource = (typeof PurchaseItemSourceValues)[keyof typeof PurchaseItemSourceValues];
 
 export const PurchaseActionValues = {
-  EDIT: 'EDIT',
+  CHANGE_NOTES: 'CHANGE_NOTES',
+  ENABLE_QUOTATIONS: 'ENABLE_QUOTATIONS',
+  DISABLE_QUOTATIONS: 'DISABLE_QUOTATIONS',
+  CHANGE_MIN_QUOTATIONS: 'CHANGE_MIN_QUOTATIONS',
   EDIT_ITEMS: 'EDIT_ITEMS',
   REQUEST_QUOTATION: 'REQUEST_QUOTATION',
   EDIT_ALLOCATIONS: 'EDIT_ALLOCATIONS',
@@ -239,6 +244,7 @@ export interface PurchaseProgress {
 }
 
 export interface PurchaseBlockers {
+  enableQuotations: string | null;
   submit: string | null;
   close: string | null;
   cancel: string | null;
@@ -330,7 +336,18 @@ export interface PurchaseItemSupplierProgress {
   inTransit: number;
   received: number;
   invoiced: number;
+  display: Record<'allocated' | 'ordered' | 'inTransit' | 'received' | 'invoiced', DisplayQuantity | null>;
 }
+
+export type PurchaseItemProgressDisplay = Record<
+  | 'primaryQty'
+  | 'allocatedPrimaryQty'
+  | 'orderedPrimaryQty'
+  | 'inTransitPrimaryQty'
+  | 'receivedPrimaryQty'
+  | 'invoicedPrimaryQty',
+  DisplayQuantity | null
+>;
 
 export interface PurchaseItemTableRow {
   id: string;
@@ -351,6 +368,7 @@ export interface PurchaseItemTableRow {
   supplierItemsRequired: boolean;
   neededBy: string | null;
   notes: string | null;
+  display: PurchaseItemProgressDisplay;
 }
 
 // What needs a buyer's attention on a purchase item before it can be bought
@@ -526,6 +544,7 @@ export interface PurchaseItemView extends PurchaseItem {
   primaryUomAllowDecimal: boolean;
   problems: PurchaseItemProblem[];
   supplierItemsRequired: boolean;
+  display: Record<'primaryQty' | 'allocatedPrimaryQty', DisplayQuantity | null>;
 }
 
 export interface PurchaseItemCounts {
@@ -542,6 +561,7 @@ export interface PurchaseItemProgressSummary {
   receivedPrimaryQty: number;
   invoicedPrimaryQty: number;
   suppliers: PurchaseItemSupplierProgress[];
+  display: PurchaseItemProgressDisplay;
 }
 
 export interface PurchaseItemAllocationRow extends PurchaseSourcingAllocation {
@@ -549,6 +569,7 @@ export interface PurchaseItemAllocationRow extends PurchaseSourcingAllocation {
   poStatus: PurchaseOrderStatus | null;
   receivedPrimaryQty: number | null;
   invoicedPrimaryQty: number | null;
+  display: Record<'primaryUomQty' | 'receivedPrimaryQty' | 'invoicedPrimaryQty', DisplayQuantity | null>;
 }
 export type PurchaseItemAllocationsTableResponse = TableResponse<PurchaseItemAllocationRow>;
 
@@ -587,6 +608,7 @@ interface PurchaseItemDocumentLine {
   supplierId: string;
   supplierName: string;
   primaryQty: number;
+  display: Record<'primaryQty', DisplayQuantity | null>;
 }
 
 export type PurchaseItemDocument = PurchaseItemDocumentLine &
@@ -657,11 +679,25 @@ export interface CreatePurchasePayload {
   minQuotations?: number;
 }
 
-export interface UpdatePurchasePayload {
+export interface ChangePurchaseNotesPayload {
   id: string;
-  notes?: string | null;
-  quotationsRequired?: boolean;
-  minQuotations?: number;
+  notes: string | null;
+}
+
+export interface EnablePurchaseQuotationsPayload {
+  id: string;
+  minQuotations: number;
+}
+
+export interface DisablePurchaseQuotationsPayload {
+  id: string;
+  reason: string;
+}
+
+export interface ChangePurchaseMinQuotationsPayload {
+  id: string;
+  minQuotations: number;
+  reason?: string | null;
 }
 
 export interface CancelPurchasePayload {
@@ -834,9 +870,20 @@ export function buildCreatePurchaseSchema({ requiresSite }: { requiresSite: bool
 
 export type CreatePurchaseFormData = z.infer<ReturnType<typeof buildCreatePurchaseSchema>>;
 
-export const updatePurchaseSchema = z.object(purchaseShape);
+export const purchaseNotesSchema = z.object({ notes: purchaseShape.notes });
 
-export type UpdatePurchaseFormData = z.infer<typeof updatePurchaseSchema>;
+export type PurchaseNotesFormData = z.infer<typeof purchaseNotesSchema>;
+
+export const purchaseMinQuotationsSchema = z.object({ minQuotations: purchaseShape.minQuotations });
+
+export type PurchaseMinQuotationsFormData = z.infer<typeof purchaseMinQuotationsSchema>;
+
+export const changePurchaseMinQuotationsSchema = z.object({
+  minQuotations: purchaseShape.minQuotations,
+  reason: z.string().max(1000, 'Reason must be at most 1000 characters'),
+});
+
+export type ChangePurchaseMinQuotationsFormData = z.infer<typeof changePurchaseMinQuotationsSchema>;
 
 export const purchaseReasonSchema = z.object({
   reason: z
@@ -854,12 +901,22 @@ const purchaseItemShape = {
   notes: z.string(),
 };
 
-export const addPurchaseItemSchema = z.object({
-  inventoryItemId: z.uuid('Item is required'),
-  ...purchaseItemShape,
-});
+// The add-item form; an item whose primary unit cannot be split needs a whole number of it, whatever unit it is typed in
+export function buildAddPurchaseItemSchema({ allowDecimal }: { allowDecimal: boolean }) {
+  return z.object({
+    inventoryItemId: z.uuid('Item is required'),
+    ...purchaseItemShape,
+    primaryQty: zodNumericField({
+      required: 'Quantity is required',
+      positive: true,
+      nonZero: true,
+      integer: !allowDecimal,
+      integerMessage: `Must come to a whole number of ${PRIMARY_UNIT_PLACEHOLDER}`,
+    }),
+  });
+}
 
-export type AddPurchaseItemFormData = z.infer<typeof addPurchaseItemSchema>;
+export type AddPurchaseItemFormData = z.infer<ReturnType<typeof buildAddPurchaseItemSchema>>;
 
 export const updatePurchaseItemSchema = z.object(purchaseItemShape);
 

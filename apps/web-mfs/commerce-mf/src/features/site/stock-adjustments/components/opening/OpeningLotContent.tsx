@@ -17,7 +17,6 @@ export const OpeningLotContent = ({ adjustment, isDraft }: OpeningLotContentProp
       <LotSidePanel
         adjustmentId={adjustment.id}
         isDraft={isDraft}
-        uomSymbol={adjustment.inventoryItemUomSymbol}
         selectedLotId={selectedLotId}
         onSelectLot={setSelectedLotId}
       />
@@ -28,7 +27,6 @@ export const OpeningLotContent = ({ adjustment, isDraft }: OpeningLotContentProp
         lotId={selectedLotId}
         tracking="LOT"
         isDraft={isDraft}
-        uomSymbol={adjustment.inventoryItemUomSymbol}
         onLotRemoved={() => setSelectedLotId(null)}
       />
     </PageContent>

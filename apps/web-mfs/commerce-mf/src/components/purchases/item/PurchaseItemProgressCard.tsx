@@ -34,7 +34,7 @@ export const PurchaseItemProgressCard: React.FC<PurchaseItemProgressCardProps> =
           <CardTitle>Progress</CardTitle>
           {progress ? (
             <CardDescription>
-              {`${quantity(progress.primaryQty)} needed · ${fmt.number(progress.allocatedPrimaryQty).primary} allocated to ${pluralize('supplier', progress.suppliers.length, true)}`}
+              {`${fmt.quantity(progress.display.primaryQty).primary} needed · ${fmt.quantity(progress.display.allocatedPrimaryQty).primary} allocated to ${pluralize('supplier', progress.suppliers.length, true)}`}
             </CardDescription>
           ) : (
             <Skeleton className="h-4 w-56" />
@@ -57,16 +57,32 @@ export const PurchaseItemProgressCard: React.FC<PurchaseItemProgressCardProps> =
         )}
         <SegmentedProgressKey items={PURCHASE_PROGRESS.segments} trackLabel={PURCHASE_PROGRESS.track.label} />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <DetailField label={`Needed ${unit}`.trim()} type="number" value={item.primaryQty} />
+          <DetailField label="Needed" type="string" value={fmt.quantity(item.display.primaryQty).primary} />
           <DetailField
             label="Not Allocated"
-            type="number"
-            value={progress && Math.max(0, progress.primaryQty - progress.allocatedPrimaryQty)}
+            type="string"
+            value={progress && quantity(Math.max(0, progress.primaryQty - progress.allocatedPrimaryQty))}
           />
-          <DetailField label="Ordered" type="number" value={progress?.orderedPrimaryQty} />
-          <DetailField label="In Transit" type="number" value={progress?.inTransitPrimaryQty} />
-          <DetailField label="Received" type="number" value={progress?.receivedPrimaryQty} />
-          <DetailField label="Invoiced" type="number" value={progress?.invoicedPrimaryQty} />
+          <DetailField
+            label="Ordered"
+            type="string"
+            value={progress && fmt.quantity(progress.display.orderedPrimaryQty).primary}
+          />
+          <DetailField
+            label="In Transit"
+            type="string"
+            value={progress && fmt.quantity(progress.display.inTransitPrimaryQty).primary}
+          />
+          <DetailField
+            label="Received"
+            type="string"
+            value={progress && fmt.quantity(progress.display.receivedPrimaryQty).primary}
+          />
+          <DetailField
+            label="Invoiced"
+            type="string"
+            value={progress && fmt.quantity(progress.display.invoicedPrimaryQty).primary}
+          />
         </div>
       </CardContent>
     </Card>

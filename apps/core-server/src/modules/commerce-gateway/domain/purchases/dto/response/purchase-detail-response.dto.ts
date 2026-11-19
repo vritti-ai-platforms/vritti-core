@@ -9,6 +9,13 @@ import { PurchaseResponseDto } from './purchase-response.dto';
 import { PurchaseProgressResponseDto } from './purchase-table-row-response.dto';
 
 export class PurchaseBlockersResponseDto {
+  @ApiPropertyOptional({
+    description: 'Why quotations cannot be required now: already required, or a supplier was submitted without them',
+    type: String,
+    nullable: true,
+  })
+  enableQuotations: string | null;
+
   @ApiPropertyOptional({ description: 'Why the suppliers cannot be submitted now', type: String, nullable: true })
   submit: string | null;
 

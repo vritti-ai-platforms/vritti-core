@@ -1,6 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@vritti/quantum-ui/Card';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
 import { inventoryTrackingConfig } from '@/schemas/inventory-items';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
@@ -11,34 +12,37 @@ interface OverviewTabProps {
   typeVariant: 'default' | 'secondary' | 'outline' | 'destructive';
 }
 
-export const OverviewTab: React.FC<OverviewTabProps> = ({ adjustment, typeLabel, typeVariant }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Details</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="grid grid-cols-2 gap-6">
-        <DetailField label="Inventory Item" type="string" value={adjustment.inventoryItemName} />
-        <DetailField label="Unit of Measure" type="string" value={adjustment.inventoryItemUomSymbol} />
-        <DetailField label="Type" type="string" value={<Badge variant={typeVariant}>{typeLabel}</Badge>} />
-        <DetailField
-          label="Tracking"
-          type="string"
-          value={<Badge variant="outline">{inventoryTrackingConfig[adjustment.inventoryItemTracking]?.label}</Badge>}
-        />
-        <DetailField label="Reason" type="string" value={adjustment.reason} />
-        <DetailField
-          label="Total Quantity"
-          type="string"
-          value={`${adjustment.totalQuantity} ${adjustment.inventoryItemUomSymbol}`}
-          mono
-        />
-        {adjustment.type === 'OPENING_STOCK' && (
-          <DetailField label="Unit Cost" type="currency" value={adjustment.unitCost} />
-        )}
-        <DetailField label="Created" type="dateTime" value={adjustment.createdAt} />
-        <DetailField label="Published At" type="dateTime" value={adjustment.publishedAt} />
-      </div>
-    </CardContent>
-  </Card>
-);
+export const OverviewTab: React.FC<OverviewTabProps> = ({ adjustment, typeLabel, typeVariant }) => {
+  const fmt = useFormatters();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-6">
+          <DetailField label="Inventory Item" type="string" value={adjustment.inventoryItemName} />
+          <DetailField label="Unit of Measure" type="string" value={adjustment.inventoryItemUomSymbol} />
+          <DetailField label="Type" type="string" value={<Badge variant={typeVariant}>{typeLabel}</Badge>} />
+          <DetailField
+            label="Tracking"
+            type="string"
+            value={<Badge variant="outline">{inventoryTrackingConfig[adjustment.inventoryItemTracking]?.label}</Badge>}
+          />
+          <DetailField label="Reason" type="string" value={adjustment.reason} />
+          <DetailField
+            label="Total Quantity"
+            type="string"
+            value={fmt.quantity(adjustment.display.totalQuantity).primary}
+            mono
+          />
+          {adjustment.type === 'OPENING_STOCK' && (
+            <DetailField label="Unit Cost" type="currency" value={adjustment.unitCost} />
+          )}
+          <DetailField label="Created" type="dateTime" value={adjustment.createdAt} />
+          <DetailField label="Published At" type="dateTime" value={adjustment.publishedAt} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

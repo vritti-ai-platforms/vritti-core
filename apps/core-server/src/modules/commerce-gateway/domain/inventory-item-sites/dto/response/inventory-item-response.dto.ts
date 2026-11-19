@@ -38,6 +38,12 @@ export class SiteInventoryItemResponseDto {
   @ApiProperty({ description: "Whether the item's primary unit can be counted in fractions" })
   uomAllowDecimal: boolean;
 
+  @ApiProperty({ description: 'Unit the item is displayed in; its primary unit until changed' })
+  displayUomId: string;
+
+  @ApiProperty()
+  displayUomSymbol: string;
+
   @ApiProperty({ description: 'Tax class the goods are bought under' })
   taxClassId: string;
 

@@ -5,6 +5,7 @@ import type { LotsSelectQueryDto } from '@commerce/inventory-item-lots/dto/reque
 import type { QuantsSelectQueryDto } from '@commerce/inventory-item-quants/dto/request/quants-select-query.dto';
 import type { SerialsSelectQueryDto } from '@commerce/inventory-item-serials/dto/request/serials-select-query.dto';
 import type { InventoryItemsSelectQueryDto } from '@commerce/inventory-items/dto/request/inventory-items-select-query.dto';
+import type { InventoryItemUnitsResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-units-response.dto';
 import type { LocationsSelectQueryDto } from '@commerce/locations/dto/request/locations-select-query.dto';
 import type { PartyCommunicationSelectQueryDto } from '@commerce/parties/dto/request/party-communication-select-query.dto';
 import type { PartyContactSelectQueryDto } from '@commerce/parties/dto/request/party-contact-select-query.dto';
@@ -78,6 +79,12 @@ export class SelectApiGatewayService {
   selectInventoryItemSerials(query: SerialsSelectQueryDto): Promise<SelectQueryResult> {
     this.logger.log('select.inventoryItemSerials');
     return this.nats.send<SelectQueryResult>('commerce', 'select.inventoryItemSerials', query);
+  }
+
+  // Returns the units a quantity of the item can be entered in, with their ratios to its primary unit
+  findInventoryItemUnits(inventoryItemId: string): Promise<InventoryItemUnitsResponseDto> {
+    this.logger.log(`select.inventoryItemUnits — inventoryItemId: ${inventoryItemId}`);
+    return this.nats.send<InventoryItemUnitsResponseDto>('commerce', 'select.inventoryItemUnits', { inventoryItemId });
   }
 
   // Returns inventory item options for select dropdowns; with a site named, only those it carries, each with its stock

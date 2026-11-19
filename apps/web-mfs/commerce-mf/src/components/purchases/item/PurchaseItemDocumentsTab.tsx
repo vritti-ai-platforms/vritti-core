@@ -4,11 +4,11 @@ import {
   type ColumnDef,
   DataTable,
   DateCell,
-  NumberCell,
   RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { ExternalLink, FileStack } from 'lucide-react';
 import type React from 'react';
@@ -88,6 +88,7 @@ export const PurchaseItemDocumentsTab: React.FC<PurchaseItemDocumentsTabProps> =
   const queryClient = useQueryClient();
   const documentsQuery = binding.usePurchaseItemDocumentsTable(purchase.id, item.id);
   const workspace = workspaceBase(pathname);
+  const fmt = useFormatters();
 
   const columns = useMemo<ColumnDef<PurchaseItemDocument>[]>(
     () => [
@@ -116,8 +117,8 @@ export const PurchaseItemDocumentsTab: React.FC<PurchaseItemDocumentsTabProps> =
       },
       {
         accessorKey: 'primaryQty',
-        header: `Quantity ${item.primaryUomSymbol}`.trim(),
-        cell: ({ row }) => <NumberCell value={row.original.primaryQty} />,
+        header: 'Quantity',
+        cell: ({ row }) => <span className="font-mono">{fmt.quantity(row.original.display.primaryQty).primary}</span>,
       },
       {
         id: 'actions',
@@ -137,7 +138,7 @@ export const PurchaseItemDocumentsTab: React.FC<PurchaseItemDocumentsTabProps> =
         ),
       },
     ],
-    [item.primaryUomSymbol, navigate, workspace, binding.invoicePath],
+    [fmt, navigate, workspace, binding.invoicePath],
   );
 
   const documentsTable = useDataTable({

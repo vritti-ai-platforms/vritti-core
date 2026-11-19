@@ -14,6 +14,7 @@ import { SupplierItemsDomainService } from '@domain/supplier-items/services/supp
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
@@ -21,6 +22,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { addDays, formatISO, parseISO } from 'date-fns';
 import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 import type { PurchaseOrderItemDefaultsDto } from '../dto/entity/purchase-order-item-defaults.dto';
+import type { PurchaseOrderItemWithDisplayDto } from '../dto/entity/purchase-order-item-with-display.dto';
 import type { PurchaseOrderItemDefaultsQueryDto } from '../dto/request/purchase-order-item-defaults-query.dto';
 
 @Injectable()
@@ -46,7 +48,7 @@ export class PurchaseOrdersItemsService {
   async addItem(dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.purchaseOrderId);
     this.assertNotPartOfPurchase(po);
-    await this.inventoryItemSitesRepository.ensurePurchasable([dto.inventoryItemId], 'inventoryItemId', po.siteId);
+    await this.inventoryItemSitesRepository.canPurchaseAtSite([dto.inventoryItemId], 'inventoryItemId', po.siteId);
     await this.purchasingRulesService.assertSourced(po.supplierId, po.siteId, [dto], 'inventoryItemId');
     const supplierItem = await this.supplierItemsService.findByItemAndUnit(
       po.supplierId,
@@ -103,9 +105,9 @@ export class PurchaseOrdersItemsService {
       dto.uomQty ?? item.uomQty,
     );
     if (inventoryItemId !== item.inventoryItemId) {
-      await this.inventoryItemSitesRepository.ensurePurchasable([inventoryItemId], 'inventoryItemId', po.siteId);
+      await this.inventoryItemSitesRepository.canPurchaseAtSite([inventoryItemId], 'inventoryItemId', po.siteId);
     } else if (new Decimal(primaryUomQty).gt(item.primaryUomQty)) {
-      await this.inventoryItemSitesRepository.ensurePurchasable([inventoryItemId], 'uomQty', po.siteId);
+      await this.inventoryItemSitesRepository.canPurchaseAtSite([inventoryItemId], 'uomQty', po.siteId);
     }
     const supplier = await this.suppliersService.findByIdOrThrow(po.supplierId);
 
@@ -125,6 +127,35 @@ export class PurchaseOrdersItemsService {
       await this.purchaseOrdersService.syncTotalAmount(po.id);
       return result;
     });
+  }
+
+  // Returns one page of a PO's lines, each primary-unit counter also in its item's display unit
+  async findForTable(
+    purchaseOrderId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseOrderItemWithDisplayDto[]; count: number }> {
+    const { result, count } = await this.itemsService.findForTable(purchaseOrderId, state);
+    return {
+      result: result.map(({ displayUnitRatios, ...line }) => ({
+        ...line,
+        display: this.uomConversionsService.toDisplayUomQuantities(
+          {
+            primaryUomQty: line.primaryUomQty,
+            expectedFreePrimaryQty: line.expectedFreePrimaryQty,
+            receivedPrimaryQty: line.receivedPrimaryQty,
+            rejectedPrimaryQty: line.rejectedPrimaryQty,
+            invoicedPrimaryQty: line.invoicedPrimaryQty,
+            returnedPrimaryQty: line.returnedPrimaryQty,
+            cancelledPrimaryQty: line.cancelledPrimaryQty,
+            duePrimaryQty: line.duePrimaryQty,
+            openToReceivePrimaryQty: line.openToReceivePrimaryQty,
+            openToInvoicePrimaryQty: line.openToInvoicePrimaryQty,
+          },
+          displayUnitRatios,
+        ),
+      })),
+      count,
+    };
   }
 
   // What a new line of an item starts with on the PO: the supplier's unit for it at the site unless one is given, the

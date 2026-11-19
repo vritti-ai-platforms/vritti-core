@@ -4,11 +4,11 @@ import {
   type ColumnDef,
   DataTable,
   DateCell,
-  NumberCell,
   RowActions,
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Boxes, Eye } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -20,7 +20,6 @@ import { LotFilter } from '@/selectors/lot';
 
 interface QuantsTabProps {
   inventoryItemId: string;
-  uomSymbol: string;
 }
 
 function getQuantStatus(expiryDate: string | null): InventoryItemQuantStatus {
@@ -41,8 +40,9 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol }) => {
+export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
+  const fmt = useFormatters();
   const navigate = useNavigate();
   const inventoryItemQuantsTableQuery = useInventoryItemQuantsTable(inventoryItemId);
 
@@ -67,23 +67,21 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
       {
         accessorKey: 'quantity',
         header: 'Qty',
-        cell: ({ row }) => (
-          <span className="font-mono">
-            <NumberCell value={row.original.quantity} /> {uomSymbol}
-          </span>
-        ),
+        cell: ({ row }) => <span className="font-mono">{fmt.quantity(row.original.display.quantity).primary}</span>,
       },
       {
         accessorKey: 'reservedQuantity',
         header: 'Reserved',
-        cell: ({ row }) => <NumberCell value={row.original.reservedQuantity} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.reservedQuantity).primary}</span>
+        ),
       },
       {
         accessorKey: 'availableQuantity',
         header: 'Available',
         cell: ({ row }) => (
           <span className="font-mono font-semibold">
-            <NumberCell value={row.original.availableQuantity} /> {uomSymbol}
+            {fmt.quantity(row.original.display.availableQuantity).primary}
           </span>
         ),
       },
@@ -127,7 +125,7 @@ export const QuantsTab: React.FC<QuantsTabProps> = ({ inventoryItemId, uomSymbol
         enableHiding: false,
       },
     ],
-    [uomSymbol, navigate],
+    [fmt, navigate],
   );
 
   const inventoryItemQuantsTable = useDataTable({

@@ -34,6 +34,9 @@ export const inventoryItems = commerceSchema.table(
     uomId: uuid('uom_id')
       .notNull()
       .references(() => uom.id),
+    displayUomId: uuid('display_uom_id')
+      .notNull()
+      .references(() => uom.id),
     hsnCode: varchar('hsn_code', { length: 20 }),
     taxClassId: uuid('tax_class_id')
       .notNull()
@@ -63,6 +66,7 @@ export const inventoryItems = commerceSchema.table(
     ),
     index('idx_inventory_items_category').on(table.categoryId),
     index('idx_inventory_items_tax_class').on(table.taxClassId),
+    index('idx_inventory_items_display_uom').on(table.displayUomId),
     index('idx_inventory_items_feed').on(table.organizationId, table.createdAt.desc(), table.id),
     index('idx_inventory_items_name').on(table.organizationId, table.name, table.id),
     index('idx_inventory_items_sku_sort').on(table.organizationId, table.sku, table.id),

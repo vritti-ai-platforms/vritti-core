@@ -2,22 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
+  inventoryItems,
   locations,
   type StockAdjustmentLot,
   stockAdjustmentLineItems,
   stockAdjustmentLines,
   stockAdjustmentLots,
+  stockAdjustments,
 } from '@/db/schema';
-import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
+import type { StockAdjustmentTreeLotNode, StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
 
 export type StockAdjustmentLotWithStats = StockAdjustmentLot & {
   linesCount: number;
   totalQuantity: number;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 export type StockAdjustmentLotDetailRow = StockAdjustmentLot & {
   linesCount: number;
   totalQuantity: number;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 @Injectable()
@@ -41,11 +47,14 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
         totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(stockAdjustmentLots)
+      .innerJoin(stockAdjustments, eq(stockAdjustments.id, stockAdjustmentLots.stockAdjustmentId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, stockAdjustments.inventoryItemId))
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
       .where(eq(stockAdjustmentLots.stockAdjustmentId, adjustmentId))
-      .groupBy(stockAdjustmentLots.id)
+      .groupBy(stockAdjustmentLots.id, inventoryItems.id)
       .orderBy(asc(stockAdjustmentLots.createdAt));
 
     return rows.map((row) => ({
@@ -55,8 +64,8 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
     })) as StockAdjustmentLotWithStats[];
   }
 
-  // Returns the OPENING+serial tree as fully-formed StockAdjustmentTreeNode rows in one query.
-  async findTreeNodesByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
+  // Returns the OPENING+serial tree as fully-formed lot nodes, each with its item's display-unit ratios, in one query.
+  async findTreeNodesByAdjustmentId(adjustmentId: string): Promise<StockAdjustmentTreeLotNode[]> {
     const childrenJson = sql`COALESCE(
       json_agg(
         json_build_object(
@@ -87,15 +96,17 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
     )`;
 
     const rows = await this.db
-      .select({ node })
+      .select({ node, displayUnitRatios: displayUnitRatios() })
       .from(stockAdjustmentLots)
+      .innerJoin(stockAdjustments, eq(stockAdjustments.id, stockAdjustmentLots.stockAdjustmentId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, stockAdjustments.inventoryItemId))
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
       .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
       .where(eq(stockAdjustmentLots.stockAdjustmentId, adjustmentId))
-      .groupBy(stockAdjustmentLots.id)
+      .groupBy(stockAdjustmentLots.id, inventoryItems.id)
       .orderBy(asc(stockAdjustmentLots.createdAt));
 
-    return rows.map((r) => r.node);
+    return rows.map((r) => ({ ...r.node, displayUnitRatios: r.displayUnitRatios }));
   }
 
   // Single lot's detail — stats for the selected lot header. Returns undefined if the lot doesn't exist.
@@ -114,11 +125,14 @@ export class StockAdjustmentLotsDomainRepository extends PrimaryBaseRepository<t
         updatedAt: stockAdjustmentLots.updatedAt,
         linesCount: sql<number>`COALESCE(COUNT(DISTINCT ${stockAdjustmentLines.id}), 0)`,
         totalQuantity: sql<string>`COALESCE(SUM(${stockAdjustmentLines.primaryUomQty}), 0)`,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(stockAdjustmentLots)
+      .innerJoin(stockAdjustments, eq(stockAdjustments.id, stockAdjustmentLots.stockAdjustmentId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, stockAdjustments.inventoryItemId))
       .leftJoin(stockAdjustmentLines, eq(stockAdjustmentLots.id, stockAdjustmentLines.stockAdjustmentLotId))
       .where(eq(stockAdjustmentLots.id, lotId))
-      .groupBy(stockAdjustmentLots.id)
+      .groupBy(stockAdjustmentLots.id, inventoryItems.id)
       .limit(1);
 
     if (!row) return undefined;

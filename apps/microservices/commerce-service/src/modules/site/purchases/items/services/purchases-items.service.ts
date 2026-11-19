@@ -1,22 +1,23 @@
-import type { SiteItemStockDto } from '@domain/inventory-item-sites/dto/entity/item-site-stock.dto';
 import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
 import { PurchaseItemDto } from '@domain/purchase-items/dto/entity/purchase-item.dto';
-import type {
-  PurchaseItemFacets,
-  PurchaseItemTableRowDto,
-} from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
+import type { PurchaseItemFacets } from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
 import type { CreatePurchaseItemDto } from '@domain/purchase-items/dto/request/create-purchase-item.dto';
 import type { UpdatePurchaseItemDto } from '@domain/purchase-items/dto/request/update-purchase-item.dto';
-import type { QuotingScope } from '@domain/purchase-items/repositories/purchase-items.repository';
-import { PurchaseItemsDomainRepository } from '@domain/purchase-items/repositories/purchase-items.repository';
+import {
+  type PurchaseItemProgressRow,
+  PurchaseItemsDomainRepository,
+  type QuotingScope,
+} from '@domain/purchase-items/repositories/purchase-items.repository';
 import { PurchaseItemsDomainService } from '@domain/purchase-items/services/purchase-items.service';
 import { PurchaseSuppliersDomainService } from '@domain/purchase-suppliers/services/purchase-suppliers.service';
 import type { PurchaseRow } from '@domain/purchases/repositories/purchases.repository';
 import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import Decimal from '@vritti/api-sdk/decimal';
 import _ from '@vritti/api-sdk/lodash';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -25,6 +26,12 @@ import { PurchasesQuotationsService } from '../../quotations/services/purchases-
 import { PurchaseItemAllocationRowDto } from '../dto/entity/purchase-item-allocation-row.dto';
 import type { PurchaseItemComparisonDto } from '../dto/entity/purchase-item-detail.dto';
 import { PurchaseItemQuoteDto, type PurchaseItemQuoteRowDto } from '../dto/entity/purchase-item-quote.dto';
+import {
+  type PurchaseItemProgressInDisplayUnit,
+  PurchaseItemRowDto,
+  PurchaseItemSupplierProgressDto,
+} from '../dto/entity/purchase-item-row.dto';
+import type { PurchaseItemSiteStockDto } from '../dto/entity/purchase-item-site-stock.dto';
 import {
   PurchaseItemCountsDto,
   PurchaseItemDocumentDto,
@@ -46,24 +53,23 @@ export class PurchasesItemsService {
     private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
     private readonly inventoryItemSitesService: InventoryItemSitesDomainService,
     private readonly purchaseQuotationsService: PurchasesQuotationsService,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
-  // Adds an item enabled at the purchase's site to its items, or adds the quantity to the line already requesting it
+  // Adds an item enabled at the purchase's site to its items, refusing one the purchase already has
   async create(dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemDto>> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
-    await this.inventoryItemSitesRepository.ensurePurchasable(
+    await this.inventoryItemSitesRepository.canPurchaseAtSite(
       [dto.inventoryItemId],
       'inventoryItemId',
       purchase.siteId,
     );
-    const addition = await this.itemsService.add(purchase, dto);
+    const item = await this.itemsService.add(purchase, dto);
     this.logger.log(`purchases.items.create — ${purchase.purchaseNumber}, item: ${dto.inventoryItemId}`);
     return {
       success: true,
-      message: addition.isMerged
-        ? `Quantity added to the item already on "${purchase.purchaseNumber}".`
-        : `Item added to "${purchase.purchaseNumber}".`,
-      data: await this.itemsService.findById(purchase.id, addition.item.id),
+      message: `Item added to "${purchase.purchaseNumber}".`,
+      data: await this.itemsService.findById(purchase.id, item.id),
     };
   }
 
@@ -80,13 +86,20 @@ export class PurchasesItemsService {
   async findById(id: string, itemId: string): Promise<PurchaseItemViewDto> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
     const item = await this.purchaseItemsRepository.findViewOnPurchaseOrThrow(purchase.id, itemId, purchase.siteId);
-    return PurchaseItemViewDto.fromView(item);
+    return PurchaseItemViewDto.fromView(
+      item,
+      this.uomConversionsService.toDisplayUomQuantities(
+        { primaryQty: item.primaryQty, allocatedPrimaryQty: new Decimal(item.allocatedPrimaryQty).toNumber() },
+        item.displayUnitRatios,
+      ),
+    );
   }
 
   // Returns one page of a purchase's items with how far each has got, filtered by the bucket the table is on
-  async findForTable(id: string, state: TableState): Promise<{ result: PurchaseItemTableRowDto[]; count: number }> {
+  async findForTable(id: string, state: TableState): Promise<{ result: PurchaseItemRowDto[]; count: number }> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    return this.itemsService.findForTable(purchase, this.quotingScopeOf(purchase), state);
+    const { result, count } = await this.itemsService.findForTable(purchase, this.quotingScopeOf(purchase), state);
+    return { result: result.map((row) => PurchaseItemRowDto.fromRow(row, this.progressInDisplayUnit(row))), count };
   }
 
   // Returns one page of a purchase item's allocations, each with its supplier and leg state, the PO it became and whether
@@ -97,15 +110,24 @@ export class PurchasesItemsService {
     state: TableState,
   ): Promise<{ result: PurchaseItemAllocationRowDto[]; count: number }> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    const [page, legs] = await Promise.all([
+    const [page, legs, ratios] = await Promise.all([
       this.allocationsService.findForItemTable(purchase.id, itemId, state),
       this.legsService.findByPurchaseId(purchase.id),
+      this.purchaseItemsRepository.findDisplayUnitRatiosOrThrow(purchase.id, itemId),
     ]);
     const legsById = _.keyBy(legs, 'id');
     return {
       result: page.result.map((row) => {
         const leg = legsById[row.purchaseSupplierId];
-        return PurchaseItemAllocationRowDto.fromRow(row, leg, this.allocationsService.isEditable(purchase, leg));
+        return PurchaseItemAllocationRowDto.fromRow(
+          row,
+          leg,
+          this.allocationsService.isEditable(purchase, leg),
+          this.uomConversionsService.toDisplayUomQuantities(
+            _.pick(row, ['primaryUomQty', 'receivedPrimaryQty', 'invoicedPrimaryQty']),
+            ratios,
+          ),
+        );
       }),
       count: page.count,
     };
@@ -129,9 +151,17 @@ export class PurchasesItemsService {
     state: TableState,
   ): Promise<{ result: PurchaseItemDocumentDto[]; count: number }> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    const item = await this.purchaseItemsRepository.findOnPurchaseOrThrow(purchase.id, itemId);
-    const { result, count } = await this.itemsService.findDocumentsForTable(item.id, state);
-    return { result: result.map(PurchaseItemDocumentDto.from), count };
+    const ratios = await this.purchaseItemsRepository.findDisplayUnitRatiosOrThrow(purchase.id, itemId);
+    const { result, count } = await this.itemsService.findDocumentsForTable(itemId, state);
+    return {
+      result: result.map((row) =>
+        PurchaseItemDocumentDto.from(
+          row,
+          this.uomConversionsService.toDisplayUomQuantities({ primaryQty: row.primaryQty }, ratios),
+        ),
+      ),
+      count,
+    };
   }
 
   // Counts a purchase's items in each bucket of the items table
@@ -152,7 +182,7 @@ export class PurchasesItemsService {
     ]);
     return {
       result: page.result.map((item) => ({
-        item,
+        item: PurchaseItemRowDto.fromRow(item, this.progressInDisplayUnit(item)),
         quotes: PurchaseItemQuoteDto.forItem(quotations, item.id),
         allocations: allocations.filter((allocation) => allocation.purchaseItemId === item.id),
       })),
@@ -169,15 +199,33 @@ export class PurchasesItemsService {
   // Returns how far a purchase item has got in primary units, in all and per supplier
   async findProgress(id: string, itemId: string): Promise<PurchaseItemProgressDto> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    return PurchaseItemProgressDto.from(await this.purchaseItemsRepository.findProgressOrThrow(purchase.id, itemId));
+    const progress = await this.purchaseItemsRepository.findProgressOrThrow(purchase.id, itemId);
+    return PurchaseItemProgressDto.from(progress, this.progressInDisplayUnit(progress));
   }
 
   // Returns how the purchase's site carries the item and the stock it holds there, valued in the legal entity's currency;
   // null while the site does not carry it
-  async findSiteStock(id: string, itemId: string, leCurrencyCode: CurrencyCode): Promise<SiteItemStockDto | null> {
+  async findSiteStock(
+    id: string,
+    itemId: string,
+    leCurrencyCode: CurrencyCode,
+  ): Promise<PurchaseItemSiteStockDto | null> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
     const item = await this.purchaseItemsRepository.findOnPurchaseOrThrow(purchase.id, itemId);
-    return this.inventoryItemSitesService.findStockAtSite(item.inventoryItemId, purchase.siteId, leCurrencyCode);
+    const stock = await this.inventoryItemSitesService.findStockAtSite(
+      item.inventoryItemId,
+      purchase.siteId,
+      leCurrencyCode,
+    );
+    if (!stock) return null;
+    const { displayUnitRatios, ...rest } = stock;
+    return {
+      ...rest,
+      display: this.uomConversionsService.toDisplayUomQuantities(
+        _.pick(stock, ['onHand', 'safetyStock', 'reorderPoint', 'maxStock']),
+        displayUnitRatios,
+      ),
+    };
   }
 
   // Removes an item from a purchase's items
@@ -191,6 +239,33 @@ export class PurchasesItemsService {
   // Where the purchase's quotations count from: its site, valid today
   private quotingScopeOf(purchase: PurchaseRow): QuotingScope {
     return { siteId: purchase.siteId, onDate: formatISO(new Date(), { representation: 'date' }) };
+  }
+
+  // Expresses how far a purchase item has got, in all and per supplier, in the item's display unit
+  private progressInDisplayUnit(row: PurchaseItemProgressRow): PurchaseItemProgressInDisplayUnit {
+    const ratios = row.displayUnitRatios;
+    return {
+      display: this.uomConversionsService.toDisplayUomQuantities(
+        _.pick(row, [
+          'primaryQty',
+          'allocatedPrimaryQty',
+          'orderedPrimaryQty',
+          'inTransitPrimaryQty',
+          'receivedPrimaryQty',
+          'invoicedPrimaryQty',
+        ]),
+        ratios,
+      ),
+      suppliers: row.suppliers.map((supplier) =>
+        PurchaseItemSupplierProgressDto.from(
+          supplier,
+          this.uomConversionsService.toDisplayUomQuantities(
+            _.pick(supplier, ['allocated', 'ordered', 'inTransit', 'received', 'invoiced']),
+            ratios,
+          ),
+        ),
+      ),
+    };
   }
 
   // Shapes the allocations of the given items with the supplier and state of each one's leg and whether it may change

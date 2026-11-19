@@ -6,9 +6,12 @@ import { PurchaseActionsDto } from '@domain/purchases/dto/entity/purchase-action
 import { PurchaseCountsDto } from '@domain/purchases/dto/entity/purchase-counts.dto';
 import { PurchaseProgressDto } from '@domain/purchases/dto/entity/purchase-progress.dto';
 import type { CancelPurchaseDto } from '@domain/purchases/dto/request/cancel-purchase.dto';
+import type { ChangePurchaseMinQuotationsDto } from '@domain/purchases/dto/request/change-purchase-min-quotations.dto';
+import type { ChangePurchaseNotesDto } from '@domain/purchases/dto/request/change-purchase-notes.dto';
 import type { ClosePurchaseDto } from '@domain/purchases/dto/request/close-purchase.dto';
 import type { CreatePurchaseDto } from '@domain/purchases/dto/request/create-purchase.dto';
-import type { UpdatePurchaseDto } from '@domain/purchases/dto/request/update-purchase.dto';
+import type { DisablePurchaseQuotationsDto } from '@domain/purchases/dto/request/disable-purchase-quotations.dto';
+import type { EnablePurchaseQuotationsDto } from '@domain/purchases/dto/request/enable-purchase-quotations.dto';
 import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { PurchasesDomainService } from '@domain/purchases/services/purchases.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -48,10 +51,29 @@ export class PurchasesService {
     };
   }
 
-  // Changes an open purchase's header
-  async update(dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
+  // Changes an open purchase's notes
+  async changeNotes(dto: ChangePurchaseNotesDto): Promise<SuccessResponseDto> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
-    return this.purchasesService.update(purchase, dto);
+    return this.purchasesService.changeNotes(purchase, dto.notes);
+  }
+
+  // Requires quotations on a purchase none of whose suppliers is submitted yet
+  async enableQuotations(dto: EnablePurchaseQuotationsDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+    const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
+    const { blockers } = await this.purchaseLegsService.findBlockers(purchase);
+    return this.purchasesService.enableQuotations(purchase, dto.minQuotations, blockers, headers.userId || null);
+  }
+
+  // Stops requiring quotations on an open purchase, with why
+  async disableQuotations(dto: DisablePurchaseQuotationsDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+    const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
+    return this.purchasesService.disableQuotations(purchase, dto.reason, headers.userId || null);
+  }
+
+  // Changes how many posted quotations each item needs before its supplier is submitted
+  async changeMinQuotations(dto: ChangePurchaseMinQuotationsDto, headers: NatsHeaders): Promise<SuccessResponseDto> {
+    const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
+    return this.purchasesService.changeMinQuotations(purchase, dto, headers.userId || null);
   }
 
   // Starts every supplier still in sourcing, each to approval or its type's first fulfilment step

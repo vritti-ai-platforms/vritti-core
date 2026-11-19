@@ -1,9 +1,5 @@
-import type { SiteItemStockDto } from '@domain/inventory-item-sites/dto/entity/item-site-stock.dto';
 import type { PurchaseItemDto } from '@domain/purchase-items/dto/entity/purchase-item.dto';
-import type {
-  PurchaseItemFacets,
-  PurchaseItemTableRowDto,
-} from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
+import type { PurchaseItemFacets } from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
 import { CreatePurchaseItemDto } from '@domain/purchase-items/dto/request/create-purchase-item.dto';
 import { UpdatePurchaseItemDto } from '@domain/purchase-items/dto/request/update-purchase-item.dto';
 import { Controller, Logger } from '@nestjs/common';
@@ -15,6 +11,8 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import type { PurchaseItemAllocationRowDto } from '@/modules/site/purchases/items/dto/entity/purchase-item-allocation-row.dto';
 import type { PurchaseItemComparisonDto } from '@/modules/site/purchases/items/dto/entity/purchase-item-detail.dto';
 import type { PurchaseItemQuoteRowDto } from '@/modules/site/purchases/items/dto/entity/purchase-item-quote.dto';
+import type { PurchaseItemRowDto } from '@/modules/site/purchases/items/dto/entity/purchase-item-row.dto';
+import type { PurchaseItemSiteStockDto } from '@/modules/site/purchases/items/dto/entity/purchase-item-site-stock.dto';
 import type {
   PurchaseItemCountsDto,
   PurchaseItemDocumentDto,
@@ -29,7 +27,7 @@ export class PurchasesItemsController {
 
   constructor(private readonly service: PurchasesItemsService) {}
 
-  // Adds a purchase item, or adds the quantity to the item already requested
+  // Adds a purchase item, refusing an item the purchase already has
   @MessagePattern({ cmd: 'site.purchases.items.create' })
   create(@Payload() dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemDto>> {
     this.logger.log(`site.purchases.items.create — id: ${dto.id}, item: ${dto.inventoryItemId}`);
@@ -52,7 +50,7 @@ export class PurchasesItemsController {
 
   // Returns one page of a purchase's items with how far each has got
   @MessagePattern({ cmd: 'site.purchases.items.table' })
-  table(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseItemTableRowDto[]; count: number }> {
+  table(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseItemRowDto[]; count: number }> {
     const { id, ...state } = data;
     this.logger.log(`site.purchases.items.table — id: ${id}`);
     return this.service.findForTable(id, state);
@@ -124,7 +122,7 @@ export class PurchasesItemsController {
   findSiteStock(
     @Payload() data: { id: string; itemId: string },
     @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<SiteItemStockDto | null> {
+  ): Promise<PurchaseItemSiteStockDto | null> {
     this.logger.log(`site.purchases.items.findSiteStock — id: ${data.id}, item: ${data.itemId}`);
     return this.service.findSiteStock(data.id, data.itemId, leCurrencyCode as CurrencyCode);
   }

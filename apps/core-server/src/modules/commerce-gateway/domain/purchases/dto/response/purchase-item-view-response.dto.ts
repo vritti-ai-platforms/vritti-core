@@ -3,16 +3,26 @@ import {
   PURCHASE_ORDER_STATUSES,
   type PurchaseOrderStatus,
 } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { PURCHASE_ITEM_DOCUMENT_TYPES, type PurchaseItemDocumentType } from '../../constants/purchase.constants';
 import { PurchaseItemResponseDto } from './purchase-item-response.dto';
 import {
   PurchaseItemProblemResponseDto,
+  PurchaseItemProgressDisplayResponseDto,
   PurchaseItemQuoteResponseDto,
   PurchaseItemSupplierProgressResponseDto,
 } from './purchase-item-table-response.dto';
 import { PurchaseSourcingAllocationResponseDto } from './purchase-sourcing-item-response.dto';
+
+export class PurchaseItemViewDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  allocatedPrimaryQty: DisplayUomQuantityResponseDto | null;
+}
 
 export class PurchaseItemViewResponseDto extends PurchaseItemResponseDto {
   @ApiProperty({ description: "The item's category" })
@@ -34,6 +44,12 @@ export class PurchaseItemViewResponseDto extends PurchaseItemResponseDto {
     description: "Whether the purchase's site buys it only from what the legal entity set up as its suppliers' items",
   })
   supplierItemsRequired: boolean;
+
+  @ApiProperty({
+    type: PurchaseItemViewDisplayResponseDto,
+    description: "The needed and allocated quantities in the item's display unit",
+  })
+  display: PurchaseItemViewDisplayResponseDto;
 }
 
 export class PurchaseItemCountsResponseDto {
@@ -71,6 +87,23 @@ export class PurchaseItemProgressResponseDto {
     description: 'The same, per supplier the item is allocated to',
   })
   suppliers: PurchaseItemSupplierProgressResponseDto[];
+
+  @ApiProperty({
+    type: PurchaseItemProgressDisplayResponseDto,
+    description: "Each primary-unit quantity in the item's display unit",
+  })
+  display: PurchaseItemProgressDisplayResponseDto;
+}
+
+export class PurchaseItemAllocationRowDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryUomQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  receivedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  invoicedPrimaryQty: DisplayUomQuantityResponseDto | null;
 }
 
 export class PurchaseItemAllocationRowResponseDto extends PurchaseSourcingAllocationResponseDto {
@@ -89,6 +122,12 @@ export class PurchaseItemAllocationRowResponseDto extends PurchaseSourcingAlloca
 
   @ApiPropertyOptional({ description: 'Invoiced on its PO line, in the primary unit', type: Number, nullable: true })
   invoicedPrimaryQty: number | null;
+
+  @ApiProperty({
+    type: PurchaseItemAllocationRowDisplayResponseDto,
+    description: "Its primary-unit quantities in the item's display unit",
+  })
+  display: PurchaseItemAllocationRowDisplayResponseDto;
 }
 
 export class PurchaseItemAllocationTableResponseDto extends TableResponseDto<PurchaseItemAllocationRowResponseDto> {
@@ -126,6 +165,11 @@ export class PurchaseItemQuoteTableResponseDto extends TableResponseDto<Purchase
   declare activeViewId: string | null;
 }
 
+export class PurchaseItemDocumentDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryQty: DisplayUomQuantityResponseDto | null;
+}
+
 export class PurchaseItemDocumentResponseDto {
   @ApiProperty({ description: 'Document line ID' })
   lineId: string;
@@ -153,6 +197,9 @@ export class PurchaseItemDocumentResponseDto {
 
   @ApiProperty({ description: 'Quantity on the line, in the primary unit' })
   primaryQty: number;
+
+  @ApiProperty({ type: PurchaseItemDocumentDisplayResponseDto, description: "The quantity in the item's display unit" })
+  display: PurchaseItemDocumentDisplayResponseDto;
 }
 
 export class PurchaseItemDocumentTableResponseDto extends TableResponseDto<PurchaseItemDocumentResponseDto> {

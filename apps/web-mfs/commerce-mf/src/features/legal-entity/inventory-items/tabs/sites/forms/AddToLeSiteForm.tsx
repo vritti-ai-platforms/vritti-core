@@ -51,10 +51,7 @@ export const AddToLeSiteForm: React.FC<AddToLeSiteFormProps> = ({
       maxStock: null,
     },
   });
-  const [replenishment, safetyStock, reorderPoint] = useWatch({
-    control: form.control,
-    name: ['replenishment', 'safetyStock', 'reorderPoint'],
-  });
+  const replenishment = useWatch({ control: form.control, name: 'replenishment' });
 
   const addMutation = useAddToLeSite(inventoryItemId, { onSuccess });
 
@@ -76,10 +73,8 @@ export const AddToLeSiteForm: React.FC<AddToLeSiteFormProps> = ({
           </FormSection>
         )}
         {replenishmentSections({
+          inventoryItemId,
           replenishment,
-          safetyStock,
-          reorderPoint,
-          allowDecimal,
           uomSymbol,
           preview: <StockLevelsFormPreview control={form.control} onHand={0} uomSymbol={uomSymbol} />,
         })}

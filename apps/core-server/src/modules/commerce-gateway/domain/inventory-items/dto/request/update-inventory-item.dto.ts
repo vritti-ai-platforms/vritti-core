@@ -43,6 +43,11 @@ export class UpdateInventoryItemDto {
   @IsUUID('7')
   uomId?: string;
 
+  @ApiPropertyOptional({ description: 'Unit the item is displayed in — its primary unit or one it converts to' })
+  @IsOptional()
+  @IsUUID('7')
+  displayUomId?: string;
+
   @ApiPropertyOptional({
     description: 'Pick strategy for lot/serial tracked items',
     enum: ['NONE', 'FIFO', 'FEFO'],

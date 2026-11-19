@@ -6,6 +6,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { GoodsReceiptLineWithDisplayDto } from './dto/entity/goods-receipt-line-with-display.dto';
 import { GoodsReceiptsLinesService } from './services/goods-receipts-lines.service';
 
 @Controller()
@@ -42,20 +43,20 @@ export class GoodsReceiptsLinesController {
   @MessagePattern({ cmd: 'site.goodsReceipts.linesTable' })
   linesTable(
     @Payload() data: { goodsReceiptId: string; itemId: string } & TableState,
-  ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
+  ): Promise<{ result: GoodsReceiptLineWithDisplayDto[]; count: number }> {
     this.logger.log(`site.goodsReceipts.linesTable — item: ${data.itemId}`);
     const { goodsReceiptId, itemId, ...state } = data;
-    return this.linesService.findForTable(itemId, state);
+    return this.service.findForTable(itemId, state);
   }
 
   // Returns one page of the lines one lot of a goods receipt item is distributed to
   @MessagePattern({ cmd: 'site.goodsReceipts.linesByLotTable' })
   linesByLotTable(
     @Payload() data: { goodsReceiptId: string; itemId: string; lotId: string } & TableState,
-  ): Promise<{ result: GoodsReceiptLineDto[]; count: number }> {
+  ): Promise<{ result: GoodsReceiptLineWithDisplayDto[]; count: number }> {
     this.logger.log(`site.goodsReceipts.linesByLotTable — item: ${data.itemId}, lot: ${data.lotId}`);
     const { goodsReceiptId, itemId, lotId, ...state } = data;
-    return this.linesService.findForTable(itemId, state, lotId);
+    return this.service.findForTable(itemId, state, lotId);
   }
 
   // Removes a line from a goods receipt item

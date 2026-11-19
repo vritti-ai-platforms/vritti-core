@@ -1,13 +1,12 @@
 import { cn } from '@vritti/quantum-ui/cn';
-import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import type React from 'react';
-import { type LabelAnchor, type LabelRow, type PlacedLevel, withUnit } from './stockLevelLayout';
+import type { LabelAnchor, LabelRow, PlacedLevel, QuantityLabels } from './stockLevelLayout';
 
 interface LevelLabelsProps {
   levels: PlacedLevel[];
   row: LabelRow;
-  uomSymbol: string;
+  labels: QuantityLabels;
   // Reports each label's rendered width, so the next layout knows whether it fits below the bar
   measure: (node: HTMLElement | null) => void;
 }
@@ -19,8 +18,7 @@ const ANCHOR_CLASS: Record<LabelAnchor, string> = {
 };
 
 // The level labels placed on one side of the bar, each hung from its mark; nothing when none is placed there
-export const LevelLabels: React.FC<LevelLabelsProps> = ({ levels, row, uomSymbol, measure }) => {
-  const fmt = useFormatters();
+export const LevelLabels: React.FC<LevelLabelsProps> = ({ levels, row, labels, measure }) => {
   const inRow = levels.filter((level) => level.row === row);
   if (inRow.length === 0) return null;
 
@@ -36,9 +34,7 @@ export const LevelLabels: React.FC<LevelLabelsProps> = ({ levels, row, uomSymbol
         >
           <Typography variant="caption" intent="muted" className="leading-4">
             {level.name}{' '}
-            <span className="font-medium text-foreground/80 tabular-nums">
-              {withUnit(fmt, level.quantity, uomSymbol)}
-            </span>
+            <span className="font-medium text-foreground/80 tabular-nums">{labels[level.key].primary}</span>
           </Typography>
         </span>
       ))}

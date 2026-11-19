@@ -22,7 +22,6 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
       <LotsTreePanel
         adjustmentId={adjustment.id}
         isDraft={isDraft}
-        uomSymbol={adjustment.inventoryItemUomSymbol}
         selectedId={selectedLineId ?? selectedLotId}
         onSelect={(sel) => {
           setSelectedLotId(sel?.lotId ?? null);
@@ -45,7 +44,6 @@ export const OpeningItemContent = ({ adjustment, isDraft }: OpeningItemContentPr
           lotId={selectedLotId}
           tracking="LOT_SERIAL"
           isDraft={isDraft}
-          uomSymbol={adjustment.inventoryItemUomSymbol}
           onLotRemoved={() => setSelectedLotId(null)}
         />
       ) : (

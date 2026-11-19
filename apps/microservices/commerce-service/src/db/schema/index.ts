@@ -47,6 +47,7 @@ export * from './purchase-item-allocations';
 export * from './purchase-item-progress';
 export * from './purchase-items';
 export * from './purchase-orders';
+export * from './purchase-quotation-changes';
 export * from './purchase-suppliers';
 export * from './purchases';
 export * from './sequences';

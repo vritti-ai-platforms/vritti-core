@@ -42,9 +42,9 @@ export const AddToSiteForm: React.FC<AddToSiteFormProps> = ({ item, onSuccess, o
       maxStock: null,
     },
   });
-  const [replenishment, safetyStock, reorderPoint] = useWatch({
+  const [replenishment, inventoryItemId] = useWatch({
     control: form.control,
-    name: ['replenishment', 'safetyStock', 'reorderPoint'],
+    name: ['replenishment', 'inventoryItemId'],
   });
 
   const siteId = useSiteId();
@@ -70,10 +70,8 @@ export const AddToSiteForm: React.FC<AddToSiteFormProps> = ({ item, onSuccess, o
         )}
         {unit !== undefined &&
           replenishmentSections({
+            inventoryItemId,
             replenishment,
-            safetyStock,
-            reorderPoint,
-            allowDecimal: unit.allowDecimal,
             uomSymbol: unit.uomSymbol,
             preview: (
               <StockLevelsFormPreview control={form.control} onHand={item?.onHand ?? 0} uomSymbol={unit.uomSymbol} />

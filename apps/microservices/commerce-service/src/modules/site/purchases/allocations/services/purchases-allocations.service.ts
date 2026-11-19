@@ -64,7 +64,7 @@ export class PurchasesAllocationsService {
     const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
     this.allocationsRepository.assertEnteredAllowed(purchase);
     const item = await this.purchaseItemsRepository.findOnPurchaseOrThrow(purchase.id, dto.purchaseItemId);
-    await this.inventoryItemSitesRepository.ensurePurchasable(
+    await this.inventoryItemSitesRepository.canPurchaseAtSite(
       [item.inventoryItemId],
       'purchaseItemId',
       purchase.siteId,
@@ -222,7 +222,7 @@ export class PurchasesAllocationsService {
       primaryUomQty: await this.uomConversionsService.toPrimaryUomQuantity(item.inventoryItemId, uomId, uomQty),
     };
     if (new Decimal(quantity.primaryUomQty).gt(allocation.primaryUomQty)) {
-      await this.inventoryItemSitesRepository.ensurePurchasable([item.inventoryItemId], 'uomQty', purchase.siteId);
+      await this.inventoryItemSitesRepository.canPurchaseAtSite([item.inventoryItemId], 'uomQty', purchase.siteId);
     }
 
     await this.allocationsService.update(this.contextOf(purchase, leg, item.id, supplier), allocation, dto, quantity);

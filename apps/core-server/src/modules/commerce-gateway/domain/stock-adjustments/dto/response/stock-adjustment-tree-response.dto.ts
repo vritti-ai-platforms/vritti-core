@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { StockAdjustmentLotDisplayResponseDto } from './stock-adjustment-lot-response.dto';
 
 // Node in the OPENING+serial tree: lots as roots, lines as children.
 export class StockAdjustmentTreeNodeResponseDto {
@@ -38,4 +39,10 @@ export class StockAdjustmentTreeNodeResponseDto {
     isArray: true,
   })
   children?: StockAdjustmentTreeNodeResponseDto[];
+
+  @ApiPropertyOptional({
+    type: StockAdjustmentLotDisplayResponseDto,
+    description: "On lot nodes, their quantities in the item's display unit",
+  })
+  display?: StockAdjustmentLotDisplayResponseDto;
 }

@@ -39,6 +39,10 @@ export class UpdateInventoryItemDto {
   @IsUUID('7')
   uomId?: string;
 
+  @IsOptional()
+  @IsUUID('7')
+  displayUomId?: string;
+
   @IsEnum(InventoryPickStrategyValues)
   @IsOptional()
   pickStrategy?: InventoryPickStrategy;

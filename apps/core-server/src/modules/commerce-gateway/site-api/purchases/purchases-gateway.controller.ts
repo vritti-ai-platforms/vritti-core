@@ -1,5 +1,7 @@
 import { CancelPurchaseDto } from '@commerce/purchases/dto/request/cancel-purchase.dto';
 import { CancelSupplierDto } from '@commerce/purchases/dto/request/cancel-supplier.dto';
+import { ChangePurchaseMinQuotationsDto } from '@commerce/purchases/dto/request/change-purchase-min-quotations.dto';
+import { ChangePurchaseNotesDto } from '@commerce/purchases/dto/request/change-purchase-notes.dto';
 import { ClosePurchaseDto } from '@commerce/purchases/dto/request/close-purchase.dto';
 import { CloseSupplierDto } from '@commerce/purchases/dto/request/close-supplier.dto';
 import { CreateLegGoodsReceiptDto } from '@commerce/purchases/dto/request/create-leg-goods-receipt.dto';
@@ -10,11 +12,12 @@ import { CreatePurchaseAllocationDto } from '@commerce/purchases/dto/request/cre
 import { CreatePurchaseAllocationsFromQuotationDto } from '@commerce/purchases/dto/request/create-purchase-allocations-from-quotation.dto';
 import { CreatePurchaseItemDto } from '@commerce/purchases/dto/request/create-purchase-item.dto';
 import { CreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/create-purchase-supplier-invoice.dto';
+import { DisablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/disable-purchase-quotations.dto';
+import { EnablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/enable-purchase-quotations.dto';
 import { ReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/receive-with-invoice.dto';
 import { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
 import { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/request-purchase-quotation.dto';
-import { UpdatePurchaseDto } from '@commerce/purchases/dto/request/update-purchase.dto';
 import { UpdatePurchaseAllocationDto } from '@commerce/purchases/dto/request/update-purchase-allocation.dto';
 import { UpdatePurchaseItemDto } from '@commerce/purchases/dto/request/update-purchase-item.dto';
 import type { CreatedLegGoodsReceiptResponseDto } from '@commerce/purchases/dto/response/created-leg-goods-receipt-response.dto';
@@ -82,6 +85,8 @@ import {
   ApiApproveLeg,
   ApiCancel,
   ApiCancelSupplier,
+  ApiChangeMinQuotations,
+  ApiChangeNotes,
   ApiClose,
   ApiCloseSupplier,
   ApiConfirmLegPurchaseOrder,
@@ -97,7 +102,9 @@ import {
   ApiDelete,
   ApiDeleteAllocation,
   ApiDeleteItem,
+  ApiDisableQuotations,
   ApiDiscardReceiveWithInvoice,
+  ApiEnableQuotations,
   ApiFindActions,
   ApiFindById,
   ApiFindCounts,
@@ -126,7 +133,6 @@ import {
   ApiRequestQuotation,
   ApiSubmit,
   ApiSubmitSupplier,
-  ApiUpdate,
   ApiUpdateAllocation,
   ApiUpdateItem,
   ApiUpdateReceiveWithInvoice,
@@ -271,13 +277,54 @@ export class PurchasesGatewayController {
     return this.service.createReceiveWithInvoice(dto);
   }
 
-  // Changes a purchase's header while it is Requesting
-  @Patch(':id')
+  // Changes an open purchase's notes
+  @Patch(':id/notes')
   @RequirePermission(SITE_PURCHASES.edit)
-  @ApiUpdate()
-  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`PATCH /commerce-api/site/purchases/${id}`);
-    return this.service.update(id, dto);
+  @ApiChangeNotes()
+  changeNotes(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: ChangePurchaseNotesDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/purchases/${id}/notes`);
+    return this.service.changeNotes(id, dto);
+  }
+
+  // Requires quotations on a purchase none of whose suppliers is submitted yet
+  @Post(':id/quotations/enable')
+  @RequirePermission(SITE_PURCHASES.edit)
+  @HttpCode(HttpStatus.OK)
+  @ApiEnableQuotations()
+  enableQuotations(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: EnablePurchaseQuotationsDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/quotations/enable`);
+    return this.service.enableQuotations(id, dto);
+  }
+
+  // Stops requiring quotations on an open purchase, with why
+  @Post(':id/quotations/disable')
+  @RequirePermission(SITE_PURCHASES.edit)
+  @HttpCode(HttpStatus.OK)
+  @ApiDisableQuotations()
+  disableQuotations(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: DisablePurchaseQuotationsDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/purchases/${id}/quotations/disable`);
+    return this.service.disableQuotations(id, dto);
+  }
+
+  // Changes how many posted quotations each item needs before its supplier is submitted
+  @Patch(':id/quotations/minimum')
+  @RequirePermission(SITE_PURCHASES.edit)
+  @ApiChangeMinQuotations()
+  changeMinQuotations(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: ChangePurchaseMinQuotationsDto,
+  ): Promise<SuccessResponseDto> {
+    this.logger.log(`PATCH /commerce-api/site/purchases/${id}/quotations/minimum`);
+    return this.service.changeMinQuotations(id, dto);
   }
 
   // Changes an item of a purchase

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, desc, eq, getColumns, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type GoodsReceiptLine,
   goodsReceiptItems,
   goodsReceiptLineItems,
@@ -23,20 +25,23 @@ export type GoodsReceiptLineRow = GoodsReceiptLine & {
   lineItemsCount: number;
 };
 
+export type GoodsReceiptLineTableRow = GoodsReceiptLineRow & { displayUnitRatios: DisplayUnitRatios };
+
 @Injectable()
 export class GoodsReceiptLinesDomainRepository extends PrimaryBaseRepository<typeof goodsReceiptLines> {
   constructor(database: PrimaryDatabaseService) {
     super(database, goodsReceiptLines);
   }
 
-  // Returns one page of a receipt item's lines, narrowed to one of its lots when given
+  // Returns one page of a receipt item's lines, narrowed to one of its lots when given, with what turns the item into
+  // its display unit
   async findForTable(
     itemId: string,
     options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number; lotId?: string },
-  ): Promise<{ result: GoodsReceiptLineRow[]; count: number }> {
+  ): Promise<{ result: GoodsReceiptLineTableRow[]; count: number }> {
     const { lotId, ...page } = options;
-    return this.findAllAndCount<GoodsReceiptLineRow>({
-      select: this.selection(),
+    return this.findAllAndCount<GoodsReceiptLineTableRow>({
+      select: { ...this.selection(), displayUnitRatios: displayUnitRatios() },
       innerJoins: this.joins(),
       leftJoin: this.lotJoin(),
       ...page,

@@ -10,6 +10,7 @@ import { SupplierItemPricesDomainModule } from '@domain/supplier-item-prices/sup
 import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items.module';
 import { SupplierQuotationsDomainModule } from '@domain/supplier-quotations/supplier-quotations.module';
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
+import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
 import { LeSuppliersModule } from '@/modules/legal-entity/suppliers/suppliers.module';
 import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/purchase-progress.module';
@@ -42,6 +43,7 @@ import { SiteSupplierSiteItemsController } from './site-items/root/site-supplier
     PurchaseOrderItemsDomainModule,
     InventoryItemQuantsDomainModule,
     PurchasesDomainModule,
+    UomConversionsDomainModule,
     SitePurchasingRulesModule,
     SitePurchaseProgressModule,
     LeSuppliersModule,

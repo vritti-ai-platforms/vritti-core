@@ -1,4 +1,5 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { InventoryTracking } from './inventory-items';
@@ -51,6 +52,7 @@ export interface StockAdjustmentLotData {
   linesCount: number;
   totalQuantity: number;
   createdAt: string;
+  display: Record<'totalQuantity', DisplayQuantity | null>;
 }
 
 export type StockAdjustmentLotDetailData = StockAdjustmentLotData;
@@ -87,6 +89,10 @@ export interface StockAdjustmentLineData {
   lineItemsCount: number;
   metadata: Record<string, unknown>;
   createdAt: string;
+  display: Record<
+    'primaryUomQty' | 'quantTotalQuantity' | 'quantReservedQuantity' | 'quantAvailableQuantity',
+    DisplayQuantity | null
+  >;
 }
 
 export interface StockAdjustmentLineItemData {
@@ -114,6 +120,7 @@ export interface StockAdjustmentData {
   metadata: Record<string, unknown>;
   publishedAt: string | null;
   createdAt: string;
+  display: Record<'totalQuantity', DisplayQuantity | null>;
 }
 
 export interface StockAdjustmentTreeNode {
@@ -127,6 +134,7 @@ export interface StockAdjustmentTreeNode {
   lineItemsCount?: number;
   isBalanced: boolean;
   children?: StockAdjustmentTreeNode[];
+  display?: Record<'totalQuantity', DisplayQuantity | null>;
 }
 
 export type StockAdjustmentsTableResponse = TableResponse<StockAdjustmentData>;

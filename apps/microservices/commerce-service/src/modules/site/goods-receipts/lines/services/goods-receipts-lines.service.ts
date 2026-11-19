@@ -7,8 +7,10 @@ import { GoodsReceiptItemsDomainService } from '@domain/goods-receipts/services/
 import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { InboundDeliverySourceValues } from '@/db/schema';
+import type { GoodsReceiptLineWithDisplayDto } from '../dto/entity/goods-receipt-line-with-display.dto';
 
 @Injectable()
 export class GoodsReceiptsLinesService {
@@ -40,6 +42,26 @@ export class GoodsReceiptsLinesService {
         ? undefined
         : await this.uomConversionsService.toPrimaryUomQuantity(item.inventoryItemId, item.uomId, dto.quantity);
     return this.linesService.updateLine(item, dto, primaryUomQty);
+  }
+
+  // Returns one page of a receipt item's lines, narrowed to one of its lots when given, each primary-unit quantity also in
+  // the item's display unit
+  async findForTable(
+    itemId: string,
+    state: TableState,
+    lotId?: string,
+  ): Promise<{ result: GoodsReceiptLineWithDisplayDto[]; count: number }> {
+    const { result, count } = await this.linesService.findForTable(itemId, state, lotId);
+    return {
+      result: result.map(({ displayUnitRatios, ...line }) => ({
+        ...line,
+        display: this.uomConversionsService.toDisplayUomQuantities(
+          { primaryUomQty: line.primaryUomQty },
+          displayUnitRatios,
+        ),
+      })),
+      count,
+    };
   }
 
   // Removes a line from an item of a draft receipt

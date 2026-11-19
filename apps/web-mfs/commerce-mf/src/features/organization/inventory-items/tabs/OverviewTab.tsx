@@ -21,6 +21,7 @@ export const OverviewTab = ({ item }: OverviewTabProps) => {
             <DetailField label="Type" type="string" value={inventoryItemTypeConfig[item.type].label} />
             <DetailField label="Category" type="string" value={item.categoryName} />
             <DetailField label="Unit of Measure" type="string" value={item.uomSymbol} />
+            <DetailField label="Display Unit" type="string" value={item.displayUomSymbol} />
             <DetailField label="Tracking" type="string" value={inventoryTrackingConfig[item.tracking].label} />
             <DetailField
               label="Pick Strategy"

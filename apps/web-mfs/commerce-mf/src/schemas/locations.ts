@@ -1,4 +1,5 @@
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { CreateResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField, zodResolver } from '@vritti/quantum-ui/zod';
 import type { Resolver } from 'react-hook-form';
@@ -128,6 +129,7 @@ export interface LocationItemRow {
   availableQuantity: number;
   totalValue: CurrencyValue | null;
   batchCount: number;
+  display: Record<'totalQuantity' | 'availableQuantity', DisplayQuantity | null>;
 }
 
 export interface LocationItemQuantRow {
@@ -138,6 +140,7 @@ export interface LocationItemQuantRow {
   availableQuantity: number;
   unitCost: CurrencyValue | null;
   quantValue: CurrencyValue | null;
+  display: Record<'quantity' | 'availableQuantity', DisplayQuantity | null>;
 }
 
 export type LocationItemsTableResponse = TableResponse<LocationItemRow>;

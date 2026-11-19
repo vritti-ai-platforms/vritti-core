@@ -3,14 +3,26 @@ import type { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/
 import type { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import type { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
+import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
+import _ from '@vritti/api-sdk/lodash';
+import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import { SITE_STOCK_QUANTITY_KEYS } from '../dto/entity/site-stock-display.dto';
+import type { SiteStockTableRowDto } from '../dto/entity/site-stock-table-row.dto';
 
 @Injectable()
 export class SiteInventoryItemsService {
   private readonly logger = new Logger(SiteInventoryItemsService.name);
 
-  constructor(private readonly siteItemsService: InventoryItemSitesDomainService) {}
+  constructor(
+    private readonly siteItemsService: InventoryItemSitesDomainService,
+    private readonly inventoryItemsService: InventoryItemsDomainService,
+    private readonly uomConversionsService: UomConversionsDomainService,
+  ) {}
 
   // Adds an item to the current site with how it is replenished here
   async addToSite(dto: ReplenishmentDto): Promise<CreateResponseDto<InventoryItemSiteDto>> {
@@ -35,6 +47,30 @@ export class SiteInventoryItemsService {
   unblock(inventoryItemId: string): Promise<SuccessResponseDto> {
     this.logger.log(`unblock — inventoryItemId=${inventoryItemId}`);
     return this.siteItemsService.unblock({ inventoryItemId });
+  }
+
+  // Returns a single master inventory item by ID (shared detail)
+  findById(id: string): Promise<InventoryItemDto> {
+    return this.inventoryItemsService.findById(id);
+  }
+
+  // Every master item with how the current site carries it and the stock it holds here by location, each primary-unit
+  // quantity also expressed in the item's display unit
+  async findForStockTable(
+    state: TableState,
+    leCurrencyCode: CurrencyCode,
+  ): Promise<{ result: SiteStockTableRowDto[]; count: number }> {
+    const { result, count } = await this.inventoryItemsService.findForSiteStockTable(state, leCurrencyCode);
+    return {
+      result: result.map(({ displayUnitRatios, ...row }) => ({
+        ...row,
+        display: this.uomConversionsService.toDisplayUomQuantities(
+          _.pick(row, SITE_STOCK_QUANTITY_KEYS),
+          displayUnitRatios,
+        ),
+      })),
+      count,
+    };
   }
 
   // How the current site carries an item, or null while it does not; RLS narrows the item's rows to this site

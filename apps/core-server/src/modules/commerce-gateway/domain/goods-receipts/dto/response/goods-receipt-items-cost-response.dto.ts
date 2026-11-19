@@ -1,5 +1,11 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+
+export class GoodsReceiptItemCostDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  acceptedPrimaryQty: DisplayUomQuantityResponseDto | null;
+}
 
 export class GoodsReceiptItemCostResponseDto {
   @ApiProperty({ description: 'Goods receipt item ID' })
@@ -32,6 +38,12 @@ export class GoodsReceiptItemCostResponseDto {
 
   @ApiProperty({ type: CurrencyAmountDto, description: 'Provisional value of the accepted quantity' })
   value: CurrencyAmountDto;
+
+  @ApiProperty({
+    type: GoodsReceiptItemCostDisplayResponseDto,
+    description: "The accepted primary-unit quantity in the item's display unit",
+  })
+  display: GoodsReceiptItemCostDisplayResponseDto;
 }
 
 export class GoodsReceiptItemsCostResponseDto {

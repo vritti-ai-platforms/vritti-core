@@ -1,4 +1,5 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { LocationItemRow } from '../../repositories/inventory-item-quants.repository';
 
 export class LocationItemDto {
@@ -10,6 +11,7 @@ export class LocationItemDto {
   availableQuantity: number;
   totalValue: CurrencyAmountDto | null;
   batchCount: number;
+  displayUnitRatios: DisplayUnitRatios;
 
   // Maps a grouped per-item row. availableQuantity = total − reserved; totalValue is the summed quant_value
   // (site-currency minor units) wrapped in CurrencyAmountDto, null when no cost currency is known.
@@ -23,6 +25,7 @@ export class LocationItemDto {
     dto.availableQuantity = row.totalQuantity - row.reservedQuantity;
     dto.totalValue = row.costCurrency ? CurrencyAmountDto.from(row.totalValueMinor, row.costCurrency) : null;
     dto.batchCount = row.batchCount;
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

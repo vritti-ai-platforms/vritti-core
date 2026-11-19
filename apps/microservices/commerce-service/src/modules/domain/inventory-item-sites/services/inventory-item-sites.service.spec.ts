@@ -31,13 +31,13 @@ const reorder = (overrides: Partial<ReplenishmentDto> = {}): ReplenishmentDto =>
 describe('InventoryItemSitesDomainRepository guards', () => {
   it('accepts items the site carries', async () => {
     await expect(
-      guards({ requested: 1, carried: 1, blocked: 0 }).ensureAtSite(['item-1'], 'items', 'site-1'),
+      guards({ requested: 1, carried: 1, blocked: 0 }).isAddedToSite(['item-1'], 'items', 'site-1'),
     ).resolves.toBeUndefined();
   });
 
   it('refuses on the given field when the site does not carry every item', async () => {
     await expect(
-      guards({ requested: 2, carried: 1, blocked: 0 }).ensureAtSite(['a', 'b'], 'items', 'site-1'),
+      guards({ requested: 2, carried: 1, blocked: 0 }).isAddedToSite(['a', 'b'], 'items', 'site-1'),
     ).rejects.toMatchObject({
       response: expect.objectContaining({
         label: 'Not at Site',
@@ -48,8 +48,8 @@ describe('InventoryItemSitesDomainRepository guards', () => {
 
   it('refuses purchasing a blocked item, but not stocking it', async () => {
     const repository = guards({ requested: 1, carried: 1, blocked: 1 });
-    await expect(repository.ensureAtSite(['item-1'], 'items')).resolves.toBeUndefined();
-    await expect(repository.ensurePurchasable(['item-1'], 'items')).rejects.toMatchObject({
+    await expect(repository.isAddedToSite(['item-1'], 'items')).resolves.toBeUndefined();
+    await expect(repository.canPurchaseAtSite(['item-1'], 'items')).rejects.toMatchObject({
       response: expect.objectContaining({
         label: 'Purchasing Blocked',
       }),

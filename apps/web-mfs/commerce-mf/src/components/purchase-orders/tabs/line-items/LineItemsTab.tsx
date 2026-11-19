@@ -11,6 +11,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
@@ -46,15 +47,13 @@ function linesLockedReason(purchaseOrder: PurchaseOrderDetail): string | undefin
   return `This order is ${statusLabel}, so its lines can no longer change.`;
 }
 
-// A counter kept in the item's primary unit, with that unit beside it
-const PrimaryQuantityCell = ({ line, qty }: { line: PurchaseOrderItemData; qty: number }) => (
-  <span className="flex items-baseline gap-1">
-    <NumberCell value={qty} />
-    <span className="text-xs text-muted-foreground">{line.primaryUomSymbol}</span>
-  </span>
-);
+// A counter kept in the item's primary unit, shown in the item's display unit
+const PrimaryQuantityCell = ({ qty }: { qty: DisplayQuantity | null }) => {
+  const fmt = useFormatters();
+  return <span className="font-mono">{fmt.quantity(qty).primary}</span>;
+};
 
-// A line quantity in its own unit; a line ordered in a pack unit adds the item's primary-unit quantity under it
+// A line quantity in its own unit; a line ordered in a pack unit adds the item's quantity in its display unit under it
 const LineQuantityCell = ({
   line,
   qty,
@@ -62,17 +61,18 @@ const LineQuantityCell = ({
 }: {
   line: PurchaseOrderItemData;
   qty: number;
-  primaryQty: number;
-}) => (
-  <span className="flex flex-col">
-    <NumberCell value={qty} />
-    {line.primaryUomQty !== line.uomQty && (
-      <span className="font-mono text-xs text-muted-foreground">
-        <NumberCell value={primaryQty} /> {line.primaryUomSymbol}
-      </span>
-    )}
-  </span>
-);
+  primaryQty: DisplayQuantity | null;
+}) => {
+  const fmt = useFormatters();
+  return (
+    <span className="flex flex-col">
+      <NumberCell value={qty} />
+      {line.primaryUomQty !== line.uomQty && (
+        <span className="font-mono text-xs text-muted-foreground">{fmt.quantity(primaryQty).primary}</span>
+      )}
+    </span>
+  );
+};
 
 interface LineItemsTabProps {
   binding: PurchaseOrdersBinding;
@@ -181,7 +181,11 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
             header: 'Ordered',
             size: 96,
             cell: ({ row }) => (
-              <LineQuantityCell line={row.original} qty={row.original.uomQty} primaryQty={row.original.primaryUomQty} />
+              <LineQuantityCell
+                line={row.original}
+                qty={row.original.uomQty}
+                primaryQty={row.original.display.primaryUomQty}
+              />
             ),
           },
           {
@@ -192,7 +196,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
               <LineQuantityCell
                 line={row.original}
                 qty={row.original.expectedFreeQty}
-                primaryQty={row.original.expectedFreePrimaryQty}
+                primaryQty={row.original.display.expectedFreePrimaryQty}
               />
             ),
           },
@@ -204,7 +208,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
               <LineQuantityCell
                 line={row.original}
                 qty={row.original.receivedQty}
-                primaryQty={row.original.receivedPrimaryQty}
+                primaryQty={row.original.display.receivedPrimaryQty}
               />
             ),
           },
@@ -213,7 +217,7 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
             header: 'To Receive',
             size: 96,
             enableSorting: false,
-            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.openToReceivePrimaryQty} />,
+            cell: ({ row }) => <PrimaryQuantityCell qty={row.original.display.openToReceivePrimaryQty} />,
           },
         ],
       },
@@ -225,14 +229,14 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
             accessorKey: 'invoicedPrimaryQty',
             header: 'Invoiced',
             size: 96,
-            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.invoicedPrimaryQty} />,
+            cell: ({ row }) => <PrimaryQuantityCell qty={row.original.display.invoicedPrimaryQty} />,
           },
           {
             accessorKey: 'openToInvoicePrimaryQty',
             header: 'To Invoice',
             size: 96,
             enableSorting: false,
-            cell: ({ row }) => <PrimaryQuantityCell line={row.original} qty={row.original.openToInvoicePrimaryQty} />,
+            cell: ({ row }) => <PrimaryQuantityCell qty={row.original.display.openToInvoicePrimaryQty} />,
           },
         ],
       },

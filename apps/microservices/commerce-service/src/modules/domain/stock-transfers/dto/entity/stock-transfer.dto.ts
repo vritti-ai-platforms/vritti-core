@@ -1,4 +1,4 @@
-import type { StockTransfer } from '@/db/schema';
+import type { DisplayUnitRatios, StockTransfer } from '@/db/schema';
 
 export class StockTransferDto {
   id: string;
@@ -30,14 +30,18 @@ export class StockTransferDto {
   }
 }
 
-// A stock transfer as its table lists it, with the item's name
+// A stock transfer as its table lists it, with the item's name and the figures for its display unit
 export class StockTransferRowDto extends StockTransferDto {
   inventoryItemName: string;
+  displayUnitRatios: DisplayUnitRatios;
 
-  // Maps a table row read with the item's name
-  static fromRow(row: StockTransfer & { inventoryItemName: string }): StockTransferRowDto {
+  // Maps a table row read with the item's name and display-unit figures
+  static fromRow(
+    row: StockTransfer & { inventoryItemName: string; displayUnitRatios: DisplayUnitRatios },
+  ): StockTransferRowDto {
     const dto = Object.assign(new StockTransferRowDto(), StockTransferDto.from(row));
     dto.inventoryItemName = row.inventoryItemName;
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

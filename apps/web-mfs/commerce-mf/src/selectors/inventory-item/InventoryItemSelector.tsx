@@ -10,6 +10,8 @@ export type InventoryItemSelectorProps = SelectProps & {
   atSiteId?: string;
   // Lists only the items this site does not carry yet, the ones that can be added to it
   notAtSiteId?: string;
+  // Lists only the items not on this purchase yet, the ones that can be added to it
+  notOnPurchaseId?: string;
   // With atSiteId, marks the items this supplier has set up at the site and leaves out those the site buys only from
   // suppliers set up for them
   supplierId?: string;
@@ -19,7 +21,7 @@ const DEFAULT_FIELD_KEYS = { valueKey: 'id', labelKey: 'name', groupIdKey: 'cate
 
 // Pre-configured Select for inventory item selection with async search, grouped by category
 export const InventoryItemSelector = forwardRef<HTMLButtonElement, InventoryItemSelectorProps>(
-  ({ fieldKeys, atSiteId, notAtSiteId, supplierId, params, ...props }, ref) => {
+  ({ fieldKeys, atSiteId, notAtSiteId, notOnPurchaseId, supplierId, params, ...props }, ref) => {
     const [stockStatus, setStockStatus] = useState<string[]>([]);
     const [categoryIds, setCategoryIds] = useState<string[]>([]);
     return (
@@ -61,6 +63,7 @@ export const InventoryItemSelector = forwardRef<HTMLButtonElement, InventoryItem
           ...params,
           ...(atSiteId ? { atSiteId } : {}),
           ...(notAtSiteId ? { notAtSiteId } : {}),
+          ...(notOnPurchaseId ? { notOnPurchaseId } : {}),
           ...(atSiteId && supplierId ? { supplierId } : {}),
           ...(atSiteId && stockStatus.length > 0 ? { stockStatus: stockStatus.join(',') } : {}),
           ...(atSiteId && categoryIds.length > 0 ? { categoryIds: categoryIds.join(',') } : {}),

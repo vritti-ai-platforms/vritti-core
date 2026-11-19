@@ -3,24 +3,20 @@ import { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block
 import { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
-import type { SiteStockTableItemDto } from '@domain/inventory-items/dto/entity/scoped-inventory-item.dto';
-import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { SiteStockTableRowDto } from './dto/entity/site-stock-table-row.dto';
 import { SiteInventoryItemsService } from './services/inventory-items-root.service';
 
 @Controller()
 export class InventoryItemsRootController {
   private readonly logger = new Logger(InventoryItemsRootController.name);
 
-  constructor(
-    private readonly service: InventoryItemsDomainService,
-    private readonly rootService: SiteInventoryItemsService,
-  ) {}
+  constructor(private readonly rootService: SiteInventoryItemsService) {}
 
   // Adds an item to the current site with how it is replenished here
   @MessagePattern({ cmd: 'site.inventoryItems.setup.create' })
@@ -54,7 +50,7 @@ export class InventoryItemsRootController {
   @MessagePattern({ cmd: 'site.inventoryItems.findById' })
   async findById(@Payload() data: { id: string }): Promise<InventoryItemDto> {
     this.logger.log(`inventoryItems.findById — id: ${data.id}`);
-    return this.service.findById(data.id);
+    return this.rootService.findById(data.id);
   }
 
   // Every master item, with how this site carries it and the stock it holds here, by location
@@ -62,9 +58,9 @@ export class InventoryItemsRootController {
   async stockTable(
     @Payload() state: TableState,
     @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<{ result: SiteStockTableItemDto[]; count: number }> {
+  ): Promise<{ result: SiteStockTableRowDto[]; count: number }> {
     this.logger.log('inventoryItems.stockTable');
-    return this.service.findForSiteStockTable(state, leCurrencyCode as CurrencyCode);
+    return this.rootService.findForStockTable(state, leCurrencyCode as CurrencyCode);
   }
 
   // Returns how the current site carries an item, or null while it does not

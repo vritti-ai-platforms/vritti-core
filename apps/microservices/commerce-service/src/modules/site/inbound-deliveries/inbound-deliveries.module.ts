@@ -1,6 +1,7 @@
 import { InboundDeliveriesDomainModule } from '@domain/inbound-deliveries/inbound-deliveries.module';
 import { PurchasesDomainModule } from '@domain/purchases/purchases.module';
 import { SupplierEnrollmentsDomainModule } from '@domain/supplier-enrollments/supplier-enrollments.module';
+import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
 import { InboundDeliveriesLinesController } from './lines/inbound-deliveries-lines.controller';
 import { InboundDeliveriesLinesService } from './lines/services/inbound-deliveries-lines.service';
@@ -8,7 +9,12 @@ import { InboundDeliveriesRootController } from './root/inbound-deliveries-root.
 import { InboundDeliveriesService } from './root/services/inbound-deliveries-root.service';
 
 @Module({
-  imports: [InboundDeliveriesDomainModule, SupplierEnrollmentsDomainModule, PurchasesDomainModule],
+  imports: [
+    InboundDeliveriesDomainModule,
+    SupplierEnrollmentsDomainModule,
+    PurchasesDomainModule,
+    UomConversionsDomainModule,
+  ],
   controllers: [InboundDeliveriesRootController, InboundDeliveriesLinesController],
   providers: [
     // Root

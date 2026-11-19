@@ -7,6 +7,7 @@ import {
   RowActions,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Coins, Eye } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -23,6 +24,7 @@ interface ItemsCostTabProps {
 // The provisional cost of the accepted goods, read-only: the PO line's value spread over its ordered and expected free
 // quantity, in the legal entity's currency; a posted item opens the stock batches it created
 export const ItemsCostTab: React.FC<ItemsCostTabProps> = ({ binding, goodsReceiptId, isDraft }) => {
+  const fmt = useFormatters();
   const { data: cost, isLoading } = binding.useItemsCost(goodsReceiptId);
   const costRows = useMemo(() => ({ result: cost?.rows ?? [], count: cost?.rows.length ?? 0 }), [cost]);
 
@@ -40,11 +42,9 @@ export const ItemsCostTab: React.FC<ItemsCostTabProps> = ({ binding, goodsReceip
       },
       {
         accessorKey: 'acceptedPrimaryQty',
-        header: 'Accepted (Primary Unit)',
+        header: 'Accepted (Item Units)',
         cell: ({ row }) => (
-          <span className="font-mono">
-            <NumberCell value={row.original.acceptedPrimaryQty} /> {row.original.primaryUomSymbol}
-          </span>
+          <span className="font-mono">{fmt.quantity(row.original.display.acceptedPrimaryQty).primary}</span>
         ),
       },
       {
@@ -91,7 +91,7 @@ export const ItemsCostTab: React.FC<ItemsCostTabProps> = ({ binding, goodsReceip
             } satisfies ColumnDef<GoodsReceiptItemCostRow>,
           ]),
     ],
-    [binding, goodsReceiptId, isDraft],
+    [binding, goodsReceiptId, isDraft, fmt],
   );
 
   const itemsCostTable = useDataTable({

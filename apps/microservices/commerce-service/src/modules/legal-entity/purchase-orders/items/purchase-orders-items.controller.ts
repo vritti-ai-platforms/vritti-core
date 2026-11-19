@@ -8,6 +8,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import type { PurchaseOrderItemDefaultsDto } from '@/modules/site/purchase-orders/items/dto/entity/purchase-order-item-defaults.dto';
+import type { PurchaseOrderItemWithDisplayDto } from '@/modules/site/purchase-orders/items/dto/entity/purchase-order-item-with-display.dto';
 import { PurchaseOrderItemDefaultsQueryDto } from '@/modules/site/purchase-orders/items/dto/request/purchase-order-item-defaults-query.dto';
 import { PurchaseOrdersItemsService } from '@/modules/site/purchase-orders/items/services/purchase-orders-items.service';
 
@@ -36,10 +37,12 @@ export class LePurchaseOrdersItemsController {
 
   // Returns one page of a purchase order's lines
   @MessagePattern({ cmd: 'le.purchaseOrders.itemsTable' })
-  itemsTable(@Payload() data: { id: string } & TableState): Promise<{ result: PurchaseOrderItemDto[]; count: number }> {
+  itemsTable(
+    @Payload() data: { id: string } & TableState,
+  ): Promise<{ result: PurchaseOrderItemWithDisplayDto[]; count: number }> {
     this.logger.log(`le.purchaseOrders.itemsTable — id: ${data.id}`);
     const { id, ...state } = data;
-    return this.itemsService.findForTable(id, state);
+    return this.service.findForTable(id, state);
   }
 
   // What a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery

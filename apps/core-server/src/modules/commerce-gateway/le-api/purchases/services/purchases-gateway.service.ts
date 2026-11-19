@@ -1,5 +1,7 @@
 import type { CancelPurchaseDto } from '@commerce/purchases/dto/request/cancel-purchase.dto';
 import type { CancelSupplierDto } from '@commerce/purchases/dto/request/cancel-supplier.dto';
+import type { ChangePurchaseMinQuotationsDto } from '@commerce/purchases/dto/request/change-purchase-min-quotations.dto';
+import type { ChangePurchaseNotesDto } from '@commerce/purchases/dto/request/change-purchase-notes.dto';
 import type { ClosePurchaseDto } from '@commerce/purchases/dto/request/close-purchase.dto';
 import type { CloseSupplierDto } from '@commerce/purchases/dto/request/close-supplier.dto';
 import type { CreateLegGoodsReceiptDto } from '@commerce/purchases/dto/request/create-leg-goods-receipt.dto';
@@ -8,6 +10,8 @@ import type { CreateLegPurchaseOrderDto } from '@commerce/purchases/dto/request/
 import type { CreatePurchaseAllocationDto } from '@commerce/purchases/dto/request/create-purchase-allocation.dto';
 import type { CreatePurchaseAllocationsFromQuotationDto } from '@commerce/purchases/dto/request/create-purchase-allocations-from-quotation.dto';
 import type { CreatePurchaseItemDto } from '@commerce/purchases/dto/request/create-purchase-item.dto';
+import type { DisablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/disable-purchase-quotations.dto';
+import type { EnablePurchaseQuotationsDto } from '@commerce/purchases/dto/request/enable-purchase-quotations.dto';
 import type { LeCreatePurchaseDto } from '@commerce/purchases/dto/request/le-create-purchase.dto';
 import type { LeCreatePurchaseSupplierInvoiceDto } from '@commerce/purchases/dto/request/le-create-purchase-supplier-invoice.dto';
 import type { LeCreateReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le-create-receive-with-invoice.dto';
@@ -15,7 +19,6 @@ import type { LeReceiveWithInvoiceDto } from '@commerce/purchases/dto/request/le
 import type { ReceiveWithInvoiceOpenLinesQueryDto } from '@commerce/purchases/dto/request/receive-with-invoice-open-lines-query.dto';
 import type { RejectPurchaseLegDto } from '@commerce/purchases/dto/request/reject-purchase-leg.dto';
 import type { RequestPurchaseQuotationDto } from '@commerce/purchases/dto/request/request-purchase-quotation.dto';
-import type { UpdatePurchaseDto } from '@commerce/purchases/dto/request/update-purchase.dto';
 import type { UpdatePurchaseAllocationDto } from '@commerce/purchases/dto/request/update-purchase-allocation.dto';
 import type { UpdatePurchaseItemDto } from '@commerce/purchases/dto/request/update-purchase-item.dto';
 import type { UpdatePurchaseSettingsDto } from '@commerce/purchases/dto/request/update-purchase-settings.dto';
@@ -96,7 +99,7 @@ export class LePurchasesGatewayService {
     return this.nats.send('commerce', 'le.purchases.create', dto);
   }
 
-  // Adds an item, or adds the quantity to the item already on the purchase
+  // Adds an item the purchase does not have yet
   createItem(id: string, dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemResponseDto>> {
     this.logger.log(`le.purchases.items.create — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'le.purchases.items.create', { id, ...dto });
@@ -186,10 +189,28 @@ export class LePurchasesGatewayService {
     return this.nats.send('commerce', 'le.purchases.receiveWithInvoices.create', dto);
   }
 
-  // Changes a purchase's header while it is Requesting
-  update(id: string, dto: UpdatePurchaseDto): Promise<SuccessResponseDto> {
-    this.logger.log(`le.purchases.update — id: ${id}`);
-    return this.nats.send('commerce', 'le.purchases.update', { id, ...dto });
+  // Changes an open purchase's notes
+  changeNotes(id: string, dto: ChangePurchaseNotesDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.changeNotes — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.changeNotes', { id, ...dto });
+  }
+
+  // Requires quotations on a purchase none of whose suppliers is submitted yet
+  enableQuotations(id: string, dto: EnablePurchaseQuotationsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.enableQuotations — id: ${id}, minQuotations: ${dto.minQuotations}`);
+    return this.nats.send('commerce', 'le.purchases.enableQuotations', { id, ...dto });
+  }
+
+  // Stops requiring quotations on an open purchase, with why
+  disableQuotations(id: string, dto: DisablePurchaseQuotationsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.disableQuotations — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchases.disableQuotations', { id, ...dto });
+  }
+
+  // Changes how many posted quotations each item needs before its supplier is submitted
+  changeMinQuotations(id: string, dto: ChangePurchaseMinQuotationsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`le.purchases.changeMinQuotations — id: ${id}, minQuotations: ${dto.minQuotations}`);
+    return this.nats.send('commerce', 'le.purchases.changeMinQuotations', { id, ...dto });
   }
 
   // Changes an item

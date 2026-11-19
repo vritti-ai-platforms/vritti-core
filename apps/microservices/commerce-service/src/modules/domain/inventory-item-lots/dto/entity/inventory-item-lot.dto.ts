@@ -1,5 +1,6 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
-import type { InventoryItemLot } from '@/db/schema';
+import type { DisplayUnitRatios } from '@/db/schema';
+import type { InventoryItemLotWithStock } from '../../repositories/inventory-item-lots.repository';
 
 export class InventoryItemLotDto {
   id: string;
@@ -13,13 +14,9 @@ export class InventoryItemLotDto {
   availableQuantity: number;
   createdAt: string;
   updatedAt: string;
+  displayUnitRatios: DisplayUnitRatios;
 
-  static from(
-    row: InventoryItemLot & {
-      stockedQuantity?: string | number | null;
-      reservedQuantity?: string | number | null;
-    },
-  ): InventoryItemLotDto {
+  static from(row: InventoryItemLotWithStock): InventoryItemLotDto {
     const dto = new InventoryItemLotDto();
     dto.id = row.id;
     dto.inventoryItemId = row.inventoryItemId;
@@ -32,6 +29,7 @@ export class InventoryItemLotDto {
     dto.availableQuantity = dto.stockedQuantity - dto.reservedQuantity;
     dto.createdAt = row.createdAt.toISOString();
     dto.updatedAt = row.updatedAt.toISOString();
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

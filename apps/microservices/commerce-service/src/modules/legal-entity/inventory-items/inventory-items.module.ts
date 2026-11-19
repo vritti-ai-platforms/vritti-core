@@ -10,6 +10,7 @@ import { LeInventoryItemPricesController } from './prices/inventory-item-prices.
 import { LeInventoryItemPricesService } from './prices/services/inventory-item-prices.service';
 import { LeInventoryItemsController } from './root/inventory-items-root.controller';
 import { LeInventoryItemSitesController } from './sites/inventory-item-sites.controller';
+import { LeInventoryItemSitesService } from './sites/services/inventory-item-sites.service';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { LeInventoryItemSitesController } from './sites/inventory-item-sites.con
     SuppliersDomainModule,
   ],
   controllers: [LeInventoryItemsController, LeInventoryItemPricesController, LeInventoryItemSitesController],
-  providers: [LeInventoryItemPricesService],
+  providers: [LeInventoryItemPricesService, LeInventoryItemSitesService],
 })
 export class LeInventoryItemsModule {}

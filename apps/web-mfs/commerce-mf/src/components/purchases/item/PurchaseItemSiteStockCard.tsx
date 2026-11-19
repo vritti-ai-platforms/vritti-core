@@ -43,7 +43,7 @@ export const PurchaseItemSiteStockCard: React.FC<PurchaseItemSiteStockCardProps>
                 type="string"
                 value={stock.replenishment && replenishmentConfig[stock.replenishment].label}
               />
-              <DetailField label="On Order Here" type="number" value={onOrder} />
+              <DetailField label={`On Order Here ${item.primaryUomSymbol}`.trim()} type="number" value={onOrder} />
               {upToMaximum !== null && (
                 <DetailField
                   label={`Up to Maximum ${item.primaryUomSymbol}`.trim()}

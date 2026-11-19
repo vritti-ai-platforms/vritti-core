@@ -116,6 +116,9 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 permission: ORG_INVENTORY_ITEMS.conversions.delete,
                 variant: 'destructive',
                 disabled: !row.original.canDelete,
+                disabledTip: row.original.isDisplayUnit
+                  ? "It is the item's display unit — change that first."
+                  : 'A supplier item is priced in this unit.',
                 onClick: () => handleDelete(row.original),
               },
             ]}

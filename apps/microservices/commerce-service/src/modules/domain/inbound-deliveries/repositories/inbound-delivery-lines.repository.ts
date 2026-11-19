@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, getColumns, inArray, notInArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   goodsReceiptItems,
   type InboundDeliveryLine,
   InboundDeliverySourceValues,
@@ -39,6 +41,8 @@ export type InboundDeliveryLineRow = InboundDeliveryLine & {
   goodsReceiptItemCount: number;
 };
 
+export type InboundDeliveryLineTableRow = InboundDeliveryLineRow & { displayUnitRatios: DisplayUnitRatios };
+
 export type DeliveryLineReceivability = Pick<InboundDeliveryLine, 'id' | 'purchaseOrderItemId' | 'primaryUomQty'> & {
   inventoryItemId: string;
   uomId: string;
@@ -56,13 +60,14 @@ export class InboundDeliveryLinesDomainRepository extends PrimaryBaseRepository<
     super(database, inboundDeliveryLines);
   }
 
-  // Returns one page of a delivery's lines with their PO line, quantities and what is received against the delivery
+  // Returns one page of a delivery's lines with their PO line, quantities, what is received against the delivery and
+  // what turns each line's item into its display unit
   async findForTable(
     inboundDeliveryId: string,
     options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: InboundDeliveryLineRow[]; count: number }> {
-    return this.findAllAndCount<InboundDeliveryLineRow>({
-      select: this.selection(),
+  ): Promise<{ result: InboundDeliveryLineTableRow[]; count: number }> {
+    return this.findAllAndCount<InboundDeliveryLineTableRow>({
+      select: { ...this.selection(), displayUnitRatios: displayUnitRatios() },
       innerJoins: this.joins(),
       ...options,
       where: and(eq(inboundDeliveryLines.inboundDeliveryId, inboundDeliveryId), options.where),

@@ -1,29 +1,28 @@
-import { InventoryItemSiteDto } from '@domain/inventory-item-sites/dto/entity/inventory-item-site.dto';
-import type { ItemStockBySiteDto } from '@domain/inventory-item-sites/dto/entity/item-site-stock.dto';
+import type { InventoryItemSiteDto } from '@domain/inventory-item-sites/dto/entity/inventory-item-site.dto';
 import { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block-site-item.dto';
 import { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import { SetSupplierItemsRequiredDto } from '@domain/inventory-item-sites/dto/request/set-supplier-items-required.dto';
 import { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
-import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableFilters } from '@vritti/api-sdk/data-table';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import { RpcLeCurrencyCode } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { ItemStockBySiteViewDto } from './dto/entity/item-stock-by-site-view.dto';
+import { LeInventoryItemSitesService } from './services/inventory-item-sites.service';
 
 @Controller()
 export class LeInventoryItemSitesController {
   private readonly logger = new Logger(LeInventoryItemSitesController.name);
 
-  constructor(private readonly service: InventoryItemSitesDomainService) {}
+  constructor(private readonly service: LeInventoryItemSitesService) {}
 
   // Adds the item to one of the legal entity's sites with how it is replenished there
   @MessagePattern({ cmd: 'le.inventoryItems.sites.create' })
-  async create(@Payload() dto: ReplenishmentDto): Promise<CreateResponseDto<InventoryItemSiteDto>> {
+  create(@Payload() dto: ReplenishmentDto): Promise<CreateResponseDto<InventoryItemSiteDto>> {
     this.logger.log(`le.inventoryItems.sites.create — inventoryItemId: ${dto.inventoryItemId}, siteId: ${dto.siteId}`);
-    const entity = await this.service.create(dto);
-    return { success: true, message: 'Item added to the site.', data: InventoryItemSiteDto.from(entity) };
+    return this.service.create(dto);
   }
 
   // Changes how one of the legal entity's sites replenishes the item
@@ -62,7 +61,7 @@ export class LeInventoryItemSitesController {
   bySite(
     @Payload() data: { inventoryItemId: string; filters: TableFilters },
     @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<ItemStockBySiteDto> {
+  ): Promise<ItemStockBySiteViewDto> {
     this.logger.log(`le.inventoryItems.sites.bySite — inventoryItemId: ${data.inventoryItemId}`);
     return this.service.findStockBySite(data.inventoryItemId, data.filters, leCurrencyCode as CurrencyCode);
   }
@@ -71,7 +70,7 @@ export class LeInventoryItemSitesController {
   @MessagePattern({ cmd: 'le.inventoryItems.sites.siteIds' })
   siteIds(@Payload() data: { inventoryItemId: string }): Promise<string[]> {
     this.logger.log(`le.inventoryItems.sites.siteIds — inventoryItemId: ${data.inventoryItemId}`);
-    return this.service.findSiteIdsForItem(data.inventoryItemId);
+    return this.service.findSiteIds(data.inventoryItemId);
   }
 
   // Removes the item from one of the legal entity's sites

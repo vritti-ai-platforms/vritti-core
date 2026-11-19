@@ -1,4 +1,3 @@
-import type { InvoiceableGoodsReceiptDto } from '@domain/supplier-invoices/dto/entity/invoiceable-goods-receipt.dto';
 import type {
   SupplierInvoiceDetailDto,
   SupplierInvoiceDto,
@@ -12,6 +11,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import { type NatsHeaders, RpcLeCurrencyCode, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
+import type { InvoiceableGoodsReceiptWithDisplayDto } from './dto/entity/invoiceable-goods-receipt-with-display.dto';
 import { SupplierInvoicesService } from './services/supplier-invoices.service';
 
 @Controller()
@@ -79,8 +79,8 @@ export class SiteSupplierInvoicesController {
   invoiceableGoodsReceipts(
     @Payload() query: InvoiceableGoodsReceiptsQueryDto,
     @RpcLeCurrencyCode() leCurrencyCode: string,
-  ): Promise<InvoiceableGoodsReceiptDto[]> {
+  ): Promise<InvoiceableGoodsReceiptWithDisplayDto[]> {
     this.logger.log(`site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}`);
-    return this.invoicesService.findInvoiceableGoodsReceipts(query, leCurrencyCode);
+    return this.service.findInvoiceableGoodsReceipts(query, leCurrencyCode);
   }
 }

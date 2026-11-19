@@ -115,7 +115,7 @@ export class GoodsReceiptsPostService {
   // Checks a draft's items are enabled at its site and its lots keep their MRPs, and works out what it lands at
   async prepareLanding(receipt: GoodsReceiptRow, leCurrencyCode: string): Promise<ReceiptLanding> {
     const costs = await this.itemsService.findProvisionalCosts(receipt.id, leCurrencyCode);
-    await this.inventoryItemSitesRepository.ensureAtSite(
+    await this.inventoryItemSitesRepository.isAddedToSite(
       _.uniq(costs.map((cost) => cost.item.inventoryItemId)),
       'items',
       receipt.siteId,

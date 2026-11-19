@@ -39,12 +39,12 @@ export const PurchaseItemProgress: React.FC<PurchaseItemProgressProps> = ({ item
       const segments = progressSegments(supplier, supplier.allocated);
       return {
         key: supplier.legId,
-        label: `${supplier.supplierName} · ${fmt.number(supplier.allocated).primary}`,
-        tip: `${supplier.supplierName}: ${quantity(supplier.allocated)} allocated · ${fmt.number(supplier.ordered).primary} ordered · ${fmt.number(supplier.received).primary} received · ${fmt.number(supplier.invoiced).primary} invoiced`,
+        label: `${supplier.supplierName} · ${fmt.quantity(supplier.display.allocated).primary}`,
+        tip: `${supplier.supplierName}: ${fmt.quantity(supplier.display.allocated).primary} allocated · ${fmt.quantity(supplier.display.ordered).primary} ordered · ${fmt.quantity(supplier.display.received).primary} received · ${fmt.quantity(supplier.display.invoiced).primary} invoiced`,
         weight: supplier.allocated,
         bar: (
           <SegmentedProgress
-            aria-label={`${supplier.supplierName}: ${quantity(supplier.allocated)}`}
+            aria-label={`${supplier.supplierName}: ${fmt.quantity(supplier.display.allocated).primary}`}
             segments={PURCHASE_PROGRESS.segments.map(({ key, label }) => ({
               key,
               label: `${supplier.supplierName} · ${label}`,
@@ -75,11 +75,13 @@ export const PurchaseItemProgress: React.FC<PurchaseItemProgressProps> = ({ item
   return (
     <div className="flex min-w-48 flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <Typography variant="body2" className="font-mono">
-          {quantity(item.primaryQty)}
-        </Typography>
+        <Tooltip content={fmt.quantity(item.display.primaryQty).secondary}>
+          <Typography variant="body2" className="font-mono">
+            {fmt.quantity(item.display.primaryQty).primary}
+          </Typography>
+        </Tooltip>
         <Typography variant="caption" intent="muted">
-          {`${fmt.number(item.receivedPrimaryQty).primary} received`}
+          {`${fmt.quantity(item.display.receivedPrimaryQty).primary} received`}
         </Typography>
       </div>
       {bySupplier ? (

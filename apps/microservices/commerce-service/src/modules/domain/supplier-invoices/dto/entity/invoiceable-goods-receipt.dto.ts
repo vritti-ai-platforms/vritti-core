@@ -1,5 +1,6 @@
 import Decimal from '@vritti/api-sdk/decimal';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { InvoiceableGoodsReceiptRow } from '../../repositories/invoiceable-goods-receipts.repository';
 
 export class InvoiceableGoodsReceiptDto {
@@ -55,3 +56,7 @@ export class InvoiceableGoodsReceiptDto {
     return dto;
   }
 }
+
+export type InvoiceableGoodsReceiptWithRatiosDto = InvoiceableGoodsReceiptDto & {
+  displayUnitRatios: DisplayUnitRatios;
+};

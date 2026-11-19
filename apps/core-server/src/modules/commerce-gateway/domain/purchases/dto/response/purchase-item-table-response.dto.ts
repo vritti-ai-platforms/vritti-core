@@ -1,8 +1,46 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TableResponseDto, type TableState } from '@vritti/api-sdk/data-table';
 import { PURCHASE_ITEM_PROBLEM_CODES, type PurchaseItemProblemCode } from '../../constants/purchase.constants';
 import { PurchaseQuotationItemResponseDto } from './purchase-quotation-response.dto';
 import { PurchaseSourcingAllocationResponseDto } from './purchase-sourcing-item-response.dto';
+
+export class PurchaseItemSupplierProgressDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  allocated: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  ordered: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  inTransit: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  received: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  invoiced: DisplayUomQuantityResponseDto | null;
+}
+
+export class PurchaseItemProgressDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  allocatedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  orderedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  inTransitPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  receivedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  invoicedPrimaryQty: DisplayUomQuantityResponseDto | null;
+}
 
 export class PurchaseItemSupplierProgressResponseDto {
   @ApiProperty({ description: 'Purchase supplier (leg) ID' })
@@ -28,6 +66,12 @@ export class PurchaseItemSupplierProgressResponseDto {
 
   @ApiProperty({ description: 'Quantity the supplier invoiced' })
   invoiced: number;
+
+  @ApiProperty({
+    type: PurchaseItemSupplierProgressDisplayResponseDto,
+    description: "The same quantities in the item's display unit",
+  })
+  display: PurchaseItemSupplierProgressDisplayResponseDto;
 }
 
 export class PurchaseItemProblemResponseDto {
@@ -100,6 +144,12 @@ export class PurchaseItemTableRowResponseDto {
 
   @ApiPropertyOptional({ description: 'Notes', type: String, nullable: true })
   notes: string | null;
+
+  @ApiProperty({
+    type: PurchaseItemProgressDisplayResponseDto,
+    description: "Each primary-unit quantity in the item's display unit",
+  })
+  display: PurchaseItemProgressDisplayResponseDto;
 }
 
 export class PurchaseItemTableResponseDto extends TableResponseDto<PurchaseItemTableRowResponseDto> {

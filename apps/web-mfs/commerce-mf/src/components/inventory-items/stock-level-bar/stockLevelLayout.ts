@@ -1,5 +1,5 @@
 import type { Formatters } from '@vritti/quantum-ui/hooks';
-import { type StockStatus, StockStatusValues } from '@/schemas/inventory-items';
+import { type SiteStockDisplay, type StockStatus, StockStatusValues } from '@/schemas/inventory-items';
 
 const SCALE_HEADROOM = 1.1;
 const LABEL_GAP_PX = 8;
@@ -13,6 +13,10 @@ export interface StockLevels {
   maxStock: number;
 }
 
+export type LevelKey = keyof StockLevels;
+
+export type QuantityLabels = Record<LevelKey | 'onHand', ReturnType<Formatters['quantity']>>;
+
 export type ZoneStatus = Exclude<
   StockStatus,
   typeof StockStatusValues.OUT_OF_STOCK | typeof StockStatusValues.IN_STOCK
@@ -22,9 +26,12 @@ export interface StockZone {
   status: ZoneStatus;
   from: number;
   to: number;
+  fromLevel?: LevelKey;
+  toLevel?: LevelKey;
 }
 
 export interface PlacedLevel {
+  key: LevelKey;
   name: string;
   label: string;
   quantity: number;
@@ -42,6 +49,24 @@ export function withUnit(fmt: Formatters, quantity: number, uomSymbol: string): 
   return `${fmt.number(quantity).primary} ${uomSymbol}`;
 }
 
+// The label of the stock on hand and each level: in the item's display unit from the server's display values, else — for
+// levels still being typed — in its primary unit
+export function quantityLabels(
+  fmt: Formatters,
+  quantities: StockLevels & { onHand: number },
+  uomSymbol: string,
+  display?: SiteStockDisplay,
+): QuantityLabels {
+  const label = (key: keyof QuantityLabels) =>
+    display ? fmt.quantity(display[key]) : { primary: withUnit(fmt, quantities[key], uomSymbol) };
+  return {
+    onHand: label('onHand'),
+    safetyStock: label('safetyStock'),
+    reorderPoint: label('reorderPoint'),
+    maxStock: label('maxStock'),
+  };
+}
+
 // The bar's scale: it runs a little past the maximum stock, or past the stock on hand when that is higher
 export function barPosition(maxStock: number, onHand: number): BarPosition {
   const scale = Math.max(maxStock, onHand, 1) * SCALE_HEADROOM;
@@ -51,10 +76,22 @@ export function barPosition(maxStock: number, onHand: number): BarPosition {
 // The zones the levels mark out along the bar, each named by the stock status it gives; empty zones are left out
 export function stockZones({ safetyStock, reorderPoint, maxStock }: StockLevels): StockZone[] {
   const zones: StockZone[] = [
-    { status: StockStatusValues.BELOW_SAFETY_STOCK, from: 0, to: safetyStock },
-    { status: StockStatusValues.REORDER, from: safetyStock, to: reorderPoint },
-    { status: StockStatusValues.HEALTHY, from: reorderPoint, to: maxStock },
-    { status: StockStatusValues.OVER_MAX, from: maxStock, to: Number.POSITIVE_INFINITY },
+    { status: StockStatusValues.BELOW_SAFETY_STOCK, from: 0, to: safetyStock, toLevel: 'safetyStock' },
+    {
+      status: StockStatusValues.REORDER,
+      from: safetyStock,
+      to: reorderPoint,
+      fromLevel: 'safetyStock',
+      toLevel: 'reorderPoint',
+    },
+    {
+      status: StockStatusValues.HEALTHY,
+      from: reorderPoint,
+      to: maxStock,
+      fromLevel: 'reorderPoint',
+      toLevel: 'maxStock',
+    },
+    { status: StockStatusValues.OVER_MAX, from: maxStock, to: Number.POSITIVE_INFINITY, fromLevel: 'maxStock' },
   ];
   return zones.filter((zone) => zone.to > zone.from);
 }
@@ -75,11 +112,12 @@ export function placeLevels(
   labelWidths: Record<string, number>,
 ): PlacedLevel[] {
   const lastRight: Record<LabelRow, number> = { above: Number.NEGATIVE_INFINITY, below: Number.NEGATIVE_INFINITY };
-  return [
-    { name: 'Safety', label: 'Safety stock', quantity: safetyStock },
-    { name: 'Reorder', label: 'Reorder point', quantity: reorderPoint },
-    { name: 'Max', label: 'Maximum stock', quantity: maxStock },
-  ]
+  const levels: Pick<PlacedLevel, 'key' | 'name' | 'label' | 'quantity'>[] = [
+    { key: 'safetyStock', name: 'Safety', label: 'Safety stock', quantity: safetyStock },
+    { key: 'reorderPoint', name: 'Reorder', label: 'Reorder point', quantity: reorderPoint },
+    { key: 'maxStock', name: 'Max', label: 'Maximum stock', quantity: maxStock },
+  ];
+  return levels
     .filter((level) => level.quantity > 0)
     .map((level) => {
       const at = position(level.quantity);

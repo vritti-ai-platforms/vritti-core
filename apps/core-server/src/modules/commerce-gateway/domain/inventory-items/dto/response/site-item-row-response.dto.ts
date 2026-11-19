@@ -9,6 +9,7 @@ import {
   STOCK_STATUSES,
   type StockStatus,
 } from '../../../inventory-item-sites/constants/stock-status.constants';
+import { SiteStockDisplayResponseDto } from '../../../inventory-item-sites/dto/response/site-stock-display-response.dto';
 import { SiteStockLocationResponseDto } from '../../../inventory-item-sites/dto/response/site-stock-location-response.dto';
 
 export class SiteItemRowResponseDto {
@@ -71,6 +72,11 @@ export class SiteItemRowResponseDto {
 
   @ApiProperty({ type: [SiteStockLocationResponseDto], description: 'The locations holding the stock, largest first' })
   locations: SiteStockLocationResponseDto[];
+  @ApiProperty({
+    type: SiteStockDisplayResponseDto,
+    description: "On hand and the levels in the item's display unit; each null when not set or not carried",
+  })
+  display: SiteStockDisplayResponseDto;
 }
 
 export class ItemSiteStockResponseDto {
@@ -88,6 +94,7 @@ export class ItemSiteStockResponseDto {
   @ApiProperty({ type: () => CurrencyAmountDto }) stockValue: CurrencyAmountDto;
   @ApiProperty({ enum: STOCK_STATUSES }) stockStatus: StockStatus;
   @ApiProperty({ type: [SiteStockLocationResponseDto] }) locations: SiteStockLocationResponseDto[];
+  @ApiProperty({ type: SiteStockDisplayResponseDto }) display: SiteStockDisplayResponseDto;
   @ApiProperty() matchesFilter: boolean;
 }
 

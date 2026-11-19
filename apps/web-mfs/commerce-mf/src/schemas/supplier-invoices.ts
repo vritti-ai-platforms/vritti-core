@@ -1,6 +1,7 @@
 import type { BadgeProps } from '@vritti/quantum-ui/Badge';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import Decimal from '@vritti/quantum-ui/decimal';
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodCurrencyField, zodNumericField } from '@vritti/quantum-ui/zod';
 import type { PurchaseRef } from './purchases';
@@ -305,6 +306,7 @@ export interface InvoiceableGoodsReceipt {
   invoicedPrimaryQty: number;
   openPrimaryQty: number;
   openQty: number;
+  display: Record<'acceptedPrimaryQty' | 'invoicedPrimaryQty' | 'openPrimaryQty', DisplayQuantity | null>;
 }
 
 export interface InvoiceableGoodsReceiptsParams {

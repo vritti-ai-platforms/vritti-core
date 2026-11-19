@@ -1,12 +1,17 @@
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import type React from 'react';
-import { type SiteStockLocationData, type StockStatus, stockStatusConfig } from '@/schemas/inventory-items';
+import {
+  type SiteStockDisplay,
+  type SiteStockLocationData,
+  type StockStatus,
+  stockStatusConfig,
+} from '@/schemas/inventory-items';
 import { type ReplenishmentMethod, ReplenishmentMethodValues } from '@/schemas/site-items';
 import { LevelLabels } from './LevelLabels';
 import { LevelMarks } from './LevelMarks';
 import { OnHandBar } from './OnHandBar';
 import { StockZones } from './StockZones';
-import { barPosition, placeLevels, stockZones, withUnit } from './stockLevelLayout';
+import { barPosition, placeLevels, quantityLabels, stockZones } from './stockLevelLayout';
 import { useElementWidths } from './useElementWidths';
 
 interface StockLevelBarProps {
@@ -23,6 +28,9 @@ interface StockLevelBarProps {
   uomSymbol: string;
   // Splits the on-hand bar into one segment per location holding the stock; left out, the bar is one piece
   locations?: SiteStockLocationData[];
+  // The stock on hand and levels in the item's display unit, as the server sent them; left out for levels being typed,
+  // which are labelled in the primary unit
+  display?: SiteStockDisplay;
 }
 
 // A bullet chart of the site's stock against its levels: the zones the levels mark out, the stock on hand run over
@@ -37,11 +45,14 @@ export const StockLevelBar: React.FC<StockLevelBarProps> = ({
   status,
   uomSymbol,
   locations,
+  display,
 }) => {
   const fmt = useFormatters();
   const { widths, measure } = useElementWidths();
 
-  const summary = `${withUnit(fmt, onHand, uomSymbol)} on hand${status ? `, ${stockStatusConfig[status].label.toLowerCase()}` : ''}`;
+  const stockLevels = { safetyStock: safetyStock ?? 0, reorderPoint: reorderPoint ?? 0, maxStock: maxStock ?? 0 };
+  const labels = quantityLabels(fmt, { ...stockLevels, onHand }, uomSymbol, display);
+  const summary = `${labels.onHand.primary} on hand${status ? `, ${stockStatusConfig[status].label.toLowerCase()}` : ''}`;
 
   if (replenishment === ReplenishmentMethodValues.MANUAL) {
     return (
@@ -71,21 +82,20 @@ export const StockLevelBar: React.FC<StockLevelBarProps> = ({
     );
   }
 
-  const stockLevels = { safetyStock: safetyStock ?? 0, reorderPoint: reorderPoint ?? 0, maxStock };
   const position = barPosition(maxStock, onHand);
   const levels = placeLevels(stockLevels, position, widths.bar ?? 0, widths);
 
   return (
     <div className="flex min-w-64 flex-col gap-1.5">
-      <LevelLabels levels={levels} row="above" uomSymbol={uomSymbol} measure={measure} />
+      <LevelLabels levels={levels} row="above" labels={labels} measure={measure} />
       <div ref={measure} data-measure="bar" role="img" aria-label={summary} className="relative h-3.5 w-full">
-        <StockZones zones={stockZones(stockLevels)} position={position} uomSymbol={uomSymbol} />
+        <StockZones zones={stockZones(stockLevels)} position={position} labels={labels} />
         {onHand > 0 && (
           <OnHandBar onHand={onHand} position={position} status={status} uomSymbol={uomSymbol} locations={locations} />
         )}
-        <LevelMarks levels={levels} onHand={onHand} uomSymbol={uomSymbol} />
+        <LevelMarks levels={levels} onHand={onHand} uomSymbol={uomSymbol} labels={labels} />
       </div>
-      <LevelLabels levels={levels} row="below" uomSymbol={uomSymbol} measure={measure} />
+      <LevelLabels levels={levels} row="below" labels={labels} measure={measure} />
     </div>
   );
 };

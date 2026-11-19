@@ -2,11 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type InventoryItemLedgerEntry,
   inventoryItemLedger,
   inventoryItems,
   type NewInventoryItemLedgerEntry,
 } from '@/db/schema';
+
+export type InventoryItemLedgerRow = InventoryItemLedgerEntry & {
+  inventoryItemName: string;
+  displayUnitRatios: DisplayUnitRatios;
+};
 
 @Injectable()
 export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<typeof inventoryItemLedger> {
@@ -20,12 +27,12 @@ export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<t
     return results[0] as InventoryItemLedgerEntry;
   }
 
-  // Returns paginated ledger entries joined with item name for the data table
+  // Returns paginated ledger entries joined with item name and its display-unit ratios for the data table
   async findAllForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
-    result: (InventoryItemLedgerEntry & { inventoryItemName: string })[];
+    result: InventoryItemLedgerRow[];
     count: number;
   }> {
-    return this.findAllAndCount<InventoryItemLedgerEntry & { inventoryItemName: string }>({
+    return this.findAllAndCount<InventoryItemLedgerRow>({
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,
@@ -38,6 +45,7 @@ export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<t
         notes: inventoryItemLedger.notes,
         createdAt: inventoryItemLedger.createdAt,
         inventoryItemName: inventoryItems.name,
+        displayUnitRatios: displayUnitRatios(),
       },
       leftJoins: [{ table: inventoryItems, on: eq(inventoryItemLedger.inventoryItemId, inventoryItems.id) }],
       where: options.where,
@@ -49,10 +57,10 @@ export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<t
 
   // Keyset page for the mobile Relay ledger feed.
   async findLedgerFeedKeyset(options: { where?: SQL; orderBy: SQL[]; limit: number }): Promise<{
-    rows: (InventoryItemLedgerEntry & { inventoryItemName: string })[];
+    rows: InventoryItemLedgerRow[];
     hasMore: boolean;
   }> {
-    return this.findKeyset<InventoryItemLedgerEntry & { inventoryItemName: string }>({
+    return this.findKeyset<InventoryItemLedgerRow>({
       select: {
         id: inventoryItemLedger.id,
         organizationId: inventoryItemLedger.organizationId,
@@ -65,6 +73,7 @@ export class InventoryItemLedgerDomainRepository extends PrimaryBaseRepository<t
         notes: inventoryItemLedger.notes,
         createdAt: inventoryItemLedger.createdAt,
         inventoryItemName: inventoryItems.name,
+        displayUnitRatios: displayUnitRatios(),
       },
       leftJoins: [{ table: inventoryItems, on: eq(inventoryItemLedger.inventoryItemId, inventoryItems.id) }],
       where: options.where,

@@ -5,7 +5,8 @@ import { TextArea } from '@vritti/quantum-ui/TextArea';
 import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
+import { ItemQuantityField } from '@/components/inventory-items/ItemQuantityField';
 import { useCreateStockTransfer } from '@/hooks/site/stock-transfers';
 import { type CreateStockTransferFormData, createStockTransferSchema } from '@/schemas/stock-transfers';
 import { InventoryItemSelector } from '@/selectors/inventory-item';
@@ -24,11 +25,11 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       toSiteId: '',
       fromLocationId: undefined,
       toLocationId: undefined,
-      quantity: 0,
       notes: '',
     },
   });
 
+  const inventoryItemId = useWatch({ control: form.control, name: 'inventoryItemId' });
   const createMutation = useCreateStockTransfer({ onSuccess });
 
   return (
@@ -52,7 +53,7 @@ export const CreateStockTransferDialog: React.FC<CreateStockTransferDialogProps>
       <LocationSelector name="fromLocationId" label="From Location" placeholder="Select source location" />
       <TextField name="toSiteId" label="To Location (Site ID)" placeholder="Destination site ID" />
       <LocationSelector name="toLocationId" label="To Location" placeholder="Select destination location" />
-      <TextField name="quantity" label="Quantity" type="number" placeholder="e.g. 100" />
+      <ItemQuantityField name="quantity" label="Quantity" inventoryItemId={inventoryItemId} />
       <TextArea name="notes" label="Notes" placeholder="Optional notes" />
       <DialogActions>
         <Button type="button" variant="outline" onClick={onCancel}>

@@ -24,6 +24,11 @@ export class InventoryItemsSelectQueryDto extends SelectOptionsQueryDto {
   @IsUUID('7')
   notAtSiteId?: string;
 
+  @ApiPropertyOptional({ description: 'Only the items not on this purchase yet' })
+  @IsOptional()
+  @IsUUID('7')
+  notOnPurchaseId?: string;
+
   @ApiPropertyOptional({
     type: [String],
     description: 'With atSiteId, only the items whose stock there has one of these statuses (comma-separated)',

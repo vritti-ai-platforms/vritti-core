@@ -1,5 +1,11 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+
+export class StockAdjustmentDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  totalQuantity: DisplayUomQuantityResponseDto | null;
+}
 
 export class StockAdjustmentResponseDto {
   @ApiProperty() id: string;
@@ -23,4 +29,7 @@ export class StockAdjustmentResponseDto {
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiPropertyOptional({ nullable: true }) publishedAt: string | null;
   @ApiProperty() createdAt: string;
+
+  @ApiProperty({ type: StockAdjustmentDisplayResponseDto, description: "These quantities in the item's display unit" })
+  display: StockAdjustmentDisplayResponseDto;
 }

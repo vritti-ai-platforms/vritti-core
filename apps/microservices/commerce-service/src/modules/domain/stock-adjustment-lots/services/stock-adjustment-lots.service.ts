@@ -11,7 +11,7 @@ import {
 } from '@/db/schema';
 import { StockAdjustmentLotDto } from '../dto/entity/stock-adjustment-lot.dto';
 import { StockAdjustmentLotDetailDto } from '../dto/entity/stock-adjustment-lot-detail.dto';
-import type { StockAdjustmentTreeNode } from '../dto/entity/stock-adjustment-tree.dto';
+import type { StockAdjustmentTreeLotNode } from '../dto/entity/stock-adjustment-tree.dto';
 import { StockAdjustmentLotsDomainRepository } from '../repositories/stock-adjustment-lots.repository';
 
 interface AdjustmentContext {
@@ -140,7 +140,7 @@ export class StockAdjustmentLotsDomainService {
   }
 
   // Returns lots with their lines as nested children — for the OPENING+serial tree UI.
-  async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeNode[]> {
+  async findTreeForAdjustment(adjustmentId: string): Promise<StockAdjustmentTreeLotNode[]> {
     return this.repository.findTreeNodesByAdjustmentId(adjustmentId);
   }
 

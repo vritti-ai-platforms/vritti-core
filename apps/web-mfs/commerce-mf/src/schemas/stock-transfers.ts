@@ -1,3 +1,4 @@
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
@@ -12,6 +13,7 @@ export interface StockTransferData {
   toSiteId: string;
   toSiteName: string;
   quantity: number;
+  display: Record<'quantity', DisplayQuantity | null>;
   status: StockTransferStatus;
   requestedBy: string | null;
   receivedBy: string | null;

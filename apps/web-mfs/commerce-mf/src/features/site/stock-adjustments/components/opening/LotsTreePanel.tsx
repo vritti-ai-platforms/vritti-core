@@ -1,7 +1,7 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { type Formatters, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import type { TreeDataItem, TreeRenderItemParams } from '@vritti/quantum-ui/TreeView';
@@ -15,7 +15,6 @@ import { AddLotDialog } from '../../forms/opening/AddLotDialog';
 interface LotsTreePanelProps {
   adjustmentId: string;
   isDraft: boolean;
-  uomSymbol: string;
   selectedId: string | null;
   onSelect: (selection: { kind: 'lot' | 'line'; lotId: string; lineId: string | null } | null) => void;
 }
@@ -23,7 +22,7 @@ interface LotsTreePanelProps {
 interface LotsTreeNodeData extends TreeDataItem {
   kind: 'lot' | 'line';
   isBalanced: boolean;
-  totalQuantity?: number;
+  display?: StockAdjustmentTreeNode['display'];
   linesCount?: number;
   uomQty?: number;
   lineItemsCount?: number;
@@ -35,20 +34,20 @@ const toTreeData = (nodes: StockAdjustmentTreeNode[]): LotsTreeNodeData[] =>
     name: n.name,
     kind: n.kind,
     isBalanced: n.isBalanced,
-    totalQuantity: n.totalQuantity,
+    display: n.display,
     linesCount: n.linesCount,
     uomQty: n.uomQty,
     lineItemsCount: n.lineItemsCount,
     children: n.children?.length ? toTreeData(n.children) : undefined,
   }));
 
-const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
+const TreeRow = (fmt: Formatters) =>
   function LotsRow({ item }: TreeRenderItemParams) {
     const node = item as LotsTreeNodeData;
     const Icon = node.kind === 'lot' ? Boxes : MapPin;
     const badgeText =
       node.kind === 'lot'
-        ? `${node.totalQuantity ?? 0} ${uomSymbol}`
+        ? fmt.quantity(node.display?.totalQuantity).primary
         : `${node.lineItemsCount ?? 0}/${node.uomQty ?? 0}`;
     const balanced = node.isBalanced;
     return (
@@ -69,12 +68,13 @@ const TreeRow = ({ uomSymbol }: { uomSymbol: string }) =>
     );
   };
 
-export const LotsTreePanel = ({ adjustmentId, isDraft, uomSymbol, selectedId, onSelect }: LotsTreePanelProps) => {
+export const LotsTreePanel = ({ adjustmentId, isDraft, selectedId, onSelect }: LotsTreePanelProps) => {
   const { data: tree = [], isLoading } = useStockAdjustmentTree(adjustmentId);
   const addLotDialog = useDialog();
 
   const treeData = toTreeData(tree);
-  const renderItem = TreeRow({ uomSymbol });
+  const fmt = useFormatters();
+  const renderItem = TreeRow(fmt);
 
   return (
     <>

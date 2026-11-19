@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL } from '@vritti/api-sdk/drizzle-orm';
-import { inventoryItems, type StockTransfer, stockTransfers } from '@/db/schema';
+import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
+  inventoryItems,
+  type StockTransfer,
+  stockTransfers,
+} from '@/db/schema';
+
+export type StockTransferRow = StockTransfer & { inventoryItemName: string; displayUnitRatios: DisplayUnitRatios };
 
 @Injectable()
 export class StockTransfersDomainRepository extends PrimaryBaseRepository<typeof stockTransfers> {
@@ -9,14 +17,15 @@ export class StockTransfersDomainRepository extends PrimaryBaseRepository<typeof
     super(database, stockTransfers);
   }
 
-  // Returns all stock transfers with inventory item names
+  // Returns all stock transfers with inventory item names and the figures that turn their quantity into the item's
+  // display unit
   async findAllWithItemNames(params: {
     where?: SQL;
     orderBy?: SQL[];
     limit?: number;
     offset?: number;
-  }): Promise<{ result: (StockTransfer & { inventoryItemName: string })[]; count: number }> {
-    return this.findAllAndCount<StockTransfer & { inventoryItemName: string }>({
+  }): Promise<{ result: StockTransferRow[]; count: number }> {
+    return this.findAllAndCount<StockTransferRow>({
       select: {
         id: stockTransfers.id,
         organizationId: stockTransfers.organizationId,
@@ -31,6 +40,7 @@ export class StockTransfersDomainRepository extends PrimaryBaseRepository<typeof
         createdAt: stockTransfers.createdAt,
         updatedAt: stockTransfers.updatedAt,
         inventoryItemName: inventoryItems.name,
+        displayUnitRatios: displayUnitRatios(),
       },
       innerJoins: [{ table: inventoryItems, on: eq(stockTransfers.inventoryItemId, inventoryItems.id) }],
       where: params.where,

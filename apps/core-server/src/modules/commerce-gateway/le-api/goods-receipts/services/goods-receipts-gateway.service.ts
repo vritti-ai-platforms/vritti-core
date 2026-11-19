@@ -13,7 +13,10 @@ import type { GoodsReceiptItemsCostResponseDto } from '@commerce/goods-receipts/
 import type { GoodsReceiptLineItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-item-response.dto';
 import type { GoodsReceiptLineItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-item-table-response.dto';
 import type { GoodsReceiptLineResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-response.dto';
-import type { GoodsReceiptLineTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-line-table-response.dto';
+import type {
+  GoodsReceiptLineTableResponseDto,
+  GoodsReceiptLineTableRowResponseDto,
+} from '@commerce/goods-receipts/dto/response/goods-receipt-line-table-response.dto';
 import type { GoodsReceiptLotResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-lot-response.dto';
 import type { GoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-response.dto';
 import type { GoodsReceiptTreeNodeResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-tree-response.dto';
@@ -170,7 +173,7 @@ export class LeGoodsReceiptsGatewayService {
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-item-${itemId}-lines`,
     );
-    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineTableRowResponseDto[]; count: number }>(
       'commerce',
       'le.goodsReceipts.linesTable',
       { goodsReceiptId, itemId, ...state },
@@ -190,7 +193,7 @@ export class LeGoodsReceiptsGatewayService {
       userId,
       `commerce-le-goods-receipt-${goodsReceiptId}-item-${itemId}-lot-${lotId}-lines`,
     );
-    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: GoodsReceiptLineTableRowResponseDto[]; count: number }>(
       'commerce',
       'le.goodsReceipts.linesByLotTable',
       { goodsReceiptId, itemId, lotId, ...state },

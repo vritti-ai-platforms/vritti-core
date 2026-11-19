@@ -1,3 +1,4 @@
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { GoodsReceiptLineRow } from '../../repositories/goods-receipt-lines.repository';
 
 export class GoodsReceiptLineDto {
@@ -39,3 +40,5 @@ export class GoodsReceiptLineDto {
     return dto;
   }
 }
+
+export type GoodsReceiptLineWithRatiosDto = GoodsReceiptLineDto & { displayUnitRatios: DisplayUnitRatios };

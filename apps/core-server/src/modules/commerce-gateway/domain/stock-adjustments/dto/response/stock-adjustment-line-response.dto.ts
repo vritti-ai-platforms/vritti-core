@@ -1,4 +1,19 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class StockAdjustmentLineDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  primaryUomQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  quantTotalQuantity: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  quantReservedQuantity: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  quantAvailableQuantity: DisplayUomQuantityResponseDto | null;
+}
 
 export class StockAdjustmentLineResponseDto {
   @ApiProperty() id: string;
@@ -36,4 +51,10 @@ export class StockAdjustmentLineResponseDto {
   @ApiProperty() lineItemsCount: number;
   @ApiProperty() metadata: Record<string, unknown>;
   @ApiProperty() createdAt: string;
+
+  @ApiProperty({
+    type: StockAdjustmentLineDisplayResponseDto,
+    description: "These quantities in the item's display unit",
+  })
+  display: StockAdjustmentLineDisplayResponseDto;
 }

@@ -1,5 +1,6 @@
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
 import {
+  type DisplayUnitRatios,
   type InventoryTracking,
   InventoryTrackingValues,
   type StockAdjustment,
@@ -24,6 +25,7 @@ export class StockAdjustmentDto {
   isPublishable: boolean;
   publishedAt: string | null;
   createdAt: string;
+  displayUnitRatios: DisplayUnitRatios | null;
 
   static from(
     entity: StockAdjustment & {
@@ -33,6 +35,7 @@ export class StockAdjustmentDto {
       inventoryItemTracking: InventoryTracking;
       totalQuantity?: number | string | null;
       isPublishable?: boolean;
+      displayUnitRatios: DisplayUnitRatios;
     },
     leCurrencyCode?: string,
   ): StockAdjustmentDto {
@@ -55,6 +58,7 @@ export class StockAdjustmentDto {
     dto.isPublishable = Boolean(entity.isPublishable);
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
+    dto.displayUnitRatios = entity.displayUnitRatios;
     return dto;
   }
 
@@ -75,6 +79,7 @@ export class StockAdjustmentDto {
     dto.isPublishable = false;
     dto.publishedAt = entity.publishedAt?.toISOString() ?? null;
     dto.createdAt = entity.createdAt.toISOString();
+    dto.displayUnitRatios = null;
     return dto;
   }
 }

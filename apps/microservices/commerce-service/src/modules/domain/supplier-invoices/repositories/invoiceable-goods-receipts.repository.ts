@@ -3,6 +3,8 @@ import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/d
 import { aliasedTable, and, asc, eq, inArray, isNull, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
   currentSiteId,
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type GoodsReceiptStatus,
   GoodsReceiptStatusValues,
   goodsReceiptItems,
@@ -56,6 +58,10 @@ export type InvoiceableGoodsReceiptRow = {
   invoicedPrimaryQty: number;
 };
 
+export type InvoiceableGoodsReceiptWithRatiosRow = InvoiceableGoodsReceiptRow & {
+  displayUnitRatios: DisplayUnitRatios;
+};
+
 export type InvoiceableGoodsReceiptFilter = {
   supplierId?: string;
   siteId?: string;
@@ -71,12 +77,12 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
   }
 
   // Returns the posted receipt lots (or items without lots) of a supplier's or the given orders at a site with primary
-  // quantity left to invoice, oldest receipt first
-  async findInvoiceable(filter: InvoiceableGoodsReceiptFilter): Promise<InvoiceableGoodsReceiptRow[]> {
+  // quantity left to invoice, oldest receipt first, with what turns each one's item into its display unit
+  async findInvoiceable(filter: InvoiceableGoodsReceiptFilter): Promise<InvoiceableGoodsReceiptWithRatiosRow[]> {
     const accepted = this.acceptedPrimary();
     const invoiced = this.invoicedPrimary(filter.excludeLineId);
     return this.db
-      .select(this.selection(accepted, invoiced))
+      .select({ ...this.selection(accepted, invoiced), displayUnitRatios: displayUnitRatios() })
       .from(goodsReceiptItems)
       .innerJoin(goodsReceipts, eq(goodsReceipts.id, goodsReceiptItems.goodsReceiptId))
       .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
@@ -100,7 +106,7 @@ export class InvoiceableGoodsReceiptsRepository extends PrimaryBaseRepository<ty
         asc(goodsReceipts.grNumber),
         asc(inventoryItems.name),
         asc(goodsReceiptLots.expiryDate),
-      ) as Promise<InvoiceableGoodsReceiptRow[]>;
+      ) as Promise<InvoiceableGoodsReceiptWithRatiosRow[]>;
   }
 
   // Loads the receipt item a line invoices, with the given lot when it is one of the item's, and what the other live lines invoice of it

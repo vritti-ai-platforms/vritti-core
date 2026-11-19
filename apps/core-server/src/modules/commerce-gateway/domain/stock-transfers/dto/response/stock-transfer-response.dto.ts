@@ -1,3 +1,4 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class StockTransferResponseDto {
@@ -35,6 +36,11 @@ export class StockTransferResponseDto {
   updatedAt: string;
 }
 
+export class StockTransferDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  quantity: DisplayUomQuantityResponseDto | null;
+}
+
 export class StockTransferRowResponseDto extends StockTransferResponseDto {
   @ApiProperty({ description: 'Inventory item name' })
   inventoryItemName: string;
@@ -44,4 +50,7 @@ export class StockTransferRowResponseDto extends StockTransferResponseDto {
 
   @ApiProperty({ description: 'Destination site name (gateway-enriched)' })
   toSiteName: string;
+
+  @ApiProperty({ type: StockTransferDisplayResponseDto, description: "The quantity in the item's display unit" })
+  display: StockTransferDisplayResponseDto;
 }

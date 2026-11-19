@@ -14,7 +14,10 @@ import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/
 import type { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
-import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
+import type {
+  PurchaseOrderItemTableResponseDto,
+  PurchaseOrderItemTableRowResponseDto,
+} from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
 import type { PurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-response.dto';
 import type { PurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-table-response.dto';
@@ -139,7 +142,7 @@ export class PurchaseOrdersGatewayService {
       userId,
       `commerce-purchase-order-${id}-items`,
     );
-    const { result, count } = await this.nats.send<{ result: PurchaseOrderItemResponseDto[]; count: number }>(
+    const { result, count } = await this.nats.send<{ result: PurchaseOrderItemTableRowResponseDto[]; count: number }>(
       'commerce',
       'site.purchaseOrders.itemsTable',
       { id, ...state },

@@ -9,6 +9,8 @@ import type {
   UseAddPurchaseItem,
   UseCancelPurchase,
   UseCancelPurchaseLeg,
+  UseChangePurchaseMinQuotations,
+  UseChangePurchaseNotes,
   UseClosePurchase,
   UseClosePurchaseLeg,
   UseConfirmPurchaseLegPurchaseOrder,
@@ -19,6 +21,8 @@ import type {
   UseCreatePurchaseSupplierInvoice,
   UseCreateReceiveWithInvoice,
   UseDeletePurchase,
+  UseDisablePurchaseQuotations,
+  UseEnablePurchaseQuotations,
   UsePurchase,
   UsePurchaseAction,
   UsePurchaseActions,
@@ -48,7 +52,6 @@ import type {
   UseRemovePurchaseAllocation,
   UseRemovePurchaseItem,
   UseRequestPurchaseQuotation,
-  UseUpdatePurchase,
   UseUpdatePurchaseAllocation,
   UseUpdatePurchaseItem,
   UseUpdateReceiveWithInvoice,
@@ -122,7 +125,10 @@ export interface PurchasesBinding {
   usePurchaseDocuments: UsePurchaseDocuments;
 
   useCreate: UseCreatePurchase;
-  useUpdate: UseUpdatePurchase;
+  useChangeNotes: UseChangePurchaseNotes;
+  useEnableQuotations: UseEnablePurchaseQuotations;
+  useDisableQuotations: UseDisablePurchaseQuotations;
+  useChangeMinQuotations: UseChangePurchaseMinQuotations;
   useClose: UseClosePurchase;
   useCancel: UseCancelPurchase;
   useDelete: UseDeletePurchase;

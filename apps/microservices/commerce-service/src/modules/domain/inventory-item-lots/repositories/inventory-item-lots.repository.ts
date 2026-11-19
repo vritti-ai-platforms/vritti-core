@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
-import { type InventoryItemLot, inventoryItemLots, inventoryItemQuants } from '@/db/schema';
+import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
+  type InventoryItemLot,
+  inventoryItemLots,
+  inventoryItemQuants,
+  inventoryItems,
+} from '@/db/schema';
 
 export type InventoryItemLotWithStock = InventoryItemLot & {
   stockedQuantity: string;
   reservedQuantity: string;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 @Injectable()
@@ -14,6 +22,7 @@ export class InventoryItemLotsDomainRepository extends PrimaryBaseRepository<typ
     super(database, inventoryItemLots);
   }
 
+  // Returns one item's lots for its table, each with its stocked and reserved totals and its item's display-unit ratios
   async findLotsForTable(
     inventoryItemId: string,
     options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number },
@@ -33,9 +42,11 @@ export class InventoryItemLotsDomainRepository extends PrimaryBaseRepository<typ
         updatedAt: inventoryItemLots.updatedAt,
         stockedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.quantity}), 0)`.as('stockedQuantity'),
         reservedQuantity: sql<string>`COALESCE(SUM(${inventoryItemQuants.reservedQuantity}), 0)`.as('reservedQuantity'),
+        displayUnitRatios: displayUnitRatios(),
       },
+      innerJoins: [{ table: inventoryItems, on: eq(inventoryItems.id, inventoryItemLots.inventoryItemId) }],
       leftJoins: [{ table: inventoryItemQuants, on: eq(inventoryItemQuants.lotId, inventoryItemLots.id) }],
-      groupBy: [inventoryItemLots.id],
+      groupBy: [inventoryItemLots.id, inventoryItems.id],
       where: combinedWhere,
       orderBy: options.orderBy?.length ? options.orderBy : [asc(inventoryItemLots.expiryDate)],
       limit: options.limit,

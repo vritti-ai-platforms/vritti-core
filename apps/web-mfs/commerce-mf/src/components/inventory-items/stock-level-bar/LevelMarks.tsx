@@ -1,17 +1,19 @@
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import type React from 'react';
-import { type PlacedLevel, withUnit } from './stockLevelLayout';
+import { type PlacedLevel, type QuantityLabels, withUnit } from './stockLevelLayout';
 import { TipRow } from './TipRow';
 
 interface LevelMarksProps {
   levels: PlacedLevel[];
   onHand: number;
   uomSymbol: string;
+  labels: QuantityLabels;
 }
 
-// A tick across the bar at each level; hovering one shows the level and how far the stock on hand is from it
-export const LevelMarks: React.FC<LevelMarksProps> = ({ levels, onHand, uomSymbol }) => {
+// A tick across the bar at each level; hovering one shows the level, in the primary unit too when it is labelled in
+// another, and how far the stock on hand is from it
+export const LevelMarks: React.FC<LevelMarksProps> = ({ levels, onHand, uomSymbol, labels }) => {
   const fmt = useFormatters();
   return levels.map((level) => {
     const gap = withUnit(fmt, Math.abs(onHand - level.quantity), uomSymbol);
@@ -23,7 +25,8 @@ export const LevelMarks: React.FC<LevelMarksProps> = ({ levels, onHand, uomSymbo
         content={
           <div className="flex min-w-44 flex-col gap-1">
             <span className="font-medium">{level.label}</span>
-            <TipRow label="Level" value={withUnit(fmt, level.quantity, uomSymbol)} />
+            <TipRow label="Level" value={labels[level.key].primary} />
+            {labels[level.key].secondary && <TipRow label="Primary unit" value={labels[level.key].secondary} />}
             <TipRow label="On hand" value={fromLevel} />
           </div>
         }

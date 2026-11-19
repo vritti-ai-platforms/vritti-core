@@ -37,11 +37,13 @@ import type { CurrencyCode } from '@vritti/api-sdk/money';
 import { type NatsHeaders, RpcNatsHeaders } from '@vritti/api-sdk/nats';
 import { SelectOptionsQueryDto, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { PartyTypeValues } from '@/db/schema';
+import type { InventoryItemUnitsDto } from './dto/entity/inventory-item-units.dto';
 import { CostCategoriesSelectQueryDto } from './dto/request/cost-categories-select-query.dto';
 import { InventoryItemLotsSelectQueryDto } from './dto/request/inventory-item-lots-select-query.dto';
 import { InventoryItemMrpsSelectQueryDto } from './dto/request/inventory-item-mrps-select-query.dto';
 import { InventoryItemQuantsSelectQueryDto } from './dto/request/inventory-item-quants-select-query.dto';
 import { InventoryItemSerialsSelectQueryDto } from './dto/request/inventory-item-serials-select-query.dto';
+import { InventoryItemUnitsQueryDto } from './dto/request/inventory-item-units-query.dto';
 import { InventoryItemsSelectQueryDto } from './dto/request/inventory-items-select-query.dto';
 import { LocationsSelectQueryDto } from './dto/request/locations-select-query.dto';
 import { OfferingVariantsSelectQueryDto } from './dto/request/offering-variants-select-query.dto';
@@ -59,6 +61,7 @@ import { TaxComponentsSelectQueryDto } from './dto/request/tax-components-select
 import { TaxGroupsSelectQueryDto } from './dto/request/tax-groups-select-query.dto';
 import { TaxJurisdictionsSelectQueryDto } from './dto/request/tax-jurisdictions-select-query.dto';
 import { UomSelectQueryDto } from './dto/request/uom-select-query.dto';
+import { InventoryItemUnitsService } from './services/inventory-item-units.service';
 import { PurchasingPickersService } from './services/purchasing-pickers.service';
 
 @Controller()
@@ -98,6 +101,7 @@ export class SelectController {
     private readonly partyBankAccountsService: PartyBankAccountsDomainService,
     private readonly partyRelationshipsService: PartyRelationshipsDomainService,
     private readonly purchasingPickersService: PurchasingPickersService,
+    private readonly inventoryItemUnitsService: InventoryItemUnitsService,
   ) {}
 
   // Returns paginated category options for the select component
@@ -118,6 +122,13 @@ export class SelectController {
       `select.inventoryItems — atSiteId: ${data.atSiteId ?? '-'}, notAtSiteId: ${data.notAtSiteId ?? '-'}, supplierId: ${data.supplierId ?? '-'}`,
     );
     return this.purchasingPickersService.findInventoryItems(data, headers.leCurrencyCode as CurrencyCode);
+  }
+
+  // Returns the units a quantity of the item can be entered in, with their ratios to its primary unit
+  @MessagePattern({ cmd: 'select.inventoryItemUnits' })
+  inventoryItemUnits(@Payload() data: InventoryItemUnitsQueryDto): Promise<InventoryItemUnitsDto> {
+    this.logger.log(`select.inventoryItemUnits — inventoryItemId: ${data.inventoryItemId}`);
+    return this.inventoryItemUnitsService.findUnits(data.inventoryItemId);
   }
 
   // Returns paginated offering options for the select component

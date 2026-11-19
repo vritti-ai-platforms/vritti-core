@@ -10,8 +10,8 @@ interface SiteStockCellProps {
   uomSymbol: string;
 }
 
-// An item's stock at one site in one cell: its status, the quantity on hand and what it is worth, and the stock level
-// bar split by location; an empty track while the site does not carry it
+// An item's stock at one site in one cell: its status, the quantity on hand in the item's display unit and what it is
+// worth, and the stock level bar split by location; an empty track while the site does not carry it
 export const SiteStockCell: React.FC<SiteStockCellProps> = ({ stock, uomSymbol }) => {
   const fmt = useFormatters();
   return (
@@ -19,8 +19,7 @@ export const SiteStockCell: React.FC<SiteStockCellProps> = ({ stock, uomSymbol }
       <div className="flex items-center justify-between gap-3">
         <StockStatusBadge status={stock.stockStatus} />
         <Typography variant="body2" className="flex items-baseline gap-1.5 whitespace-nowrap">
-          <span className="font-mono font-medium">{fmt.number(stock.onHand).primary}</span>
-          <span className="text-xs text-muted-foreground">{uomSymbol}</span>
+          <span className="font-mono font-medium">{fmt.quantity(stock.display.onHand).primary}</span>
           <span aria-hidden className="text-border">
             |
           </span>
@@ -36,6 +35,7 @@ export const SiteStockCell: React.FC<SiteStockCellProps> = ({ stock, uomSymbol }
         status={stock.stockStatus ?? undefined}
         uomSymbol={uomSymbol}
         locations={stock.locations}
+        display={stock.display}
       />
     </div>
   );

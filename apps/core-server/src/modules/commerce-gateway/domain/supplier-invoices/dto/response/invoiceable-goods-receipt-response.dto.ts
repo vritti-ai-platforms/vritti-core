@@ -1,5 +1,17 @@
+import { DisplayUomQuantityResponseDto } from '@commerce/uom/dto/response/display-uom-quantity-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { CurrencyAmountDto } from '@vritti/api-sdk/money';
+
+export class InvoiceableGoodsReceiptDisplayResponseDto {
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  acceptedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  invoicedPrimaryQty: DisplayUomQuantityResponseDto | null;
+
+  @ApiProperty({ type: DisplayUomQuantityResponseDto, nullable: true })
+  openPrimaryQty: DisplayUomQuantityResponseDto | null;
+}
 
 export class InvoiceableGoodsReceiptResponseDto {
   @ApiProperty({ description: 'Goods receipt ID' })
@@ -67,4 +79,10 @@ export class InvoiceableGoodsReceiptResponseDto {
 
   @ApiProperty({ description: "Accepted less invoiced, in the order line's unit" })
   openQty: number;
+
+  @ApiProperty({
+    type: InvoiceableGoodsReceiptDisplayResponseDto,
+    description: "Each primary-unit quantity of the batch in its item's display unit",
+  })
+  display: InvoiceableGoodsReceiptDisplayResponseDto;
 }

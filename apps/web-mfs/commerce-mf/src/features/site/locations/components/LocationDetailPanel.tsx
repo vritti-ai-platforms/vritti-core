@@ -2,15 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SITE_LOCATIONS } from '@vritti/commerce-permissions/locations';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
-import {
-  type ColumnDef,
-  DataTable,
-  NumberCell,
-  type RowAction,
-  RowActions,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, type RowAction, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
@@ -322,19 +314,18 @@ const LocationItemsSection: React.FC<LocationItemsSectionProps> = ({ locationId 
         ),
       },
       {
-        accessorKey: 'uomSymbol',
-        header: 'UoM',
-        cell: ({ row }) => <StringCell value={row.original.uomSymbol} />,
-      },
-      {
         accessorKey: 'totalQuantity',
         header: 'Quantity',
-        cell: ({ row }) => <NumberCell value={row.original.totalQuantity} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.totalQuantity).primary}</span>
+        ),
       },
       {
         accessorKey: 'availableQuantity',
         header: 'Available',
-        cell: ({ row }) => <NumberCell value={row.original.availableQuantity} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.availableQuantity).primary}</span>
+        ),
       },
       {
         accessorKey: 'totalValue',

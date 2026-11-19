@@ -17,7 +17,7 @@ import {
   PurchaseOrderStatusValues,
   purchaseOrders,
 } from '@/db/schema';
-import { InboundDeliveryLineDto } from '../dto/entity/inbound-delivery-line.dto';
+import { InboundDeliveryLineDto, type InboundDeliveryLineWithRatiosDto } from '../dto/entity/inbound-delivery-line.dto';
 import type { AddInboundDeliveryLinesDto } from '../dto/request/add-inbound-delivery-lines.dto';
 import {
   type DeliverablePurchaseOrderItem,
@@ -158,11 +158,11 @@ export class InboundDeliveryLinesDomainService {
     return { success: true, message: `Line updated on inbound delivery "${delivery.deliveryNumber}".` };
   }
 
-  // Returns one page of a delivery's lines
+  // Returns one page of a delivery's lines, each with what turns its item into its display unit
   async findForTable(
     inboundDeliveryId: string,
     state: TableState,
-  ): Promise<{ result: InboundDeliveryLineDto[]; count: number }> {
+  ): Promise<{ result: InboundDeliveryLineWithRatiosDto[]; count: number }> {
     const orderBy = FilterProcessor.buildOrderBy(state.sort, InboundDeliveryLinesDomainService.SORT_FIELD_MAP);
     const { limit = 20, offset = 0 } = state.pagination;
 
@@ -175,7 +175,10 @@ export class InboundDeliveryLinesDomainService {
       limit,
       offset,
     });
-    return { result: result.map(InboundDeliveryLineDto.from), count };
+    return {
+      result: result.map((row) => ({ ...InboundDeliveryLineDto.from(row), displayUnitRatios: row.displayUnitRatios })),
+      count,
+    };
   }
 
   // Returns the PO lines that can still go on a delivery, by PO number, with what is left to deliver in the line unit

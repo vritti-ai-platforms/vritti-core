@@ -1,13 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
-import {
-  type ColumnDef,
-  DataTable,
-  DateCell,
-  NumberCell,
-  StringCell,
-  useDataTable,
-} from '@vritti/quantum-ui/DataTable';
+import { type ColumnDef, DataTable, DateCell, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Layers } from 'lucide-react';
 import type React from 'react';
 import { useMemo } from 'react';
@@ -16,7 +10,6 @@ import type { InventoryItemLotData, InventoryItemLotStatus } from '@/schemas/inv
 
 interface LotsTabProps {
   inventoryItemId: string;
-  uomSymbol: string;
 }
 
 function getLotStatus(expiryDate: string): InventoryItemLotStatus {
@@ -36,8 +29,9 @@ const STATUS_CONFIG: Record<
   FRESH: { label: 'Fresh', variant: 'default' },
 };
 
-export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) => {
+export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
+  const fmt = useFormatters();
   const inventoryItemLotsTableQuery = useInventoryItemLotsTable(inventoryItemId);
 
   const columns = useMemo<ColumnDef<InventoryItemLotData>[]>(
@@ -69,22 +63,22 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
         accessorKey: 'stockedQuantity',
         header: 'Stocked',
         cell: ({ row }) => (
-          <span className="font-mono">
-            <NumberCell value={row.original.stockedQuantity} /> {uomSymbol}
-          </span>
+          <span className="font-mono">{fmt.quantity(row.original.display.stockedQuantity).primary}</span>
         ),
       },
       {
         accessorKey: 'reservedQuantity',
         header: 'Reserved',
-        cell: ({ row }) => <NumberCell value={row.original.reservedQuantity} />,
+        cell: ({ row }) => (
+          <span className="font-mono">{fmt.quantity(row.original.display.reservedQuantity).primary}</span>
+        ),
       },
       {
         accessorKey: 'availableQuantity',
         header: 'Available',
         cell: ({ row }) => (
           <span className="font-mono font-semibold">
-            <NumberCell value={row.original.availableQuantity} /> {uomSymbol}
+            {fmt.quantity(row.original.display.availableQuantity).primary}
           </span>
         ),
       },
@@ -98,7 +92,7 @@ export const LotsTab: React.FC<LotsTabProps> = ({ inventoryItemId, uomSymbol }) 
         },
       },
     ],
-    [uomSymbol],
+    [fmt],
   );
 
   const inventoryItemLotsTable = useDataTable({

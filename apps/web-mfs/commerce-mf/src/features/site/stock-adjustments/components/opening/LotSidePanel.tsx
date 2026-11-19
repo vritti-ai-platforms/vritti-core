@@ -2,7 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { Empty } from '@vritti/quantum-ui/Empty';
 import { FormattedDate } from '@vritti/quantum-ui/FormattedDate';
-import { useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { PageContentPanel, SidePanelListItem } from '@vritti/quantum-ui/PageContent';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Plus } from 'lucide-react';
@@ -13,14 +13,14 @@ import { AddLotDialog } from '../../forms/opening/AddLotDialog';
 interface LotSidePanelProps {
   adjustmentId: string;
   isDraft: boolean;
-  uomSymbol: string;
   selectedLotId: string | null;
   onSelectLot: (lotId: string | null) => void;
 }
 
-export const LotSidePanel = ({ adjustmentId, isDraft, uomSymbol, selectedLotId, onSelectLot }: LotSidePanelProps) => {
+export const LotSidePanel = ({ adjustmentId, isDraft, selectedLotId, onSelectLot }: LotSidePanelProps) => {
   const { data: lots = [], isLoading } = useStockAdjustmentLots(adjustmentId);
   const addLotDialog = useDialog();
+  const fmt = useFormatters();
 
   return (
     <>
@@ -55,7 +55,7 @@ export const LotSidePanel = ({ adjustmentId, isDraft, uomSymbol, selectedLotId, 
               <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-medium truncate">{lot.lotNumber}</div>
                 <Badge variant={lot.totalQuantity === 0 ? 'destructive' : 'success'}>
-                  {lot.totalQuantity} {uomSymbol}
+                  {fmt.quantity(lot.display.totalQuantity).primary}
                 </Badge>
               </div>
               <div className="text-xs text-muted-foreground mt-1">

@@ -1,3 +1,4 @@
+import type { DisplayUnitRatios } from '@/db/schema';
 import type { StockAdjustmentLineWithRefs } from '../../repositories/stock-adjustment-lines.repository';
 
 export class StockAdjustmentLineDto {
@@ -35,6 +36,7 @@ export class StockAdjustmentLineDto {
   isBalanced: boolean;
   lineItemsCount: number;
   createdAt: string;
+  displayUnitRatios: DisplayUnitRatios;
 
   static from(row: StockAdjustmentLineWithRefs): StockAdjustmentLineDto {
     const dto = new StockAdjustmentLineDto();
@@ -67,6 +69,7 @@ export class StockAdjustmentLineDto {
     dto.isBalanced = row.isBalanced;
     dto.lineItemsCount = row.lineItemsCount ?? 0;
     dto.createdAt = row.createdAt.toISOString();
+    dto.displayUnitRatios = row.displayUnitRatios;
     return dto;
   }
 }

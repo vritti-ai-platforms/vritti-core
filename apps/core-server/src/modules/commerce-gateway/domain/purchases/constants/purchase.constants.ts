@@ -32,7 +32,10 @@ export const PURCHASE_ITEM_SOURCES = ['MANUAL'] as const;
 export type PurchaseItemSource = (typeof PURCHASE_ITEM_SOURCES)[number];
 
 export const PURCHASE_ACTIONS = [
-  'EDIT',
+  'CHANGE_NOTES',
+  'ENABLE_QUOTATIONS',
+  'DISABLE_QUOTATIONS',
+  'CHANGE_MIN_QUOTATIONS',
   'EDIT_ITEMS',
   'REQUEST_QUOTATION',
   'EDIT_ALLOCATIONS',

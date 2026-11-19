@@ -26696,7 +26696,7 @@
     },
     "/commerce-api/site/purchases/{id}/items": {
       "post": {
-        "description": "Adds an inventory item to the purchase; an item already on it gets the quantity added.",
+        "description": "Adds an inventory item the purchase does not have yet; an item already on it is refused — change its quantity instead.",
         "operationId": "PurchasesGatewayController_createItem",
         "parameters": [
           {
@@ -26734,7 +26734,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting."
+            "description": "The purchase is no longer open, or already has the item."
           }
         },
         "security": [
@@ -27196,10 +27196,10 @@
         ]
       }
     },
-    "/commerce-api/site/purchases/{id}": {
+    "/commerce-api/site/purchases/{id}/notes": {
       "patch": {
-        "description": "Changes the purchase's header while it is Requesting.",
-        "operationId": "PurchasesGatewayController_update",
+        "description": "Changes an open purchase's notes; null clears them.",
+        "operationId": "PurchasesGatewayController_changeNotes",
         "parameters": [
           {
             "name": "id",
@@ -27216,14 +27216,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePurchaseDto"
+                "$ref": "#/components/schemas/ChangePurchaseNotesDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Purchase updated.",
+            "description": "Notes changed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27236,7 +27236,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting."
+            "description": "The purchase is no longer open."
           }
         },
         "security": [
@@ -27244,14 +27244,16 @@
             "bearer": []
           }
         ],
-        "summary": "Update a purchase",
+        "summary": "Change a purchase's notes",
         "tags": [
           "Commerce - Purchases"
         ]
-      },
-      "get": {
-        "description": "Returns the purchase with its site. Its counts, progress and actions come from `:id/counts`, `:id/progress` and `:id/actions`.",
-        "operationId": "PurchasesGatewayController_findById",
+      }
+    },
+    "/commerce-api/site/purchases/{id}/quotations/enable": {
+      "post": {
+        "description": "Requires each item to have the given number of posted quotations before its supplier is submitted. Only while no supplier of the purchase has been submitted; the change is recorded with who made it.",
+        "operationId": "PurchasesGatewayController_enableQuotations",
         "parameters": [
           {
             "name": "id",
@@ -27263,48 +27265,19 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Purchase retrieved.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurchaseDetailResponseDto"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnablePurchaseQuotationsDto"
               }
             }
-          },
-          "404": {
-            "description": "Purchase not found."
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a purchase",
-        "tags": [
-          "Commerce - Purchases"
-        ]
-      },
-      "delete": {
-        "description": "Deletes the purchase and its items. Only possible while the purchase is open and Requesting with no quotations, allocations or suppliers; cancel it otherwise.",
-        "operationId": "PurchasesGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Purchase ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
-            "description": "Purchase deleted.",
+            "description": "Quotations required.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27317,7 +27290,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting or has quotations, allocations or suppliers."
+            "description": "The purchase is not open, already requires quotations, or a supplier was submitted."
           }
         },
         "security": [
@@ -27325,7 +27298,118 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a purchase",
+        "summary": "Require quotations on a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/site/purchases/{id}/quotations/disable": {
+      "post": {
+        "description": "Stops requiring quotations on an open purchase; the reason is recorded with who made the change.",
+        "operationId": "PurchasesGatewayController_disableQuotations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisablePurchaseQuotationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quotations no longer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is not open or does not require quotations."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop requiring quotations on a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/site/purchases/{id}/quotations/minimum": {
+      "patch": {
+        "description": "Changes how many posted quotations each item needs before its supplier is submitted; lowering it needs a reason. The change is recorded with who made it.",
+        "operationId": "PurchasesGatewayController_changeMinQuotations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePurchaseMinQuotationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimum changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The minimum is unchanged, or lowered without a reason."
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is not open or does not require quotations."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the minimum quotations of a purchase",
         "tags": [
           "Commerce - Purchases"
         ]
@@ -28293,6 +28377,89 @@
           }
         ],
         "summary": "Post a Receive with Invoice",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/site/purchases/{id}": {
+      "get": {
+        "description": "Returns the purchase with its site. Its counts, progress and actions come from `:id/counts`, `:id/progress` and `:id/actions`.",
+        "operationId": "PurchasesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      },
+      "delete": {
+        "description": "Deletes the purchase and its items. Only possible while the purchase is open and Requesting with no quotations, allocations or suppliers; cancel it otherwise.",
+        "operationId": "PurchasesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is no longer Requesting or has quotations, allocations or suppliers."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a purchase",
         "tags": [
           "Commerce - Purchases"
         ]
@@ -33504,7 +33671,7 @@
     },
     "/commerce-api/le/purchases/{id}/items": {
       "post": {
-        "description": "Adds an inventory item to the purchase; an item already on it gets the quantity added.",
+        "description": "Adds an inventory item the purchase does not have yet; an item already on it is refused — change its quantity instead.",
         "operationId": "LePurchasesGatewayController_createItem",
         "parameters": [
           {
@@ -33542,7 +33709,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting."
+            "description": "The purchase is no longer open, or already has the item."
           }
         },
         "security": [
@@ -34010,10 +34177,10 @@
         ]
       }
     },
-    "/commerce-api/le/purchases/{id}": {
+    "/commerce-api/le/purchases/{id}/notes": {
       "patch": {
-        "description": "Changes the purchase's header while it is Requesting.",
-        "operationId": "LePurchasesGatewayController_update",
+        "description": "Changes an open purchase's notes; null clears them.",
+        "operationId": "LePurchasesGatewayController_changeNotes",
         "parameters": [
           {
             "name": "id",
@@ -34030,14 +34197,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdatePurchaseDto"
+                "$ref": "#/components/schemas/ChangePurchaseNotesDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Purchase updated.",
+            "description": "Notes changed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -34050,7 +34217,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting."
+            "description": "The purchase is no longer open."
           }
         },
         "security": [
@@ -34058,14 +34225,16 @@
             "bearer": []
           }
         ],
-        "summary": "Update a purchase",
+        "summary": "Change a purchase's notes",
         "tags": [
           "Commerce - Purchases"
         ]
-      },
-      "get": {
-        "description": "Returns the purchase with its site. Its counts, progress and actions come from `:id/counts`, `:id/progress` and `:id/actions`.",
-        "operationId": "LePurchasesGatewayController_findById",
+      }
+    },
+    "/commerce-api/le/purchases/{id}/quotations/enable": {
+      "post": {
+        "description": "Requires each item to have the given number of posted quotations before its supplier is submitted. Only while no supplier of the purchase has been submitted; the change is recorded with who made it.",
+        "operationId": "LePurchasesGatewayController_enableQuotations",
         "parameters": [
           {
             "name": "id",
@@ -34077,48 +34246,19 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Purchase retrieved.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PurchaseDetailResponseDto"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnablePurchaseQuotationsDto"
               }
             }
-          },
-          "404": {
-            "description": "Purchase not found."
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get a purchase",
-        "tags": [
-          "Commerce - Purchases"
-        ]
-      },
-      "delete": {
-        "description": "Deletes the purchase and its items. Only possible while the purchase is open and Requesting with no quotations, allocations or suppliers; cancel it otherwise.",
-        "operationId": "LePurchasesGatewayController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Purchase ID",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
-            "description": "Purchase deleted.",
+            "description": "Quotations required.",
             "content": {
               "application/json": {
                 "schema": {
@@ -34131,7 +34271,7 @@
             "description": "Purchase not found."
           },
           "409": {
-            "description": "The purchase is no longer Requesting or has quotations, allocations or suppliers."
+            "description": "The purchase is not open, already requires quotations, or a supplier was submitted."
           }
         },
         "security": [
@@ -34139,7 +34279,118 @@
             "bearer": []
           }
         ],
-        "summary": "Delete a purchase",
+        "summary": "Require quotations on a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/le/purchases/{id}/quotations/disable": {
+      "post": {
+        "description": "Stops requiring quotations on an open purchase; the reason is recorded with who made the change.",
+        "operationId": "LePurchasesGatewayController_disableQuotations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisablePurchaseQuotationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quotations no longer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is not open or does not require quotations."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop requiring quotations on a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/le/purchases/{id}/quotations/minimum": {
+      "patch": {
+        "description": "Changes how many posted quotations each item needs before its supplier is submitted; lowering it needs a reason. The change is recorded with who made it.",
+        "operationId": "LePurchasesGatewayController_changeMinQuotations",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePurchaseMinQuotationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Minimum changed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The minimum is unchanged, or lowered without a reason."
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is not open or does not require quotations."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change the minimum quotations of a purchase",
         "tags": [
           "Commerce - Purchases"
         ]
@@ -35155,6 +35406,89 @@
           }
         ],
         "summary": "Post a Receive with Invoice",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      }
+    },
+    "/commerce-api/le/purchases/{id}": {
+      "get": {
+        "description": "Returns the purchase with its site. Its counts, progress and actions come from `:id/counts`, `:id/progress` and `:id/actions`.",
+        "operationId": "LePurchasesGatewayController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a purchase",
+        "tags": [
+          "Commerce - Purchases"
+        ]
+      },
+      "delete": {
+        "description": "Deletes the purchase and its items. Only possible while the purchase is open and Requesting with no quotations, allocations or suppliers; cancel it otherwise.",
+        "operationId": "LePurchasesGatewayController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Purchase deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase not found."
+          },
+          "409": {
+            "description": "The purchase is no longer Requesting or has quotations, allocations or suppliers."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a purchase",
         "tags": [
           "Commerce - Purchases"
         ]
@@ -48012,6 +48346,47 @@
         ]
       }
     },
+    "/commerce-api/select-api/inventory-items/{id}/units": {
+      "get": {
+        "description": "Returns the units a quantity of the item can be entered in, each with its exact ratio to the item's primary unit, and which units are primary and displayed.",
+        "operationId": "SelectApiController_findInventoryItemUnits",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Units retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemUnitsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inventory item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an inventory item's units",
+        "tags": [
+          "Commerce - Select"
+        ]
+      }
+    },
     "/commerce-api/select-api/inventory-items": {
       "get": {
         "description": "Returns paginated inventory item options, optionally excluding those fully linked to a supplier.",
@@ -48170,7 +48545,7 @@
             "name": "atSiteId",
             "required": false,
             "in": "query",
-            "description": "Only the items this site carries, each with its stock and levels there; blocked ones come disabled",
+            "description": "Only the items this site carries, each with its stock and levels there, also in the item's display unit under additionals.display; blocked ones come disabled",
             "schema": {
               "type": "string"
             }
@@ -48180,6 +48555,15 @@
             "required": false,
             "in": "query",
             "description": "Only the items this site does not carry yet",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "notOnPurchaseId",
+            "required": false,
+            "in": "query",
+            "description": "Only the items not on this purchase yet",
             "schema": {
               "type": "string"
             }
@@ -64521,6 +64905,99 @@
           "lotCount"
         ]
       },
+      "DisplayUomQuantityResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "type": "number",
+            "description": "The quantity in the item's primary unit, as stored",
+            "example": 2344
+          },
+          "displayUomQty": {
+            "type": "number",
+            "description": "The quantity in the item's display unit",
+            "example": 234.4
+          },
+          "wholeDisplayUomQty": {
+            "type": "number",
+            "description": "Whole display units in it, toward zero",
+            "example": 234
+          },
+          "remainderPrimaryUomQty": {
+            "type": "number",
+            "description": "Primary units left over after the whole display units",
+            "example": 4
+          },
+          "displayUomSymbol": {
+            "type": "string",
+            "example": "strip"
+          },
+          "primaryUomSymbol": {
+            "type": "string",
+            "example": "tab"
+          },
+          "isPack": {
+            "type": "boolean",
+            "description": "Whether the display unit is one of the item's own pack conversions"
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "displayUomQty",
+          "wholeDisplayUomQty",
+          "remainderPrimaryUomQty",
+          "displayUomSymbol",
+          "primaryUomSymbol",
+          "isPack"
+        ]
+      },
+      "SiteStockDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "onHand": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "safetyStock": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "reorderPoint": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "maxStock": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "onHand",
+          "safetyStock",
+          "reorderPoint",
+          "maxStock"
+        ]
+      },
       "SiteItemRowResponseDto": {
         "type": "object",
         "properties": {
@@ -64617,6 +65094,14 @@
             "items": {
               "$ref": "#/components/schemas/SiteStockLocationResponseDto"
             }
+          },
+          "display": {
+            "description": "On hand and the levels in the item's display unit; each null when not set or not carried",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SiteStockDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -64632,7 +65117,8 @@
           "onHand",
           "stockValue",
           "stockStatus",
-          "locations"
+          "locations",
+          "display"
         ]
       },
       "SiteItemTableResponseDto": {
@@ -65594,13 +66080,112 @@
           "state"
         ]
       },
+      "GoodsReceiptLineDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryUomQty"
+        ]
+      },
+      "GoodsReceiptLineTableRowResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "goodsReceiptItemId": {
+            "type": "string"
+          },
+          "goodsReceiptLotId": {
+            "type": "object",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "object",
+            "nullable": true
+          },
+          "locationPath": {
+            "type": "object",
+            "nullable": true
+          },
+          "lotNumber": {
+            "type": "object",
+            "nullable": true
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "primaryUomQty": {
+            "type": "number",
+            "description": "Quantity in the inventory item's primary UOM"
+          },
+          "primaryUomSymbol": {
+            "type": "string"
+          },
+          "resolvedQuantId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set after posting"
+          },
+          "isBalanced": {
+            "type": "boolean"
+          },
+          "lineItemsCount": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "The line's primary-unit quantity in its item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GoodsReceiptLineDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "goodsReceiptItemId",
+          "locationId",
+          "quantity",
+          "primaryUomQty",
+          "primaryUomSymbol",
+          "isBalanced",
+          "lineItemsCount",
+          "createdAt",
+          "display"
+        ]
+      },
       "GoodsReceiptLineTableResponseDto": {
         "type": "object",
         "properties": {
           "result": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GoodsReceiptLineResponseDto"
+              "$ref": "#/components/schemas/GoodsReceiptLineTableRowResponseDto"
             }
           },
           "count": {
@@ -65691,6 +66276,23 @@
           "badge"
         ]
       },
+      "GoodsReceiptItemCostDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "acceptedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "acceptedPrimaryQty"
+        ]
+      },
       "GoodsReceiptItemCostResponseDto": {
         "type": "object",
         "properties": {
@@ -65737,6 +66339,14 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "display": {
+            "description": "The accepted primary-unit quantity in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GoodsReceiptItemCostDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -65748,7 +66358,8 @@
           "acceptedQty",
           "acceptedPrimaryQty",
           "unitCost",
-          "value"
+          "value",
+          "display"
         ]
       },
       "GoodsReceiptItemsCostResponseDto": {
@@ -66195,6 +66806,33 @@
           "state"
         ]
       },
+      "InboundDeliveryLineDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "receivedOnDeliveryPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "receivedOnDeliveryPrimaryQty"
+        ]
+      },
       "InboundDeliveryLineResponseDto": {
         "type": "object",
         "properties": {
@@ -66287,6 +66925,14 @@
           "createdAt": {
             "type": "string",
             "description": "ISO timestamp of creation"
+          },
+          "display": {
+            "description": "Each primary-unit quantity of the line in its item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InboundDeliveryLineDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -66310,7 +66956,8 @@
           "receivedOnDeliveryPrimaryQty",
           "openQty",
           "maxQuantity",
-          "createdAt"
+          "createdAt",
+          "display"
         ]
       },
       "InboundDeliveryLineTableResponseDto": {
@@ -66504,6 +67151,33 @@
           "orderedIds"
         ]
       },
+      "LocationItemDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "availableQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalQuantity",
+          "availableQuantity"
+        ]
+      },
       "LocationItemResponseDto": {
         "type": "object",
         "properties": {
@@ -66536,6 +67210,14 @@
           },
           "batchCount": {
             "type": "number"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocationItemDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -66545,7 +67227,8 @@
           "uomSymbol",
           "totalQuantity",
           "availableQuantity",
-          "batchCount"
+          "batchCount",
+          "display"
         ]
       },
       "LocationItemTableResponseDto": {
@@ -66572,6 +67255,33 @@
           "result",
           "count",
           "state"
+        ]
+      },
+      "LocationItemQuantDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "availableQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quantity",
+          "availableQuantity"
         ]
       },
       "LocationItemQuantResponseDto": {
@@ -66611,12 +67321,21 @@
                 "$ref": "#/components/schemas/CurrencyAmountDto"
               }
             ]
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocationItemQuantDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
           "quantId",
           "quantity",
-          "availableQuantity"
+          "availableQuantity",
+          "display"
         ]
       },
       "UpsertAppChannelDto": {
@@ -68317,7 +69036,114 @@
           "state"
         ]
       },
-      "PurchaseOrderItemResponseDto": {
+      "PurchaseOrderItemDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "expectedFreePrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "receivedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "rejectedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "invoicedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "returnedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "cancelledPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "duePrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "openToReceivePrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "openToInvoicePrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "expectedFreePrimaryQty",
+          "receivedPrimaryQty",
+          "rejectedPrimaryQty",
+          "invoicedPrimaryQty",
+          "returnedPrimaryQty",
+          "cancelledPrimaryQty",
+          "duePrimaryQty",
+          "openToReceivePrimaryQty",
+          "openToInvoicePrimaryQty"
+        ]
+      },
+      "PurchaseOrderItemTableRowResponseDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -68494,6 +69320,14 @@
           "hasScheme": {
             "type": "boolean",
             "description": "Whether a free-goods scheme applies."
+          },
+          "display": {
+            "description": "Each primary-unit quantity of the line in its item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseOrderItemDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -68528,7 +69362,8 @@
           "unitPrice",
           "primaryUomUnitPrice",
           "totalPrice",
-          "hasScheme"
+          "hasScheme",
+          "display"
         ]
       },
       "PurchaseOrderItemTableResponseDto": {
@@ -68537,7 +69372,7 @@
           "result": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PurchaseOrderItemResponseDto"
+              "$ref": "#/components/schemas/PurchaseOrderItemTableRowResponseDto"
             }
           },
           "count": {
@@ -69783,23 +70618,62 @@
           "lines"
         ]
       },
-      "UpdatePurchaseDto": {
+      "ChangePurchaseNotesDto": {
         "type": "object",
         "properties": {
           "notes": {
-            "type": "object",
-            "description": "Notes",
+            "type": "string",
+            "description": "Notes; null clears them",
             "nullable": true
-          },
-          "quotationsRequired": {
-            "type": "boolean",
-            "description": "Whether supplier quotations are collected before sourcing"
-          },
+          }
+        },
+        "required": [
+          "notes"
+        ]
+      },
+      "EnablePurchaseQuotationsDto": {
+        "type": "object",
+        "properties": {
           "minQuotations": {
             "type": "number",
-            "description": "Suppliers that must have posted a quotation to complete quotations"
+            "description": "Posted quotations each item needs before its supplier is submitted",
+            "example": 2
           }
-        }
+        },
+        "required": [
+          "minQuotations"
+        ]
+      },
+      "DisablePurchaseQuotationsDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "description": "Why the purchase no longer needs quotations; recorded",
+            "example": "Sole supplier"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "ChangePurchaseMinQuotationsDto": {
+        "type": "object",
+        "properties": {
+          "minQuotations": {
+            "type": "number",
+            "description": "Posted quotations each item needs before its supplier is submitted",
+            "example": 3
+          },
+          "reason": {
+            "type": "object",
+            "description": "Why fewer are enough; required to lower the minimum, recorded",
+            "nullable": true
+          }
+        },
+        "required": [
+          "minQuotations"
+        ]
       },
       "UpdatePurchaseItemDto": {
         "type": "object",
@@ -70354,6 +71228,33 @@
           "detail"
         ]
       },
+      "PurchaseItemViewDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "allocatedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryQty",
+          "allocatedPrimaryQty"
+        ]
+      },
       "PurchaseItemViewResponseDto": {
         "type": "object",
         "properties": {
@@ -70429,6 +71330,14 @@
           "supplierItemsRequired": {
             "type": "boolean",
             "description": "Whether the purchase's site buys it only from what the legal entity set up as its suppliers' items"
+          },
+          "display": {
+            "description": "The needed and allocated quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemViewDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -70444,7 +71353,8 @@
           "taxClassName",
           "primaryUomAllowDecimal",
           "problems",
-          "supplierItemsRequired"
+          "supplierItemsRequired",
+          "display"
         ]
       },
       "PurchaseLegRejectionResponseDto": {
@@ -71131,6 +72041,63 @@
           "state"
         ]
       },
+      "PurchaseItemSupplierProgressDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "allocated": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "ordered": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "inTransit": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "received": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "invoiced": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "allocated",
+          "ordered",
+          "inTransit",
+          "received",
+          "invoiced"
+        ]
+      },
       "PurchaseItemSupplierProgressResponseDto": {
         "type": "object",
         "properties": {
@@ -71165,6 +72132,14 @@
           "invoiced": {
             "type": "number",
             "description": "Quantity the supplier invoiced"
+          },
+          "display": {
+            "description": "The same quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemSupplierProgressDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -71175,7 +72150,75 @@
           "ordered",
           "inTransit",
           "received",
-          "invoiced"
+          "invoiced",
+          "display"
+        ]
+      },
+      "PurchaseItemProgressDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "allocatedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "orderedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "inTransitPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "receivedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "invoicedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryQty",
+          "allocatedPrimaryQty",
+          "orderedPrimaryQty",
+          "inTransitPrimaryQty",
+          "receivedPrimaryQty",
+          "invoicedPrimaryQty"
         ]
       },
       "PurchaseItemTableRowResponseDto": {
@@ -71260,6 +72303,14 @@
             "type": "string",
             "description": "Notes",
             "nullable": true
+          },
+          "display": {
+            "description": "Each primary-unit quantity in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemProgressDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -71278,7 +72329,8 @@
           "quotingSupplierCount",
           "suppliers",
           "problems",
-          "supplierItemsRequired"
+          "supplierItemsRequired",
+          "display"
         ]
       },
       "PurchaseItemTableResponseDto": {
@@ -71625,6 +72677,43 @@
           "state"
         ]
       },
+      "PurchaseItemAllocationRowDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "receivedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "invoicedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "receivedPrimaryQty",
+          "invoicedPrimaryQty"
+        ]
+      },
       "PurchaseItemAllocationRowResponseDto": {
         "type": "object",
         "properties": {
@@ -71776,6 +72865,14 @@
             "type": "number",
             "description": "Invoiced on its PO line, in the primary unit",
             "nullable": true
+          },
+          "display": {
+            "description": "Its primary-unit quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemAllocationRowDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -71796,7 +72893,8 @@
           "supplierName",
           "legStep",
           "legStatus",
-          "isEditable"
+          "isEditable",
+          "display"
         ]
       },
       "PurchaseItemAllocationTableResponseDto": {
@@ -71909,6 +73007,23 @@
           "state"
         ]
       },
+      "PurchaseItemDocumentDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryQty"
+        ]
+      },
       "PurchaseItemDocumentResponseDto": {
         "type": "object",
         "properties": {
@@ -71951,6 +73066,14 @@
           "primaryQty": {
             "type": "number",
             "description": "Quantity on the line, in the primary unit"
+          },
+          "display": {
+            "description": "The quantity in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemDocumentDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -71962,7 +73085,8 @@
           "date",
           "supplierId",
           "supplierName",
-          "primaryQty"
+          "primaryQty",
+          "display"
         ]
       },
       "PurchaseItemDocumentTableResponseDto": {
@@ -72189,6 +73313,11 @@
       "PurchaseBlockersResponseDto": {
         "type": "object",
         "properties": {
+          "enableQuotations": {
+            "type": "string",
+            "description": "Why quotations cannot be required now: already required, or a supplier was submitted without them",
+            "nullable": true
+          },
           "submit": {
             "type": "string",
             "description": "Why the suppliers cannot be submitted now",
@@ -72220,7 +73349,10 @@
             "items": {
               "type": "string",
               "enum": [
-                "EDIT",
+                "CHANGE_NOTES",
+                "ENABLE_QUOTATIONS",
+                "DISABLE_QUOTATIONS",
+                "CHANGE_MIN_QUOTATIONS",
                 "EDIT_ITEMS",
                 "REQUEST_QUOTATION",
                 "EDIT_ALLOCATIONS",
@@ -72347,6 +73479,14 @@
             "items": {
               "$ref": "#/components/schemas/PurchaseItemSupplierProgressResponseDto"
             }
+          },
+          "display": {
+            "description": "Each primary-unit quantity in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseItemProgressDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -72356,7 +73496,8 @@
           "inTransitPrimaryQty",
           "receivedPrimaryQty",
           "invoicedPrimaryQty",
-          "suppliers"
+          "suppliers",
+          "display"
         ]
       },
       "PurchaseItemSiteStockResponseDto": {
@@ -72424,6 +73565,9 @@
             "items": {
               "$ref": "#/components/schemas/SiteStockLocationResponseDto"
             }
+          },
+          "display": {
+            "$ref": "#/components/schemas/SiteStockDisplayResponseDto"
           }
         },
         "required": [
@@ -72438,7 +73582,8 @@
           "onHand",
           "stockValue",
           "stockStatus",
-          "locations"
+          "locations",
+          "display"
         ]
       },
       "PurchaseLegCountResponseDto": {
@@ -73659,6 +74804,43 @@
           "holds"
         ]
       },
+      "InvoiceableGoodsReceiptDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "acceptedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "invoicedPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "openPrimaryQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "acceptedPrimaryQty",
+          "invoicedPrimaryQty",
+          "openPrimaryQty"
+        ]
+      },
       "InvoiceableGoodsReceiptResponseDto": {
         "type": "object",
         "properties": {
@@ -73761,6 +74943,14 @@
           "openQty": {
             "type": "number",
             "description": "Accepted less invoiced, in the order line's unit"
+          },
+          "display": {
+            "description": "Each primary-unit quantity of the batch in its item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InvoiceableGoodsReceiptDisplayResponseDto"
+              }
+            ]
           }
         },
         "required": [
@@ -73782,7 +74972,8 @@
           "acceptedPrimaryQty",
           "invoicedPrimaryQty",
           "openPrimaryQty",
-          "openQty"
+          "openQty",
+          "display"
         ]
       },
       "CreateSupplierQuotationDto": {
@@ -75929,6 +77120,10 @@
           "uomId": {
             "type": "string",
             "description": "Unit of measure ID"
+          },
+          "displayUomId": {
+            "type": "string",
+            "description": "Unit the item is displayed in — its primary unit or one it converts to"
           },
           "pickStrategy": {
             "type": "string",
@@ -79461,6 +80656,64 @@
             "description": "Optional description"
           }
         }
+      },
+      "InventoryItemUnitResponseDto": {
+        "type": "object",
+        "properties": {
+          "uomId": {
+            "type": "string",
+            "description": "UOM ID"
+          },
+          "name": {
+            "type": "string",
+            "example": "Strip"
+          },
+          "symbol": {
+            "type": "string",
+            "example": "strip"
+          },
+          "primaryUomQty": {
+            "type": "number",
+            "description": "Primary units in `uomQty` of this unit",
+            "example": 10
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Units of this UOM matching `primaryUomQty` primary units",
+            "example": 1
+          }
+        },
+        "required": [
+          "uomId",
+          "name",
+          "symbol",
+          "primaryUomQty",
+          "uomQty"
+        ]
+      },
+      "InventoryItemUnitsResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomId": {
+            "type": "string",
+            "description": "The item's primary unit — quantities are stored in it"
+          },
+          "displayUomId": {
+            "type": "string",
+            "description": "The unit the item is displayed in, selected by default when entering a quantity"
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemUnitResponseDto"
+            }
+          }
+        },
+        "required": [
+          "primaryUomId",
+          "displayUomId",
+          "units"
+        ]
       },
       "SmsOtpResponseDto": {
         "type": "object",

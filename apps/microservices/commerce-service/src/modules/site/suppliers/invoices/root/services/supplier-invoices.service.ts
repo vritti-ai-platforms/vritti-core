@@ -8,16 +8,19 @@ import type { SupplierInvoiceDto } from '@domain/supplier-invoices/dto/entity/su
 import type { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
 import type { ReleaseSupplierInvoiceHoldDto } from '@domain/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import type { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
+import type { InvoiceableGoodsReceiptFilter } from '@domain/supplier-invoices/repositories/invoiceable-goods-receipts.repository';
 import type { SupplierInvoiceRow } from '@domain/supplier-invoices/repositories/supplier-invoices.repository';
 import { SupplierInvoiceHoldsDomainService } from '@domain/supplier-invoices/services/supplier-invoice-holds.service';
 import { SupplierInvoicesDomainService } from '@domain/supplier-invoices/services/supplier-invoices.service';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { UnauthorizedException } from '@vritti/api-sdk/exceptions';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SupplierInvoiceStatusValues } from '@/db/schema';
 import { PurchaseProgressService } from '@/modules/site/purchase-progress/services/purchase-progress.service';
+import type { InvoiceableGoodsReceiptWithDisplayDto } from '../dto/entity/invoiceable-goods-receipt-with-display.dto';
 import { SupplierInvoiceRecostingService } from './supplier-invoice-recosting.service';
 
 export interface SupplierInvoiceSite {
@@ -42,6 +45,7 @@ export class SupplierInvoicesService {
     private readonly purchaseOrderItemsService: PurchaseOrderItemsDomainService,
     private readonly purchasesRepository: PurchasesDomainRepository,
     private readonly purchaseProgressService: PurchaseProgressService,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   // Records a draft invoice of a supplier enrolled at the site, on the enrollment's payment term and due by it
@@ -148,6 +152,26 @@ export class SupplierInvoicesService {
       `Invoice "${invoice.invoiceNumber}"`,
       invoice.purchases.map((purchase) => purchase.purchaseNumber),
     );
+  }
+
+  // Returns the posted receipt lots (or items without lots) still to invoice, each primary-unit quantity also in its
+  // item's display unit
+  async findInvoiceableGoodsReceipts(
+    filter: InvoiceableGoodsReceiptFilter,
+    leCurrencyCode: string,
+  ): Promise<InvoiceableGoodsReceiptWithDisplayDto[]> {
+    const receipts = await this.invoicesService.findInvoiceableGoodsReceipts(filter, leCurrencyCode);
+    return receipts.map(({ displayUnitRatios, ...receipt }) => ({
+      ...receipt,
+      display: this.uomConversionsService.toDisplayUomQuantities(
+        {
+          acceptedPrimaryQty: receipt.acceptedPrimaryQty,
+          invoicedPrimaryQty: receipt.invoicedPrimaryQty,
+          openPrimaryQty: receipt.openPrimaryQty,
+        },
+        displayUnitRatios,
+      ),
+    }));
   }
 
   // Deletes a draft invoice

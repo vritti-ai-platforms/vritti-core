@@ -1,20 +1,17 @@
-import type { StockTransferDto, StockTransferRowDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
+import type { StockTransferDto } from '@domain/stock-transfers/dto/entity/stock-transfer.dto';
 import { CreateStockTransferDto } from '@domain/stock-transfers/dto/request/create-stock-transfer.dto';
 import { UpdateStockTransferStatusDto } from '@domain/stock-transfers/dto/request/update-stock-transfer-status.dto';
-import { StockTransfersDomainService } from '@domain/stock-transfers/services/stock-transfers.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
+import type { StockTransferRowWithDisplayDto } from './dto/entity/stock-transfer-row-with-display.dto';
 import { StockTransfersService } from './services/stock-transfers-root.service';
 
 @Controller()
 export class StockTransfersController {
   private readonly logger = new Logger(StockTransfersController.name);
 
-  constructor(
-    private readonly service: StockTransfersDomainService,
-    private readonly rootService: StockTransfersService,
-  ) {}
+  constructor(private readonly service: StockTransfersService) {}
 
   @MessagePattern({ cmd: 'site.stockTransfers.create' })
   async create(@Payload() dto: CreateStockTransferDto): Promise<StockTransferDto> {
@@ -26,11 +23,11 @@ export class StockTransfersController {
   async updateStatus(@Payload() dto: UpdateStockTransferStatusDto): Promise<{ success: boolean; message: string }> {
     const { id, ...statusData } = dto;
     this.logger.log(`stockTransfers.updateStatus — id: ${id}, status: ${statusData.status}`);
-    return this.rootService.updateStatus(id, statusData);
+    return this.service.updateStatus(id, statusData);
   }
 
   @MessagePattern({ cmd: 'site.stockTransfers.table' })
-  async table(@Payload() state: TableState): Promise<{ result: StockTransferRowDto[]; count: number }> {
+  async table(@Payload() state: TableState): Promise<{ result: StockTransferRowWithDisplayDto[]; count: number }> {
     this.logger.log('stockTransfers.table');
     return this.service.findForTable(state);
   }

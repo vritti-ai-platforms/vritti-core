@@ -371,6 +371,7 @@ export class PurchasesLegsService {
     const blockers = this.purchasesService.blockersOf(purchase, {
       count: legs.length,
       closedCount: legs.filter((leg) => leg.status === PurchaseLegStatusValues.CLOSED).length,
+      submittedCount: legs.filter((leg) => leg.step !== PurchaseLegStepValues.SOURCING).length,
       open: open.map((leg, index) => ({
         supplierName: leg.supplierName,
         isSourcing: leg.step === PurchaseLegStepValues.SOURCING,

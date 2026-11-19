@@ -1,3 +1,4 @@
+import type { DisplayQuantity } from '@vritti/quantum-ui/format';
 import type { TableResponse } from '@vritti/quantum-ui/types/api-response';
 
 export type InventoryItemLotStatus = 'FRESH' | 'EXPIRING_SOON' | 'EXPIRED';
@@ -13,6 +14,7 @@ export interface InventoryItemLotData {
   availableQuantity: number;
   createdAt: string;
   updatedAt: string;
+  display: Record<'stockedQuantity' | 'reservedQuantity' | 'availableQuantity', DisplayQuantity | null>;
 }
 
 export type InventoryItemLotsTableResponse = TableResponse<InventoryItemLotData>;

@@ -10,11 +10,11 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Eye, PackageCheck, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useMemo } from 'react';
-import type { GoodsReceiptLineData } from '@/schemas/goods-receipts';
+import type { GoodsReceiptLineTableRow } from '@/schemas/goods-receipts';
 import { type InventoryTracking, InventoryTrackingValues } from '@/schemas/inventory-items';
 import type { GoodsReceiptsBinding } from '../../bindings';
 import { AddLineForm } from './forms/AddLineForm';
@@ -51,6 +51,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
 }) => {
   const { permissions } = binding;
   const confirm = useConfirm();
+  const fmt = useFormatters();
   const queryClient = useQueryClient();
   const addLineDialog = useDialog();
   const lotId = scope.kind === 'lot' ? scope.lotId : null;
@@ -65,7 +66,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
 
   // Confirms and removes a line with its serials
   const handleRemoveLine = useCallback(
-    async (line: GoodsReceiptLineData) => {
+    async (line: GoodsReceiptLineTableRow) => {
       const location = line.locationName ?? 'this location';
       const confirmed = await confirm({
         title: `Remove the line at ${location}?`,
@@ -78,7 +79,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
     [confirm, removeLineMutation],
   );
 
-  const columns = useMemo<ColumnDef<GoodsReceiptLineData>[]>(
+  const columns = useMemo<ColumnDef<GoodsReceiptLineTableRow>[]>(
     () => [
       {
         accessorKey: 'locationName',
@@ -96,16 +97,13 @@ export const LinesTable: React.FC<LinesTableProps> = ({
         accessorKey: 'quantity',
         header: 'Quantity',
         cell: ({ row }) => {
-          const { quantity, primaryUomQty, primaryUomSymbol } = row.original;
+          const { quantity, primaryUomQty, display } = row.original;
           const isCrossUom = primaryUomQty !== quantity;
           return (
             <span className="font-mono">
               <NumberCell value={quantity} /> {uomSymbol}
               {isCrossUom && (
-                <span className="text-xs text-muted-foreground">
-                  {' ('}
-                  <NumberCell value={primaryUomQty} /> {primaryUomSymbol})
-                </span>
+                <span className="text-xs text-muted-foreground"> ({fmt.quantity(display.primaryUomQty).primary})</span>
               )}
             </span>
           );
@@ -122,7 +120,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
                   {row.original.lineItemsCount}/{row.original.quantity}
                 </Badge>
               ),
-            } satisfies ColumnDef<GoodsReceiptLineData>,
+            } satisfies ColumnDef<GoodsReceiptLineTableRow>,
           ]
         : []),
       ...((isSerialTracked && onSelectLine) || (!isSerialTracked && isDraft)
@@ -175,7 +173,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
                 ),
               enableSorting: false,
               enableHiding: false,
-            } satisfies ColumnDef<GoodsReceiptLineData>,
+            } satisfies ColumnDef<GoodsReceiptLineTableRow>,
           ]
         : []),
     ],
@@ -193,6 +191,7 @@ export const LinesTable: React.FC<LinesTableProps> = ({
       allowDecimal,
       undistributedQty,
       handleRemoveLine,
+      fmt,
     ],
   );
 

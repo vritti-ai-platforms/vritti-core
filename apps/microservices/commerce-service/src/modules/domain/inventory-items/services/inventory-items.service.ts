@@ -83,6 +83,7 @@ export class InventoryItemsDomainService {
       categoryId: data.categoryId,
       description: data.description,
       uomId: data.uomId,
+      displayUomId: data.uomId,
       hsnCode: data.hsnCode,
       taxClassId: data.taxClassId,
     });
@@ -95,14 +96,18 @@ export class InventoryItemsDomainService {
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
-      data: InventoryItemDto.from({ ...entity, ...unit, categoryName, taxClassName }),
+      data: InventoryItemDto.from({ ...entity, ...unit, displayUomSymbol: unit.uomSymbol, categoryName, taxClassName }),
     };
   }
 
-  // Updates an inventory item. Tracking is set at creation and cannot be changed.
+  // Updates an inventory item. Tracking is set at creation and cannot be changed; a display unit left on the primary unit
+  // follows it when the primary unit changes, and any other must be one of the units the item transacts in
   async update(id: string, data: Omit<UpdateInventoryItemDto, 'id'>): Promise<SuccessResponseDto> {
     const existing = await this.repository.findById(id);
     if (!existing) throw new NotFoundException('Inventory item not found.');
+    const uomId = data.uomId ?? existing.uomId;
+    const displayUomId =
+      data.displayUomId ?? (existing.displayUomId === existing.uomId ? uomId : existing.displayUomId);
 
     if (data.uomId && data.uomId !== existing.uomId) {
       const refs = await this.repository.countReferences(id);
@@ -114,7 +119,18 @@ export class InventoryItemsDomainService {
       }
     }
 
-    const updated = await this.repository.update(id, data);
+    if (displayUomId !== uomId && (displayUomId !== existing.displayUomId || uomId !== existing.uomId)) {
+      const allowedUomIds = await this.repository.findAllowedUomIdsFor(id, uomId);
+      if (!allowedUomIds.includes(displayUomId)) {
+        throw new BadRequestException({
+          label: 'Unit Not Allowed',
+          detail: "The display unit must be the item's primary unit or one it converts to.",
+          errors: [{ field: 'displayUomId', message: "Not one of the item's units" }],
+        });
+      }
+    }
+
+    const updated = await this.repository.update(id, { ...data, displayUomId });
     this.logger.log(`Updated inventory item: ${updated.name} (${updated.sku})`);
     return {
       success: true,
@@ -185,8 +201,9 @@ export class InventoryItemsDomainService {
     return this.findForTable(state);
   }
 
-  // Every master item with how the site carries it, the stock it holds by location, its value in the site's currency
-  // and where that stock sits against the levels; RLS narrows everything to the request's site
+  // Every master item with how the site carries it, the stock it holds by location, its value in the site's currency,
+  // where that stock sits against the levels and the ratios to its display unit; RLS narrows everything to the request's
+  // site
   async findForSiteStockTable(
     state: TableState,
     leCurrencyCode: CurrencyCode,
@@ -225,6 +242,7 @@ export class InventoryItemsDomainService {
         stockValue: CurrencyAmountDto.from(row.stockValue, leCurrencyCode),
         stockStatus: row.stockStatus,
         locations: row.locations,
+        displayUnitRatios: row.displayUnitRatios,
       })),
       count,
     };
@@ -299,6 +317,7 @@ export class InventoryItemsDomainService {
       excludeOnSupplierId?: string;
       // Only the items the site does not carry yet
       notAtSiteId?: string;
+      notOnPurchaseId?: string;
       categoryIds?: string[];
       // Only the items the site carries, each with its stock and levels there; one whose purchasing the site has blocked
       // comes disabled
@@ -338,11 +357,13 @@ export class InventoryItemsDomainService {
   }
 
   // Returns the UOM IDs the given item can transact in: primary + per-item conversions + globally derivable family
-  async findAllowedUomIds(inventoryItemId: string): Promise<{ name: string; allowedUomIds: string[] }> {
+  async findAllowedUomIds(
+    inventoryItemId: string,
+  ): Promise<{ name: string; uomId: string; displayUomId: string; allowedUomIds: string[] }> {
     const entity = await this.repository.findById(inventoryItemId);
     if (!entity) throw new NotFoundException('Inventory item not found.');
     const allowedUomIds = await this.repository.findAllowedUomIds(inventoryItemId);
-    return { name: entity.name, allowedUomIds };
+    return { name: entity.name, uomId: entity.uomId, displayUomId: entity.displayUomId, allowedUomIds };
   }
 
   // Deletes an inventory item; throws ConflictException if referenced

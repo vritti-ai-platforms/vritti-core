@@ -1,5 +1,5 @@
 import Decimal from '@vritti/api-sdk/decimal';
-import type { PurchaseOrderReceiptStatus, PurchaseOrderStatus } from '@/db/schema';
+import type { DisplayUnitRatios, PurchaseOrderReceiptStatus, PurchaseOrderStatus } from '@/db/schema';
 import type { InboundDeliveryLineRow } from '../../repositories/inbound-delivery-lines.repository';
 
 export class InboundDeliveryLineDto {
@@ -61,3 +61,5 @@ export class InboundDeliveryLineDto {
     return dto;
   }
 }
+
+export type InboundDeliveryLineWithRatiosDto = InboundDeliveryLineDto & { displayUnitRatios: DisplayUnitRatios };

@@ -2,15 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { aliasedTable, and, desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import {
+  type DisplayUnitRatios,
+  displayUnitRatios,
   type InventoryTracking,
   InventoryTrackingValues,
   inventoryItemLots,
   inventoryItemQuants,
+  inventoryItems,
   locations,
   type StockAdjustmentLine,
   stockAdjustmentLineItems,
   stockAdjustmentLines,
   stockAdjustmentLots,
+  stockAdjustments,
   uom,
 } from '@/db/schema';
 
@@ -32,6 +36,7 @@ export type StockAdjustmentLineWithRefs = StockAdjustmentLine & {
   lotManufacturingDate: string | null;
   lotExpiryDate: string | null;
   lineItemsCount: number;
+  displayUnitRatios: DisplayUnitRatios;
 };
 
 @Injectable()
@@ -89,8 +94,13 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
         lineItemsCount: lineItemsCountSql,
+        displayUnitRatios: displayUnitRatios(),
       },
-      innerJoins: [{ table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) }],
+      innerJoins: [
+        { table: uom, on: eq(stockAdjustmentLines.uomId, uom.id) },
+        { table: stockAdjustments, on: eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId) },
+        { table: inventoryItems, on: eq(inventoryItems.id, stockAdjustments.inventoryItemId) },
+      ],
       leftJoins: [
         { table: stockAdjustmentLots, on: eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id) },
         { table: locations, on: eq(stockAdjustmentLines.locationId, locations.id) },
@@ -239,9 +249,12 @@ export class StockAdjustmentLinesDomainRepository extends PrimaryBaseRepository<
         quantTotalQuantity: inventoryItemQuants.quantity,
         quantReservedQuantity: inventoryItemQuants.reservedQuantity,
         lineItemsCount: lineItemsCountSql,
+        displayUnitRatios: displayUnitRatios(),
       })
       .from(stockAdjustmentLines)
       .innerJoin(uom, eq(stockAdjustmentLines.uomId, uom.id))
+      .innerJoin(stockAdjustments, eq(stockAdjustments.id, stockAdjustmentLines.stockAdjustmentId))
+      .innerJoin(inventoryItems, eq(inventoryItems.id, stockAdjustments.inventoryItemId))
       .leftJoin(stockAdjustmentLots, eq(stockAdjustmentLines.stockAdjustmentLotId, stockAdjustmentLots.id))
       .leftJoin(locations, eq(stockAdjustmentLines.locationId, locations.id))
       .leftJoin(inventoryItemQuants, eq(stockAdjustmentLines.quantId, inventoryItemQuants.id))

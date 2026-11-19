@@ -47,7 +47,7 @@ export const PurchaseComparisonTab: React.FC<PurchaseComparisonTabProps> = ({ bi
           <div className="flex flex-col">
             <span>{row.original.item.inventoryItemName}</span>
             <span className="font-mono text-xs text-muted-foreground">
-              {`${fmt.number(row.original.item.primaryQty).primary} ${row.original.item.primaryUomSymbol}`}
+              {fmt.quantity(row.original.item.display.primaryQty).primary}
             </span>
           </div>
         ),
@@ -85,7 +85,7 @@ export const PurchaseComparisonTab: React.FC<PurchaseComparisonTabProps> = ({ bi
         cell: ({ row }) => (
           <PurchaseCoverage
             percent={coveragePercent(row.original.item.allocatedPrimaryQty, row.original.item.primaryQty)}
-            caption={`${fmt.number(row.original.item.allocatedPrimaryQty).primary} of ${fmt.number(row.original.item.primaryQty).primary} allocated`}
+            caption={`${fmt.quantity(row.original.item.display.allocatedPrimaryQty).primary} of ${fmt.quantity(row.original.item.display.primaryQty).primary} allocated`}
             align="center"
           />
         ),

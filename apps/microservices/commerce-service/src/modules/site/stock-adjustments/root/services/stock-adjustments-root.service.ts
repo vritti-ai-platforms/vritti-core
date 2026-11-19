@@ -13,6 +13,7 @@ import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lo
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
+import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
@@ -35,6 +36,7 @@ import {
   StockAdjustmentTypeValues,
 } from '@/db/schema';
 import { StockAdjustmentsLotsService } from '../../lots/services/stock-adjustments-lots.service';
+import type { StockAdjustmentWithDisplayDto } from '../dto/entity/stock-adjustment-with-display.dto';
 
 @Injectable()
 export class StockAdjustmentsService {
@@ -53,6 +55,7 @@ export class StockAdjustmentsService {
     private readonly ledgerService: InventoryItemLedgerDomainService,
     private readonly adjustmentsService: StockAdjustmentsDomainService,
     private readonly inventoryItemSitesRepository: InventoryItemSitesDomainRepository,
+    private readonly uomConversionsService: UomConversionsDomainService,
   ) {}
 
   // Creates an adjustment for an item the site carries
@@ -61,26 +64,28 @@ export class StockAdjustmentsService {
     type: StockAdjustmentType;
     reason: string;
     unitCost?: bigint | null;
-  }): Promise<CreateResponseDto<StockAdjustmentDto>> {
-    await this.inventoryItemSitesRepository.ensureAtSite([data.inventoryItemId], 'inventoryItemId');
-    return this.adjustmentsService.create(data);
+  }): Promise<CreateResponseDto<StockAdjustmentWithDisplayDto>> {
+    await this.inventoryItemSitesRepository.isAddedToSite([data.inventoryItemId], 'inventoryItemId');
+    const created = await this.adjustmentsService.create(data);
+    return { ...created, data: this.withDisplay(created.data) };
   }
 
-  update(
+  // Changes a draft adjustment's reason or unit cost
+  async update(
     id: string,
     data: { reason?: string; unitCost?: bigint | null },
     leCurrencyCode?: string,
-  ): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.updateAdjustment(id, data, leCurrencyCode);
+  ): Promise<StockAdjustmentWithDisplayDto> {
+    return this.withDisplay(await this.adjustmentsService.updateAdjustment(id, data, leCurrencyCode));
   }
 
-  async publish(id: string, leCurrencyCode: string): Promise<StockAdjustmentDto> {
+  async publish(id: string, leCurrencyCode: string): Promise<StockAdjustmentWithDisplayDto> {
     const adjustment = await this.repository.findByIdWithItem(id);
     if (!adjustment) throw new NotFoundException('Stock adjustment not found.');
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Only DRAFT adjustments can be published.');
     }
-    await this.inventoryItemSitesRepository.ensureAtSite(
+    await this.inventoryItemSitesRepository.isAddedToSite(
       [adjustment.inventoryItemId],
       'inventoryItemId',
       adjustment.siteId,
@@ -165,15 +170,21 @@ export class StockAdjustmentsService {
     });
 
     this.logger.log(`Published adjustment ${id} (${adjustment.type}, ${linesCount} lines)`);
-    return this.adjustmentsService.findById(id, leCurrencyCode);
+    return this.findById(id, leCurrencyCode);
   }
 
-  findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentDto> {
-    return this.adjustmentsService.findById(id, leCurrencyCode);
+  // Returns one adjustment with its total also in the item's display unit
+  async findById(id: string, leCurrencyCode?: string): Promise<StockAdjustmentWithDisplayDto> {
+    return this.withDisplay(await this.adjustmentsService.findById(id, leCurrencyCode));
   }
 
-  table(state: TableState, leCurrencyCode?: string): Promise<{ result: StockAdjustmentDto[]; count: number }> {
-    return this.adjustmentsService.findForTable(state, leCurrencyCode);
+  // Returns one page of adjustments for the data table
+  async table(
+    state: TableState,
+    leCurrencyCode?: string,
+  ): Promise<{ result: StockAdjustmentWithDisplayDto[]; count: number }> {
+    const { result, count } = await this.adjustmentsService.findForTable(state, leCurrencyCode);
+    return { result: result.map((adjustment) => this.withDisplay(adjustment)), count };
   }
 
   delete(id: string): Promise<SuccessResponseDto> {
@@ -368,5 +379,18 @@ export class StockAdjustmentsService {
         StockAdjustmentTypeValues.EXPIRED,
       ] as readonly StockAdjustmentType[]
     ).includes(type);
+  }
+
+  // Swaps an adjustment's display-unit ratios for its total expressed in the display unit; a just-created adjustment
+  // has no lines and so no total to express
+  private withDisplay({ displayUnitRatios, ...adjustment }: StockAdjustmentDto): StockAdjustmentWithDisplayDto {
+    return {
+      ...adjustment,
+      display: {
+        totalQuantity: displayUnitRatios
+          ? this.uomConversionsService.toDisplayUomQuantity(adjustment.totalQuantity, displayUnitRatios)
+          : null,
+      },
+    };
   }
 }

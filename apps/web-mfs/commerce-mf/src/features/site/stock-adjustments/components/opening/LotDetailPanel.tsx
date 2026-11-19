@@ -12,7 +12,7 @@ import {
 import { DetailField, DetailHeader, DetailSection } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { PageContentDetails } from '@vritti/quantum-ui/PageContent';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
@@ -43,7 +43,6 @@ interface LotDetailPanelProps {
   lotId: string | null;
   tracking: InventoryTracking;
   isDraft: boolean;
-  uomSymbol: string;
   selectedLineId?: string | null;
   onSelectLine?: (lineId: string | null) => void;
   onLotRemoved?: () => void;
@@ -117,7 +116,6 @@ interface LotDetailContentProps {
   primaryUomId: string;
   tracking: InventoryTracking;
   isDraft: boolean;
-  uomSymbol: string;
   selectedLineId?: string | null;
   onSelectLine?: (lineId: string | null) => void;
   onLotRemoved?: () => void;
@@ -130,13 +128,13 @@ const LotDetailContent = ({
   primaryUomId,
   tracking,
   isDraft,
-  uomSymbol,
   selectedLineId,
   onSelectLine,
   onLotRemoved,
   lot,
 }: LotDetailContentProps) => {
   const confirm = useConfirm();
+  const fmt = useFormatters();
   const queryClient = useQueryClient();
   const editLotDialog = useDialog();
   const addLineDialog = useDialog();
@@ -321,7 +319,7 @@ const LotDetailContent = ({
           label="Total"
           type="string"
           mono
-          value={`${lot.totalQuantity} ${uomSymbol}`}
+          value={fmt.quantity(lot.display.totalQuantity).primary}
         />
         <DetailField className="px-4 py-2" label="Lines" type="number" value={lot.linesCount} />
       </DetailSection>

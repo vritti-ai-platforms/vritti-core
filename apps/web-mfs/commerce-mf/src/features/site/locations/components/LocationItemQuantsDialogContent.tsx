@@ -59,8 +59,10 @@ export const LocationItemQuantsDialogContent = ({ locationId, itemId }: Location
               <td className="px-3 py-2.5">
                 <DateCell value={row.expiryDate} />
               </td>
-              <td className="px-3 py-2.5 text-right font-mono">{fmt.number(row.quantity).primary}</td>
-              <td className="px-3 py-2.5 text-right font-mono">{fmt.number(row.availableQuantity).primary}</td>
+              <td className="px-3 py-2.5 text-right font-mono">{fmt.quantity(row.display.quantity).primary}</td>
+              <td className="px-3 py-2.5 text-right font-mono">
+                {fmt.quantity(row.display.availableQuantity).primary}
+              </td>
               <td className="px-3 py-2.5 text-right font-mono">
                 {row.unitCost ? fmt.currency(row.unitCost).primary : '—'}
               </td>

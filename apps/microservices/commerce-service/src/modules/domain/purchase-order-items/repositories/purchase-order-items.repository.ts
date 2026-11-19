@@ -16,6 +16,8 @@ import {
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
+  type DisplayUnitRatios,
+  displayUnitRatios,
   GoodsReceiptStatusValues,
   goodsReceiptItems,
   goodsReceipts,
@@ -47,6 +49,8 @@ export type PurchaseOrderItemRow = PurchaseOrderItem & {
   // Why the order's site has blocked buying the item; null while it has not
   purchasingBlockedReason: string | null;
 };
+
+export type PurchaseOrderItemTableRow = PurchaseOrderItemRow & { displayUnitRatios: DisplayUnitRatios };
 
 export type PurchaseOrderItemCounters = Pick<
   PurchaseOrderItem,
@@ -104,13 +108,13 @@ export class PurchaseOrderItemsDomainRepository extends PrimaryBaseRepository<ty
     });
   }
 
-  // Returns one page of a PO's lines
+  // Returns one page of a PO's lines with what turns each line's item into its display unit
   async findForTable(
     purchaseOrderId: string,
     options: { where?: SQL; orderBy: SQL[]; limit: number; offset: number },
-  ): Promise<{ result: PurchaseOrderItemRow[]; count: number }> {
-    return this.findAllAndCount<PurchaseOrderItemRow>({
-      select: this.selection(),
+  ): Promise<{ result: PurchaseOrderItemTableRow[]; count: number }> {
+    return this.findAllAndCount<PurchaseOrderItemTableRow>({
+      select: { ...this.selection(), displayUnitRatios: displayUnitRatios() },
       innerJoins: this.joins(),
       ...options,
       where: and(eq(purchaseOrderItems.purchaseOrderId, purchaseOrderId), options.where),

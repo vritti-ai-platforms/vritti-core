@@ -42,6 +42,7 @@ export class InventoryItemUomConversionResponseDto {
     nullable: true,
   })
   height: number | null;
+  @ApiProperty({ description: "Whether this is the item's display unit" }) isDisplayUnit: boolean;
   @ApiProperty() canDelete: boolean;
   @ApiProperty() createdAt: string;
   @ApiProperty() updatedAt: string;
