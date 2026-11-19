@@ -30,6 +30,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { ApiGetLedgerTable, ApiGetLotsTable, ApiGetQuantsTable } from './docs/inventory-items-gateway.docs';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
@@ -134,6 +135,7 @@ export class SiteInventoryItemsGatewayController {
   // Returns paginated ledger entries for an inventory item data table
   @Get(':id/ledger/table')
   @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  @ApiGetLedgerTable()
   getLedgerTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLedgerTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/ledger/table`);
     return this.service.findLedgerForTable(id, userId);
@@ -142,6 +144,7 @@ export class SiteInventoryItemsGatewayController {
   // Returns paginated quants for an inventory item data table
   @Get(':id/quants/table')
   @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  @ApiGetQuantsTable()
   getQuantsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemQuantTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/quants/table`);
     return this.service.findQuantsForTable(id, userId);
@@ -150,6 +153,7 @@ export class SiteInventoryItemsGatewayController {
   // Returns paginated lots for an inventory item data table
   @Get(':id/lots/table')
   @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  @ApiGetLotsTable()
   getLotsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLotTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/lots/table`);
     return this.service.findLotsForTable(id, userId);

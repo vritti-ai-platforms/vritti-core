@@ -7,6 +7,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
 import { OrgId } from '@/security/decorators';
+import { ApiGetStockTransferTable } from './docs/stock-transfers-gateway.docs';
 import { StockTransfersGatewayService } from './services/stock-transfers-gateway.service';
 
 @ApiTags('Commerce - Stock Transfers')
@@ -35,6 +36,7 @@ export class StockTransfersGatewayController {
 
   // Returns paginated stock transfers for the data table with server-stored state
   @Get('table')
+  @ApiGetStockTransferTable()
   getStockTransferTable(@UserId() userId: string, @OrgId() orgId: string): Promise<StockTransferTableResponseDto> {
     return this.service.findForTable(userId, orgId);
   }

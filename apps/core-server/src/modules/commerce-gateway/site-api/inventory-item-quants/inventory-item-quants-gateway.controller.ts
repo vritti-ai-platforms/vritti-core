@@ -3,6 +3,7 @@ import { Controller, Get, Logger, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require } from '@vritti/api-sdk/auth';
 import { SessionTypeValues } from '@/db/schema';
+import { ApiFindById } from './docs/inventory-item-quants-gateway.docs';
 import { InventoryItemQuantsGatewayService } from './services/inventory-item-quants-gateway.service';
 
 @ApiTags('Commerce - Inventory Item Batches')
@@ -15,6 +16,7 @@ export class InventoryItemQuantsGatewayController {
   constructor(private readonly service: InventoryItemQuantsGatewayService) {}
 
   @Get(':id')
+  @ApiFindById()
   findById(@Param('id') id: string): Promise<InventoryBatchResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-item-quants/${id}`);
     return this.service.findById(id);

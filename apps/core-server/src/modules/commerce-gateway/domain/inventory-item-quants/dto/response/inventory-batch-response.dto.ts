@@ -1,3 +1,4 @@
+import { InventoryItemQuantDisplayResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-response.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class InventoryBatchResponseDto {
@@ -39,4 +40,10 @@ export class InventoryBatchResponseDto {
 
   @ApiProperty({ description: 'ISO timestamp of last update' })
   updatedAt: string;
+
+  @ApiProperty({
+    type: InventoryItemQuantDisplayResponseDto,
+    description: "These quantities in the item's display unit",
+  })
+  display: InventoryItemQuantDisplayResponseDto;
 }

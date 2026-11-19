@@ -22,7 +22,18 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthType, Require, UserId } from '@vritti/api-sdk/auth';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SessionTypeValues } from '@/db/schema';
-import { ApiAddStockAdjustmentLineItem } from './docs/stock-adjustments-gateway.docs';
+import {
+  ApiAddStockAdjustmentLineItem,
+  ApiFindStockAdjustmentById,
+  ApiGetStockAdjustmentLine,
+  ApiGetStockAdjustmentLines,
+  ApiGetStockAdjustmentLinesByLotTable,
+  ApiGetStockAdjustmentLinesTable,
+  ApiGetStockAdjustmentLotDetail,
+  ApiGetStockAdjustmentLots,
+  ApiGetStockAdjustmentTable,
+  ApiGetStockAdjustmentTree,
+} from './docs/stock-adjustments-gateway.docs';
 import { StockAdjustmentsGatewayService } from './services/stock-adjustments-gateway.service';
 
 @ApiTags('Commerce - Stock Adjustments')
@@ -137,30 +148,35 @@ export class StockAdjustmentsGatewayController {
   }
 
   @Get(':id')
+  @ApiFindStockAdjustmentById()
   findById(@Param('id') id: string): Promise<StockAdjustmentResponseDto> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}`);
     return this.service.findById(id);
   }
 
   @Get(':id/lines/:lineId')
+  @ApiGetStockAdjustmentLine()
   getLineById(@Param('id') id: string, @Param('lineId') lineId: string): Promise<StockAdjustmentLineResponseDto> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/${lineId}`);
     return this.service.findLineById(id, lineId);
   }
 
   @Get('table')
+  @ApiGetStockAdjustmentTable()
   getStockAdjustmentTable(@UserId() userId: string): Promise<StockAdjustmentTableResponseDto> {
     this.logger.log('GET /commerce-api/site/stock-adjustments/table');
     return this.service.findForTable(userId);
   }
 
   @Get(':id/lines/table')
+  @ApiGetStockAdjustmentLinesTable()
   getLinesTable(@Param('id') id: string, @UserId() userId: string): Promise<StockAdjustmentLineTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines/table`);
     return this.service.findLinesTable(id, userId);
   }
 
   @Get(':id/lots/:lotId/lines/table')
+  @ApiGetStockAdjustmentLinesByLotTable()
   getLinesByLotTable(
     @Param('id') id: string,
     @Param('lotId') lotId: string,
@@ -181,24 +197,28 @@ export class StockAdjustmentsGatewayController {
   }
 
   @Get(':id/lots')
+  @ApiGetStockAdjustmentLots()
   getLots(@Param('id') id: string): Promise<StockAdjustmentLotResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots`);
     return this.service.findLots(id);
   }
 
   @Get(':id/lots/:lotId/detail')
+  @ApiGetStockAdjustmentLotDetail()
   getLotDetail(@Param('id') id: string, @Param('lotId') lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lots/${lotId}/detail`);
     return this.service.findLotDetail(id, lotId);
   }
 
   @Get(':id/tree')
+  @ApiGetStockAdjustmentTree()
   getTree(@Param('id') id: string): Promise<StockAdjustmentTreeNodeResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/tree`);
     return this.service.findTree(id);
   }
 
   @Get(':id/lines')
+  @ApiGetStockAdjustmentLines()
   getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines`);
     return this.service.findLines(id);

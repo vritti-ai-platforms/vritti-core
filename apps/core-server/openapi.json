@@ -16694,12 +16694,14 @@
     },
     "/commerce-api/site/inventory-item-quants/{id}": {
       "get": {
+        "description": "Returns one quant, its quantities also in the item's display unit.",
         "operationId": "InventoryItemQuantsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Quant ID",
             "schema": {
               "type": "string"
             }
@@ -16707,7 +16709,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Quant retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryBatchResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quant not found."
           }
         },
         "security": [
@@ -16715,6 +16727,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get a quant",
         "tags": [
           "Commerce - Inventory Item Batches"
         ]
@@ -20695,12 +20708,14 @@
     },
     "/commerce-api/site/inventory-items/{id}/ledger/table": {
       "get": {
+        "description": "Returns the item's stock movements at the site, each quantity also in its display unit.",
         "operationId": "SiteInventoryItemsGatewayController_getLedgerTable",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Inventory item ID",
             "schema": {
               "type": "string"
             }
@@ -20708,7 +20723,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Ledger entries retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemLedgerTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -20716,6 +20738,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an item's ledger",
         "tags": [
           "Commerce - Inventory Items"
         ]
@@ -20723,12 +20746,14 @@
     },
     "/commerce-api/site/inventory-items/{id}/quants/table": {
       "get": {
+        "description": "Returns the item's stock by location and lot at the site, each quantity also in its display unit.",
         "operationId": "SiteInventoryItemsGatewayController_getQuantsTable",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Inventory item ID",
             "schema": {
               "type": "string"
             }
@@ -20736,7 +20761,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Quants retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemQuantTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -20744,6 +20776,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an item's quants",
         "tags": [
           "Commerce - Inventory Items"
         ]
@@ -20751,12 +20784,14 @@
     },
     "/commerce-api/site/inventory-items/{id}/lots/table": {
       "get": {
+        "description": "Returns the item's lots at the site, each quantity also in its display unit.",
         "operationId": "SiteInventoryItemsGatewayController_getLotsTable",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Inventory item ID",
             "schema": {
               "type": "string"
             }
@@ -20764,7 +20799,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Lots retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemLotTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -20772,6 +20814,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an item's lots",
         "tags": [
           "Commerce - Inventory Items"
         ]
@@ -29404,12 +29447,14 @@
         ]
       },
       "get": {
+        "description": "Returns the adjustment's lots, each total also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLots",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -29417,7 +29462,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAdjustmentLotResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -29425,6 +29480,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an adjustment's lots",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -29598,12 +29654,14 @@
         ]
       },
       "get": {
+        "description": "Returns one adjustment, its total quantity also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_findById",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -29611,7 +29669,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -29619,6 +29684,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get a stock adjustment",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -29948,12 +30014,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/lines/{lineId}": {
       "get": {
+        "description": "Returns one line, its primary-unit quantities also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLineById",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -29962,6 +30030,7 @@
             "name": "lineId",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment line ID",
             "schema": {
               "type": "string"
             }
@@ -29969,7 +30038,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLineResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -29977,6 +30053,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an adjustment line",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30018,11 +30095,19 @@
     },
     "/commerce-api/site/stock-adjustments/table": {
       "get": {
+        "description": "Returns one page of the site's adjustments, each total also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getStockAdjustmentTable",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30030,6 +30115,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get stock adjustments",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30037,12 +30123,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/lines/table": {
       "get": {
+        "description": "Returns one page of the adjustment's lines, their primary-unit quantities also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLinesTable",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -30050,7 +30138,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLineTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30058,6 +30153,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an adjustment's lines",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30065,12 +30161,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/lots/{lotId}/lines/table": {
       "get": {
+        "description": "Returns one page of one lot's lines, their primary-unit quantities also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLinesByLotTable",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -30079,6 +30177,7 @@
             "name": "lotId",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment lot ID",
             "schema": {
               "type": "string"
             }
@@ -30086,7 +30185,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLineTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30094,6 +30200,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get a lot's lines",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30137,12 +30244,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/lots/{lotId}/detail": {
       "get": {
+        "description": "Returns one lot of the adjustment, its total also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLotDetail",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -30151,6 +30260,7 @@
             "name": "lotId",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment lot ID",
             "schema": {
               "type": "string"
             }
@@ -30158,7 +30268,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentLotDetailResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30166,6 +30283,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get a lot's detail",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30173,12 +30291,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/tree": {
       "get": {
+        "description": "Returns the adjustment's lots and their lines as a tree, lot totals also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getTree",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -30186,7 +30306,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAdjustmentTreeNodeResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30194,6 +30324,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get an adjustment's lot tree",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30201,12 +30332,14 @@
     },
     "/commerce-api/site/stock-adjustments/{id}/lines": {
       "get": {
+        "description": "Returns all of the adjustment's lines, their primary-unit quantities also in the item's display unit.",
         "operationId": "StockAdjustmentsGatewayController_getLines",
         "parameters": [
           {
             "name": "id",
             "required": true,
             "in": "path",
+            "description": "Stock adjustment ID",
             "schema": {
               "type": "string"
             }
@@ -30214,7 +30347,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StockAdjustmentLineResponseDto"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30222,6 +30365,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get every line of an adjustment",
         "tags": [
           "Commerce - Stock Adjustments"
         ]
@@ -30296,11 +30440,19 @@
     },
     "/commerce-api/site/stock-transfers/table": {
       "get": {
+        "description": "Returns one page of the site's stock transfers, each quantity also in the item's display unit.",
         "operationId": "StockTransfersGatewayController_getStockTransferTable",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Stock transfers retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockTransferTableResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -30308,6 +30460,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get stock transfers",
         "tags": [
           "Commerce - Stock Transfers"
         ]
@@ -64599,6 +64752,170 @@
           "state"
         ]
       },
+      "DisplayUomQuantityResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "type": "number",
+            "description": "The quantity in the item's primary unit, as stored",
+            "example": 2344
+          },
+          "displayUomQty": {
+            "type": "number",
+            "description": "The quantity in the item's display unit",
+            "example": 234.4
+          },
+          "wholeDisplayUomQty": {
+            "type": "number",
+            "description": "Whole display units in it, toward zero",
+            "example": 234
+          },
+          "remainderPrimaryUomQty": {
+            "type": "number",
+            "description": "Primary units left over after the whole display units",
+            "example": 4
+          },
+          "displayUomSymbol": {
+            "type": "string",
+            "example": "strip"
+          },
+          "primaryUomSymbol": {
+            "type": "string",
+            "example": "tab"
+          },
+          "isPack": {
+            "type": "boolean",
+            "description": "Whether the display unit is one of the item's own pack conversions"
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "displayUomQty",
+          "wholeDisplayUomQty",
+          "remainderPrimaryUomQty",
+          "displayUomSymbol",
+          "primaryUomSymbol",
+          "isPack"
+        ]
+      },
+      "InventoryItemQuantDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "reservedQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "availableQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quantity",
+          "reservedQuantity",
+          "availableQuantity"
+        ]
+      },
+      "InventoryBatchResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Inventory batch ID"
+          },
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Storage location ID"
+          },
+          "locationName": {
+            "type": "object",
+            "description": "Storage location name",
+            "nullable": true
+          },
+          "batchNumber": {
+            "type": "object",
+            "description": "Batch number",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Current quantity in stock"
+          },
+          "reservedQuantity": {
+            "type": "number",
+            "description": "Quantity reserved for orders"
+          },
+          "availableQuantity": {
+            "type": "number",
+            "description": "Available quantity (quantity minus reserved)"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "description": "ISO date of manufacturing",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "description": "ISO date of expiry",
+            "nullable": true
+          },
+          "goodsReceiptItemId": {
+            "type": "object",
+            "description": "Goods receipt item ID linked to this batch",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItemQuantDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "inventoryItemId",
+          "locationId",
+          "quantity",
+          "reservedQuantity",
+          "availableQuantity",
+          "createdAt",
+          "updatedAt",
+          "display"
+        ]
+      },
       "CreateCostCategoryDto": {
         "type": "object",
         "properties": {
@@ -64903,52 +65220,6 @@
           "locationPath",
           "quantity",
           "lotCount"
-        ]
-      },
-      "DisplayUomQuantityResponseDto": {
-        "type": "object",
-        "properties": {
-          "primaryUomQty": {
-            "type": "number",
-            "description": "The quantity in the item's primary unit, as stored",
-            "example": 2344
-          },
-          "displayUomQty": {
-            "type": "number",
-            "description": "The quantity in the item's display unit",
-            "example": 234.4
-          },
-          "wholeDisplayUomQty": {
-            "type": "number",
-            "description": "Whole display units in it, toward zero",
-            "example": 234
-          },
-          "remainderPrimaryUomQty": {
-            "type": "number",
-            "description": "Primary units left over after the whole display units",
-            "example": 4
-          },
-          "displayUomSymbol": {
-            "type": "string",
-            "example": "strip"
-          },
-          "primaryUomSymbol": {
-            "type": "string",
-            "example": "tab"
-          },
-          "isPack": {
-            "type": "boolean",
-            "description": "Whether the display unit is one of the item's own pack conversions"
-          }
-        },
-        "required": [
-          "primaryUomQty",
-          "displayUomQty",
-          "wholeDisplayUomQty",
-          "remainderPrimaryUomQty",
-          "displayUomSymbol",
-          "primaryUomSymbol",
-          "isPack"
         ]
       },
       "SiteStockDisplayResponseDto": {
@@ -67014,6 +67285,346 @@
         },
         "required": [
           "isBlocked"
+        ]
+      },
+      "InventoryItemLedgerDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
+      "InventoryItemLedgerResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "GOODS_RECEIPT",
+              "ORDER_RESERVE",
+              "ORDER_DEDUCT",
+              "ORDER_CANCEL",
+              "ADJUSTMENT",
+              "CONVERSION_INPUT",
+              "CONVERSION_OUTPUT",
+              "TRANSFER_OUT",
+              "TRANSFER_IN"
+            ]
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "balanceAfter": {
+            "type": "number"
+          },
+          "referenceType": {
+            "type": "object",
+            "nullable": true
+          },
+          "referenceId": {
+            "type": "object",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItemLedgerDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "quantity",
+          "balanceAfter",
+          "createdAt",
+          "display"
+        ]
+      },
+      "InventoryItemLedgerTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemLedgerResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "InventoryItemQuantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "inventoryItemId": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string"
+          },
+          "lotId": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "reservedQuantity": {
+            "type": "number"
+          },
+          "availableQuantity": {
+            "type": "number"
+          },
+          "locationName": {
+            "type": "object",
+            "nullable": true
+          },
+          "locationPath": {
+            "type": "object",
+            "nullable": true
+          },
+          "lotNumber": {
+            "type": "object",
+            "nullable": true
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "canDelete": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItemQuantDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "organizationId",
+          "siteId",
+          "inventoryItemId",
+          "locationId",
+          "quantity",
+          "reservedQuantity",
+          "availableQuantity",
+          "canDelete",
+          "createdAt",
+          "updatedAt",
+          "display"
+        ]
+      },
+      "InventoryItemQuantTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemQuantResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "InventoryItemLotDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "stockedQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "reservedQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "availableQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "stockedQuantity",
+          "reservedQuantity",
+          "availableQuantity"
+        ]
+      },
+      "InventoryItemLotResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "inventoryItemId": {
+            "type": "string"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "string"
+          },
+          "mrp": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "stockedQuantity": {
+            "type": "number"
+          },
+          "reservedQuantity": {
+            "type": "number"
+          },
+          "availableQuantity": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InventoryItemLotDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "inventoryItemId",
+          "lotNumber",
+          "expiryDate",
+          "stockedQuantity",
+          "reservedQuantity",
+          "availableQuantity",
+          "createdAt",
+          "updatedAt",
+          "display"
+        ]
+      },
+      "InventoryItemLotTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InventoryItemLotResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
         ]
       },
       "CreateLocationDto": {
@@ -74027,6 +74638,538 @@
           "serialNumber"
         ]
       },
+      "StockAdjustmentDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalQuantity"
+        ]
+      },
+      "StockAdjustmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "example": "SA-2026-0001"
+          },
+          "inventoryItemId": {
+            "type": "string"
+          },
+          "inventoryItemName": {
+            "type": "string"
+          },
+          "inventoryItemUomId": {
+            "type": "string"
+          },
+          "inventoryItemUomSymbol": {
+            "type": "string"
+          },
+          "inventoryItemTracking": {
+            "type": "string",
+            "enum": [
+              "QUANTITY",
+              "LOT",
+              "LOT_SERIAL",
+              "SERIAL"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "example": "WASTE"
+          },
+          "totalQuantity": {
+            "type": "number",
+            "description": "Sum of stock_adjustment_lines.primary_qty (item primary UOM units)"
+          },
+          "status": {
+            "type": "string",
+            "example": "DRAFT"
+          },
+          "reason": {
+            "type": "object",
+            "nullable": true
+          },
+          "unitCost": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "isPublishable": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "publishedAt": {
+            "type": "object",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockAdjustmentDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "inventoryItemId",
+          "inventoryItemName",
+          "inventoryItemUomId",
+          "inventoryItemUomSymbol",
+          "inventoryItemTracking",
+          "type",
+          "totalQuantity",
+          "status",
+          "isPublishable",
+          "metadata",
+          "createdAt",
+          "display"
+        ]
+      },
+      "StockAdjustmentLineDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "primaryUomQty": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "quantTotalQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "quantReservedQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "quantAvailableQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "primaryUomQty",
+          "quantTotalQuantity",
+          "quantReservedQuantity",
+          "quantAvailableQuantity"
+        ]
+      },
+      "StockAdjustmentLineResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stockAdjustmentId": {
+            "type": "string"
+          },
+          "stockAdjustmentLotId": {
+            "type": "object",
+            "nullable": true
+          },
+          "locationId": {
+            "type": "object",
+            "nullable": true
+          },
+          "locationName": {
+            "type": "object",
+            "nullable": true
+          },
+          "lotNumber": {
+            "type": "object",
+            "nullable": true
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantId": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantLotNumber": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantLocationId": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantLocationName": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantTotalQuantity": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantReservedQuantity": {
+            "type": "object",
+            "nullable": true
+          },
+          "quantAvailableQuantity": {
+            "type": "object",
+            "nullable": true
+          },
+          "uomId": {
+            "type": "string"
+          },
+          "uomName": {
+            "type": "string"
+          },
+          "uomSymbol": {
+            "type": "string"
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Line quantity in the line UOM"
+          },
+          "primaryUomQty": {
+            "type": "number",
+            "description": "Snapshot of line quantity converted to the item primary UOM at create/update time"
+          },
+          "resolvedQuantId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set after publish"
+          },
+          "isBalanced": {
+            "type": "boolean"
+          },
+          "lineItemsCount": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockAdjustmentLineDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stockAdjustmentId",
+          "uomId",
+          "uomName",
+          "uomSymbol",
+          "uomQty",
+          "primaryUomQty",
+          "isBalanced",
+          "lineItemsCount",
+          "metadata",
+          "createdAt",
+          "display"
+        ]
+      },
+      "StockAdjustmentTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "StockAdjustmentLineTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentLineResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
+        ]
+      },
+      "StockAdjustmentLotDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "totalQuantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "totalQuantity"
+        ]
+      },
+      "StockAdjustmentLotResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stockAdjustmentId": {
+            "type": "string"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "resolvedLotId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set after publish"
+          },
+          "linesCount": {
+            "type": "number"
+          },
+          "totalQuantity": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockAdjustmentLotDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stockAdjustmentId",
+          "lotNumber",
+          "linesCount",
+          "totalQuantity",
+          "createdAt",
+          "display"
+        ]
+      },
+      "StockAdjustmentLotDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "stockAdjustmentId": {
+            "type": "string"
+          },
+          "lotNumber": {
+            "type": "string"
+          },
+          "manufacturingDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "expiryDate": {
+            "type": "object",
+            "nullable": true
+          },
+          "resolvedLotId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Set after publish"
+          },
+          "linesCount": {
+            "type": "number"
+          },
+          "totalQuantity": {
+            "type": "number"
+          },
+          "lineIds": {
+            "description": "Line ids under this lot, ordered by createdAt",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "display": {
+            "description": "These quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockAdjustmentLotDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "stockAdjustmentId",
+          "lotNumber",
+          "linesCount",
+          "totalQuantity",
+          "lineIds",
+          "createdAt",
+          "display"
+        ]
+      },
+      "StockAdjustmentTreeNodeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Lot ID for lots, line ID for lines."
+          },
+          "name": {
+            "type": "string",
+            "description": "Lot number for lots, location name for lines."
+          },
+          "path": {
+            "description": "Depth-encoded path: [lotId] for a lot, [lotId, lineId] for a line.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "lot",
+              "line"
+            ]
+          },
+          "totalQuantity": {
+            "type": "number",
+            "description": "Total quantity (lots only)."
+          },
+          "linesCount": {
+            "type": "number",
+            "description": "Lines under this lot (lots only)."
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Line quantity in the line UOM (lines only)."
+          },
+          "lineItemsCount": {
+            "type": "number",
+            "description": "Serials added to this line (lines only)."
+          },
+          "isBalanced": {
+            "type": "boolean",
+            "description": "True when the node is balanced."
+          },
+          "children": {
+            "description": "Child nodes (lines under a lot).",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockAdjustmentTreeNodeResponseDto"
+            }
+          },
+          "display": {
+            "description": "On lot nodes, their quantities in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockAdjustmentLotDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "path",
+          "kind",
+          "isBalanced"
+        ]
+      },
       "CreateStockTransferDto": {
         "type": "object",
         "properties": {
@@ -74098,6 +75241,137 @@
           "status",
           "fromLocationId",
           "toLocationId"
+        ]
+      },
+      "StockTransferDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "quantity"
+        ]
+      },
+      "StockTransferRowResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stock transfer ID"
+          },
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "fromSiteId": {
+            "type": "string",
+            "description": "Source site ID"
+          },
+          "toSiteId": {
+            "type": "string",
+            "description": "Destination site ID"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Transfer quantity"
+          },
+          "status": {
+            "type": "string",
+            "description": "Transfer status",
+            "example": "REQUESTED"
+          },
+          "requestedBy": {
+            "type": "object",
+            "description": "User who requested the transfer",
+            "nullable": true
+          },
+          "receivedBy": {
+            "type": "object",
+            "description": "User who received the transfer",
+            "nullable": true
+          },
+          "notes": {
+            "type": "object",
+            "description": "Additional notes",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO timestamp of last update"
+          },
+          "inventoryItemName": {
+            "type": "string",
+            "description": "Inventory item name"
+          },
+          "fromSiteName": {
+            "type": "string",
+            "description": "Source site name (gateway-enriched)"
+          },
+          "toSiteName": {
+            "type": "string",
+            "description": "Destination site name (gateway-enriched)"
+          },
+          "display": {
+            "description": "The quantity in the item's display unit",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StockTransferDisplayResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "inventoryItemId",
+          "fromSiteId",
+          "toSiteId",
+          "quantity",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "inventoryItemName",
+          "fromSiteName",
+          "toSiteName",
+          "display"
+        ]
+      },
+      "StockTransferTableResponseDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StockTransferRowResponseDto"
+            }
+          },
+          "count": {
+            "type": "number"
+          },
+          "state": {
+            "type": "object",
+            "description": "Current active filter/sort/visibility state"
+          },
+          "activeViewId": {
+            "type": "object",
+            "nullable": true
+          }
+        },
+        "required": [
+          "result",
+          "count",
+          "state"
         ]
       },
       "CreateSupplierEnrollmentDto": {
