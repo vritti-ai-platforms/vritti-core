@@ -88,6 +88,10 @@ export default defineConfig({
     pluginModuleFederation({
       name: 'vritti_nexus_host',
       remotes: devRemotes,
+      // A remote's manifest and entry download only when one of its modules first loads; 'version-first' (the
+      // default) fetches every registered remote whenever sharing initialises. The host's shares are eager
+      // singletons, so its copies win either way.
+      shareStrategy: 'loaded-first',
       shared: {
         react: {
           singleton: true,

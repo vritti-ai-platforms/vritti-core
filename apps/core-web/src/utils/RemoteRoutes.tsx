@@ -1,23 +1,9 @@
-import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime';
+import { loadRemote } from '@module-federation/enhanced/runtime';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { type RouteObject, useRoutes } from 'react-router-dom';
 import { MicrofrontendSkeletonFullPage } from './MircrofrontendFullPageSkeleton';
 
-const registeredRemotes = new Set<string>();
-
 const globalRouteCache = new Map<string, unknown>();
-
-// TEMP: force remoteEntry URLs to http so local dev works without SSL certs
-function toHttpEntry(entry: string): string {
-  return entry.replace(/^https:\/\//, 'http://');
-}
-
-// Registers a remote on-the-fly if not already registered
-function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
-  if (!remoteEntry || registeredRemotes.has(remoteName)) return;
-  registerRemotes([{ name: remoteName, entry: toHttpEntry(remoteEntry) }]);
-  registeredRemotes.add(remoteName);
-}
 
 // Loads a remote module and extracts its default export
 async function loadRemoteModule(remoteName: string, moduleName: string) {
@@ -35,12 +21,10 @@ export const RemoteRoutes = ({
   dataKey,
   moduleName,
   remoteName,
-  remoteEntry,
 }: {
   dataKey?: string;
   moduleName: string;
   remoteName: string;
-  remoteEntry?: string;
 }) => {
   const [routes, setRoutes] = useState<RouteObject[]>([]);
   const [ready, setReady] = useState(false);
@@ -53,8 +37,6 @@ export const RemoteRoutes = ({
 
     const init = async () => {
       try {
-        ensureRemoteRegistered(remoteName, remoteEntry);
-
         const cacheKey = `${remoteName}/${moduleName}`;
         if (!globalRouteCache.has(cacheKey)) {
           const loaded = await loadRemoteModule(remoteName, moduleName);
@@ -77,7 +59,7 @@ export const RemoteRoutes = ({
     };
 
     init();
-  }, [remoteName, moduleName, dataKey, remoteEntry]);
+  }, [remoteName, moduleName, dataKey]);
 
   const routing = useRoutes(routes);
 

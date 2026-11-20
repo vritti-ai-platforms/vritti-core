@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Navigate, type RouteObject, useRoutes } from 'react-router-dom';
 import { ServiceSetupRequired } from '../components/ServiceSetupRequired';
 import { Upsell } from '../components/Upsell';
-import { resolveRemoteName } from '../config/remotes.config';
+import { remoteNameForCode } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import { RemoteRoutes } from './RemoteRoutes';
 
@@ -37,8 +37,7 @@ export const DynamicFeatureRoutes = () => {
         element: lockElement(feature) ?? (
           <RemoteRoutes
             key={feature.code}
-            remoteName={resolveRemoteName(feature.route.remoteEntry)}
-            remoteEntry={feature.route.remoteEntry}
+            remoteName={remoteNameForCode(feature.route.microfrontendCode)}
             moduleName={feature.route.exposedModule}
           />
         ),

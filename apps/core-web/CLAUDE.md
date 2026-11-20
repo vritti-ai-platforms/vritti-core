@@ -133,23 +133,21 @@ Environment variables are exposed via `import.meta.env` (NOT `process.env` which
 - Use type-safe access pattern with `getEnvVar()` helper for dynamic key access
 
 Available environment variables:
-- `PUBLIC_AUTH_MF_PORT` - Auth microfrontend port (local dev, e.g., '3001')
-- `PUBLIC_VRITTI_CLOUD_PORT` - Cloud microfrontend port (local dev, e.g., '3002')
-- `PUBLIC_MF_BASE_URL` - Module Federation base URL (production, e.g., 'https://mf.vrittiai.com')
+- `PUBLIC_COMMERCE_MF_PORT` / `PUBLIC_COMMUNICATIONS_MF_PORT` / `PUBLIC_GITEA_MF_PORT` - remote dev-server ports
+  (local only, from Infisical `/core-web`, e.g. '3014')
+- `PUBLIC_MF_BASE_URL` - optional central MF origin. **Unset in deployed builds** (CI passes no `mf_base_url`), so each
+  tenant host loads remotes from its own origin
 
 **Type declarations** (`src/env.d.ts`):
 ```typescript
 interface ImportMetaEnv {
   // Module Federation remote ports (local development)
-  readonly PUBLIC_AUTH_MF_PORT?: string;
-  readonly PUBLIC_VRITTI_CLOUD_PORT?: string;
+  readonly PUBLIC_COMMERCE_MF_PORT?: string;
+  readonly PUBLIC_COMMUNICATIONS_MF_PORT?: string;
+  readonly PUBLIC_GITEA_MF_PORT?: string;
 
   // Module Federation base URL (production)
   readonly PUBLIC_MF_BASE_URL?: string;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
 }
 ```
 
@@ -161,23 +159,26 @@ const getEnvVar = (key: string): string | undefined => {
 };
 
 // Usage
-const remotePort = getEnvVar('PUBLIC_AUTH_MF_PORT');
+const remotePort = getEnvVar('PUBLIC_COMMERCE_MF_PORT');
 ```
 
 ### 5. Module Federation Configuration
 
 As the host application:
-- Remote micro-frontends are loaded dynamically
-- Shared dependencies are configured in `rsbuild.config.ts`
-- Auth module is loaded from `vritti-auth`
+- Every remote is registered at startup (`bootstrap.tsx`) from `ALL_REMOTES` in `src/config/remotes.config.ts`
+- The catalog never supplies URLs: each feature's route carries a `microfrontendCode` (e.g. `commerce-mf`), and
+  `remoteNameForCode` maps it to the MF container name (`commerce`) used in `loadRemote('commerce/…')`
+- Shared dependencies are configured in `rsbuild.config.ts` as eager singletons, with `shareStrategy: 'loaded-first'`
+  so a remote downloads only when one of its modules first loads
+- Remotes emit a content-hashed `remoteEntry.[contenthash:8].js`; only `mf-manifest.json` keeps a fixed name
 
 **Configuration Best Practices**:
 
 1. **Never hardcode protocols or hosts** - Use environment-driven configuration
 2. **Dynamic protocol detection** - Auto-detect HTTP/HTTPS from `window.location.protocol`
 3. **Environment-based routing**:
-   - **Local mode**: Port-based routing when `PUBLIC_*_PORT` env vars are defined
-   - **Production mode**: Path-based routing when `PUBLIC_MF_BASE_URL` is defined
+   - **Local mode**: Port-based routing when the remote's `PUBLIC_*_MF_PORT` env var is defined
+   - **Deployed mode**: Path-based routing at `/<code>/mf-manifest.json` on `PUBLIC_MF_BASE_URL`, else the host's own origin
 4. **SSR-safe fallbacks** - Handle `window` being undefined during build
 
 **Environment detection** (`src/config/remotes.config.ts`):
@@ -209,44 +210,41 @@ const getEnvironmentConfig = (): EnvironmentConfig => {
 
 **Building remote URLs** (`src/config/remotes.config.ts`):
 ```typescript
-const buildRemoteEntry = (config: {
-  portEnvVar: string;    // e.g., 'PUBLIC_AUTH_MF_PORT'
-  prodPath: string;      // e.g., 'auth-microfrontend'
-}): string => {
+// Builds a remote's mf-manifest.json URL: its local dev server when the port is set, otherwise /<code>/ on the
+// MF base URL (empty in deployed builds, so the host's own origin)
+const buildManifestUrl = (config: { portEnvVar: string; code: string }): string => {
   const { protocol, host } = getEnvironmentConfig();
-
-  // Check if port environment variable is defined
   const remotePort = getEnvVar(config.portEnvVar);
 
   if (remotePort) {
-    // Local: port-based routing
-    // Example: http://local.vrittiai.com:3001/mf-manifest.json
+    // Local: http://local.vrittiai.com:3014/mf-manifest.json
     return `${protocol}://${host}:${remotePort}/mf-manifest.json`;
-  } else {
-    // Production: path-based routing with MF_BASE_URL
-    // Example: https://mf.vrittiai.com/auth-microfrontend/mf-manifest.json
-    const mfBaseUrl = import.meta.env.PUBLIC_MF_BASE_URL || `${protocol}://${host}`;
-    return `${mfBaseUrl}/${config.prodPath}/mf-manifest.json`;
   }
+  // Deployed: https://<tenant-host>/commerce-mf/mf-manifest.json
+  const mfBaseUrl = import.meta.env.PUBLIC_MF_BASE_URL || `${protocol}://${host}`;
+  return `${mfBaseUrl}/${config.code}/mf-manifest.json`;
 };
 
-// Usage in ALL_REMOTES array
+// One entry per remote; `code` matches the catalog microfrontend code
 export const ALL_REMOTES: RemoteConfig[] = [
   {
-    name: 'VrittiAuth',
-    entry: buildRemoteEntry({
-      portEnvVar: 'PUBLIC_AUTH_MF_PORT',
-      prodPath: 'auth-microfrontend',
-    }),
-    exposedModule: 'routes',
+    name: 'commerce',
+    code: 'commerce-mf',
+    entry: buildManifestUrl({ portEnvVar: 'PUBLIC_COMMERCE_MF_PORT', code: 'commerce-mf' }),
   },
+  // communications, gitea …
 ];
 ```
+
+**Adding a remote**: register its microfrontend (code + name) in the catalog, add an `ALL_REMOTES` entry with the same
+`code`, add its port variable to `getEnvVar`, `src/env.d.ts` and Infisical `/core-web`, and serve its build at
+`/<code>/` on the tenant host.
 
 **DO**:
 - ✅ Use `getEnvironmentConfig()` to detect protocol dynamically
 - ✅ Use `getEnvVar()` for type-safe environment variable access
 - ✅ Separate local and production URL logic with environment variables
+- ✅ Match features to remotes by `route.microfrontendCode`, never by parsing a URL
 - ✅ Provide SSR-safe fallbacks for `window` access
 
 **DON'T**:
@@ -488,7 +486,7 @@ export const MyIcon: React.FC<{ className?: string }> = ({ className }) => (
 ## Starting the Application
 
 **Prerequisites**:
-- `vritti-auth` must be running on port 3001 (or the port specified in `PUBLIC_AUTH_MF_PORT`)
+- Each remote you work on must be running on the port in its `PUBLIC_*_MF_PORT` (e.g. commerce-mf on 3014)
 - If using HTTPS mode, SSL certificates must be in `./certs/` directory
 
 **Available npm scripts**:

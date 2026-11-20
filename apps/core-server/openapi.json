@@ -59280,8 +59280,10 @@
       "PermissionRouteDto": {
         "type": "object",
         "properties": {
-          "remoteEntry": {
-            "type": "string"
+          "microfrontendCode": {
+            "type": "string",
+            "example": "commerce-mf",
+            "description": "Code of the microfrontend the host loads the feature from"
           },
           "exposedModule": {
             "type": "string"
@@ -59291,7 +59293,7 @@
           }
         },
         "required": [
-          "remoteEntry",
+          "microfrontendCode",
           "exposedModule",
           "routePrefix"
         ]

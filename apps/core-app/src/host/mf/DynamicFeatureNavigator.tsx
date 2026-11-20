@@ -5,7 +5,7 @@ import { Spinner } from '@vritti/quantum-ui-native/Spinner';
 import { lockVariant, Upsell } from '@vritti/quantum-ui-native/Upsell';
 import { useMemo } from 'react';
 import { View } from 'react-native';
-import { resolveRemoteName } from '../config/remotes.config';
+import { remoteNameForCode } from '../config/remotes.config';
 import { usePermissionContext } from '../providers/PermissionProvider';
 import type { HostAppRoute } from '../routes';
 import { RemoteHeader } from './RemoteHeader';
@@ -18,9 +18,8 @@ export const DynamicFeatureNavigator = () => {
   const routes = useMemo<RouteConfig[]>(
     () => [
       ...features.map((feature) => {
-        // Server sends the per-OS mobile manifest URL via SSE (X-Platform header drives the pick).
-        const remoteEntry = feature.route.remoteEntry;
-        const remoteName = resolveRemoteName(remoteEntry);
+        // Server sends the mobile microfrontend's code via SSE (X-Platform header drives the pick)
+        const remoteName = remoteNameForCode(feature.route.microfrontendCode);
         const moduleName = feature.route.exposedModule;
         // Locked features render the lock screen instead of loading the micro-app — PLAN → amber upsell,
         // SITE (any non-PLAN reason) → destructive "Not enabled for this site" (via the Upsell variant).
@@ -31,7 +30,7 @@ export const DynamicFeatureNavigator = () => {
           component: locked
             ? () => <Upsell featureName={feature.name} unlockPlans={feature.unlockPlans} variant={variant} />
             : RemoteScreen,
-          params: { remoteName, remoteEntry, moduleName },
+          params: { remoteName, moduleName },
           // Icon names arrive as plain strings from the API; cast to TabIcon since they're validated at write time and trusted at runtime.
           icon: {
             sfSymbol: feature.sfSymbol,
@@ -43,7 +42,7 @@ export const DynamicFeatureNavigator = () => {
             locked ? (
               <ScreenHeader title={feature.name} />
             ) : (
-              <RemoteHeader remoteName={remoteName} remoteEntry={remoteEntry} moduleName={moduleName} />
+              <RemoteHeader remoteName={remoteName} moduleName={moduleName} />
             ),
         };
       }),

@@ -66,7 +66,7 @@ export default defineConfig({
     pluginReact(),
     pluginModuleFederation({
       name: 'commerce',
-      filename: 'remoteEntry.js',
+      filename: 'remoteEntry.[contenthash:8].js',
       exposes: {
         './Org/CatalogChannels': './src/features/organization/catalog-channels/index.tsx',
         './Le/CatalogChannels': './src/features/legal-entity/catalog-channels/index.tsx',

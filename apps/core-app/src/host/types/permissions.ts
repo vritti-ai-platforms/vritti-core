@@ -66,7 +66,7 @@ export interface PermissionFeature {
   unlockPlans: string[];
   lockedPermissions: LockedPermission[];
   route: {
-    remoteEntry: string;
+    microfrontendCode: string;
     exposedModule: string;
     routePrefix: string;
   };

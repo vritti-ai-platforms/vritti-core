@@ -3,12 +3,12 @@ import { getRemoteModule, type RemoteScreenParams } from './RemoteScreen';
 
 export type RemoteHeaderProps = RemoteScreenParams;
 
-export const RemoteHeader = ({ remoteName, remoteEntry, moduleName }: RemoteHeaderProps) => {
+export const RemoteHeader = ({ remoteName, moduleName }: RemoteHeaderProps) => {
   const HeaderComponent = useMemo(
     () =>
       React.lazy(async () => {
         try {
-          const mod = await getRemoteModule(remoteName, remoteEntry, moduleName);
+          const mod = await getRemoteModule(remoteName, moduleName);
           return { default: mod.Header ?? (() => null) };
         } catch (err) {
           console.error('[RemoteHeader] load failed', {
@@ -19,7 +19,7 @@ export const RemoteHeader = ({ remoteName, remoteEntry, moduleName }: RemoteHead
           return { default: () => null };
         }
       }),
-    [remoteName, remoteEntry, moduleName],
+    [remoteName, moduleName],
   );
 
   return (

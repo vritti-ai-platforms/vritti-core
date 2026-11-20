@@ -66,7 +66,7 @@ export default defineConfig({
     pluginReact(),
     pluginModuleFederation({
       name: 'gitea',
-      filename: 'remoteEntry.js',
+      filename: 'remoteEntry.[contenthash:8].js',
       exposes: {
         // The key must match cloud.features.web_exposed_module byte-for-byte, or the host cannot
         // resolve the container entry for this feature

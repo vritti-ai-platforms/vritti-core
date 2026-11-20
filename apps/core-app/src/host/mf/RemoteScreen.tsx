@@ -17,15 +17,14 @@ const modulePromiseCache = new Map<string, Promise<RemoteModule>>();
 export interface RemoteScreenParams {
   remoteName: string;
   moduleName: string;
-  remoteEntry?: string;
 }
 
 interface RemoteScreenProps {
   route: RouteProp<Record<string, RemoteScreenParams>, string>;
 }
 
-function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
-  const resolvedEntry = remoteEntry ?? getRemoteConfig(remoteName)?.entry;
+function ensureRemoteRegistered(remoteName: string) {
+  const resolvedEntry = getRemoteConfig(remoteName)?.entry;
   if (!resolvedEntry) return;
 
   const currentEntry = registeredRemotes.get(remoteName);
@@ -35,18 +34,14 @@ function ensureRemoteRegistered(remoteName: string, remoteEntry?: string) {
   registeredRemotes.set(remoteName, resolvedEntry);
 }
 
-export function getRemoteModule(
-  remoteName: string,
-  remoteEntry: string | undefined,
-  moduleName: string,
-): Promise<RemoteModule> {
+export function getRemoteModule(remoteName: string, moduleName: string): Promise<RemoteModule> {
   const normalized = moduleName.startsWith('./') ? moduleName : `./${moduleName}`;
-  const key = `${remoteName}|${remoteEntry ?? 'default'}|${normalized}`;
+  const key = `${remoteName}|${normalized}`;
   const cached = modulePromiseCache.get(key);
   if (cached) return cached;
 
   const promise = (async () => {
-    ensureRemoteRegistered(remoteName, remoteEntry);
+    ensureRemoteRegistered(remoteName);
     try {
       const mod = await loadRemote(`${remoteName}/${normalized.replace(/^\.\//, '')}`);
       const m = mod as RemoteModule | undefined;
@@ -58,7 +53,6 @@ export function getRemoteModule(
     } catch (err) {
       console.error('[RemoteScreen] load failed', {
         remoteName,
-        remoteEntry,
         moduleName: normalized,
         error: err instanceof Error ? err.message : err,
         stack: err instanceof Error ? err.stack : undefined,
@@ -74,14 +68,14 @@ export function getRemoteModule(
 }
 
 export const RemoteScreen = ({ route }: RemoteScreenProps) => {
-  const { remoteName, moduleName, remoteEntry } = route.params;
+  const { remoteName, moduleName } = route.params;
 
   const ScreenComponent = useMemo(
     () =>
       React.lazy(async () => ({
-        default: (await getRemoteModule(remoteName, remoteEntry, moduleName)).default,
+        default: (await getRemoteModule(remoteName, moduleName)).default,
       })),
-    [remoteName, remoteEntry, moduleName],
+    [remoteName, moduleName],
   );
 
   return (

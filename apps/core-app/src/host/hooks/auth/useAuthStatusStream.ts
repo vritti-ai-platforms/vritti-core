@@ -23,7 +23,7 @@ export function useAuthStatusStream(enabled: boolean) {
     const eventSource = new EventSource<'auth-state'>(buildAuthStatusUrl(baseURL), {
       headers: {
         Authorization: `Bearer ${token}`,
-        // Tells SSE handler to deliver MOBILE route blocks (per-OS remoteEntry) instead of WEB.
+        // Tells SSE handler to deliver MOBILE route blocks instead of WEB.
         'X-Platform': Platform.OS,
       },
       pollingInterval: 0,

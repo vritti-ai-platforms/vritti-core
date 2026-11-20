@@ -15,8 +15,8 @@ export class LockedPermissionDto {
 }
 
 export class PermissionRouteDto {
-  @ApiProperty()
-  remoteEntry: string;
+  @ApiProperty({ example: 'commerce-mf', description: 'Code of the microfrontend the host loads the feature from' })
+  microfrontendCode: string;
 
   @ApiProperty()
   exposedModule: string;
