@@ -2,13 +2,12 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
-import _ from '@vritti/api-sdk/lodash';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { SelectQueryResult } from '@vritti/api-sdk/select';
 import type { DisplayUnitRatios } from '@/db/schema';
 import {
-  SITE_STOCK_QUANTITY_KEYS,
-  type SiteStockQuantityKey,
+  type SiteStockDisplaySource,
+  toSiteStockDisplay,
 } from '@/modules/site/inventory-items/root/dto/entity/site-stock-display.dto';
 import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
 import type { InventoryItemsSelectQueryDto } from '../dto/request/inventory-items-select-query.dto';
@@ -62,9 +61,8 @@ export class PurchasingPickersService {
           ...option,
           additionals: {
             ...additionals,
-            display: this.uomConversionsService.toDisplayUomQuantities(
-              _.pick(additionals, SITE_STOCK_QUANTITY_KEYS) as Record<SiteStockQuantityKey, number | null>,
-              displayUnitRatios as DisplayUnitRatios,
+            display: toSiteStockDisplay(additionals as SiteStockDisplaySource, (qty) =>
+              this.uomConversionsService.toDisplayUomQuantity(qty, displayUnitRatios as DisplayUnitRatios),
             ),
           },
         };

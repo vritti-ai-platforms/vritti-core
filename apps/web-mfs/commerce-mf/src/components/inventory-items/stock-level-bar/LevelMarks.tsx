@@ -1,6 +1,7 @@
 import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import type React from 'react';
+import type { SiteStockDisplay } from '@/schemas/inventory-items';
 import { type PlacedLevel, type QuantityLabels, withUnit } from './stockLevelLayout';
 import { TipRow } from './TipRow';
 
@@ -9,14 +10,19 @@ interface LevelMarksProps {
   onHand: number;
   uomSymbol: string;
   labels: QuantityLabels;
+  // How far the stock on hand is from each level in the item's display unit; left out, the gap reads in the primary unit
+  display?: SiteStockDisplay;
 }
 
 // A tick across the bar at each level; hovering one shows the level, in the primary unit too when it is labelled in
 // another, and how far the stock on hand is from it
-export const LevelMarks: React.FC<LevelMarksProps> = ({ levels, onHand, uomSymbol, labels }) => {
+export const LevelMarks: React.FC<LevelMarksProps> = ({ levels, onHand, uomSymbol, labels, display }) => {
   const fmt = useFormatters();
   return levels.map((level) => {
-    const gap = withUnit(fmt, Math.abs(onHand - level.quantity), uomSymbol);
+    const gapInDisplay = display?.[`${level.key}Gap`];
+    const gap = gapInDisplay
+      ? fmt.quantity(gapInDisplay).primary
+      : withUnit(fmt, Math.abs(onHand - level.quantity), uomSymbol);
     const fromLevel =
       onHand === level.quantity ? 'At the level' : `${gap} ${onHand > level.quantity ? 'above' : 'below'}`;
     return (

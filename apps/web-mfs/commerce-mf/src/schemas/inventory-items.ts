@@ -207,6 +207,16 @@ export const siteStockDisplaySchema = z.object({
   safetyStock: displayQuantitySchema.nullable(),
   reorderPoint: displayQuantitySchema.nullable(),
   maxStock: displayQuantitySchema.nullable(),
+  safetyStockGap: displayQuantitySchema.nullable(),
+  reorderPointGap: displayQuantitySchema.nullable(),
+  maxStockGap: displayQuantitySchema.nullable(),
+  locations: z.array(
+    z.object({
+      locationId: z.string(),
+      quantity: displayQuantitySchema,
+      withSmaller: displayQuantitySchema,
+    }),
+  ),
 });
 
 export type SiteStockDisplay = z.infer<typeof siteStockDisplaySchema>;

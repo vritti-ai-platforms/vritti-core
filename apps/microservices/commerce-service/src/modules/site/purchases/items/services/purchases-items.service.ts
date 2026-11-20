@@ -22,6 +22,7 @@ import _ from '@vritti/api-sdk/lodash';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
+import { toSiteStockDisplay } from '@/modules/site/inventory-items/root/dto/entity/site-stock-display.dto';
 import { PurchasesQuotationsService } from '../../quotations/services/purchases-quotations.service';
 import { PurchaseItemAllocationRowDto } from '../dto/entity/purchase-item-allocation-row.dto';
 import type { PurchaseItemComparisonDto } from '../dto/entity/purchase-item-detail.dto';
@@ -221,9 +222,8 @@ export class PurchasesItemsService {
     const { displayUnitRatios, ...rest } = stock;
     return {
       ...rest,
-      display: this.uomConversionsService.toDisplayUomQuantities(
-        _.pick(stock, ['onHand', 'safetyStock', 'reorderPoint', 'maxStock']),
-        displayUnitRatios,
+      display: toSiteStockDisplay(stock, (qty) =>
+        this.uomConversionsService.toDisplayUomQuantity(qty, displayUnitRatios),
       ),
     };
   }

@@ -17178,6 +17178,60 @@
         ]
       }
     },
+    "/commerce-api/le/inventory-items/{id}/suppliers": {
+      "post": {
+        "description": "Sets the item up as one of a legal entity supplier's items: the unit the supplier sells and prices it in, the supplier's own code, the least it sells per order, the default lead time, and the sites enrolled with the supplier that buy the item from them. The same as adding the item from the supplier.",
+        "operationId": "LeInventoryItemsGatewayController_addSupplier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddInventoryItemSupplierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Supplier added to the item.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierItemResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, the unit is not one the item allows, the supplier already has the item in that unit, a site is not enrolled with the supplier or not one of the legal entity's, or the minimum order is not whole in a unit that cannot be split."
+          },
+          "404": {
+            "description": "Supplier or inventory item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a supplier to an inventory item",
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/le/inventory-items/{id}/sites/{siteId}/block": {
       "post": {
         "description": "Stops one of the legal entity's sites adding the item to purchases or purchase orders, with a reason; stock on hand and goods already ordered still move.",
@@ -65151,6 +65205,119 @@
           "supplierItemsRequired"
         ]
       },
+      "AddInventoryItemSupplierDto": {
+        "type": "object",
+        "properties": {
+          "supplierItemCode": {
+            "type": "object",
+            "description": "Supplier-specific item code"
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM ID for pricing"
+          },
+          "minOrderQuantity": {
+            "type": "number",
+            "description": "The least the supplier sells per order, in the item's unit",
+            "example": 10
+          },
+          "defaultLeadTimeDays": {
+            "type": "number",
+            "description": "Whole days from order to delivery, 0 for the same day; every site that does not set its own follows it",
+            "minimum": 0,
+            "maximum": 365,
+            "example": 0
+          },
+          "siteIds": {
+            "description": "Enrolled sites to set the item up at",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "supplierId": {
+            "type": "string",
+            "description": "ID of one of the legal entity's suppliers"
+          }
+        },
+        "required": [
+          "uomId",
+          "defaultLeadTimeDays",
+          "siteIds",
+          "supplierId"
+        ]
+      },
+      "SupplierItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Supplier item link ID"
+          },
+          "inventoryItemId": {
+            "type": "string",
+            "description": "Inventory item ID"
+          },
+          "inventoryItemName": {
+            "type": "object",
+            "description": "Inventory item name",
+            "nullable": true
+          },
+          "supplierItemCode": {
+            "type": "object",
+            "description": "Supplier-specific item code",
+            "nullable": true
+          },
+          "uomId": {
+            "type": "string",
+            "description": "UOM ID"
+          },
+          "uomSymbol": {
+            "type": "string",
+            "description": "UOM symbol"
+          },
+          "minOrderQuantity": {
+            "type": "object",
+            "description": "The least the supplier sells per order, in the item's unit",
+            "nullable": true
+          },
+          "defaultLeadTimeDays": {
+            "type": "number",
+            "description": "Default whole days from order to delivery, which every site follows unless it sets its own",
+            "minimum": 0,
+            "maximum": 365
+          },
+          "siteCount": {
+            "type": "number",
+            "description": "Number of sites that carry this item"
+          },
+          "preferredSiteCount": {
+            "type": "number",
+            "description": "Number of sites where this supplier is preferred for the item"
+          },
+          "priceCount": {
+            "type": "number",
+            "description": "Price rows of the item at all sites (item detail only)"
+          },
+          "pricedSiteCount": {
+            "type": "number",
+            "description": "Sites the item has prices at (item detail only)"
+          },
+          "canDelete": {
+            "type": "boolean",
+            "description": "False once the item has any price — price history is never deleted (item detail only)"
+          }
+        },
+        "required": [
+          "id",
+          "inventoryItemId",
+          "uomId",
+          "uomSymbol",
+          "defaultLeadTimeDays",
+          "siteCount",
+          "preferredSiteCount"
+        ]
+      },
       "BlockSiteItemDto": {
         "type": "object",
         "properties": {
@@ -65224,6 +65391,36 @@
           "lotCount"
         ]
       },
+      "SiteStockLocationDisplayResponseDto": {
+        "type": "object",
+        "properties": {
+          "locationId": {
+            "type": "string",
+            "description": "Location ID, as in the stock row’s locations"
+          },
+          "quantity": {
+            "description": "The stock at the location",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "withSmaller": {
+            "description": "The stock at the location and at every location after it, which holds less",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "locationId",
+          "quantity",
+          "withSmaller"
+        ]
+      },
       "SiteStockDisplayResponseDto": {
         "type": "object",
         "properties": {
@@ -65262,13 +65459,54 @@
                 "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
               }
             ]
+          },
+          "safetyStockGap": {
+            "nullable": true,
+            "description": "How far the stock on hand is from the safety stock, either way",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "reorderPointGap": {
+            "nullable": true,
+            "description": "How far the stock on hand is from the reorder point, either way",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "maxStockGap": {
+            "nullable": true,
+            "description": "How far the stock on hand is from the maximum stock, either way",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DisplayUomQuantityResponseDto"
+              }
+            ]
+          },
+          "locations": {
+            "description": "Each location holding the stock, largest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SiteStockLocationDisplayResponseDto"
+            }
           }
         },
         "required": [
           "onHand",
           "safetyStock",
           "reorderPoint",
-          "maxStock"
+          "maxStock",
+          "safetyStockGap",
+          "reorderPointGap",
+          "maxStockGap",
+          "locations"
         ]
       },
       "SiteItemRowResponseDto": {

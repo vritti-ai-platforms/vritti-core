@@ -65,6 +65,7 @@ export const StockLevelBar: React.FC<StockLevelBarProps> = ({
               status={status}
               uomSymbol={uomSymbol}
               locations={locations}
+              locationDisplays={display?.locations}
             />
           )}
         </div>
@@ -91,9 +92,16 @@ export const StockLevelBar: React.FC<StockLevelBarProps> = ({
       <div ref={measure} data-measure="bar" role="img" aria-label={summary} className="relative h-3.5 w-full">
         <StockZones zones={stockZones(stockLevels)} position={position} labels={labels} />
         {onHand > 0 && (
-          <OnHandBar onHand={onHand} position={position} status={status} uomSymbol={uomSymbol} locations={locations} />
+          <OnHandBar
+            onHand={onHand}
+            position={position}
+            status={status}
+            uomSymbol={uomSymbol}
+            locations={locations}
+            locationDisplays={display?.locations}
+          />
         )}
-        <LevelMarks levels={levels} onHand={onHand} uomSymbol={uomSymbol} labels={labels} />
+        <LevelMarks levels={levels} onHand={onHand} uomSymbol={uomSymbol} labels={labels} display={display} />
       </div>
       <LevelLabels levels={levels} row="below" labels={labels} measure={measure} />
     </div>

@@ -4,7 +4,12 @@ import { min, orderBy, sumBy } from '@vritti/quantum-ui/lodash';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import type React from 'react';
-import { type SiteStockLocationData, type StockStatus, stockStatusConfig } from '@/schemas/inventory-items';
+import {
+  type SiteStockDisplay,
+  type SiteStockLocationData,
+  type StockStatus,
+  stockStatusConfig,
+} from '@/schemas/inventory-items';
 import { type BarPosition, withUnit } from './stockLevelLayout';
 import { TipRow } from './TipRow';
 
@@ -14,12 +19,17 @@ interface OnHandBarProps {
   status?: StockStatus;
   uomSymbol: string;
   locations?: SiteStockLocationData[];
+  // Each location's stock in the item's display unit, as the server sent it; left out, segments read in the primary unit
+  locationDisplays?: SiteStockDisplay['locations'];
 }
 
 interface Segment {
   key: string;
   path: string;
   quantity: number;
+  // The location id whose display figures name the segment: its own, or for the folded segment the first one folded
+  displayFrom: string;
+  folded: boolean;
   lotCount: number;
   earliestExpiry: string | null;
 }
@@ -38,6 +48,8 @@ function locationSegments(locations: SiteStockLocationData[], position: BarPosit
     key: location.locationId,
     path: location.locationPath,
     quantity: location.quantity,
+    displayFrom: location.locationId,
+    folded: false,
     lotCount: location.lotCount,
     earliestExpiry: location.earliestExpiry,
   }));
@@ -48,6 +60,8 @@ function locationSegments(locations: SiteStockLocationData[], position: BarPosit
       key: 'other',
       path: pluralize('other location', folded.length, true),
       quantity: sumBy(folded, 'quantity'),
+      displayFrom: folded[0].locationId,
+      folded: true,
       lotCount: sumBy(folded, 'lotCount'),
       earliestExpiry: min(folded.map((location) => location.earliestExpiry).filter(Boolean)) ?? null,
     },
@@ -56,8 +70,21 @@ function locationSegments(locations: SiteStockLocationData[], position: BarPosit
 
 // The stock on hand, run over the zones in its status colour (neutral for an unsaved preview), split by the locations
 // holding it; hovering a segment shows its location, share and lots
-export const OnHandBar: React.FC<OnHandBarProps> = ({ onHand, position, status, uomSymbol, locations }) => {
+export const OnHandBar: React.FC<OnHandBarProps> = ({
+  onHand,
+  position,
+  status,
+  uomSymbol,
+  locations,
+  locationDisplays,
+}) => {
   const fmt = useFormatters();
+  // A segment's stock in the display unit — the folded one's is its first location with every smaller one after it
+  const segmentQuantity = (segment: Segment) => {
+    const display = locationDisplays?.find((location) => location.locationId === segment.displayFrom);
+    if (!display) return withUnit(fmt, segment.quantity, uomSymbol);
+    return fmt.quantity(segment.folded ? display.withSmaller : display.quantity).primary;
+  };
   const fill = status ? stockStatusConfig[status].fill : 'bg-foreground/70';
   const segments = locationSegments(locations ?? [], position);
 
@@ -73,7 +100,7 @@ export const OnHandBar: React.FC<OnHandBarProps> = ({ onHand, position, status, 
           content={
             <div className="flex min-w-48 flex-col gap-1">
               <span className="font-medium">{segment.path}</span>
-              <TipRow label="On hand" value={withUnit(fmt, segment.quantity, uomSymbol)} />
+              <TipRow label="On hand" value={segmentQuantity(segment)} />
               <TipRow
                 label="Share of on hand"
                 value={fmt.percent((segment.quantity / onHand) * 100, { maximumFractionDigits: 0 }).primary}

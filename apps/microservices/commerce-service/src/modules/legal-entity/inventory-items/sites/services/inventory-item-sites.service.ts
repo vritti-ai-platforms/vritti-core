@@ -7,10 +7,9 @@ import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/se
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable } from '@nestjs/common';
 import type { TableFilters } from '@vritti/api-sdk/data-table';
-import _ from '@vritti/api-sdk/lodash';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { SITE_STOCK_QUANTITY_KEYS } from '@/modules/site/inventory-items/root/dto/entity/site-stock-display.dto';
+import { toSiteStockDisplay } from '@/modules/site/inventory-items/root/dto/entity/site-stock-display.dto';
 import type { ItemStockBySiteViewDto } from '../dto/entity/item-stock-by-site-view.dto';
 
 @Injectable()
@@ -61,9 +60,8 @@ export class LeInventoryItemSitesService {
     return {
       rows: rows.map(({ displayUnitRatios, ...row }) => ({
         ...row,
-        display: this.uomConversionsService.toDisplayUomQuantities(
-          _.pick(row, SITE_STOCK_QUANTITY_KEYS),
-          displayUnitRatios,
+        display: toSiteStockDisplay(row, (qty) =>
+          this.uomConversionsService.toDisplayUomQuantity(qty, displayUnitRatios),
         ),
       })),
       sitesNotCarryingMatch,

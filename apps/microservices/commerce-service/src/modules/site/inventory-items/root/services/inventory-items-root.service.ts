@@ -8,10 +8,9 @@ import { InventoryItemsDomainService } from '@domain/inventory-items/services/in
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
 import type { TableState } from '@vritti/api-sdk/data-table';
-import _ from '@vritti/api-sdk/lodash';
 import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
-import { SITE_STOCK_QUANTITY_KEYS } from '../dto/entity/site-stock-display.dto';
+import { toSiteStockDisplay } from '../dto/entity/site-stock-display.dto';
 import type { SiteStockTableRowDto } from '../dto/entity/site-stock-table-row.dto';
 
 @Injectable()
@@ -64,9 +63,8 @@ export class SiteInventoryItemsService {
     return {
       result: result.map(({ displayUnitRatios, ...row }) => ({
         ...row,
-        display: this.uomConversionsService.toDisplayUomQuantities(
-          _.pick(row, SITE_STOCK_QUANTITY_KEYS),
-          displayUnitRatios,
+        display: toSiteStockDisplay(row, (qty) =>
+          this.uomConversionsService.toDisplayUomQuantity(qty, displayUnitRatios),
         ),
       })),
       count,
