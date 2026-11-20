@@ -26,7 +26,11 @@ import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
 import type { SiteStockTableItemDto } from '../dto/entity/scoped-inventory-item.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
-import { InventoryItemsDomainRepository, stockHeldUnderLocationsSql } from '../repositories/inventory-items.repository';
+import {
+  carriedAtSitesSql,
+  InventoryItemsDomainRepository,
+  stockHeldUnderLocationsSql,
+} from '../repositories/inventory-items.repository';
 
 interface InventoryItemsFeedQuery {
   filters: TableFilters;
@@ -66,6 +70,18 @@ export class InventoryItemsDomainService {
       multiExpression: (values, operator) => {
         const held = stockHeldUnderLocationsSql(values.map(String));
         return operator === FilterOperators.IS_NOT_ANY_OF ? not(held) : held;
+      },
+      type: 'string',
+    },
+  };
+
+  // The legal entity's master-item filters: the sites carrying the item
+  private static readonly LE_FILTER_FIELD_MAP: FieldMap = {
+    ...InventoryItemsDomainService.FILTER_FIELD_MAP,
+    siteId: {
+      multiExpression: (values, operator) => {
+        const carried = carriedAtSitesSql(values.map(String));
+        return operator === FilterOperators.IS_NOT_ANY_OF ? not(carried) : carried;
       },
       type: 'string',
     },
@@ -147,26 +163,8 @@ export class InventoryItemsDomainService {
   }
 
   // Returns paginated, filtered, and sorted inventory items for the data table
-  async findForTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
-    const filterWhere = FilterProcessor.buildWhere(state.filters, InventoryItemsDomainService.FILTER_FIELD_MAP);
-    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
-    const where = and(filterWhere, searchWhere);
-    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
-      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
-      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
-    });
-    const { limit = 20, offset = 0 } = state.pagination;
-
-    const { result: rows, count } = await this.repository.findAllWithUom({
-      where: where || undefined,
-      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
-      limit,
-      offset,
-    });
-
-    const dtos = rows.map((row) => InventoryItemDto.from(row));
-
-    return { result: dtos, count };
+  findForTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    return this.findMasterTable(state, InventoryItemsDomainService.FILTER_FIELD_MAP);
   }
 
   // Returns paginated inventory items scoped to a single category (for the category detail items table)
@@ -199,6 +197,11 @@ export class InventoryItemsDomainService {
   // Org-wide master list (no site filter). Same table shape as findForTable; RLS scopes to org.
   async findForOrgTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     return this.findForTable(state);
+  }
+
+  // The master list a legal entity reads, narrowed to the items a picked site carries
+  findForLegalEntityTable(state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
+    return this.findMasterTable(state, InventoryItemsDomainService.LE_FILTER_FIELD_MAP);
   }
 
   // Every master item with how the site carries it, the stock it holds by location, its value in the site's currency,
@@ -391,5 +394,31 @@ export class InventoryItemsDomainService {
       success: true,
       message: `Inventory item "${existing.name}" deleted successfully.`,
     };
+  }
+
+  // Returns paginated, filtered, and sorted master items, filtered through the scope's fields
+  private async findMasterTable(
+    state: TableState,
+    filterFields: FieldMap,
+  ): Promise<{ result: InventoryItemDto[]; count: number }> {
+    const filterWhere = FilterProcessor.buildWhere(state.filters, filterFields);
+    const searchWhere = FilterProcessor.buildSearch(state.search, InventoryItemsDomainService.SEARCH_FIELD_MAP);
+    const where = and(filterWhere, searchWhere);
+    const orderBy = FilterProcessor.buildOrderBy(state.sort, {
+      ...InventoryItemsDomainService.SEARCH_FIELD_MAP,
+      ...InventoryItemsDomainService.FILTER_FIELD_MAP,
+    });
+    const { limit = 20, offset = 0 } = state.pagination;
+
+    const { result: rows, count } = await this.repository.findAllWithUom({
+      where: where || undefined,
+      orderBy: orderBy.length > 0 ? orderBy : [desc(inventoryItems.createdAt)],
+      limit,
+      offset,
+    });
+
+    const dtos = rows.map((row) => InventoryItemDto.from(row));
+
+    return { result: dtos, count };
   }
 }

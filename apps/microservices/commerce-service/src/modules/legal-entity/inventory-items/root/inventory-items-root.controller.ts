@@ -25,11 +25,11 @@ export class LeInventoryItemsController {
     return this.service.findById(data.id);
   }
 
-  // The organization's master items, read-only from a legal entity
+  // The organization's master items, read-only from a legal entity, narrowed to a site's when the table picks one
   @MessagePattern({ cmd: 'le.inventoryItems.table' })
   async table(@Payload() state: TableState): Promise<{ result: InventoryItemDto[]; count: number }> {
     this.logger.log('inventoryItems.table');
-    return this.service.findForOrgTable(state);
+    return this.service.findForLegalEntityTable(state);
   }
 
   // The legal entity's suppliers carrying the item, narrowed to one site's when the table's context picks one; the

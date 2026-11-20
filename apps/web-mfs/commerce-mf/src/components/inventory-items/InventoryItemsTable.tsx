@@ -25,6 +25,7 @@ interface InventoryItemsTableProps<TRow extends InventoryItemData> {
   permission: string;
   extraColumns?: ColumnDef<TRow>[];
   extraFilters?: React.ReactNode[];
+  contextBar?: React.ReactNode;
   rowActions?: (row: TRow) => RowAction[];
   toolbarActions?: React.ReactNode;
   emptyStateConfig?: DataTableEmptyConfig;
@@ -41,6 +42,7 @@ export const InventoryItemsTable = <TRow extends InventoryItemData>({
   permission,
   extraColumns = NO_COLUMNS,
   extraFilters = NO_FILTERS,
+  contextBar,
   rowActions,
   toolbarActions,
   emptyStateConfig,
@@ -119,6 +121,7 @@ export const InventoryItemsTable = <TRow extends InventoryItemData>({
     <DataTable
       table={inventoryItemsTable}
       permission={permission}
+      contextBar={contextBar}
       searchConfig={{
         columns: [
           { id: 'name', label: 'Name' },

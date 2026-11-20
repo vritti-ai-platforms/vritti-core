@@ -103,6 +103,18 @@ export function stockHeldUnderLocationsSql(locationIds: string[]): SQL {
   );
 }
 
+// Whether one of the sites carries the item
+export function carriedAtSitesSql(siteIds: string[]): SQL {
+  return exists(
+    new QueryBuilder()
+      .select({ id: inventoryItemSites.id })
+      .from(inventoryItemSites)
+      .where(
+        and(eq(inventoryItemSites.inventoryItemId, inventoryItems.id), inArray(inventoryItemSites.siteId, siteIds)),
+      ),
+  );
+}
+
 @Injectable()
 export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof inventoryItems> {
   constructor(database: PrimaryDatabaseService) {

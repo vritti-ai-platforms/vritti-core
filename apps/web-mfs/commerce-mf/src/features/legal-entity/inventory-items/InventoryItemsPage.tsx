@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { InventoryItemsTable } from '@/components/inventory-items/InventoryItemsTable';
 import { LE_INVENTORY_ITEMS_TABLE_KEY, useInventoryItemsTable } from '@/hooks/legal-entity/inventory-items';
 import type { InventoryItemData } from '@/schemas/inventory-items';
+import { SiteFilter } from '@/selectors/site';
 
 export const InventoryItemsPage = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ export const InventoryItemsPage = () => {
         slug="commerce-le-inventory-items"
         tableKey={LE_INVENTORY_ITEMS_TABLE_KEY}
         permission={LE_INVENTORY_ITEMS.view}
+        contextBar={<SiteFilter label="Site" placeholder="All sites" mode="context" clearable />}
         rowActions={rowActions}
       />
     </div>
