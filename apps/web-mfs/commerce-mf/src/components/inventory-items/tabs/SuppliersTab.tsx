@@ -29,6 +29,8 @@ interface SuppliersTabProps {
   siteContext?: boolean;
   // Where a supplier's View action goes (absolute) and who may follow it; without it the rows have no View action
   supplierView?: { path: (row: InventoryItemSupplierData) => string; permission: string };
+  // The scope's way to add a supplier, shown in the toolbar and the empty state
+  addAction?: React.ReactNode;
 }
 
 const SITE_TERM_COLUMNS: ColumnDef<InventoryItemSupplierData>[] = [
@@ -65,6 +67,7 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
   showSiteTerms = false,
   siteContext = false,
   supplierView,
+  addAction,
 }) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -179,13 +182,17 @@ export const SuppliersTab: React.FC<SuppliersTabProps> = ({
             ]
           : undefined
       }
+      toolbarActions={addAction ? { actions: addAction } : undefined}
       emptyStateConfig={{
         icon: Truck,
         title: 'No suppliers',
         description:
           typeof rowsSite === 'string'
             ? 'No supplier supplies this item to this site yet.'
-            : 'No suppliers carry this item yet. Link this item from a supplier detail page to get started.',
+            : addAction
+              ? 'No suppliers carry this item yet. Add one to get started.'
+              : 'No suppliers carry this item yet. Link this item from a supplier detail page to get started.',
+        action: addAction,
       }}
     />
   );

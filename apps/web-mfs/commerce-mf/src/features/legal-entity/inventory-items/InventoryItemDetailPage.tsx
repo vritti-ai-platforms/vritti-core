@@ -7,8 +7,8 @@ import { useInventoryItem } from '@/hooks/legal-entity/inventory-items';
 import { MrpTab } from './tabs/MrpTab';
 import { PriceHistoryTab } from './tabs/PriceHistoryTab';
 import { PricesTableTab } from './tabs/PricesTableTab';
-import { SuppliersTab } from './tabs/SuppliersTab';
 import { SitesTab } from './tabs/sites/SitesTab';
+import { SuppliersTab } from './tabs/suppliers/SuppliersTab';
 
 // A master item as a legal entity sees it: read-only details, how each site carries it, the legal entity's suppliers
 // for it, their prices at a site, and its MRPs
@@ -32,8 +32,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'suppliers',
             label: 'Suppliers',
-            permission: LE_INVENTORY_ITEMS.view,
-            content: <SuppliersTab inventoryItemId={item.id} />,
+            permission: LE_INVENTORY_ITEMS.suppliers.view,
+            content: <SuppliersTab inventoryItemId={item.id} itemName={item.name} />,
           },
           {
             value: 'sites',

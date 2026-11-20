@@ -35,6 +35,11 @@ export const LE_INVENTORY_ITEMS = {
     block: 'le.inventory-items.sites.block',
     delete: 'le.inventory-items.sites.delete',
   },
+  // The legal entity's suppliers of the item: list them, and set the item up as another supplier's item
+  suppliers: {
+    view: 'le.inventory-items.suppliers.view',
+    add: 'le.inventory-items.suppliers.add',
+  },
   prices: {
     view: 'le.inventory-items.prices.view',
   },

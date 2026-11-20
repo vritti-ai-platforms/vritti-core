@@ -49,6 +49,6 @@ import { SupplierSiteItemsController } from './site-items/root/supplier-site-ite
     LeSupplierEnrollmentsService,
     LeSupplierSiteItemPricesService,
   ],
-  exports: [LeSupplierQuotationsService, LeSupplierSiteItemPricesService],
+  exports: [LeSupplierQuotationsService, LeSupplierSiteItemPricesService, SuppliersItemsService],
 })
 export class LeSuppliersModule {}

@@ -2,6 +2,7 @@ import type { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/reques
 import type { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import type { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
 import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
+import type { AddInventoryItemSupplierDto } from '@commerce/inventory-items/dto/request/add-inventory-item-supplier.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
@@ -15,6 +16,7 @@ import type {
   SiteItemRowResponseDto,
   SiteItemTableResponseDto,
 } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
+import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import { SiteDomainService } from '@domain/site/services/site.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
@@ -43,6 +45,17 @@ export class LeInventoryItemsGatewayService {
   ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
     this.logger.log(`le.inventoryItems.sites.create — inventoryItemId: ${inventoryItemId}, siteId: ${siteId}`);
     return this.nats.send('commerce', 'le.inventoryItems.sites.create', { inventoryItemId, siteId, ...dto });
+  }
+
+  // Sets the item up as one of a supplier's items, in a unit and at the enrolled sites that buy it from them
+  addSupplier(
+    inventoryItemId: string,
+    dto: AddInventoryItemSupplierDto,
+  ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
+    this.logger.log(
+      `le.inventoryItems.suppliers.create — inventoryItemId: ${inventoryItemId}, supplierId: ${dto.supplierId}`,
+    );
+    return this.nats.send('commerce', 'le.inventoryItems.suppliers.create', { inventoryItemId, ...dto });
   }
 
   // Changes how one of the legal entity's sites replenishes the item

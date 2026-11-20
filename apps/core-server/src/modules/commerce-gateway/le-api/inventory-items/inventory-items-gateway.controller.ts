@@ -2,12 +2,14 @@ import { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/blo
 import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
 import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
+import { AddInventoryItemSupplierDto } from '@commerce/inventory-items/dto/request/add-inventory-item-supplier.dto';
 import { InventoryItemSiteParamsDto } from '@commerce/inventory-items/dto/request/inventory-item-site-params.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { SiteItemTableResponseDto } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
+import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import {
   Body,
   Controller,
@@ -29,6 +31,7 @@ import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { LegalEntityId, OrgId } from '@/security/decorators';
 import {
+  ApiAddSupplier,
   ApiAddToSite,
   ApiBlockSiteItem,
   ApiFindSiteItemsTable,
@@ -59,6 +62,18 @@ export class LeInventoryItemsGatewayController {
   ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
     this.logger.log(`POST /commerce-api/le/inventory-items/${id}/sites/${siteId}`);
     return this.service.addToSite(id, siteId, dto);
+  }
+
+  // Sets the item up as one of a supplier's items, in a unit and at the enrolled sites that buy it from them
+  @Post(':id/suppliers')
+  @RequirePermission(LE_INVENTORY_ITEMS.suppliers.add)
+  @ApiAddSupplier()
+  addSupplier(
+    @Param('id', new ParseUUIDPipe({ version: '7' })) id: string,
+    @Body() dto: AddInventoryItemSupplierDto,
+  ): Promise<CreateResponseDto<SupplierItemResponseDto>> {
+    this.logger.log(`POST /commerce-api/le/inventory-items/${id}/suppliers`);
+    return this.service.addSupplier(id, dto);
   }
 
   // Changes how one of the legal entity's sites replenishes the item
@@ -134,7 +149,7 @@ export class LeInventoryItemsGatewayController {
 
   // Returns the legal entity's suppliers carrying an item, table-shaped
   @Get(':id/suppliers/table')
-  @RequirePermission(LE_INVENTORY_ITEMS.view)
+  @RequirePermission(LE_INVENTORY_ITEMS.suppliers.view)
   getSuppliersTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemSupplierTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/inventory-items/${id}/suppliers/table`);
     return this.service.findSuppliersTable(id, userId);

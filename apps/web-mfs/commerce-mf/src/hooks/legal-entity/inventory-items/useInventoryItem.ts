@@ -33,9 +33,9 @@ export function useInventoryItem(id: string) {
   });
 }
 
-// The legal entity's suppliers carrying the item; self-gates on the LE view permission
+// The legal entity's suppliers carrying the item; self-gates on the LE suppliers view permission
 export function useInventoryItemSuppliersTable(inventoryItemId: string) {
-  const { available } = usePermission(LE_INVENTORY_ITEMS.view);
+  const { available } = usePermission(LE_INVENTORY_ITEMS.suppliers.view);
   return useQuery<InventoryItemSuppliersTableResponse, AxiosError>({
     queryKey: LE_INVENTORY_ITEM_SUPPLIERS_TABLE_KEY(inventoryItemId),
     queryFn: () => getLeInventoryItemSuppliersTable(inventoryItemId),

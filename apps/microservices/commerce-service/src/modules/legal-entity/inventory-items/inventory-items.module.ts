@@ -6,11 +6,14 @@ import { SupplierItemsDomainModule } from '@domain/supplier-items/supplier-items
 import { SuppliersDomainModule } from '@domain/suppliers/suppliers.module';
 import { UomConversionsDomainModule } from '@domain/uom-conversions/uom-conversions.module';
 import { Module } from '@nestjs/common';
+import { LeSuppliersModule } from '@/modules/legal-entity/suppliers/suppliers.module';
 import { LeInventoryItemPricesController } from './prices/inventory-item-prices.controller';
 import { LeInventoryItemPricesService } from './prices/services/inventory-item-prices.service';
 import { LeInventoryItemsController } from './root/inventory-items-root.controller';
 import { LeInventoryItemSitesController } from './sites/inventory-item-sites.controller';
 import { LeInventoryItemSitesService } from './sites/services/inventory-item-sites.service';
+import { LeInventoryItemSuppliersController } from './suppliers/inventory-item-suppliers.controller';
+import { LeInventoryItemSuppliersService } from './suppliers/services/inventory-item-suppliers.service';
 
 @Module({
   imports: [
@@ -21,8 +24,14 @@ import { LeInventoryItemSitesService } from './sites/services/inventory-item-sit
     InventoryItemMrpsDomainModule,
     UomConversionsDomainModule,
     SuppliersDomainModule,
+    LeSuppliersModule,
   ],
-  controllers: [LeInventoryItemsController, LeInventoryItemPricesController, LeInventoryItemSitesController],
-  providers: [LeInventoryItemPricesService, LeInventoryItemSitesService],
+  controllers: [
+    LeInventoryItemsController,
+    LeInventoryItemPricesController,
+    LeInventoryItemSitesController,
+    LeInventoryItemSuppliersController,
+  ],
+  providers: [LeInventoryItemPricesService, LeInventoryItemSitesService, LeInventoryItemSuppliersService],
 })
 export class LeInventoryItemsModule {}

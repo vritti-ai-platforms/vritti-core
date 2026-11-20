@@ -9,9 +9,11 @@ import type {
   SiteItemsTableResponse,
 } from '@/schemas/site-items';
 import type {
+  AddInventoryItemSupplierPayload,
   InventoryItemPriceHistory,
   InventoryItemSuppliersTableResponse,
   ItemSupplierPriceComparisonTableResponse,
+  SupplierItemData,
 } from '@/schemas/suppliers';
 
 const BASE = 'commerce-api/le/inventory-items';
@@ -59,6 +61,14 @@ export function addToLeSite(
   data: ReplenishmentPayload,
 ): Promise<CreateResponse<InventoryItemSiteData>> {
   return axios.post<CreateResponse<InventoryItemSiteData>>(`${BASE}/${id}/sites/${siteId}`, data).then((r) => r.data);
+}
+
+// Sets the item up as one of a supplier's items, in a unit and at the enrolled sites that buy it from them
+export function addLeInventoryItemSupplier(
+  id: string,
+  data: AddInventoryItemSupplierPayload,
+): Promise<CreateResponse<SupplierItemData>> {
+  return axios.post<CreateResponse<SupplierItemData>>(`${BASE}/${id}/suppliers`, data).then((r) => r.data);
 }
 
 // Changes how one of the legal entity's sites replenishes the item

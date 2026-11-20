@@ -15,6 +15,7 @@ export {
   useInventoryItemPricesTable,
   useInventoryItemSuppliersTable,
 } from './useInventoryItem';
+export { useAddInventoryItemSupplier } from './useInventoryItemSuppliers';
 export { useInventoryItemsTable } from './useInventoryItemsTable';
 export {
   useAddToLeSite,

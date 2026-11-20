@@ -47,6 +47,11 @@ export const addSupplierItemSchema = z.object({
   siteIds: siteIdsField,
 });
 
+// Adds a supplier to an inventory item: the same terms as adding the item from the supplier, with the supplier picked
+export const addInventoryItemSupplierSchema = addSupplierItemSchema
+  .omit({ inventoryItemId: true })
+  .extend({ supplierId: z.uuid('Supplier is required') });
+
 export const updateSupplierItemSchema = z.object({
   supplierItemCode: z.string().max(100).optional(),
   uomId: z.uuid('Unit of measure is required'),
@@ -82,6 +87,16 @@ export const editSupplierFormSchema = updateSupplierSchema.extend({
 export type UpdateSupplierFormData = z.infer<typeof updateSupplierSchema>;
 export type EditSupplierFormData = z.infer<typeof editSupplierFormSchema>;
 export type AddSupplierItemFormData = z.infer<typeof addSupplierItemSchema>;
+export type AddInventoryItemSupplierFormData = z.infer<typeof addInventoryItemSupplierSchema>;
+
+export interface AddInventoryItemSupplierPayload {
+  supplierId: string;
+  supplierItemCode?: string;
+  uomId: string;
+  minOrderQuantity?: number;
+  defaultLeadTimeDays: number;
+  siteIds: string[];
+}
 export type UpdateSupplierItemFormData = z.infer<typeof updateSupplierItemSchema>;
 export type SuppliersTableResponse = TableResponse<SupplierData>;
 export type SupplierItemsTableResponse = TableResponse<SupplierItemData>;

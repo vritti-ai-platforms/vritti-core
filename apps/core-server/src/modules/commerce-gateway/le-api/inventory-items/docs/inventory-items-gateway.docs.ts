@@ -2,7 +2,9 @@ import { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/blo
 import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
 import { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
+import { AddInventoryItemSupplierDto } from '@commerce/inventory-items/dto/request/add-inventory-item-supplier.dto';
 import { SiteItemTableResponseDto } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
+import { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -42,6 +44,25 @@ export function ApiAddToSite() {
         "Validation failed, the levels are out of order or not whole numbers in a unit that cannot be split, or the site is not one of the legal entity's.",
     }),
     ApiResponse({ status: 409, description: 'The site already carries the item.' }),
+  );
+}
+
+export function ApiAddSupplier() {
+  return applyDecorators(
+    ApiOperation({
+      summary: 'Add a supplier to an inventory item',
+      description:
+        "Sets the item up as one of a legal entity supplier's items: the unit the supplier sells and prices it in, the supplier's own code, the least it sells per order, the default lead time, and the sites enrolled with the supplier that buy the item from them. The same as adding the item from the supplier.",
+    }),
+    ApiParam(ID),
+    ApiBody({ type: AddInventoryItemSupplierDto }),
+    ApiResponse({ status: 201, description: 'Supplier added to the item.', type: SupplierItemResponseDto }),
+    ApiResponse({
+      status: 400,
+      description:
+        "Validation failed, the unit is not one the item allows, the supplier already has the item in that unit, a site is not enrolled with the supplier or not one of the legal entity's, or the minimum order is not whole in a unit that cannot be split.",
+    }),
+    ApiResponse({ status: 404, description: 'Supplier or inventory item not found.' }),
   );
 }
 
