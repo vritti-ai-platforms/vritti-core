@@ -2,18 +2,18 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
-import type { CreateGoodsReceiptFromDeliveryPayload, GoodsReceiptData } from '@/schemas/goods-receipts';
+import type { CreatedGoodsReceipt, CreateGoodsReceiptFromDeliveryPayload } from '@/schemas/goods-receipts';
 import { createGoodsReceiptFromDelivery } from '@/services/site/goods-receipts.service';
 
 // Starts a draft goods receipt of an announced inbound delivery; receipts, deliveries and purchase orders refresh
 export function useCreateGoodsReceiptFromDelivery(
   options?: Omit<
-    UseMutationOptions<CreateResponse<GoodsReceiptData>, AxiosError, CreateGoodsReceiptFromDeliveryPayload>,
+    UseMutationOptions<CreateResponse<CreatedGoodsReceipt>, AxiosError, CreateGoodsReceiptFromDeliveryPayload>,
     'mutationFn'
   >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<GoodsReceiptData>, AxiosError, CreateGoodsReceiptFromDeliveryPayload>({
+  return useMutation<CreateResponse<CreatedGoodsReceipt>, AxiosError, CreateGoodsReceiptFromDeliveryPayload>({
     ...options,
     mutationFn: createGoodsReceiptFromDelivery,
     onSuccess: (...args) => {

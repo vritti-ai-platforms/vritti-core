@@ -22,6 +22,12 @@ export interface GoodsReceiptCounts {
   itemCount: number;
 }
 
+// What creating a goods receipt returns: enough to open it
+export interface CreatedGoodsReceipt {
+  id: string;
+  grNumber: string;
+}
+
 export interface GoodsReceiptData {
   id: string;
   grNumber: string;

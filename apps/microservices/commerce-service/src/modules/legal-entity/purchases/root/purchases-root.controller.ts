@@ -29,7 +29,7 @@ export class LePurchasesRootController {
 
   // Creates a purchase at one of the legal entity's sites
   @MessagePattern({ cmd: 'le.purchases.create' })
-  create(@Payload() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<PurchaseDto>> {
+  create(@Payload() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<{ id: string; purchaseNumber: string }>> {
     this.logger.log(`le.purchases.create — site: ${dto.siteId}`);
     return this.service.create(dto, dto.siteId);
   }

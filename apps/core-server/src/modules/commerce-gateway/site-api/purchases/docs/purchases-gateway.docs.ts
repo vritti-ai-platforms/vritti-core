@@ -22,15 +22,16 @@ import { UpdatePurchaseItemDto } from '@commerce/purchases/dto/request/update-pu
 import { CreatedLegGoodsReceiptResponseDto } from '@commerce/purchases/dto/response/created-leg-goods-receipt-response.dto';
 import { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/dto/response/created-leg-inbound-delivery-response.dto';
 import { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
+import { CreatedPurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/created-purchase-allocation-response.dto';
+import { CreatedPurchaseItemResponseDto } from '@commerce/purchases/dto/response/created-purchase-item-response.dto';
+import { CreatedPurchaseResponseDto } from '@commerce/purchases/dto/response/created-purchase-response.dto';
 import { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
-import { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
 import {
   PurchaseActionsResponseDto,
   PurchaseCountsResponseDto,
   PurchaseDetailResponseDto,
   PurchaseProgressSummaryResponseDto,
 } from '@commerce/purchases/dto/response/purchase-detail-response.dto';
-import { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import {
   PurchaseItemComparisonTableResponseDto,
   PurchaseItemFacetsResponseDto,
@@ -52,7 +53,6 @@ import {
   PurchaseSupplierDocumentsResponseDto,
 } from '@commerce/purchases/dto/response/purchase-leg-table-response.dto';
 import { PurchaseQuotationTableResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
-import { PurchaseResponseDto } from '@commerce/purchases/dto/response/purchase-response.dto';
 import { PurchaseSettingsResponseDto } from '@commerce/purchases/dto/response/purchase-settings-response.dto';
 import { PurchaseTableResponseDto } from '@commerce/purchases/dto/response/purchase-table-response.dto';
 import { ReceiveWithInvoiceDetailResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-detail-response.dto';
@@ -79,7 +79,7 @@ export function ApiCreate() {
       description: 'Creates a Requesting purchase at the site, optionally with its items.',
     }),
     ApiBody({ type: CreatePurchaseDto }),
-    ApiResponse({ status: 201, description: 'Purchase created.', type: PurchaseResponseDto }),
+    ApiResponse({ status: 201, description: 'Purchase created.', type: CreatedPurchaseResponseDto }),
     ApiResponse({ status: 400, description: 'Validation failed.' }),
   );
 }
@@ -198,7 +198,7 @@ export function ApiCreateItem() {
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
     ApiBody({ type: CreatePurchaseItemDto }),
-    ApiResponse({ status: 201, description: 'Item added.', type: PurchaseItemResponseDto }),
+    ApiResponse({ status: 201, description: 'Item added.', type: CreatedPurchaseItemResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase not found.' }),
     ApiResponse({ status: 409, description: 'The purchase is no longer open, or already has the item.' }),
   );
@@ -250,7 +250,7 @@ export function ApiCreateAllocation() {
     }),
     ApiParam({ name: 'id', description: 'Purchase ID' }),
     ApiBody({ type: CreatePurchaseAllocationDto }),
-    ApiResponse({ status: 201, description: 'Allocation created.', type: PurchaseAllocationResponseDto }),
+    ApiResponse({ status: 201, description: 'Allocation created.', type: CreatedPurchaseAllocationResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase, item or supplier enrollment not found.' }),
     ApiResponse({ status: 409, description: "The purchase or the supplier's leg is not in sourcing." }),
   );

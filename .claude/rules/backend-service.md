@@ -122,6 +122,39 @@ async findByEmail(email: string): Promise<User | undefined> {
 }
 ```
 
+## Create responses carry basic details only — never re-read after a write
+
+A create (`create…`, `add…`, `request…`, `generate…`) returns `CreateResponseDto<T>` whose `data` is built from what the
+write itself returned: the new row's `id` plus its identifying fields (number, code, sku) — nothing joined, nothing
+computed. NEVER issue another query (`findById`, `findDetail…`, `findOnPurchaseOrThrow`, a parent's `findById`) just to
+fill the response: the caller refreshes its screens through query invalidation, so a richer payload is a wasted round
+trip nobody reads.
+
+```typescript
+// WRONG — a second (joined) query only to fill data
+const item = await this.itemsService.add(purchase, dto);
+return { success: true, message: `Item added to "${purchase.purchaseNumber}".`,
+  data: await this.itemsService.findById(purchase.id, item.id) };
+
+// WRONG — re-reading the whole parent after adding a line
+data: await this.purchaseOrdersService.findById(po.id),
+
+// CORRECT — what the insert returned
+return { success: true, message: `Item added to "${purchase.purchaseNumber}".`, data: { id: item.id } };
+return { success: true, message: `Purchase "${p.purchaseNumber}" created.`, data: { id: p.id, purchaseNumber: p.purchaseNumber } };
+```
+
+- Type it as the basic shape (`CreateResponseDto<{ id: string }>`, `CreateResponseDto<{ id: string; purchaseNumber: string }>`),
+  not the entity's full DTO. The gateway declares a matching `Created<Entity>ResponseDto` (`id` + identifiers) and
+  documents it in the 201 response; the frontend types it as a `Created<Entity>` interface in `@/schemas/*`.
+- Return only fields the caller uses: navigating to the new record needs `id` and its slug label (number/code); most
+  creates need just `id`.
+- **The one exception — a GraphQL mutation whose client writes the result into its cache.** A Relay mutation that
+  returns the node so the app can prepend it into a cached connection (mobile `createInventoryItemLocation`) needs the
+  full node; its create keeps the joined read. Say so in a `//` comment on the resolver. Every REST create is basic.
+- A domain method that inserts returns the inserted row (`const created = await this.repository.create(…); return created;`)
+  so the API layer can build `data` from it — never `Promise<void>` that forces a re-read.
+
 ## Never add a condition to `state.filters`
 
 `state.filters` holds only what the user picked. Scope the server owns (the workspace's legal entity, the record in

@@ -32,7 +32,7 @@ export class InventoryItemStorageTypesDomainService {
   async create(
     item: InventoryItemContext,
     data: { storageTypeId: string; maxQuantity: number; uomId: string },
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeDto>> {
+  ): Promise<CreateResponseDto<{ id: string }>> {
     this.assertUomAllowed(item, data.uomId);
     if (await this.repository.existsForItemAndType(item.inventoryItemId, data.storageTypeId)) {
       throw new ConflictException({
@@ -48,12 +48,11 @@ export class InventoryItemStorageTypesDomainService {
       maxQuantity: data.maxQuantity,
       uomId: data.uomId,
     });
-    const row = await this.findRowOrThrow(item.inventoryItemId, entity.id);
     this.logger.log(`Allowed inventory item ${item.inventoryItemId} in storage type ${data.storageTypeId}`);
     return {
       success: true,
-      message: `Item allowed in "${row.storageTypeName}".`,
-      data: InventoryItemStorageTypeDto.from(row),
+      message: 'Item allowed in the storage type.',
+      data: { id: entity.id },
     };
   }
 

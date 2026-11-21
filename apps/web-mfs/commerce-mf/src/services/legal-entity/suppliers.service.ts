@@ -4,8 +4,8 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddSupplierSiteItemPayload,
   BulkSetSupplierSiteItemPreferredPayload,
+  CreatedSupplier,
   SupplierCounts,
-  SupplierData,
   SupplierDetail,
   SupplierItemCounts,
   SupplierItemData,
@@ -62,8 +62,8 @@ export function getSuppliersTable(): Promise<SuppliersTableResponse> {
 }
 
 // Creates a new supplier
-export function createSupplier(data: CreateSupplierPayload): Promise<SupplierData> {
-  return axios.post<SupplierData>('commerce-api/le/suppliers', data).then((r) => r.data);
+export function createSupplier(data: CreateSupplierPayload): Promise<CreateResponse<CreatedSupplier>> {
+  return axios.post<CreateResponse<CreatedSupplier>>('commerce-api/le/suppliers', data).then((r) => r.data);
 }
 
 // Fetches supplier detail with linked items

@@ -92,7 +92,7 @@ export class InventoryItemsDomainService {
 
   constructor(private readonly repository: InventoryItemsDomainRepository) {}
 
-  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(data: CreateInventoryItemDto): Promise<CreateResponseDto<{ id: string; sku: string }>> {
     const entity = await this.repository.create({
       name: data.name,
       sku: data.sku,
@@ -106,16 +106,11 @@ export class InventoryItemsDomainService {
       hsnCode: data.hsnCode,
       taxClassId: data.taxClassId,
     });
-    const [unit, categoryName, taxClassName] = await Promise.all([
-      this.repository.findUnit(entity.uomId),
-      this.repository.findCategoryName(entity.categoryId),
-      this.repository.findTaxClassName(entity.taxClassId),
-    ]);
     this.logger.log(`Created inventory item: ${entity.name} (${entity.sku})`);
     return {
       success: true,
       message: `Inventory item "${entity.name}" (${entity.sku}) created successfully.`,
-      data: InventoryItemDto.from({ ...entity, ...unit, displayUomSymbol: unit.uomSymbol, categoryName, taxClassName }),
+      data: { id: entity.id, sku: entity.sku },
     };
   }
 

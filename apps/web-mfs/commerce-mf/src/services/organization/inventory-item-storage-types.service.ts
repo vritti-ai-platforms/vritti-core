@@ -2,6 +2,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   AddInventoryItemStorageTypeFormData,
+  CreatedInventoryItemStorageType,
   InventoryItemStorageTypeData,
   UpdateInventoryItemStorageTypeFormData,
 } from '@/schemas/inventory-item-storage-types';
@@ -17,9 +18,9 @@ export function getOrgInventoryItemStorageTypes(inventoryItemId: string): Promis
 export function createOrgInventoryItemStorageType(
   inventoryItemId: string,
   data: AddInventoryItemStorageTypeFormData,
-): Promise<CreateResponse<InventoryItemStorageTypeData>> {
+): Promise<CreateResponse<CreatedInventoryItemStorageType>> {
   return axios
-    .post<CreateResponse<InventoryItemStorageTypeData>>(`${BASE}/${inventoryItemId}/storage-types`, data)
+    .post<CreateResponse<CreatedInventoryItemStorageType>>(`${BASE}/${inventoryItemId}/storage-types`, data)
     .then((r) => r.data);
 }
 

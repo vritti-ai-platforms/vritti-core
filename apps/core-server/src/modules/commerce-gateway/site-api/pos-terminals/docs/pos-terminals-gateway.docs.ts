@@ -1,5 +1,6 @@
 import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
 import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
+import { CreatedPosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/created-pos-terminal-response.dto';
 import { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
 import { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { applyDecorators } from '@nestjs/common';
@@ -54,7 +55,11 @@ export function ApiCreate() {
       description: 'Creates a new POS terminal for the sites. organizationId is resolved from the authenticated user.',
     }),
     ApiBody({ type: CreatePosTerminalDto }),
-    ApiResponse({ status: 201, description: 'POS terminal created successfully.', type: PosTerminalResponseDto }),
+    ApiResponse({
+      status: 201,
+      description: 'POS terminal created successfully.',
+      type: CreatedPosTerminalResponseDto,
+    }),
     ApiResponse({ status: 400, description: 'Invalid input data.' }),
     ApiResponse({ status: 401, description: 'Unauthorized.' }),
   );

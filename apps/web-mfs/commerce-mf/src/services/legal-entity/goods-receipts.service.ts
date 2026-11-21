@@ -4,6 +4,7 @@ import type {
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
+  CreatedGoodsReceipt,
   CreateGoodsReceiptFromDeliveryPayload,
   GoodsReceiptCounts,
   GoodsReceiptData,
@@ -46,9 +47,9 @@ export function getGoodsReceiptTree(id: string): Promise<GoodsReceiptTreeNode[]>
 // Starts a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
 export function createGoodsReceiptFromDelivery(
   data: CreateGoodsReceiptFromDeliveryPayload,
-): Promise<CreateResponse<GoodsReceiptData>> {
+): Promise<CreateResponse<CreatedGoodsReceipt>> {
   return axios
-    .post<CreateResponse<GoodsReceiptData>>('commerce-api/le/goods-receipts/from-delivery', data)
+    .post<CreateResponse<CreatedGoodsReceipt>>('commerce-api/le/goods-receipts/from-delivery', data)
     .then((r) => r.data);
 }
 

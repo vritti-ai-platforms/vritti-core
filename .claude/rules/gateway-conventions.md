@@ -169,7 +169,7 @@ async findBaseUnits(search?: string): Promise<UomResponseDto[]> {
   return this.nats.send('commerce', 'uom.base', { search });
 }
 
-async create(dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
+async create(dto: CreateUomDto): Promise<CreateResponseDto<CreatedUomResponseDto>> {
   this.logger.log(`uom.create — name: ${dto.name}, symbol: ${dto.symbol}`);
   return this.nats.send('commerce', 'uom.create', dto);
 }
@@ -179,7 +179,7 @@ async create(dto: CreateUomDto): Promise<CreateResponseDto<UomResponseDto>> {
 
 | Method | Return Type |
 |--------|------------|
-| `create()` | `CreateResponseDto<EntityResponseDto>` |
+| `create()` | `CreateResponseDto<Created<Entity>ResponseDto>` — the new row's `id` + identifiers only (`backend-service.md` → "Create responses carry basic details only") |
 | `update()` | `SuccessResponseDto` |
 | `delete()` | `SuccessResponseDto` |
 | `findById()` | `EntityResponseDto` |

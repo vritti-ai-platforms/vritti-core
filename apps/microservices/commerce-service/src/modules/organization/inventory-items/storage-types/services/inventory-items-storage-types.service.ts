@@ -20,7 +20,7 @@ export class InventoryItemsStorageTypesService {
   ) {}
 
   // Allows the item in a storage type
-  async create(dto: CreateInventoryItemStorageTypeDto): Promise<CreateResponseDto<InventoryItemStorageTypeDto>> {
+  async create(dto: CreateInventoryItemStorageTypeDto): Promise<CreateResponseDto<{ id: string }>> {
     const { inventoryItemId, ...data } = dto;
     this.logger.log(`create — inventoryItemId=${inventoryItemId}, storageTypeId=${data.storageTypeId}`);
     const { allowedUomIds } = await this.inventoryItemsService.findAllowedUomIds(inventoryItemId);

@@ -22,7 +22,7 @@ export class LocationsController {
 
   // Creates a new storage location
   @MessagePattern({ cmd: 'site.locations.create' })
-  async create(@Payload() dto: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
+  async create(@Payload() dto: CreateLocationDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     this.logger.log(`locations.create — name: ${dto.name}, code: ${dto.code}`);
     return this.rootService.create(dto);
   }

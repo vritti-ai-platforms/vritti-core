@@ -54,7 +54,7 @@ export class SuppliersDomainService {
   constructor(private readonly repository: SuppliersDomainRepository) {}
 
   // Creates a new supplier referencing an existing party for its identity
-  async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
+  async create(data: CreateSupplierDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     await this.assertDefaultPaymentTermUsable(data.defaultPaymentTermId);
     await this.assertPartyFree(data.partyId);
     const entity = await this.repository.create({
@@ -69,12 +69,11 @@ export class SuppliersDomainService {
       isActive: data.isActive,
     });
 
-    const withParty = await this.findWithPartyOrThrow(entity.id);
     this.logger.log(`Created supplier: ${entity.code}`);
     return {
       success: true,
-      message: `Supplier "${withParty.partyName}" created.`,
-      data: SupplierDto.from(withParty),
+      message: `Supplier "${entity.code}" created.`,
+      data: { id: entity.id, code: entity.code },
     };
   }
 

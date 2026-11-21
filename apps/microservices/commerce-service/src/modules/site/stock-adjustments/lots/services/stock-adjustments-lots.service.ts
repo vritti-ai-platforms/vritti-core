@@ -32,7 +32,7 @@ export class StockAdjustmentsLotsService {
   async addLot(
     adjustmentId: string,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
-  ): Promise<CreateResponseDto<StockAdjustmentLotWithDisplayDto>> {
+  ): Promise<CreateResponseDto<{ id: string; lotNumber: string }>> {
     const adjustment = await this.adjustmentsService.findById(adjustmentId);
     const trimmed = data.lotNumber;
     if (trimmed) {
@@ -44,9 +44,7 @@ export class StockAdjustmentsLotsService {
         });
       }
     }
-    const created = await this.lotsService.addLot(adjustment, data);
-    const { displayUnitRatios, ...lot } = created.data;
-    return { ...created, data: { ...lot, display: this.toDisplay(lot.totalQuantity, displayUnitRatios) } };
+    return this.lotsService.addLot(adjustment, data);
   }
 
   async updateLot(

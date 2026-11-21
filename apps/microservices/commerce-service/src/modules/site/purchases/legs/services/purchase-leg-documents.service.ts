@@ -1,4 +1,3 @@
-import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
@@ -121,7 +120,7 @@ export class PurchaseLegDocumentsService {
     orderLines: PurchaseOrderItemRow[],
     remainingByLine: Map<string, number>,
     input: PurchaseReceiptInput,
-  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     const open = orderLines.filter((line) => (remainingByLine.get(line.id) ?? 0) > 0);
     if (open.length === 0) {
       throw new BadRequestException({
@@ -161,7 +160,7 @@ export class PurchaseLegDocumentsService {
     purchase: PurchaseRow,
     inboundDeliveryId: string,
     receivedDate: string,
-  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     const delivery = await this.deliveriesService.findDetailOrThrow(inboundDeliveryId);
     const lines = await this.deliveryLinesService.findReceivableOrThrow(delivery);
     return this.goodsReceiptsService.createDraft({

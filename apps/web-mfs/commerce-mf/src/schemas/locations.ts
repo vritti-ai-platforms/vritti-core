@@ -45,7 +45,7 @@ export type LocationFormData = {
   inheritStorageType: boolean;
 };
 export const locationFormResolver = zodResolver(_locationSchema) as unknown as Resolver<LocationFormData>;
-export type CreateLocationResponse = CreateResponse<LocationData>;
+export type CreateLocationResponse = CreateResponse<CreatedLocation>;
 
 export type CreateLocationData = Omit<LocationFormData, 'storageTypeId' | 'inheritStorageType'> & {
   storageTypeId?: string;
@@ -86,6 +86,12 @@ export function locationFillStatus(capacityPercent: number): LocationFillStatus 
   if (capacityPercent > 100) return LocationFillStatusValues.OVER_CAPACITY;
   if (capacityPercent >= 80) return LocationFillStatusValues.NEARLY_FULL;
   return LocationFillStatusValues.OK;
+}
+
+// What creating a location returns
+export interface CreatedLocation {
+  id: string;
+  code: string;
 }
 
 export interface LocationData extends LocationStorageTypeFields {

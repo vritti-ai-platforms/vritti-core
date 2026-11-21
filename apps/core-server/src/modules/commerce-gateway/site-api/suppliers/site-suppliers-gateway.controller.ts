@@ -1,9 +1,9 @@
 import { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { CreatedSupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/created-supplier-enrollment-response.dto';
 import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
-import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
 import { InvoiceableGoodsReceiptsQueryDto } from '@commerce/supplier-invoices/dto/request/invoiceable-goods-receipts-query.dto';
@@ -73,7 +73,7 @@ export class SiteSuppliersGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_SUPPLIERS.enroll)
-  create(@Body() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  create(@Body() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<CreatedSupplierEnrollmentResponseDto>> {
     this.logger.log('POST /commerce-api/site/suppliers');
     return this.siteSuppliersGatewayService.create(dto);
   }

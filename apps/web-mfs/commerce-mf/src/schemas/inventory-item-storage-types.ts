@@ -1,5 +1,10 @@
 import { z, zodNumericField } from '@vritti/quantum-ui/zod';
 
+// What allowing an item in a storage type returns
+export interface CreatedInventoryItemStorageType {
+  id: string;
+}
+
 export interface InventoryItemStorageTypeData {
   id: string;
   storageTypeId: string;

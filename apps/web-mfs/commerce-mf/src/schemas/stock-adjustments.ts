@@ -42,6 +42,12 @@ export const stockAdjustmentStatusConfig: Record<
 
 export { type InventoryTracking, InventoryTrackingValues } from './inventory-items';
 
+// What adding a lot to an adjustment returns
+export interface CreatedStockAdjustmentLot {
+  id: string;
+  lotNumber: string;
+}
+
 export interface StockAdjustmentLotData {
   id: string;
   stockAdjustmentId: string;

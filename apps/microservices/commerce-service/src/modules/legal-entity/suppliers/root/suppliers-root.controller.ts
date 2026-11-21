@@ -26,7 +26,7 @@ export class SuppliersRootController {
   ) {}
 
   @MessagePattern({ cmd: 'le.suppliers.create' })
-  async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
+  async create(@Payload() dto: CreateSupplierDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     this.logger.log(`suppliers.create — partyId: ${dto.partyId}`);
     return this.suppliersService.create(dto);
   }

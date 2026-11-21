@@ -9,10 +9,10 @@ import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import type { CreatedGoodsReceipt } from '@/schemas/goods-receipts';
 import {
   type CreateGoodsReceiptFromDeliveryFormData,
   createGoodsReceiptFromDeliverySchema,
-  type GoodsReceiptData,
 } from '@/schemas/goods-receipts';
 import { ReceivableInboundDeliverySelector } from '@/selectors/receivable-inbound-delivery';
 import type { UseCreateGoodsReceiptFromDelivery } from '../types';
@@ -20,7 +20,7 @@ import type { UseCreateGoodsReceiptFromDelivery } from '../types';
 interface CreateGoodsReceiptDialogProps {
   useCreateFromDelivery: UseCreateGoodsReceiptFromDelivery;
   inboundDeliveryId?: string;
-  onSuccess: (receipt: GoodsReceiptData) => void;
+  onSuccess: (receipt: CreatedGoodsReceipt) => void;
   onCancel: () => void;
 }
 

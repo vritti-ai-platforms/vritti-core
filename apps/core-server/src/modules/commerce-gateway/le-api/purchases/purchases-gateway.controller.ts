@@ -27,15 +27,16 @@ import { UpdatePurchaseSettingsDto } from '@commerce/purchases/dto/request/updat
 import type { CreatedLegGoodsReceiptResponseDto } from '@commerce/purchases/dto/response/created-leg-goods-receipt-response.dto';
 import type { CreatedLegInboundDeliveryResponseDto } from '@commerce/purchases/dto/response/created-leg-inbound-delivery-response.dto';
 import type { CreatedLegPurchaseOrdersResponseDto } from '@commerce/purchases/dto/response/created-leg-purchase-orders-response.dto';
+import type { CreatedPurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/created-purchase-allocation-response.dto';
+import type { CreatedPurchaseItemResponseDto } from '@commerce/purchases/dto/response/created-purchase-item-response.dto';
+import type { CreatedPurchaseResponseDto } from '@commerce/purchases/dto/response/created-purchase-response.dto';
 import type { CreatedPurchaseSupplierInvoiceResponseDto } from '@commerce/purchases/dto/response/created-purchase-supplier-invoice-response.dto';
-import type { PurchaseAllocationResponseDto } from '@commerce/purchases/dto/response/purchase-allocation-response.dto';
 import type {
   PurchaseActionsResponseDto,
   PurchaseCountsResponseDto,
   PurchaseDetailResponseDto,
   PurchaseProgressSummaryResponseDto,
 } from '@commerce/purchases/dto/response/purchase-detail-response.dto';
-import type { PurchaseItemResponseDto } from '@commerce/purchases/dto/response/purchase-item-response.dto';
 import type {
   PurchaseItemComparisonTableResponseDto,
   PurchaseItemFacetsResponseDto,
@@ -57,7 +58,6 @@ import type {
   PurchaseSupplierDocumentsResponseDto,
 } from '@commerce/purchases/dto/response/purchase-leg-table-response.dto';
 import type { PurchaseQuotationTableResponseDto } from '@commerce/purchases/dto/response/purchase-quotation-response.dto';
-import type { PurchaseResponseDto } from '@commerce/purchases/dto/response/purchase-response.dto';
 import type { PurchaseSettingsRowResponseDto } from '@commerce/purchases/dto/response/purchase-settings-response.dto';
 import type { PurchaseTableResponseDto } from '@commerce/purchases/dto/response/purchase-table-response.dto';
 import type { ReceiveWithInvoiceDetailResponseDto } from '@commerce/purchases/dto/response/receive-with-invoice-detail-response.dto';
@@ -159,7 +159,7 @@ export class LePurchasesGatewayController {
   @RequirePermission(LE_PURCHASES.add)
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
-  create(@Body() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<PurchaseResponseDto>> {
+  create(@Body() dto: LeCreatePurchaseDto): Promise<CreateResponseDto<CreatedPurchaseResponseDto>> {
     this.logger.log('POST /commerce-api/le/purchases');
     return this.service.create(dto);
   }
@@ -172,7 +172,7 @@ export class LePurchasesGatewayController {
   createItem(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePurchaseItemDto,
-  ): Promise<CreateResponseDto<PurchaseItemResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedPurchaseItemResponseDto>> {
     this.logger.log(`POST /commerce-api/le/purchases/${id}/items`);
     return this.service.createItem(id, dto);
   }
@@ -198,7 +198,7 @@ export class LePurchasesGatewayController {
   createAllocation(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreatePurchaseAllocationDto,
-  ): Promise<CreateResponseDto<PurchaseAllocationResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedPurchaseAllocationResponseDto>> {
     this.logger.log(`POST /commerce-api/le/purchases/${id}/allocations`);
     return this.service.createAllocation(id, dto);
   }

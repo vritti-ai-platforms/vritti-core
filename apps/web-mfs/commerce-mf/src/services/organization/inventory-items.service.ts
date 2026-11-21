@@ -8,6 +8,7 @@ import type {
 } from '@/schemas/inventory-item-mrp';
 import type { InventoryItemUnitsData } from '@/schemas/inventory-item-uom-conversions';
 import type {
+  CreatedInventoryItem,
   CreateOrgInventoryItemFormData,
   InventoryItemData,
   InventoryItemTableResponse,
@@ -24,8 +25,8 @@ export function getOrgInventoryItemsTable(): Promise<InventoryItemTableResponse>
 
 export function createOrgInventoryItem(
   data: CreateOrgInventoryItemFormData,
-): Promise<CreateResponse<InventoryItemData>> {
-  return axios.post<CreateResponse<InventoryItemData>>(BASE, data).then((r) => r.data);
+): Promise<CreateResponse<CreatedInventoryItem>> {
+  return axios.post<CreateResponse<CreatedInventoryItem>>(BASE, data).then((r) => r.data);
 }
 
 export function getOrgInventoryItem(id: string): Promise<InventoryItemData> {

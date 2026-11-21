@@ -1,5 +1,4 @@
 import { CategoriesDomainService } from '@domain/categories/services/categories.service';
-import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
 import type { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/update-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { OfferingBomDomainService } from '@domain/offering-bom/services/offering-bom.service';
@@ -29,7 +28,7 @@ export class OrgInventoryItemsService {
     private readonly bomService: OfferingBomDomainService,
   ) {}
 
-  async create(dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<{ id: string; sku: string }>> {
     const { createOffering, ...itemData } = dto;
     this.logger.log(`create — name=${dto.name}, sku=${dto.sku}, createOffering=${createOffering}`);
     await this.categoriesService.assertIsLeaf(itemData.categoryId);
@@ -47,25 +46,24 @@ export class OrgInventoryItemsService {
     // either all exist or none do.
     return this.database.runInTransaction(async () => {
       const created = await this.inventoryItemsService.create(itemData);
-      const item = created.data;
 
       const offering = await this.offeringsService.create({
-        code: item.sku,
-        name: item.name,
-        description: item.description,
-        categoryId: item.categoryId,
+        code: itemData.sku,
+        name: itemData.name,
+        description: itemData.description,
+        categoryId: itemData.categoryId,
         fulfilmentType: FulfilmentTypeValues.STOCK,
-        taxClassId: item.taxClassId,
+        taxClassId: itemData.taxClassId,
       });
-      const variant = await this.variantsService.createStandalone(offering.data.id, item.uomId);
+      const variant = await this.variantsService.createStandalone(offering.data.id, itemData.uomId);
       await this.bomService.replace({
         variantId: variant.id,
-        lines: [{ inventoryItemId: item.id, quantity: 1, uomId: item.uomId }],
+        lines: [{ inventoryItemId: created.data.id, quantity: 1, uomId: itemData.uomId }],
       });
 
       return {
         ...created,
-        message: `Inventory item "${item.name}" (${item.sku}) created, with stock offering "${offering.data.name}".`,
+        message: `Inventory item "${itemData.name}" (${itemData.sku}) created, with stock offering "${offering.data.name}".`,
       };
     });
   }

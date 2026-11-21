@@ -10,6 +10,7 @@ import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/reques
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import { CreatedPurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/created-purchase-order-item-response.dto';
 import { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
 import { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
@@ -163,7 +164,7 @@ export function ApiAddItem() {
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiBody({ type: AddPurchaseOrderItemDto }),
-    ApiResponse({ status: 201, description: 'Line added.', type: PurchaseOrderResponseDto }),
+    ApiResponse({ status: 201, description: 'Line added.', type: CreatedPurchaseOrderItemResponseDto }),
     ApiResponse({
       status: 400,
       description:

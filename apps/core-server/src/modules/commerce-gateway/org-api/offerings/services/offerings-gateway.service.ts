@@ -21,6 +21,7 @@ import type { UpdateOfferingDimensionDto } from '@commerce/offerings/dto/request
 import type { UpdateVariantDto } from '@commerce/offerings/dto/request/update-variant.dto';
 import type { UpsertOfferingAttributeValuesDto } from '@commerce/offerings/dto/request/upsert-offering-attribute-values.dto';
 import type { UpsertOfferingDimensionValuesDto } from '@commerce/offerings/dto/request/upsert-offering-dimension-values.dto';
+import type { CreatedVariantInventoryItemResponseDto } from '@commerce/offerings/dto/response/created-variant-inventory-item-response.dto';
 import type { OfferingAttributeResponseDto } from '@commerce/offerings/dto/response/offering-attribute-response.dto';
 import type {
   ChannelVariantPagesTableResponseDto,
@@ -125,7 +126,7 @@ export class OrgOfferingsGatewayService {
   async createInventoryItem(
     variantId: string,
     dto: CreateVariantInventoryItemDto,
-  ): Promise<CreateResponseDto<OfferingVariantResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedVariantInventoryItemResponseDto>> {
     this.logger.log(`offerings.variants.createInventoryItem — variantId: ${variantId}`);
     return this.nats.send('commerce', 'org.offerings.variants.createInventoryItem', { variantId, ...dto });
   }

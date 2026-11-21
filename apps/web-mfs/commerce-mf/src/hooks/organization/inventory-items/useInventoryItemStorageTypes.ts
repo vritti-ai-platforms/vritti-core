@@ -6,6 +6,7 @@ import type { AxiosError } from 'axios';
 import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddInventoryItemStorageTypeFormData,
+  CreatedInventoryItemStorageType,
   InventoryItemStorageTypeData,
   UpdateInventoryItemStorageTypeFormData,
 } from '@/schemas/inventory-item-storage-types';
@@ -33,12 +34,16 @@ export function useInventoryItemStorageTypes(inventoryItemId: string) {
 export function useCreateInventoryItemStorageType(
   inventoryItemId: string,
   options?: Omit<
-    UseMutationOptions<CreateResponse<InventoryItemStorageTypeData>, AxiosError, AddInventoryItemStorageTypeFormData>,
+    UseMutationOptions<
+      CreateResponse<CreatedInventoryItemStorageType>,
+      AxiosError,
+      AddInventoryItemStorageTypeFormData
+    >,
     'mutationFn'
   >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<InventoryItemStorageTypeData>, AxiosError, AddInventoryItemStorageTypeFormData>({
+  return useMutation<CreateResponse<CreatedInventoryItemStorageType>, AxiosError, AddInventoryItemStorageTypeFormData>({
     ...options,
     mutationFn: (data) => createOrgInventoryItemStorageType(inventoryItemId, data),
     onSuccess: (...args) => {

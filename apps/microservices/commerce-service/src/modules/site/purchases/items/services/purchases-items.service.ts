@@ -1,7 +1,6 @@
 import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
-import { PurchaseItemDto } from '@domain/purchase-items/dto/entity/purchase-item.dto';
 import type { PurchaseItemFacets } from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
 import type { CreatePurchaseItemDto } from '@domain/purchase-items/dto/request/create-purchase-item.dto';
 import type { UpdatePurchaseItemDto } from '@domain/purchase-items/dto/request/update-purchase-item.dto';
@@ -58,7 +57,7 @@ export class PurchasesItemsService {
   ) {}
 
   // Adds an item enabled at the purchase's site to its items, refusing one the purchase already has
-  async create(dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemDto>> {
+  async create(dto: CreatePurchaseItemDto): Promise<CreateResponseDto<{ id: string }>> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
     await this.inventoryItemSitesRepository.canPurchaseAtSite(
       [dto.inventoryItemId],
@@ -70,7 +69,7 @@ export class PurchasesItemsService {
     return {
       success: true,
       message: `Item added to "${purchase.purchaseNumber}".`,
-      data: await this.itemsService.findById(purchase.id, item.id),
+      data: { id: item.id },
     };
   }
 

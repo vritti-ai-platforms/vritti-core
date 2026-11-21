@@ -5,7 +5,6 @@ import {
   PurchaseOrderItemsDomainService,
   type PurchaseOrderLinesContext,
 } from '@domain/purchase-order-items/services/purchase-order-items.service';
-import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import type { PurchaseOrderRow } from '@domain/purchase-orders/repositories/purchase-orders.repository';
 import { PurchaseOrdersDomainService } from '@domain/purchase-orders/services/purchase-orders.service';
 import { PurchasesDomainRepository } from '@domain/purchases/repositories/purchases.repository';
@@ -45,7 +44,7 @@ export class PurchaseOrdersItemsService {
   // Orders an item the PO's site carries, in one of its units, defaulting the scheme from the price in force for the
   // supplier's item in that unit and the delivery from its lead time at the site, when the supplier has one; a site whose
   // rules buy the item only from suppliers set up for it needs this supplier set up there
-  async addItem(dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  async addItem(dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<{ id: string }>> {
     const po = await this.purchaseOrdersService.findDetailOrThrow(dto.purchaseOrderId);
     this.assertNotPartOfPurchase(po);
     await this.inventoryItemSitesRepository.canPurchaseAtSite([dto.inventoryItemId], 'inventoryItemId', po.siteId);
@@ -65,9 +64,9 @@ export class PurchaseOrdersItemsService {
     ]);
     const leadTimeDays = leadTimes.get(SupplierItemsDomainService.leadTimeKey(dto)) ?? 0;
 
-    await this.database.runInTransaction(async () => {
+    const line = await this.database.runInTransaction(async () => {
       const pricedPo = await this.withConversionRate(po, dto.unitPrice.currency, dto.conversionRate);
-      await this.itemsService.addItem(pricedPo, dto, {
+      const created = await this.itemsService.addItem(pricedPo, dto, {
         inventoryItemId: dto.inventoryItemId,
         uomId: dto.uomId,
         expectedDeliveryDate:
@@ -82,13 +81,14 @@ export class PurchaseOrdersItemsService {
         supplierCurrencies: supplier.currencyCodes,
       });
       await this.purchaseOrdersService.syncTotalAmount(po.id);
+      return created;
     });
 
     this.logger.log(`purchaseOrders.addItem — PO: ${po.poNumber}, item: ${dto.inventoryItemId}`);
     return {
       success: true,
       message: `Line item added to purchase order "${po.poNumber}".`,
-      data: await this.purchaseOrdersService.findById(po.id),
+      data: { id: line.id },
     };
   }
 

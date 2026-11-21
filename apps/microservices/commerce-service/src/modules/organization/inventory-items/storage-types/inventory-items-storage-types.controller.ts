@@ -14,9 +14,7 @@ export class InventoryItemsStorageTypesController {
 
   // Allows an inventory item in a storage type with its max quantity per location
   @MessagePattern({ cmd: 'org.inventoryItems.storageTypes.create' })
-  async create(
-    @Payload() dto: CreateInventoryItemStorageTypeDto,
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeDto>> {
+  async create(@Payload() dto: CreateInventoryItemStorageTypeDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(
       `inventoryItems.storageTypes.create — inventoryItemId: ${dto.inventoryItemId}, storageTypeId: ${dto.storageTypeId}`,
     );

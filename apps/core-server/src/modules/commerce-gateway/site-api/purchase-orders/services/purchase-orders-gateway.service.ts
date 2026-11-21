@@ -12,6 +12,7 @@ import type { SetPurchaseOrderConversionRateDto } from '@commerce/purchase-order
 import type { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-item.dto';
 import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import type { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import type { CreatedPurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/created-purchase-order-item-response.dto';
 import type { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
@@ -53,7 +54,10 @@ export class PurchaseOrdersGatewayService {
   }
 
   // Adds a line item to a purchase order
-  async addItem(id: string, dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+  async addItem(
+    id: string,
+    dto: AddPurchaseOrderItemDto,
+  ): Promise<CreateResponseDto<CreatedPurchaseOrderItemResponseDto>> {
     this.logger.log(`site.purchaseOrders.addItem — id: ${id}, inventoryItemId: ${dto.inventoryItemId}`);
     return this.nats.send('commerce', 'site.purchaseOrders.addItem', { purchaseOrderId: id, ...dto });
   }

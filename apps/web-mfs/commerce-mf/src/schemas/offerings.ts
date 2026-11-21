@@ -289,6 +289,12 @@ export interface OfferingVariantCounts {
   bomLineCount: number;
 }
 
+// What creating a variant's inventory item returns
+export interface CreatedVariantInventoryItem {
+  inventoryItemId: string;
+  sku: string;
+}
+
 export interface OfferingVariantData {
   id: string;
   offeringId: string;

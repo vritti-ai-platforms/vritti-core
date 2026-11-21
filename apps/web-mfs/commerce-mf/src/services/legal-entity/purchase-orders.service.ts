@@ -6,6 +6,7 @@ import type {
   AddPurchaseOrderItemPayload,
   ChangePurchaseOrderExchangeRatePayload,
   ChangePurchaseOrderSupplierPayload,
+  CreatedPurchaseOrderItem,
   CreatePurchaseOrderPayload,
   PurchaseOrderCounts,
   PurchaseOrderData,
@@ -96,9 +97,9 @@ export function downloadPurchaseOrderPdf(id: string): Promise<Blob> {
 export function addPurchaseOrderItem({
   id,
   ...data
-}: AddPurchaseOrderItemPayload): Promise<CreateResponse<PurchaseOrderData>> {
+}: AddPurchaseOrderItemPayload): Promise<CreateResponse<CreatedPurchaseOrderItem>> {
   return axios
-    .post<CreateResponse<PurchaseOrderData>>(`commerce-api/le/purchase-orders/${id}/items`, data)
+    .post<CreateResponse<CreatedPurchaseOrderItem>>(`commerce-api/le/purchase-orders/${id}/items`, data)
     .then((r) => r.data);
 }
 

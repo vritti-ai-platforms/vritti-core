@@ -6,6 +6,7 @@ import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/upda
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-lot.dto';
+import { CreatedGoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/created-goods-receipt-response.dto';
 import { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
@@ -31,7 +32,7 @@ export function ApiCreateFromDelivery() {
         "Creates a draft receipt of an announced inbound delivery at the site — not received or cancelled and without a draft receipt — pre-filled with each delivery line's open quantity (delivery quantity less what posted receipts accepted against it) on confirmed purchase orders. Each item records its delivery line and the quantity in the line unit and in primary units. A goods receipt is created only from an announced delivery.",
     }),
     ApiBody({ type: CreateGoodsReceiptFromDeliveryDto }),
-    ApiResponse({ status: 201, description: 'Goods receipt created.', type: GoodsReceiptResponseDto }),
+    ApiResponse({ status: 201, description: 'Goods receipt created.', type: CreatedGoodsReceiptResponseDto }),
     ApiResponse({
       status: 400,
       description:

@@ -1,8 +1,8 @@
 import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { CreatedSupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/created-supplier-enrollment-response.dto';
 import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
-import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentRowResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-row-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import type { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
@@ -38,7 +38,7 @@ export class SiteSuppliersGatewayService {
   ) {}
 
   // Enrolls a supplier at the session site
-  create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<CreatedSupplierEnrollmentResponseDto>> {
     this.logger.log(`site.suppliers.create — supplierId: ${dto.supplierId}`);
     return this.nats.send('commerce', 'site.suppliers.create', dto);
   }

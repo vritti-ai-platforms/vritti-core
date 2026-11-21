@@ -30,7 +30,7 @@ export class StockAdjustmentLotsDomainService {
   async addLot(
     adjustment: AdjustmentContext,
     data: { lotNumber: string; manufacturingDate?: string | null; expiryDate: string; mrp?: bigint | null },
-  ): Promise<CreateResponseDto<StockAdjustmentLotDto>> {
+  ): Promise<CreateResponseDto<{ id: string; lotNumber: string }>> {
     if (adjustment.status !== StockAdjustmentStatusValues.DRAFT) {
       throw new BadRequestException('Lots can only be added to DRAFT adjustments.');
     }
@@ -73,14 +73,10 @@ export class StockAdjustmentLotsDomainService {
 
     this.logger.log(`Added lot ${lotNumber} to adjustment ${adjustment.id}`);
 
-    const rowsWithStats = await this.repository.findByAdjustmentId(adjustment.id);
-    const refreshed = rowsWithStats.find((r) => r.id === created.id);
-    if (!refreshed) throw new NotFoundException('Lot not found after creation.');
-
     return {
       success: true,
       message: `Lot "${lotNumber}" added successfully.`,
-      data: StockAdjustmentLotDto.from(refreshed),
+      data: { id: created.id, lotNumber: created.lotNumber },
     };
   }
 

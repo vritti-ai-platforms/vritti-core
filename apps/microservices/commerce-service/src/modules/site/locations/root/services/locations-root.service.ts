@@ -25,14 +25,12 @@ export class SiteLocationsService {
   ) {}
 
   // Creates a location after checking the storage type it is given can be assigned
-  async create(dto: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
+  async create(dto: CreateLocationDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     this.logger.log(`create — code=${dto.code}, storageTypeId=${dto.storageTypeId ?? 'inherited'}`);
     if (dto.storageTypeId && !dto.inheritStorageType) {
       await this.storageTypesService.requireAssignable(dto.storageTypeId, 'storageTypeId');
     }
-    const created = await this.locationsService.create(dto);
-    await this.attachFills([created.data]);
-    return created;
+    return this.locationsService.create(dto);
   }
 
   // Updates a location; a storage type change is refused when it would disallow an item stored in an affected location

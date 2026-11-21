@@ -8,6 +8,7 @@ import { UpdateOpeningStockAdjustmentLineDto } from '@commerce/stock-adjustments
 import { UpdateStockAdjustmentDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import { UpdateStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-line-item.dto';
 import { UpdateStockAdjustmentLotDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-lot.dto';
+import type { CreatedStockAdjustmentLotResponseDto } from '@commerce/stock-adjustments/dto/response/created-stock-adjustment-lot-response.dto';
 import type { StockAdjustmentCountsResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-counts-response.dto';
 import type { StockAdjustmentLineItemResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-table-response.dto';
@@ -59,7 +60,7 @@ export class StockAdjustmentsGatewayController {
   addLot(
     @Param('id') id: string,
     @Body() dto: AddStockAdjustmentLotDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedStockAdjustmentLotResponseDto>> {
     this.logger.log(`POST /commerce-api/site/stock-adjustments/${id}/lots`);
     return this.service.addLot(id, dto);
   }

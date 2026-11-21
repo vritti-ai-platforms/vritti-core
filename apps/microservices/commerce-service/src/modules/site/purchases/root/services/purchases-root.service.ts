@@ -41,13 +41,16 @@ export class PurchasesService {
   ) {}
 
   // Opens a purchase at a site; its items can be quoted and allocated as soon as they are added
-  async create(dto: CreatePurchaseDto, siteId?: string): Promise<CreateResponseDto<PurchaseDto>> {
+  async create(
+    dto: CreatePurchaseDto,
+    siteId?: string,
+  ): Promise<CreateResponseDto<{ id: string; purchaseNumber: string }>> {
     const purchase = await this.purchasesService.create(dto, siteId);
     this.logger.log(`purchases.create — ${purchase.purchaseNumber} at site ${purchase.siteId}`);
     return {
       success: true,
       message: `Purchase "${purchase.purchaseNumber}" created.`,
-      data: await this.purchasesService.findById(purchase.id),
+      data: { id: purchase.id, purchaseNumber: purchase.purchaseNumber },
     };
   }
 

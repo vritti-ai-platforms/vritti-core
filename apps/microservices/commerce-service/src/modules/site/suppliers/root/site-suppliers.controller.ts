@@ -1,4 +1,3 @@
-import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
 import type { SupplierEnrollmentCountsDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-counts.dto';
 import type { SupplierEnrollmentDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-detail.dto';
 import type { SupplierEnrollmentRowDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-row.dto';
@@ -22,7 +21,7 @@ export class SiteSuppliersController {
 
   // Enrolls a supplier at the caller's site
   @MessagePattern({ cmd: 'site.suppliers.create' })
-  create(@Payload() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  create(@Payload() dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(`site.suppliers.create — supplierId: ${dto.supplierId}`);
     return this.service.create(dto);
   }

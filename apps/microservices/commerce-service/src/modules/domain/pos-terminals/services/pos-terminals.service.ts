@@ -31,7 +31,10 @@ export class PosTerminalsDomainService {
   constructor(private readonly repository: PosTerminalsDomainRepository) {}
 
   // Creates a new POS terminal. App-layer must pre-validate the location and pass it as context.
-  async create(data: CreatePosTerminalDto, location: LocationContext): Promise<CreateResponseDto<PosTerminalDto>> {
+  async create(
+    data: CreatePosTerminalDto,
+    location: LocationContext,
+  ): Promise<CreateResponseDto<{ id: string; code: string }>> {
     this.assertValidLocation(location);
 
     const entity = await this.repository.create({
@@ -42,14 +45,11 @@ export class PosTerminalsDomainService {
       isActive: data.isActive,
     });
 
-    const created = await this.repository.findByIdWithLocationName(entity.id);
-    if (!created) throw new NotFoundException('POS terminal not found.');
-
     this.logger.log(`Created POS terminal: ${entity.name} (${entity.code})`);
     return {
       success: true,
       message: `POS terminal "${entity.name}" (${entity.code}) created successfully.`,
-      data: PosTerminalDto.from(created),
+      data: { id: entity.id, code: entity.code },
     };
   }
 

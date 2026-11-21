@@ -79,7 +79,7 @@ export class GoodsReceiptsDomainService {
   ) {}
 
   // Creates a draft receipt against an inbound delivery with its lines, in the caller's transaction
-  async createDraft(draft: GoodsReceiptDraft): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  async createDraft(draft: GoodsReceiptDraft): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     const grNumber = await this.repository.generateGrNumber();
     const receipt = await this.repository.create({
       grNumber,
@@ -95,14 +95,11 @@ export class GoodsReceiptsDomainService {
       draft.lines.map((line) => ({ ...line, goodsReceiptId: receipt.id, siteId: draft.siteId })),
     );
 
-    const created = await this.findById(receipt.id);
-    this.logger.log(
-      `Created goods receipt ${grNumber} with ${draft.lines.length} lines of ${created.poNumbers.join(', ')}`,
-    );
+    this.logger.log(`Created goods receipt ${grNumber} with ${draft.lines.length} lines`);
     return {
       success: true,
-      message: `Goods receipt "${grNumber}" created with ${pluralize('line', draft.lines.length, true)} of ${created.poNumbers.join(', ')}.`,
-      data: created,
+      message: `Goods receipt "${grNumber}" created with ${pluralize('line', draft.lines.length, true)}.`,
+      data: { id: receipt.id, grNumber },
     };
   }
 

@@ -21,7 +21,7 @@ export class InventoryItemsRootController {
 
   // Creates a master inventory item (asserts the category is a leaf)
   @MessagePattern({ cmd: 'org.inventoryItems.create' })
-  async create(@Payload() dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<InventoryItemDto>> {
+  async create(@Payload() dto: CreateOrgInventoryItemDto): Promise<CreateResponseDto<{ id: string; sku: string }>> {
     this.logger.log(`inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.rootService.create(dto);
   }

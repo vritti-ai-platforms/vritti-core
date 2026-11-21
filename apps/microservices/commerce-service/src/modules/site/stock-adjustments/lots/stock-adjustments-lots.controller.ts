@@ -17,7 +17,7 @@ export class StockAdjustmentsLotsController {
   constructor(private readonly appService: StockAdjustmentsLotsService) {}
 
   @MessagePattern({ cmd: 'site.stockAdjustments.addLot' })
-  addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<StockAdjustmentLotWithDisplayDto>> {
+  addLot(@Payload() dto: AddLotDto): Promise<CreateResponseDto<{ id: string; lotNumber: string }>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${dto.adjustmentId}`);
     return this.appService.addLot(dto.adjustmentId, {
       lotNumber: dto.lotNumber,

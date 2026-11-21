@@ -7,6 +7,7 @@ import type {
   AddPurchaseOrderItemPayload,
   ChangePurchaseOrderExchangeRatePayload,
   ChangePurchaseOrderSupplierPayload,
+  CreatedPurchaseOrderItem,
   CreatePurchaseOrderPayload,
   PurchaseOrderCounts,
   PurchaseOrderData,
@@ -63,7 +64,7 @@ export type UsePurchaseOrderInboundDeliveriesTable = (id: string) => {
 export type UsePurchaseOrderProblems = (id: string) => { data: PurchaseOrderProblemsResponse | undefined };
 
 export type UseCreatePurchaseOrder = Mutation<CreateResponse<PurchaseOrderData>, CreatePurchaseOrderPayload>;
-export type UseAddPurchaseOrderItem = Mutation<CreateResponse<PurchaseOrderData>, AddPurchaseOrderItemPayload>;
+export type UseAddPurchaseOrderItem = Mutation<CreateResponse<CreatedPurchaseOrderItem>, AddPurchaseOrderItemPayload>;
 export type UseUpdatePurchaseOrderItem = Mutation<SuccessResponse, UpdatePurchaseOrderItemPayload>;
 export type UseRemovePurchaseOrderItem = Mutation<SuccessResponse, PurchaseOrderItemRef>;
 export type UseUpdatePurchaseOrderNotes = Mutation<SuccessResponse, UpdatePurchaseOrderNotesPayload>;

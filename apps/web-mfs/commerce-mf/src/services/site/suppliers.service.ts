@@ -1,9 +1,9 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  CreatedSupplierEnrollment,
   CreateSupplierEnrollmentPayload,
   SetSupplierEnrollmentActiveVars,
-  SupplierEnrollment,
   SupplierEnrollmentCounts,
   SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
@@ -47,8 +47,8 @@ export function getSupplierEnrollmentCounts({
 export function createSupplierEnrollment({
   siteId: _siteId,
   ...data
-}: CreateSupplierEnrollmentPayload): Promise<SupplierEnrollment> {
-  return axios.post<CreateResponse<SupplierEnrollment>>(BASE, data).then((r) => r.data.data);
+}: CreateSupplierEnrollmentPayload): Promise<CreatedSupplierEnrollment> {
+  return axios.post<CreateResponse<CreatedSupplierEnrollment>>(BASE, data).then((r) => r.data.data);
 }
 
 // Updates a supplier's enrollment at the session site

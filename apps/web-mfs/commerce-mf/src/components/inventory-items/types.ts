@@ -1,7 +1,7 @@
 import type { UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CreateVariantInventoryItemData, OfferingVariantData } from '@/schemas/offerings';
+import type { CreatedVariantInventoryItem, CreateVariantInventoryItemData } from '@/schemas/offerings';
 import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
 
 export type UseInventoryItemSuppliersTable = (inventoryItemId: string) => {
@@ -14,6 +14,6 @@ type MutationHook<TData, TVars> = (
 ) => UseMutationResult<TData, AxiosError, TVars>;
 
 export type UseCreateVariantInventoryItem = MutationHook<
-  CreateResponse<OfferingVariantData>,
+  CreateResponse<CreatedVariantInventoryItem>,
   CreateVariantInventoryItemData
 >;

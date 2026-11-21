@@ -72,6 +72,11 @@ export interface PurchaseOrderCounts {
   invoiceCount: number;
 }
 
+// What adding a line to a purchase order returns
+export interface CreatedPurchaseOrderItem {
+  id: string;
+}
+
 export interface PurchaseOrderData {
   id: string;
   legalEntityId: string;

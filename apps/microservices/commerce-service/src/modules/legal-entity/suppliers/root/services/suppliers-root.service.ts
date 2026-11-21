@@ -1,4 +1,3 @@
-import type { SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
 import type { ChangeSupplierCurrencyDto } from '@domain/suppliers/dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '@domain/suppliers/dto/request/create-supplier.dto';
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
@@ -12,9 +11,9 @@ export class SuppliersService {
   constructor(private readonly suppliersService: SuppliersDomainService) {}
 
   // Creates a supplier referencing an existing party for its identity
-  async create(data: CreateSupplierDto): Promise<CreateResponseDto<SupplierDto>> {
+  async create(data: CreateSupplierDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     const result = await this.suppliersService.create(data);
-    this.logger.log(`Supplier "${result.data.partyName}" created`);
+    this.logger.log(`Supplier "${result.data.code}" created`);
     return result;
   }
 

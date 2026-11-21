@@ -27,7 +27,9 @@ export class GoodsReceiptsRootController {
 
   // Creates a draft goods receipt of an inbound delivery, pre-filled with its open lines; the only way to start a receipt
   @MessagePattern({ cmd: 'site.goodsReceipts.createFromDelivery' })
-  createFromDelivery(@Payload() dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  createFromDelivery(
+    @Payload() dto: CreateGoodsReceiptFromDeliveryDto,
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     this.logger.log(`site.goodsReceipts.createFromDelivery — delivery: ${dto.inboundDeliveryId}`);
     return this.service.createFromDelivery(dto);
   }

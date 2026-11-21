@@ -1,4 +1,3 @@
-import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import type { CreateGoodsReceiptFromDeliveryDto } from '@domain/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
 import type { UpdateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/update-goods-receipt.dto';
 import type { GoodsReceiptRow } from '@domain/goods-receipts/repositories/goods-receipts.repository';
@@ -27,7 +26,9 @@ export class GoodsReceiptsService {
 
   // Creates a draft receipt of an inbound delivery that is not received or cancelled and has no draft receipt yet,
   // pre-filled with what is still open on each of its lines
-  async createFromDelivery(dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  async createFromDelivery(
+    dto: CreateGoodsReceiptFromDeliveryDto,
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     const delivery = await this.deliveriesService.findDetailOrThrow(dto.inboundDeliveryId);
     this.deliveriesService.assertReceivable(delivery);
     await this.supplierEnrollmentsService.assertPurchasable(delivery.supplierId, delivery.siteId);

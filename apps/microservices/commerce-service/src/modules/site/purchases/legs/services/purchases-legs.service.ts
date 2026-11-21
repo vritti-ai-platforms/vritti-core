@@ -1,4 +1,3 @@
-import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { InboundDeliveryLinesDomainService } from '@domain/inbound-deliveries/services/inbound-delivery-lines.service';
 import { PurchaseItemAllocationsDomainService } from '@domain/purchase-item-allocations/services/purchase-item-allocations.service';
@@ -397,7 +396,7 @@ export class PurchasesLegsService {
     leg: PurchaseSupplierRow,
     dto: CreateLegGoodsReceiptDto,
     inboundDeliveryId: string,
-  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     const delivery = await this.deliveriesService.findDetailOrThrow(inboundDeliveryId);
     if (delivery.purchaseId !== purchase.id || delivery.supplierId !== leg.supplierId) {
       throw new BadRequestException({
@@ -423,7 +422,7 @@ export class PurchasesLegsService {
     fulfilment: PurchaseLegFulfilment,
     dto: CreateLegGoodsReceiptDto,
     site: PurchaseSiteContext,
-  ): Promise<CreateResponseDto<GoodsReceiptDto>> {
+  ): Promise<CreateResponseDto<{ id: string; grNumber: string }>> {
     if (leg.type === PurchaseTypeValues.ANNOUNCED) {
       throw new BadRequestException({
         label: 'Delivery Required',

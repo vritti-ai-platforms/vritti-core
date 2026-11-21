@@ -16,7 +16,7 @@ export class PosTerminalsController {
 
   // Creates a new POS terminal
   @MessagePattern({ cmd: 'site.posTerminals.create' })
-  async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
+  async create(@Payload() dto: CreatePosTerminalDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
     return this.service.create(dto);
   }

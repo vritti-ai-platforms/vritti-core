@@ -2,15 +2,15 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
-import type { CreatePurchasePayload, PurchaseData } from '@/schemas/purchases';
+import type { CreatedPurchase, CreatePurchasePayload } from '@/schemas/purchases';
 import { createPurchase } from '@/services/legal-entity/purchases.service';
 
 // Creates a purchase and refreshes the purchases
 export function useCreatePurchase(
-  options?: Omit<UseMutationOptions<CreateResponse<PurchaseData>, AxiosError, CreatePurchasePayload>, 'mutationFn'>,
+  options?: Omit<UseMutationOptions<CreateResponse<CreatedPurchase>, AxiosError, CreatePurchasePayload>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<PurchaseData>, AxiosError, CreatePurchasePayload>({
+  return useMutation<CreateResponse<CreatedPurchase>, AxiosError, CreatePurchasePayload>({
     ...options,
     mutationFn: createPurchase,
     onSuccess: (...args) => {

@@ -11,9 +11,11 @@ import type {
   ClosePurchaseLegPayload,
   ClosePurchasePayload,
   ConfirmPurchaseLegPurchaseOrderPayload,
+  CreatedPurchase,
   CreatedPurchaseLegGoodsReceipt,
   CreatedPurchaseLegInboundDelivery,
   CreatedPurchaseLegPurchaseOrders,
+  CreatedPurchaseRecord,
   CreatedPurchaseSupplierInvoice,
   CreatePurchaseLegGoodsReceiptPayload,
   CreatePurchaseLegInboundDeliveryPayload,
@@ -23,12 +25,9 @@ import type {
   DisablePurchaseQuotationsPayload,
   EnablePurchaseQuotationsPayload,
   PurchaseActions,
-  PurchaseAllocation,
   PurchaseAllocationRef,
   PurchaseCounts,
-  PurchaseData,
   PurchaseDetail,
-  PurchaseItem,
   PurchaseItemAllocationsTableResponse,
   PurchaseItemComparisonTableResponse,
   PurchaseItemCounts,
@@ -72,8 +71,8 @@ export function getPurchasesTable(): Promise<PurchasesTableResponse> {
 }
 
 // Creates a purchase at the site
-export function createPurchase(data: CreatePurchasePayload): Promise<CreateResponse<PurchaseData>> {
-  return axios.post<CreateResponse<PurchaseData>>(BASE, data).then((r) => r.data);
+export function createPurchase(data: CreatePurchasePayload): Promise<CreateResponse<CreatedPurchase>> {
+  return axios.post<CreateResponse<CreatedPurchase>>(BASE, data).then((r) => r.data);
 }
 
 // Fetches a purchase's header: its counts, progress, where it stands, the actions it offers and why others are blocked
@@ -217,8 +216,11 @@ export function deletePurchase(id: string): Promise<SuccessResponse> {
 }
 
 // Adds an item the purchase does not have yet to its items
-export function addPurchaseItem({ id, ...data }: AddPurchaseItemPayload): Promise<CreateResponse<PurchaseItem>> {
-  return axios.post<CreateResponse<PurchaseItem>>(`${BASE}/${id}/items`, data).then((r) => r.data);
+export function addPurchaseItem({
+  id,
+  ...data
+}: AddPurchaseItemPayload): Promise<CreateResponse<CreatedPurchaseRecord>> {
+  return axios.post<CreateResponse<CreatedPurchaseRecord>>(`${BASE}/${id}/items`, data).then((r) => r.data);
 }
 
 // Updates an item of a purchase's items
@@ -245,8 +247,8 @@ export function requestPurchaseQuotation({
 export function addPurchaseAllocation({
   id,
   ...data
-}: AddPurchaseAllocationPayload): Promise<CreateResponse<PurchaseAllocation>> {
-  return axios.post<CreateResponse<PurchaseAllocation>>(`${BASE}/${id}/allocations`, data).then((r) => r.data);
+}: AddPurchaseAllocationPayload): Promise<CreateResponse<CreatedPurchaseRecord>> {
+  return axios.post<CreateResponse<CreatedPurchaseRecord>>(`${BASE}/${id}/allocations`, data).then((r) => r.data);
 }
 
 // Allocates what is still to allocate of items from posted quotation lines, or from every line of a quotation

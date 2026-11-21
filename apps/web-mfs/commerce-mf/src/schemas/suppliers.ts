@@ -102,6 +102,12 @@ export type SuppliersTableResponse = TableResponse<SupplierData>;
 export type SupplierItemsTableResponse = TableResponse<SupplierItemData>;
 export type SupplierSiteItemDataTableResponse = TableResponse<SupplierSiteItemData>;
 
+// What creating a supplier returns
+export interface CreatedSupplier {
+  id: string;
+  code: string;
+}
+
 export interface SupplierData {
   id: string;
   partyId: string;

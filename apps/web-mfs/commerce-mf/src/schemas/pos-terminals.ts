@@ -12,6 +12,12 @@ export const posTerminalFormSchema = z.object({
 
 export type PosTerminalFormData = z.infer<typeof posTerminalFormSchema>;
 
+// What creating a POS terminal returns
+export interface CreatedPosTerminal {
+  id: string;
+  code: string;
+}
+
 export interface PosTerminalData {
   id: string;
   organizationId: string;
@@ -30,7 +36,7 @@ export interface PosTerminalData {
 }
 
 export type PosTerminalTableResponse = TableResponse<PosTerminalData>;
-export type CreatePosTerminalResponse = CreateResponse<PosTerminalData>;
+export type CreatePosTerminalResponse = CreateResponse<CreatedPosTerminal>;
 
 export interface CreatePosTerminalData {
   name: string;

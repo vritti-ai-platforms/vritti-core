@@ -1,3 +1,4 @@
+import { CreatedVariantInventoryItemResponseDto } from '@commerce/offerings/dto/response/created-variant-inventory-item-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -445,7 +446,7 @@ export function ApiCreateVariantInventoryItem() {
         "Creates an inventory item carrying this variant's code and links it as the variant's single bill-of-materials line. STOCK offerings only — every other fulfilment type resolves to components that are stocked in their own right, so there is nothing to create.",
     }),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
-    ApiResponse({ status: 201, type: OfferingVariantResponseDto, description: 'Item created and linked.' }),
+    ApiResponse({ status: 201, type: CreatedVariantInventoryItemResponseDto, description: 'Item created and linked.' }),
     ApiResponse({
       status: 409,
       description: 'An inventory item already carries that SKU, or the offering is not STOCK.',

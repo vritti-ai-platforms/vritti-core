@@ -126,6 +126,12 @@ export interface SiteInventoryItemCounts {
   quantCount: number;
 }
 
+// What creating an inventory item returns
+export interface CreatedInventoryItem {
+  id: string;
+  sku: string;
+}
+
 export interface InventoryItemData extends MeasureFigures {
   id: string;
   name: string;

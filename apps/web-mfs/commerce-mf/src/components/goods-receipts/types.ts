@@ -5,6 +5,7 @@ import type {
   AddGoodsReceiptLineItemPayload,
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
+  CreatedGoodsReceipt,
   CreateGoodsReceiptFromDeliveryPayload,
   GoodsReceiptCounts,
   GoodsReceiptData,
@@ -58,8 +59,8 @@ export type UseGoodsReceiptLineItemsTable = (
 ) => Query<GoodsReceiptLineItemsTableResponse>;
 
 export type UseCreateGoodsReceiptFromDelivery = (
-  options?: MutationOptions<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>,
-) => MutationResult<CreateResponse<GoodsReceiptData>, CreateGoodsReceiptFromDeliveryPayload>;
+  options?: MutationOptions<CreateResponse<CreatedGoodsReceipt>, CreateGoodsReceiptFromDeliveryPayload>,
+) => MutationResult<CreateResponse<CreatedGoodsReceipt>, CreateGoodsReceiptFromDeliveryPayload>;
 export type UsePostGoodsReceipt = (
   id: string,
   options?: MutationOptions<GoodsReceiptData, void>,

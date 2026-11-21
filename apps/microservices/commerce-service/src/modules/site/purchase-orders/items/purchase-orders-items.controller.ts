@@ -2,7 +2,6 @@ import type { PurchaseOrderItemDto } from '@domain/purchase-order-items/dto/enti
 import { AddPurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/add-purchase-order-item.dto';
 import { UpdatePurchaseOrderItemDto } from '@domain/purchase-order-items/dto/request/update-purchase-order-item.dto';
 import { PurchaseOrderItemsDomainService } from '@domain/purchase-order-items/services/purchase-order-items.service';
-import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
@@ -23,7 +22,7 @@ export class PurchaseOrdersItemsController {
 
   // Adds a line to a purchase order
   @MessagePattern({ cmd: 'site.purchaseOrders.addItem' })
-  addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<PurchaseOrderDto>> {
+  addItem(@Payload() dto: AddPurchaseOrderItemDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(`site.purchaseOrders.addItem — id: ${dto.purchaseOrderId}, item: ${dto.inventoryItemId}`);
     return this.service.addItem(dto);
   }

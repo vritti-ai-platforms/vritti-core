@@ -1,6 +1,7 @@
 import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import type { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { CreatedSupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/created-supplier-enrollment-response.dto';
 import type { EnrollmentPurchasingResponseDto } from '@commerce/supplier-enrollments/dto/response/enrollment-purchasing-response.dto';
 import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
@@ -27,6 +28,7 @@ import type { ChangeSupplierCurrencyDto } from '@commerce/suppliers/dto/request/
 import type { CreateSupplierDto } from '@commerce/suppliers/dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '@commerce/suppliers/dto/request/update-supplier.dto';
 import type { UpdateSupplierItemDto } from '@commerce/suppliers/dto/request/update-supplier-item.dto';
+import type { CreatedSupplierResponseDto } from '@commerce/suppliers/dto/response/created-supplier-response.dto';
 import type { SupplierCountsResponseDto } from '@commerce/suppliers/dto/response/supplier-counts-response.dto';
 import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
@@ -61,7 +63,7 @@ export class SuppliersGatewayService {
   ) {}
 
   // Creates a new supplier
-  async create(dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {
+  async create(dto: CreateSupplierDto): Promise<CreateResponseDto<CreatedSupplierResponseDto>> {
     this.logger.log(`le.suppliers.create — partyId: ${dto.partyId}, code: ${dto.code}`);
     return this.nats.send('commerce', 'le.suppliers.create', dto);
   }
@@ -76,7 +78,7 @@ export class SuppliersGatewayService {
   async createEnrollment(
     supplierId: string,
     dto: CreateSupplierEnrollmentDto,
-  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedSupplierEnrollmentResponseDto>> {
     if (!dto.siteId) {
       throw new BadRequestException({
         label: 'Site Required',

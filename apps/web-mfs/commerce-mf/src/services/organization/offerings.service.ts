@@ -9,6 +9,7 @@ import type {
   CreateChannelPagesData,
   CreateDimensionData,
   CreateDimensionFromTemplateData,
+  CreatedVariantInventoryItem,
   CreateOfferingData,
   CreateVariantData,
   CreateVariantInventoryItemData,
@@ -259,9 +260,9 @@ export function deleteVariant(id: string): Promise<SuccessResponse> {
 export function createInventoryItem({
   variantId,
   ...data
-}: CreateVariantInventoryItemData): Promise<CreateResponse<OfferingVariantData>> {
+}: CreateVariantInventoryItemData): Promise<CreateResponse<CreatedVariantInventoryItem>> {
   return axios
-    .post<CreateResponse<OfferingVariantData>>(`${BASE}/variants/${variantId}/bom/inventory-item`, data)
+    .post<CreateResponse<CreatedVariantInventoryItem>>(`${BASE}/variants/${variantId}/bom/inventory-item`, data)
     .then((r) => r.data);
 }
 

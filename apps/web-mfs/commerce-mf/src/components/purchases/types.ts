@@ -15,9 +15,11 @@ import type {
   ClosePurchaseLegPayload,
   ClosePurchasePayload,
   ConfirmPurchaseLegPurchaseOrderPayload,
+  CreatedPurchase,
   CreatedPurchaseLegGoodsReceipt,
   CreatedPurchaseLegInboundDelivery,
   CreatedPurchaseLegPurchaseOrders,
+  CreatedPurchaseRecord,
   CreatedPurchaseSupplierInvoice,
   CreatePurchaseLegGoodsReceiptPayload,
   CreatePurchaseLegInboundDeliveryPayload,
@@ -27,12 +29,9 @@ import type {
   DisablePurchaseQuotationsPayload,
   EnablePurchaseQuotationsPayload,
   PurchaseActions,
-  PurchaseAllocation,
   PurchaseAllocationRef,
   PurchaseCounts,
-  PurchaseData,
   PurchaseDetail,
-  PurchaseItem,
   PurchaseItemAllocationsTableResponse,
   PurchaseItemComparisonTableResponse,
   PurchaseItemCounts,
@@ -132,7 +131,7 @@ export type UsePurchaseItemQuotesTable = ItemTableQuery<PurchaseItemQuotesTableR
 export type UsePurchaseItemDocumentsTable = ItemTableQuery<PurchaseItemDocumentsTableResponse>;
 export type UsePurchaseSupplier = (id: string, legId: string) => { data: PurchaseLeg | undefined; isLoading: boolean };
 
-export type UseCreatePurchase = Mutation<CreateResponse<PurchaseData>, CreatePurchasePayload>;
+export type UseCreatePurchase = Mutation<CreateResponse<CreatedPurchase>, CreatePurchasePayload>;
 export type UseChangePurchaseNotes = Mutation<SuccessResponse, ChangePurchaseNotesPayload>;
 export type UseEnablePurchaseQuotations = Mutation<SuccessResponse, EnablePurchaseQuotationsPayload>;
 export type UseDisablePurchaseQuotations = Mutation<SuccessResponse, DisablePurchaseQuotationsPayload>;
@@ -142,7 +141,7 @@ export type UseClosePurchase = Mutation<SuccessResponse, ClosePurchasePayload>;
 export type UseDeletePurchase = Mutation<SuccessResponse, string>;
 export type UsePurchaseAction = Mutation<SuccessResponse, string>;
 
-export type UseAddPurchaseItem = Mutation<CreateResponse<PurchaseItem>, AddPurchaseItemPayload>;
+export type UseAddPurchaseItem = Mutation<CreateResponse<CreatedPurchaseRecord>, AddPurchaseItemPayload>;
 export type UseUpdatePurchaseItem = Mutation<SuccessResponse, UpdatePurchaseItemPayload>;
 export type UseRemovePurchaseItem = Mutation<SuccessResponse, PurchaseItemRef>;
 
@@ -151,7 +150,7 @@ export type UseRequestPurchaseQuotation = Mutation<
   RequestPurchaseQuotationPayload
 >;
 
-export type UseAddPurchaseAllocation = Mutation<CreateResponse<PurchaseAllocation>, AddPurchaseAllocationPayload>;
+export type UseAddPurchaseAllocation = Mutation<CreateResponse<CreatedPurchaseRecord>, AddPurchaseAllocationPayload>;
 export type UseAddPurchaseAllocationsFromQuotation = Mutation<
   SuccessResponse,
   AddPurchaseAllocationsFromQuotationPayload

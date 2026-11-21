@@ -3,18 +3,18 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
-import type { CreateVariantInventoryItemData, OfferingVariantData } from '@/schemas/offerings';
+import type { CreatedVariantInventoryItem, CreateVariantInventoryItemData } from '@/schemas/offerings';
 import { createInventoryItem } from '@/services/organization/offerings.service';
 
-// Creates the variant's inventory item and links it in one call — the response is the updated variant
+// Creates the variant's inventory item and links it in one call — the response names the new item
 export function useCreateOfferingVariantInventoryItem(
   options?: Omit<
-    UseMutationOptions<CreateResponse<OfferingVariantData>, AxiosError, CreateVariantInventoryItemData>,
+    UseMutationOptions<CreateResponse<CreatedVariantInventoryItem>, AxiosError, CreateVariantInventoryItemData>,
     'mutationFn'
   >,
 ) {
   const queryClient = useQueryClient();
-  return useMutation<CreateResponse<OfferingVariantData>, AxiosError, CreateVariantInventoryItemData>({
+  return useMutation<CreateResponse<CreatedVariantInventoryItem>, AxiosError, CreateVariantInventoryItemData>({
     ...options,
     mutationFn: createInventoryItem,
     onSuccess: (...args) => {

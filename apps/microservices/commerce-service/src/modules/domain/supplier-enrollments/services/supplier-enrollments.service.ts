@@ -61,7 +61,7 @@ export class SupplierEnrollmentsDomainService {
   ) {}
 
   // Enrolls a supplier at a site, optionally under one of its GSTIN/VAT registrations, validating every pick
-  async create(dto: CreateSupplierEnrollmentDto, siteId?: string): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  async create(dto: CreateSupplierEnrollmentDto, siteId?: string): Promise<CreateResponseDto<{ id: string }>> {
     const { supplierId, ...picks } = dto;
     const supplier = await this.findSupplierOrThrow(supplierId);
     await this.repository.assertPicksUsable(supplier.partyId, picks);
@@ -78,12 +78,11 @@ export class SupplierEnrollmentsDomainService {
       orderPhoneCommunicationId: picks.orderPhoneCommunicationId,
       isActive: picks.isActive,
     });
-    const created = await this.repository.findByIdWithPicksOrThrow(entity.id);
     this.logger.log(`Enrolled supplier ${supplierId} at site ${entity.siteId}`);
     return {
       success: true,
       message: 'Supplier enrolled for this site.',
-      data: SupplierEnrollmentDto.from(created),
+      data: { id: entity.id },
     };
   }
 

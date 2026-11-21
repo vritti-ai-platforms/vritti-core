@@ -7,7 +7,8 @@ import { TextField } from '@vritti/quantum-ui/TextField';
 import { zodResolver } from '@vritti/quantum-ui/zod';
 import type React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
-import { buildCreatePurchaseSchema, type CreatePurchaseFormData, type PurchaseData } from '@/schemas/purchases';
+import type { CreatedPurchase } from '@/schemas/purchases';
+import { buildCreatePurchaseSchema, type CreatePurchaseFormData } from '@/schemas/purchases';
 import { SiteSelector } from '@/selectors/site';
 import type { PurchasesBinding } from '../bindings';
 
@@ -15,7 +16,7 @@ interface CreatePurchaseDialogProps {
   binding: PurchasesBinding;
   // The site picked in the list's context, which the site field starts with
   siteId?: string;
-  onSuccess: (purchase: Pick<PurchaseData, 'id' | 'purchaseNumber'>) => void;
+  onSuccess: (purchase: CreatedPurchase) => void;
   onCancel: () => void;
 }
 

@@ -24,7 +24,7 @@ export class SupplierEnrollmentsController {
 
   // Enrolls a supplier at one of the LE's sites
   @MessagePattern({ cmd: 'le.suppliers.enrollments.create' })
-  create(@Payload() dto: LeCreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  create(@Payload() dto: LeCreateSupplierEnrollmentDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(`le.suppliers.enrollments.create — supplierId: ${dto.supplierId}, siteId: ${dto.siteId}`);
     const { siteId, ...enrollment } = dto;
     return this.service.create(enrollment, siteId);

@@ -6,6 +6,7 @@ import type { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/re
 import type { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import type { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
+import type { CreatedGoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/created-goods-receipt-response.dto';
 import type { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
@@ -40,7 +41,9 @@ export class LeGoodsReceiptsGatewayService {
   ) {}
 
   // Creates a draft goods receipt of an announced inbound delivery, pre-filled with its open lines
-  createFromDelivery(dto: CreateGoodsReceiptFromDeliveryDto): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+  createFromDelivery(
+    dto: CreateGoodsReceiptFromDeliveryDto,
+  ): Promise<CreateResponseDto<CreatedGoodsReceiptResponseDto>> {
     this.logger.log(`le.goodsReceipts.createFromDelivery — inboundDeliveryId: ${dto.inboundDeliveryId}`);
     return this.nats.send('commerce', 'le.goodsReceipts.createFromDelivery', dto);
   }

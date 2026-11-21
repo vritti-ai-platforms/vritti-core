@@ -8,6 +8,7 @@ import type { UpdateOpeningStockAdjustmentLineDto } from '@commerce/stock-adjust
 import type { UpdateStockAdjustmentDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-line-item.dto';
 import type { UpdateStockAdjustmentLotDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-lot.dto';
+import type { CreatedStockAdjustmentLotResponseDto } from '@commerce/stock-adjustments/dto/response/created-stock-adjustment-lot-response.dto';
 import type { StockAdjustmentCountsResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-counts-response.dto';
 import type { StockAdjustmentLineItemResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-table-response.dto';
@@ -45,7 +46,7 @@ export class StockAdjustmentsGatewayService {
   async addLot(
     adjustmentId: string,
     dto: AddStockAdjustmentLotDto,
-  ): Promise<CreateResponseDto<StockAdjustmentLotResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedStockAdjustmentLotResponseDto>> {
     this.logger.log(`stockAdjustments.addLot — adjustment: ${adjustmentId}`);
     const { mrp, ...rest } = dto;
     return this.nats.send('commerce', 'site.stockAdjustments.addLot', {

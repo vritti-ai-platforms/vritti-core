@@ -11,6 +11,7 @@ import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/reques
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import type { CreatedPurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/created-purchase-order-item-response.dto';
 import type { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
@@ -99,7 +100,7 @@ export class PurchaseOrdersGatewayController {
   addItem(
     @Param('id') id: string,
     @Body() dto: AddPurchaseOrderItemDto,
-  ): Promise<CreateResponseDto<PurchaseOrderResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedPurchaseOrderItemResponseDto>> {
     this.logger.log(`POST /commerce-api/site/purchase-orders/${id}/items`);
     return this.service.addItem(id, dto);
   }

@@ -18,7 +18,7 @@ export class PosTerminalsService {
   ) {}
 
   // Creates a new POS terminal after resolving its storage location
-  async create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalDto>> {
+  async create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     const location = await this.locationsRepository.findById(dto.locationId);
     if (!location) throw new NotFoundException('Storage location not found.');
     return this.posTerminalsService.create(dto, location);

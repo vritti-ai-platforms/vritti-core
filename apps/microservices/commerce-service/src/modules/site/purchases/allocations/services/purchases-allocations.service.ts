@@ -1,5 +1,4 @@
 import { InventoryItemSitesDomainRepository } from '@domain/inventory-item-sites/repositories/inventory-item-sites.repository';
-import type { PurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/entity/purchase-allocation.dto';
 import type { CreatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocation.dto';
 import type { CreatePurchaseAllocationsFromQuotationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocations-from-quotation.dto';
 import type { UpdatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/update-purchase-allocation.dto';
@@ -60,7 +59,7 @@ export class PurchasesAllocationsService {
 
   // Allocates part of a purchase item to a supplier that supplies it at the site, opening the supplier's leg on its first
   // allocation; not on a purchase that requires quotations, nor for an item the site has blocked buying
-  async create(dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<PurchaseAllocationDto>> {
+  async create(dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<{ id: string }>> {
     const purchase = await this.purchasesRepository.findDetailOrThrow(dto.id);
     this.allocationsRepository.assertEnteredAllowed(purchase);
     const item = await this.purchaseItemsRepository.findOnPurchaseOrThrow(purchase.id, dto.purchaseItemId);
@@ -96,7 +95,7 @@ export class PurchasesAllocationsService {
     return {
       success: true,
       message: `"${item.inventoryItemName}" allocated on "${purchase.purchaseNumber}".`,
-      data: await this.allocationsService.findById(purchase.id, allocation.id),
+      data: { id: allocation.id },
     };
   }
 

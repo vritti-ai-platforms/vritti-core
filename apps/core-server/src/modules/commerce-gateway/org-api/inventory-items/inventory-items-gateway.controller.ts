@@ -6,6 +6,8 @@ import { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/request/up
 import { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
 import { UpdateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/update-inventory-item-storage-type.dto';
 import { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
+import type { CreatedInventoryItemResponseDto } from '@commerce/inventory-items/dto/response/created-inventory-item-response.dto';
+import type { CreatedInventoryItemStorageTypeResponseDto } from '@commerce/inventory-items/dto/response/created-inventory-item-storage-type-response.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
@@ -56,7 +58,7 @@ export class InventoryItemsGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(ORG_INVENTORY_ITEMS.add)
-  async create(@Body() dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+  async create(@Body() dto: CreateInventoryItemDto): Promise<CreateResponseDto<CreatedInventoryItemResponseDto>> {
     this.logger.log('POST /commerce-api/org/inventory-items');
     return this.service.create(dto);
   }
@@ -89,7 +91,7 @@ export class InventoryItemsGatewayController {
   createStorageType(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: CreateInventoryItemStorageTypeDto,
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedInventoryItemStorageTypeResponseDto>> {
     this.logger.log(`POST /commerce-api/org/inventory-items/${id}/storage-types`);
     return this.service.createStorageType(id, dto);
   }

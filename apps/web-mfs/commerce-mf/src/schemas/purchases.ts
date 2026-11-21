@@ -266,6 +266,17 @@ export interface PurchaseTableRow {
 
 export type PurchasesTableResponse = TableResponse<PurchaseTableRow>;
 
+// What creating a purchase returns: enough to open it
+export interface CreatedPurchase {
+  id: string;
+  purchaseNumber: string;
+}
+
+// What adding an item or an allocation returns
+export interface CreatedPurchaseRecord {
+  id: string;
+}
+
 export interface PurchaseData {
   id: string;
   purchaseNumber: string;

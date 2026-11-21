@@ -2,6 +2,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  CreatedStockAdjustmentLot,
   StockAdjustmentCounts,
   StockAdjustmentData,
   StockAdjustmentLineData,
@@ -148,9 +149,12 @@ export function deleteStockAdjustment(id: string): Promise<SuccessResponse> {
 
 // Writes — lots
 
-export function addStockAdjustmentLot(id: string, data: AddStockAdjustmentLotPayload): Promise<StockAdjustmentLotData> {
+export function addStockAdjustmentLot(
+  id: string,
+  data: AddStockAdjustmentLotPayload,
+): Promise<CreatedStockAdjustmentLot> {
   return axios
-    .post<CreateResponse<StockAdjustmentLotData>>(`commerce-api/site/stock-adjustments/${id}/lots`, data)
+    .post<CreateResponse<CreatedStockAdjustmentLot>>(`commerce-api/site/stock-adjustments/${id}/lots`, data)
     .then((r) => r.data.data);
 }
 

@@ -1,5 +1,6 @@
 import { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
 import { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
+import type { CreatedPosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/created-pos-terminal-response.dto';
 import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
 import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import {
@@ -44,7 +45,7 @@ export class PosTerminalsGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiCreate()
-  create(@Body() dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalResponseDto>> {
+  create(@Body() dto: CreatePosTerminalDto): Promise<CreateResponseDto<CreatedPosTerminalResponseDto>> {
     this.logger.log('POST /commerce-api/site/pos-terminals');
     return this.posTerminalsGatewayService.create(dto);
   }

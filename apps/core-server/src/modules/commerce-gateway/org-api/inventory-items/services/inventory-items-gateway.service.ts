@@ -6,6 +6,8 @@ import type { UpdateInventoryItemDto } from '@commerce/inventory-items/dto/reque
 import type { UpdateInventoryItemMrpDto } from '@commerce/inventory-items/dto/request/update-inventory-item-mrp.dto';
 import type { UpdateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/update-inventory-item-storage-type.dto';
 import type { UpdateInventoryItemUomConversionDto } from '@commerce/inventory-items/dto/request/update-inventory-item-uom-conversion.dto';
+import type { CreatedInventoryItemResponseDto } from '@commerce/inventory-items/dto/response/created-inventory-item-response.dto';
+import type { CreatedInventoryItemStorageTypeResponseDto } from '@commerce/inventory-items/dto/response/created-inventory-item-storage-type-response.dto';
 import type { InventoryItemMrpResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-response.dto';
 import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-mrp-table-response.dto';
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
@@ -32,7 +34,7 @@ export class InventoryItemsGatewayService {
   ) {}
 
   // Creates a new org inventory item
-  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<InventoryItemResponseDto>> {
+  async create(dto: CreateInventoryItemDto): Promise<CreateResponseDto<CreatedInventoryItemResponseDto>> {
     this.logger.log(`org.inventoryItems.create — name: ${dto.name}, sku: ${dto.sku}`);
     return this.nats.send('commerce', 'org.inventoryItems.create', dto);
   }
@@ -56,7 +58,7 @@ export class InventoryItemsGatewayService {
   createStorageType(
     inventoryItemId: string,
     dto: CreateInventoryItemStorageTypeDto,
-  ): Promise<CreateResponseDto<InventoryItemStorageTypeResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedInventoryItemStorageTypeResponseDto>> {
     this.logger.log(
       `org.inventoryItems.storageTypes.create — inventoryItemId: ${inventoryItemId}, storageTypeId: ${dto.storageTypeId}`,
     );

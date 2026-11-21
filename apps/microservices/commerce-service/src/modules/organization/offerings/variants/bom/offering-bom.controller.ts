@@ -1,7 +1,6 @@
 import type { VariantBomDto } from '@domain/offering-bom/dto/entity/variant-bom.dto';
 import { AddBomLineDto, UpdateBomLineDto } from '@domain/offering-bom/dto/request/bom-line.dto';
 import { OfferingBomDomainService } from '@domain/offering-bom/services/offering-bom.service';
-import type { OfferingVariantDto } from '@domain/offering-variants/dto/entity/offering-variant.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -19,7 +18,9 @@ export class OrgOfferingBomController {
 
   // Creates the inventory item this variant resolves to and links it as the variant's component
   @MessagePattern({ cmd: 'org.offerings.variants.createInventoryItem' })
-  createInventoryItem(@Payload() dto: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
+  createInventoryItem(
+    @Payload() dto: CreateVariantInventoryItemDto,
+  ): Promise<CreateResponseDto<{ inventoryItemId: string; sku: string }>> {
     this.logger.log(`offerings.variants.createInventoryItem — variantId: ${dto.variantId}`);
     return this.orgService.createInventoryItem(dto);
   }

@@ -1,6 +1,7 @@
 import { CreateLocationDto } from '@commerce/locations/dto/request/create-location.dto';
 import { ReorderLocationsDto } from '@commerce/locations/dto/request/reorder-locations.dto';
 import { UpdateLocationDto } from '@commerce/locations/dto/request/update-location.dto';
+import type { CreatedLocationResponseDto } from '@commerce/locations/dto/response/created-location-response.dto';
 import type { LocationChildrenTableResponseDto } from '@commerce/locations/dto/response/location-children-table-response.dto';
 import type { LocationCountResponseDto } from '@commerce/locations/dto/response/location-count-response.dto';
 import type { LocationItemQuantResponseDto } from '@commerce/locations/dto/response/location-item-quant-response.dto';
@@ -44,7 +45,7 @@ export class LocationsGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(SITE_LOCATIONS.add)
-  async create(@Body() dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
+  async create(@Body() dto: CreateLocationDto): Promise<CreateResponseDto<CreatedLocationResponseDto>> {
     this.logger.log('POST /commerce-api/site/locations');
     return this.locationsGatewayService.create(dto);
   }

@@ -1,5 +1,6 @@
 import type { CreatePosTerminalDto } from '@commerce/pos-terminals/dto/request/create-pos-terminal.dto';
 import type { UpdatePosTerminalDto } from '@commerce/pos-terminals/dto/request/update-pos-terminal.dto';
+import type { CreatedPosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/created-pos-terminal-response.dto';
 import type { PosTerminalResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-response.dto';
 import type { PosTerminalTableResponseDto } from '@commerce/pos-terminals/dto/response/pos-terminal-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
@@ -18,7 +19,7 @@ export class PosTerminalsGatewayService {
   ) {}
 
   // Creates a new POS terminal
-  create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<PosTerminalResponseDto>> {
+  create(dto: CreatePosTerminalDto): Promise<CreateResponseDto<CreatedPosTerminalResponseDto>> {
     this.logger.log(`posTerminals.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'site.posTerminals.create', dto);
   }

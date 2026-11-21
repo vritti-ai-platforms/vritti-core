@@ -1,4 +1,3 @@
-import type { PurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/entity/purchase-allocation.dto';
 import { CreatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocation.dto';
 import { CreatePurchaseAllocationsFromQuotationDto } from '@domain/purchase-item-allocations/dto/request/create-purchase-allocations-from-quotation.dto';
 import { UpdatePurchaseAllocationDto } from '@domain/purchase-item-allocations/dto/request/update-purchase-allocation.dto';
@@ -15,7 +14,7 @@ export class PurchasesAllocationsController {
 
   // Allocates part of a purchase item to a supplier, opening its leg on the first allocation
   @MessagePattern({ cmd: 'site.purchases.allocations.create' })
-  create(@Payload() dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<PurchaseAllocationDto>> {
+  create(@Payload() dto: CreatePurchaseAllocationDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(
       `site.purchases.allocations.create — id: ${dto.id}, item: ${dto.purchaseItemId}, supplier: ${dto.supplierId}`,
     );

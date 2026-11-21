@@ -1,6 +1,5 @@
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { OfferingBomDomainService } from '@domain/offering-bom/services/offering-bom.service';
-import type { OfferingVariantDto } from '@domain/offering-variants/dto/entity/offering-variant.dto';
 import { OfferingVariantsDomainService } from '@domain/offering-variants/services/offering-variants.service';
 import { OfferingsDomainService } from '@domain/offerings/services/offerings.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -23,7 +22,9 @@ export class OrgOfferingBomService {
 
   // Creates the inventory item a STOCK variant resolves to, taking its SKU from the variant's code and its tax class
   // from the variant (same goods, same class), and links it as that variant's single bill-of-materials line.
-  async createInventoryItem(data: CreateVariantInventoryItemDto): Promise<CreateResponseDto<OfferingVariantDto>> {
+  async createInventoryItem(
+    data: CreateVariantInventoryItemDto,
+  ): Promise<CreateResponseDto<{ inventoryItemId: string; sku: string }>> {
     const variant = await this.variants.findById(data.variantId);
 
     if (await this.bom.findItemBySku(variant.code)) {
@@ -63,7 +64,7 @@ export class OrgOfferingBomService {
     return {
       success: true,
       message: `"${variant.code}" created and linked as this variant's component.`,
-      data: await this.variants.findById(variant.id),
+      data: { inventoryItemId: created.data.id, sku: created.data.sku },
     };
   }
 }

@@ -6,6 +6,7 @@ import { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request
 import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
+import type { CreatedGoodsReceiptResponseDto } from '@commerce/goods-receipts/dto/response/created-goods-receipt-response.dto';
 import type { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
@@ -77,7 +78,7 @@ export class LeGoodsReceiptsGatewayController {
   @ApiCreateFromDelivery()
   createFromDelivery(
     @Body() dto: CreateGoodsReceiptFromDeliveryDto,
-  ): Promise<CreateResponseDto<GoodsReceiptResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedGoodsReceiptResponseDto>> {
     this.logger.log('POST /commerce-api/le/goods-receipts/from-delivery');
     return this.service.createFromDelivery(dto);
   }

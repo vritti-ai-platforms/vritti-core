@@ -1,4 +1,3 @@
-import type { PurchaseItemDto } from '@domain/purchase-items/dto/entity/purchase-item.dto';
 import type { PurchaseItemFacets } from '@domain/purchase-items/dto/entity/purchase-item-table-row.dto';
 import { CreatePurchaseItemDto } from '@domain/purchase-items/dto/request/create-purchase-item.dto';
 import { UpdatePurchaseItemDto } from '@domain/purchase-items/dto/request/update-purchase-item.dto';
@@ -29,7 +28,7 @@ export class LePurchasesItemsController {
 
   // Adds a purchase item, refusing an item the purchase already has
   @MessagePattern({ cmd: 'le.purchases.items.create' })
-  create(@Payload() dto: CreatePurchaseItemDto): Promise<CreateResponseDto<PurchaseItemDto>> {
+  create(@Payload() dto: CreatePurchaseItemDto): Promise<CreateResponseDto<{ id: string }>> {
     this.logger.log(`le.purchases.items.create — id: ${dto.id}, item: ${dto.inventoryItemId}`);
     return this.service.create(dto);
   }

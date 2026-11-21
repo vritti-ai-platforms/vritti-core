@@ -3,10 +3,10 @@ import type { ChartQueryOptions } from '@vritti/quantum-ui/Chart';
 import type { SuccessResponse, TableResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
+  CreatedSupplierEnrollment,
   CreateSupplierEnrollmentPayload,
   EnrollmentPurchasing,
   SetSupplierEnrollmentActiveVars,
-  SupplierEnrollment,
   SupplierEnrollmentCounts,
   SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
@@ -82,8 +82,8 @@ export type UseEnrollmentCounts = (key: SupplierEnrollmentKey) => {
 };
 export type UseSupplierParty = (supplierId: string | undefined) => SupplierParty | undefined;
 export type UseCreateEnrollment = (
-  options?: MutationOptions<SupplierEnrollment, CreateSupplierEnrollmentPayload>,
-) => MutationResult<SupplierEnrollment, CreateSupplierEnrollmentPayload>;
+  options?: MutationOptions<CreatedSupplierEnrollment, CreateSupplierEnrollmentPayload>,
+) => MutationResult<CreatedSupplierEnrollment, CreateSupplierEnrollmentPayload>;
 export type UseUpdateEnrollment = (
   options?: MutationOptions<SuccessResponse, UpdateSupplierEnrollmentVars>,
 ) => MutationResult<SuccessResponse, UpdateSupplierEnrollmentVars>;

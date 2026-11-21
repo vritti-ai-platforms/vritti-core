@@ -116,7 +116,7 @@ export class PurchaseOrderItemsDomainService {
     po: PurchaseOrderLinesContext,
     dto: AddPurchaseOrderItemDto,
     line: NewPurchaseOrderLine,
-  ): Promise<void> {
+  ): Promise<PurchaseOrderItem> {
     this.assertLinesEditable(po);
     this.assertDeliveryNotBeforeOrder(po, line.expectedDeliveryDate);
     await this.assertNotOnPurchaseOrder(po.id, line);
@@ -133,7 +133,7 @@ export class PurchaseOrderItemsDomainService {
           this.conversionRateOrThrow(po, quotedCurrency, line.supplierCurrencies),
         );
 
-    await this.repository.create({
+    const created = await this.repository.create({
       purchaseOrderId: po.id,
       inventoryItemId: line.inventoryItemId,
       expectedDeliveryDate: line.expectedDeliveryDate,
@@ -149,6 +149,7 @@ export class PurchaseOrderItemsDomainService {
       ...this.schemeColumns(line.scheme, dto.uomQty, line.primaryUomQty),
     });
     this.logger.log(`Added item ${line.inventoryItemId} to PO ${po.poNumber}`);
+    return created;
   }
 
   // Adds a purchase's lines to its new PO, each priced in the PO currency from the allocation it comes from (in minor

@@ -37,6 +37,11 @@ export interface SupplierEnrollmentPicks {
 }
 
 // One enrollment with its picks resolved; payment term and ordering email and phone are always set
+// What enrolling a supplier returns
+export interface CreatedSupplierEnrollment {
+  id: string;
+}
+
 export interface SupplierEnrollment extends SupplierEnrollmentKey {
   id: string;
   paymentTermId: string;

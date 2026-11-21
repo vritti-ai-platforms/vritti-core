@@ -3,9 +3,9 @@ import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/d
 import { SupplierEnrollmentSiteParamsDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-site-params.dto';
 import { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { CreatedSupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/created-supplier-enrollment-response.dto';
 import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
-import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import { AddSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/add-supplier-site-item.dto';
 import { BulkSetSupplierSiteItemPreferredDto } from '@commerce/supplier-items/dto/request/bulk-set-supplier-site-item-preferred.dto';
@@ -28,6 +28,7 @@ import { SetSupplierPaymentBlockedDto } from '@commerce/suppliers/dto/request/se
 import { SetSupplierPurchasingBlockedDto } from '@commerce/suppliers/dto/request/set-supplier-purchasing-blocked.dto';
 import { UpdateSupplierDto } from '@commerce/suppliers/dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from '@commerce/suppliers/dto/request/update-supplier-item.dto';
+import type { CreatedSupplierResponseDto } from '@commerce/suppliers/dto/response/created-supplier-response.dto';
 import type { SupplierCountsResponseDto } from '@commerce/suppliers/dto/response/supplier-counts-response.dto';
 import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
@@ -66,7 +67,7 @@ export class SuppliersGatewayController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @RequirePermission(LE_SUPPLIERS.add)
-  create(@Body() dto: CreateSupplierDto): Promise<CreateResponseDto<SupplierResponseDto>> {
+  create(@Body() dto: CreateSupplierDto): Promise<CreateResponseDto<CreatedSupplierResponseDto>> {
     this.logger.log('POST /commerce-api/le/suppliers');
     return this.suppliersGatewayService.create(dto);
   }
@@ -78,7 +79,7 @@ export class SuppliersGatewayController {
   createEnrollment(
     @Param('id') supplierId: string,
     @Body() dto: CreateSupplierEnrollmentDto,
-  ): Promise<CreateResponseDto<SupplierEnrollmentResponseDto>> {
+  ): Promise<CreateResponseDto<CreatedSupplierEnrollmentResponseDto>> {
     this.logger.log(`POST /commerce-api/le/suppliers/${supplierId}/enrollments`);
     return this.suppliersGatewayService.createEnrollment(supplierId, dto);
   }

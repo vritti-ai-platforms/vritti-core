@@ -1,4 +1,3 @@
-import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
 import type { SupplierEnrollmentCountsDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-counts.dto';
 import type { SupplierEnrollmentDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-detail.dto';
 import type { SupplierEnrollmentRowDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-row.dto';
@@ -21,7 +20,7 @@ export class SiteSuppliersService {
   ) {}
 
   // Enrolls a supplier at the caller's site
-  create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<SupplierEnrollmentDto>> {
+  create(dto: CreateSupplierEnrollmentDto): Promise<CreateResponseDto<{ id: string }>> {
     return this.supplierEnrollmentsService.create(dto);
   }
 

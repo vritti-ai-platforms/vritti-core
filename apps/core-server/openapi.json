@@ -9965,7 +9965,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OfferingVariantResponseDto"
+                  "$ref": "#/components/schemas/CreatedVariantInventoryItemResponseDto"
                 }
               }
             }
@@ -18869,7 +18869,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GoodsReceiptResponseDto"
+                  "$ref": "#/components/schemas/CreatedGoodsReceiptResponseDto"
                 }
               }
             }
@@ -26074,7 +26074,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PosTerminalResponseDto"
+                  "$ref": "#/components/schemas/CreatedPosTerminalResponseDto"
                 }
               }
             }
@@ -26509,7 +26509,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseOrderResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseOrderItemResponseDto"
                 }
               }
             }
@@ -27603,7 +27603,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseResponseDto"
                 }
               }
             }
@@ -27654,7 +27654,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseItemResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseItemResponseDto"
                 }
               }
             }
@@ -27762,7 +27762,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseAllocationResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseAllocationResponseDto"
                 }
               }
             }
@@ -33950,7 +33950,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseOrderResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseOrderItemResponseDto"
                 }
               }
             }
@@ -35044,7 +35044,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseResponseDto"
                 }
               }
             }
@@ -35098,7 +35098,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseItemResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseItemResponseDto"
                 }
               }
             }
@@ -35206,7 +35206,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PurchaseAllocationResponseDto"
+                  "$ref": "#/components/schemas/CreatedPurchaseAllocationResponseDto"
                 }
               }
             }
@@ -65174,6 +65174,23 @@
           "uomId"
         ]
       },
+      "CreatedVariantInventoryItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemId": {
+            "type": "string",
+            "description": "The inventory item created as the variant's component"
+          },
+          "sku": {
+            "type": "string",
+            "description": "Its SKU — the variant's code"
+          }
+        },
+        "required": [
+          "inventoryItemId",
+          "sku"
+        ]
+      },
       "AddBomLineDto": {
         "type": "object",
         "properties": {
@@ -67669,150 +67686,21 @@
           "receivedDate"
         ]
       },
-      "GoodsReceiptResponseDto": {
+      "CreatedGoodsReceiptResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Goods receipt ID"
+            "description": "The new draft goods receipt"
           },
           "grNumber": {
             "type": "string",
-            "description": "GR number",
-            "example": "GR-202611-0001"
-          },
-          "legalEntityId": {
-            "type": "string",
-            "description": "Legal entity the receipt belongs to"
-          },
-          "siteId": {
-            "type": "string",
-            "description": "Site the goods were received at — the site of every purchase order on it"
-          },
-          "supplierId": {
-            "type": "string",
-            "description": "Supplier the goods arrived from"
-          },
-          "supplierName": {
-            "type": "string",
-            "description": "Supplier name"
-          },
-          "purchaseId": {
-            "type": "string",
-            "description": "Purchase that created the receipt",
-            "nullable": true
-          },
-          "purchaseNumber": {
-            "type": "string",
-            "description": "Number of that purchase",
-            "nullable": true
-          },
-          "receiveWithInvoiceInvoiceId": {
-            "type": "string",
-            "description": "Supplier invoice of the Receive with Invoice the receipt belongs to; it is edited only through that invoice",
-            "nullable": true
-          },
-          "status": {
-            "type": "string",
-            "description": "Receipt status",
-            "enum": [
-              "DRAFT",
-              "POSTED"
-            ]
-          },
-          "isPostable": {
-            "type": "boolean",
-            "description": "True for a draft whose every item is fully distributed to balanced lines — the Post gate"
-          },
-          "itemCount": {
-            "type": "number",
-            "description": "Number of items counted on the receipt"
-          },
-          "inboundDeliveryId": {
-            "type": "string",
-            "description": "Inbound delivery the goods arrived on"
-          },
-          "deliveryNumber": {
-            "type": "string",
-            "description": "Number of the inbound delivery",
-            "example": "IBD-202611-0001"
-          },
-          "deliverySource": {
-            "type": "string",
-            "description": "Source of the delivery received: ANNOUNCED for every manual receipt; GOODS_RECEIPT or SUPPLIER_INVOICE when a Purchase created it",
-            "enum": [
-              "ANNOUNCED",
-              "GOODS_RECEIPT",
-              "SUPPLIER_INVOICE"
-            ]
-          },
-          "carrier": {
-            "type": "object",
-            "description": "Carrier of the inbound delivery",
-            "nullable": true
-          },
-          "trackingNumber": {
-            "type": "object",
-            "description": "Tracking number of the inbound delivery",
-            "nullable": true
-          },
-          "supplierDeliveryNoteNumber": {
-            "type": "object",
-            "description": "Number on the supplier's delivery note (challan), from the inbound delivery",
-            "nullable": true
-          },
-          "supplierDeliveryNoteDate": {
-            "type": "object",
-            "description": "Date on the supplier's delivery note (YYYY-MM-DD), from the inbound delivery",
-            "nullable": true
-          },
-          "poNumbers": {
-            "description": "Numbers of the purchase orders whose lines the receipt counts, sorted",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "expectedDeliveryDate": {
-            "type": "object",
-            "description": "Latest expected delivery date (YYYY-MM-DD) of the receipt's purchase order lines",
-            "nullable": true
-          },
-          "receivedDate": {
-            "type": "string",
-            "description": "Date the goods were received"
-          },
-          "notes": {
-            "type": "object",
-            "description": "Notes",
-            "nullable": true
-          },
-          "postedAt": {
-            "type": "object",
-            "description": "ISO timestamp of posting",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "ISO timestamp of creation"
+            "description": "Its number"
           }
         },
         "required": [
           "id",
-          "grNumber",
-          "legalEntityId",
-          "siteId",
-          "supplierId",
-          "supplierName",
-          "status",
-          "isPostable",
-          "itemCount",
-          "inboundDeliveryId",
-          "deliveryNumber",
-          "deliverySource",
-          "poNumbers",
-          "receivedDate",
-          "createdAt"
+          "grNumber"
         ]
       },
       "AddGoodsReceiptLotDto": {
@@ -68097,6 +67985,152 @@
             "description": "Line quantity"
           }
         }
+      },
+      "GoodsReceiptResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Goods receipt ID"
+          },
+          "grNumber": {
+            "type": "string",
+            "description": "GR number",
+            "example": "GR-202611-0001"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "description": "Legal entity the receipt belongs to"
+          },
+          "siteId": {
+            "type": "string",
+            "description": "Site the goods were received at — the site of every purchase order on it"
+          },
+          "supplierId": {
+            "type": "string",
+            "description": "Supplier the goods arrived from"
+          },
+          "supplierName": {
+            "type": "string",
+            "description": "Supplier name"
+          },
+          "purchaseId": {
+            "type": "string",
+            "description": "Purchase that created the receipt",
+            "nullable": true
+          },
+          "purchaseNumber": {
+            "type": "string",
+            "description": "Number of that purchase",
+            "nullable": true
+          },
+          "receiveWithInvoiceInvoiceId": {
+            "type": "string",
+            "description": "Supplier invoice of the Receive with Invoice the receipt belongs to; it is edited only through that invoice",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "Receipt status",
+            "enum": [
+              "DRAFT",
+              "POSTED"
+            ]
+          },
+          "isPostable": {
+            "type": "boolean",
+            "description": "True for a draft whose every item is fully distributed to balanced lines — the Post gate"
+          },
+          "itemCount": {
+            "type": "number",
+            "description": "Number of items counted on the receipt"
+          },
+          "inboundDeliveryId": {
+            "type": "string",
+            "description": "Inbound delivery the goods arrived on"
+          },
+          "deliveryNumber": {
+            "type": "string",
+            "description": "Number of the inbound delivery",
+            "example": "IBD-202611-0001"
+          },
+          "deliverySource": {
+            "type": "string",
+            "description": "Source of the delivery received: ANNOUNCED for every manual receipt; GOODS_RECEIPT or SUPPLIER_INVOICE when a Purchase created it",
+            "enum": [
+              "ANNOUNCED",
+              "GOODS_RECEIPT",
+              "SUPPLIER_INVOICE"
+            ]
+          },
+          "carrier": {
+            "type": "object",
+            "description": "Carrier of the inbound delivery",
+            "nullable": true
+          },
+          "trackingNumber": {
+            "type": "object",
+            "description": "Tracking number of the inbound delivery",
+            "nullable": true
+          },
+          "supplierDeliveryNoteNumber": {
+            "type": "object",
+            "description": "Number on the supplier's delivery note (challan), from the inbound delivery",
+            "nullable": true
+          },
+          "supplierDeliveryNoteDate": {
+            "type": "object",
+            "description": "Date on the supplier's delivery note (YYYY-MM-DD), from the inbound delivery",
+            "nullable": true
+          },
+          "poNumbers": {
+            "description": "Numbers of the purchase orders whose lines the receipt counts, sorted",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expectedDeliveryDate": {
+            "type": "object",
+            "description": "Latest expected delivery date (YYYY-MM-DD) of the receipt's purchase order lines",
+            "nullable": true
+          },
+          "receivedDate": {
+            "type": "string",
+            "description": "Date the goods were received"
+          },
+          "notes": {
+            "type": "object",
+            "description": "Notes",
+            "nullable": true
+          },
+          "postedAt": {
+            "type": "object",
+            "description": "ISO timestamp of posting",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO timestamp of creation"
+          }
+        },
+        "required": [
+          "id",
+          "grNumber",
+          "legalEntityId",
+          "siteId",
+          "supplierId",
+          "supplierName",
+          "status",
+          "isPostable",
+          "itemCount",
+          "inboundDeliveryId",
+          "deliveryNumber",
+          "deliverySource",
+          "poNumbers",
+          "receivedDate",
+          "createdAt"
+        ]
       },
       "GoodsReceiptTableResponseDto": {
         "type": "object",
@@ -71199,6 +71233,55 @@
           "locationId"
         ]
       },
+      "CreatedPosTerminalResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The new POS terminal"
+          },
+          "code": {
+            "type": "string",
+            "description": "Its code"
+          }
+        },
+        "required": [
+          "id",
+          "code"
+        ]
+      },
+      "UpdatePosTerminalDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "POS terminal name",
+            "example": "Counter 1"
+          },
+          "code": {
+            "type": "string",
+            "description": "POS terminal code",
+            "example": "POS-CTR-1"
+          },
+          "locationId": {
+            "type": "string",
+            "description": "Linked POS storage location ID"
+          },
+          "catalogId": {
+            "type": "string",
+            "description": "Catalog this terminal quotes from"
+          },
+          "description": {
+            "type": "object",
+            "description": "Terminal description",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the terminal is active"
+          }
+        }
+      },
       "PosTerminalResponseDto": {
         "type": "object",
         "properties": {
@@ -71272,38 +71355,6 @@
           "createdAt",
           "updatedAt"
         ]
-      },
-      "UpdatePosTerminalDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "POS terminal name",
-            "example": "Counter 1"
-          },
-          "code": {
-            "type": "string",
-            "description": "POS terminal code",
-            "example": "POS-CTR-1"
-          },
-          "locationId": {
-            "type": "string",
-            "description": "Linked POS storage location ID"
-          },
-          "catalogId": {
-            "type": "string",
-            "description": "Catalog this terminal quotes from"
-          },
-          "description": {
-            "type": "object",
-            "description": "Terminal description",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Whether the terminal is active"
-          }
-        }
       },
       "PosTerminalTableResponseDto": {
         "type": "object",
@@ -71577,6 +71628,18 @@
           "uomId",
           "uomQty",
           "unitPrice"
+        ]
+      },
+      "CreatedPurchaseOrderItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The new purchase order line"
+          }
+        },
+        "required": [
+          "id"
         ]
       },
       "UpdatePurchaseOrderItemDto": {
@@ -72645,87 +72708,22 @@
           "quotationsRequired"
         ]
       },
-      "PurchaseResponseDto": {
+      "CreatedPurchaseResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Purchase ID"
+            "description": "The new purchase"
           },
           "purchaseNumber": {
             "type": "string",
-            "description": "Purchase number",
-            "example": "PUR-202611-0001"
-          },
-          "status": {
-            "type": "string",
-            "description": "Purchase status",
-            "enum": [
-              "OPEN",
-              "COMPLETED",
-              "CANCELLED"
-            ]
-          },
-          "siteId": {
-            "type": "string",
-            "description": "Site the purchase is for"
-          },
-          "legalEntityId": {
-            "type": "string",
-            "description": "Legal entity the purchase belongs to"
-          },
-          "quotationsRequired": {
-            "type": "boolean",
-            "description": "Whether an item needs posted quotations before a supplier of it is submitted"
-          },
-          "minQuotations": {
-            "type": "number",
-            "description": "Suppliers that must have posted a quotation for an item"
-          },
-          "notes": {
-            "type": "string",
-            "description": "Notes",
-            "nullable": true
-          },
-          "submittedAt": {
-            "type": "string",
-            "description": "When a supplier was first submitted",
-            "nullable": true
-          },
-          "completedAt": {
-            "type": "string",
-            "description": "When every leg closed",
-            "nullable": true
-          },
-          "cancelledAt": {
-            "type": "string",
-            "description": "When the purchase was cancelled",
-            "nullable": true
-          },
-          "cancelReason": {
-            "type": "string",
-            "description": "Why the purchase was cancelled",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "description": "Created at"
-          },
-          "updatedAt": {
-            "type": "string",
-            "description": "Updated at"
+            "description": "Its number, e.g. PUR-202611-0042",
+            "example": "PUR-202611-0042"
           }
         },
         "required": [
           "id",
-          "purchaseNumber",
-          "status",
-          "siteId",
-          "legalEntityId",
-          "quotationsRequired",
-          "minQuotations",
-          "createdAt",
-          "updatedAt"
+          "purchaseNumber"
         ]
       },
       "CreatePurchaseItemDto": {
@@ -72756,69 +72754,16 @@
           "primaryQty"
         ]
       },
-      "PurchaseItemResponseDto": {
+      "CreatedPurchaseItemResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Purchase item ID"
-          },
-          "inventoryItemId": {
-            "type": "string",
-            "description": "Inventory item ID"
-          },
-          "inventoryItemName": {
-            "type": "string",
-            "description": "Inventory item name"
-          },
-          "inventoryItemCode": {
-            "type": "string",
-            "description": "Inventory item code"
-          },
-          "primaryUomSymbol": {
-            "type": "string",
-            "description": "Symbol of the item's primary unit"
-          },
-          "primaryQty": {
-            "type": "number",
-            "description": "Quantity needed, in the item's primary unit"
-          },
-          "allocatedPrimaryQty": {
-            "type": "number",
-            "description": "Quantity allocated to suppliers, in the item's primary unit"
-          },
-          "source": {
-            "type": "string",
-            "description": "Where the item came from",
-            "enum": [
-              "MANUAL"
-            ]
-          },
-          "sourceId": {
-            "type": "string",
-            "description": "Record the item came from",
-            "nullable": true
-          },
-          "neededBy": {
-            "type": "string",
-            "description": "Date the item is needed by (YYYY-MM-DD)",
-            "nullable": true
-          },
-          "notes": {
-            "type": "string",
-            "description": "Notes",
-            "nullable": true
+            "description": "The new purchase item"
           }
         },
         "required": [
-          "id",
-          "inventoryItemId",
-          "inventoryItemName",
-          "inventoryItemCode",
-          "primaryUomSymbol",
-          "primaryQty",
-          "allocatedPrimaryQty",
-          "source"
+          "id"
         ]
       },
       "RequestPurchaseQuotationDto": {
@@ -72889,110 +72834,16 @@
           "uomQty"
         ]
       },
-      "PurchaseAllocationResponseDto": {
+      "CreatedPurchaseAllocationResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Allocation ID"
-          },
-          "purchaseItemId": {
-            "type": "string",
-            "description": "Item the allocation sources"
-          },
-          "purchaseSupplierId": {
-            "type": "string",
-            "description": "Leg the allocation belongs to"
-          },
-          "inventoryItemName": {
-            "type": "string",
-            "description": "Inventory item name"
-          },
-          "supplierQuotationItemId": {
-            "type": "string",
-            "description": "Quotation line the allocation came from",
-            "nullable": true
-          },
-          "quotationNumber": {
-            "type": "string",
-            "description": "Number of that quotation",
-            "nullable": true
-          },
-          "uomId": {
-            "type": "string",
-            "description": "Unit the quantity is bought in"
-          },
-          "uomSymbol": {
-            "type": "string",
-            "description": "Symbol of that unit"
-          },
-          "uomQty": {
-            "type": "number",
-            "description": "Quantity in that unit"
-          },
-          "primaryUomQty": {
-            "type": "number",
-            "description": "Quantity in the item's primary unit"
-          },
-          "unitPrice": {
-            "description": "Price per unit; zero when unpriced, which only the direct purchase types allow",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CurrencyAmountDto"
-              }
-            ]
-          },
-          "isPriced": {
-            "type": "boolean",
-            "description": "Whether the allocation has a price"
-          },
-          "schemeBuyQty": {
-            "type": "number",
-            "description": "Free-goods scheme buy qty",
-            "nullable": true
-          },
-          "schemeFreeQty": {
-            "type": "number",
-            "description": "Free-goods scheme free qty",
-            "nullable": true
-          },
-          "hasScheme": {
-            "type": "boolean",
-            "description": "Whether a free-goods scheme applies"
-          },
-          "freePrimaryQty": {
-            "type": "number",
-            "description": "Free quantity the scheme gives, in the item's primary unit"
-          },
-          "purchaseOrderItemId": {
-            "type": "string",
-            "description": "Purchase order line ordering it",
-            "nullable": true
-          },
-          "purchaseOrderId": {
-            "type": "string",
-            "description": "Purchase order of that line",
-            "nullable": true
-          },
-          "openForInboundDeliveryQty": {
-            "type": "number",
-            "description": "Confirmed order line quantity not yet on a non-cancelled delivery, in the allocation's unit"
+            "description": "The new allocation"
           }
         },
         "required": [
-          "id",
-          "purchaseItemId",
-          "purchaseSupplierId",
-          "inventoryItemName",
-          "uomId",
-          "uomSymbol",
-          "uomQty",
-          "primaryUomQty",
-          "unitPrice",
-          "isPriced",
-          "hasScheme",
-          "freePrimaryQty",
-          "openForInboundDeliveryQty"
+          "id"
         ]
       },
       "CreatePurchaseAllocationsFromQuotationDto": {
@@ -74134,6 +73985,112 @@
         "required": [
           "reason",
           "at"
+        ]
+      },
+      "PurchaseAllocationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Allocation ID"
+          },
+          "purchaseItemId": {
+            "type": "string",
+            "description": "Item the allocation sources"
+          },
+          "purchaseSupplierId": {
+            "type": "string",
+            "description": "Leg the allocation belongs to"
+          },
+          "inventoryItemName": {
+            "type": "string",
+            "description": "Inventory item name"
+          },
+          "supplierQuotationItemId": {
+            "type": "string",
+            "description": "Quotation line the allocation came from",
+            "nullable": true
+          },
+          "quotationNumber": {
+            "type": "string",
+            "description": "Number of that quotation",
+            "nullable": true
+          },
+          "uomId": {
+            "type": "string",
+            "description": "Unit the quantity is bought in"
+          },
+          "uomSymbol": {
+            "type": "string",
+            "description": "Symbol of that unit"
+          },
+          "uomQty": {
+            "type": "number",
+            "description": "Quantity in that unit"
+          },
+          "primaryUomQty": {
+            "type": "number",
+            "description": "Quantity in the item's primary unit"
+          },
+          "unitPrice": {
+            "description": "Price per unit; zero when unpriced, which only the direct purchase types allow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CurrencyAmountDto"
+              }
+            ]
+          },
+          "isPriced": {
+            "type": "boolean",
+            "description": "Whether the allocation has a price"
+          },
+          "schemeBuyQty": {
+            "type": "number",
+            "description": "Free-goods scheme buy qty",
+            "nullable": true
+          },
+          "schemeFreeQty": {
+            "type": "number",
+            "description": "Free-goods scheme free qty",
+            "nullable": true
+          },
+          "hasScheme": {
+            "type": "boolean",
+            "description": "Whether a free-goods scheme applies"
+          },
+          "freePrimaryQty": {
+            "type": "number",
+            "description": "Free quantity the scheme gives, in the item's primary unit"
+          },
+          "purchaseOrderItemId": {
+            "type": "string",
+            "description": "Purchase order line ordering it",
+            "nullable": true
+          },
+          "purchaseOrderId": {
+            "type": "string",
+            "description": "Purchase order of that line",
+            "nullable": true
+          },
+          "openForInboundDeliveryQty": {
+            "type": "number",
+            "description": "Confirmed order line quantity not yet on a non-cancelled delivery, in the allocation's unit"
+          }
+        },
+        "required": [
+          "id",
+          "purchaseItemId",
+          "purchaseSupplierId",
+          "inventoryItemName",
+          "uomId",
+          "uomSymbol",
+          "uomQty",
+          "primaryUomQty",
+          "unitPrice",
+          "isPriced",
+          "hasScheme",
+          "freePrimaryQty",
+          "openForInboundDeliveryQty"
         ]
       },
       "PurchaseLegPurchaseOrderResponseDto": {

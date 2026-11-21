@@ -57,7 +57,7 @@ export class LocationsDomainService {
   ) {}
 
   // Creates a new storage location
-  async create(data: CreateLocationDto): Promise<CreateResponseDto<LocationDto>> {
+  async create(data: CreateLocationDto): Promise<CreateResponseDto<{ id: string; code: string }>> {
     if (data.parentId) {
       await this.assertNoCircularReference(null, data.parentId);
     }
@@ -104,17 +104,15 @@ export class LocationsDomainService {
 
       const path = LocationsDomainService.buildPath(parentPath, entity.code);
       await this.locationsRepository.update(entity.id, { path });
-      const fresh = await this.locationsRepository.findDetail(entity.id);
-      if (!fresh) throw new NotFoundException('Storage location not found.');
-      return { entity, fresh };
+      return entity;
     });
 
-    const { entity, fresh: createdRow } = created;
+    const entity = created;
     this.logger.log(`Created storage location: ${entity.name} (${entity.code})`);
     return {
       success: true,
       message: `Storage location "${entity.name}" (${entity.code}) created successfully.`,
-      data: LocationDto.from(createdRow),
+      data: { id: entity.id, code: entity.code },
     };
   }
 

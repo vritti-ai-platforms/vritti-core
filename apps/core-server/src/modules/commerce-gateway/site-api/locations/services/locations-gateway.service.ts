@@ -1,6 +1,7 @@
 import type { CreateLocationDto } from '@commerce/locations/dto/request/create-location.dto';
 import type { ReorderLocationsDto } from '@commerce/locations/dto/request/reorder-locations.dto';
 import type { UpdateLocationDto } from '@commerce/locations/dto/request/update-location.dto';
+import type { CreatedLocationResponseDto } from '@commerce/locations/dto/response/created-location-response.dto';
 import type { LocationChildrenTableResponseDto } from '@commerce/locations/dto/response/location-children-table-response.dto';
 import type { LocationCountResponseDto } from '@commerce/locations/dto/response/location-count-response.dto';
 import type { LocationItemQuantResponseDto } from '@commerce/locations/dto/response/location-item-quant-response.dto';
@@ -23,7 +24,7 @@ export class LocationsGatewayService {
   ) {}
 
   // Creates a new storage location
-  async create(dto: CreateLocationDto): Promise<CreateResponseDto<LocationResponseDto>> {
+  async create(dto: CreateLocationDto): Promise<CreateResponseDto<CreatedLocationResponseDto>> {
     this.logger.log(`locations.create — name: ${dto.name}, code: ${dto.code}`);
     return this.nats.send('commerce', 'site.locations.create', dto);
   }
