@@ -215,10 +215,15 @@ For dialogs triggered from a `DropdownMenu` item, use the `dialog` item type ins
 ```
 The DropdownMenu renders the Dialog outside its content so it survives the dropdown unmount.
 
-## Destructive Actions — use `useConfirm`, never inline confirm
-- ALWAYS use `useConfirm()` from `@vritti/quantum-ui/hooks` before destructive mutations (delete, revoke, reset)
+## Destructive Actions — confirm first, never inline confirm
+- ALWAYS confirm before destructive mutations (delete, revoke, reset)
 - Never use `window.confirm()` or roll a custom state-based confirm dialog
 - Make the message specific: include the resource name and what will be lost
+- **`RowActions` items and `DangerZone` take a `confirm` prop** — use it instead of a hand-written handler. `onClick`
+  runs only once the user accepts. `confirm: true` uses defaults (RowAction: "`<label>`?" with the action's label and
+  variant on the confirm button; DangerZone: the card's title, description and button text, destructive); an object
+  (`ConfirmOptions`: `title`, `description`, `confirmLabel`, `variant`, …) overrides any of them
+- Anywhere else (a plain `Button`, a menu item, a form action) use `useConfirm()` from `@vritti/quantum-ui/hooks`
 
 ```tsx
 // WRONG — no confirmation
@@ -227,7 +232,29 @@ onClick: () => deleteMutation.mutate(id)
 // WRONG — generic message
 description: 'Are you sure you want to delete this item? This action cannot be undone.'
 
-// CORRECT
+// CORRECT — a row action
+{
+  id: 'delete',
+  icon: Trash2,
+  label: 'Delete',
+  variant: 'destructive',
+  confirm: {
+    title: `Delete ${row.name}?`,
+    description: `${row.name} and all its associated data will be permanently removed. This action cannot be undone.`,
+  },
+  onClick: () => deleteMutation.mutate(row.id),
+}
+
+// CORRECT — a danger zone (its title, description and button text make the confirm)
+<DangerZone
+  title="Delete Supplier"
+  description={`${supplier.name} and its items will be permanently removed.`}
+  buttonText="Delete"
+  confirm
+  onClick={() => deleteMutation.mutate(supplier.id)}
+/>
+
+// CORRECT — any other button
 import { useConfirm } from '@vritti/quantum-ui/hooks';
 
 const confirm = useConfirm();
