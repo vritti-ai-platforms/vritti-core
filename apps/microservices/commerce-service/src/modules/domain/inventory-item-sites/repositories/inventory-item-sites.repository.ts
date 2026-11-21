@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, getColumns, inArray, notExists, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { BadRequestException, ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   currentSiteId,
@@ -14,6 +14,7 @@ import {
   inventoryItemSites,
   inventoryItems,
   itemStockAtSite,
+  type NewInventoryItemSite,
   PurchaseStatusValues,
   purchaseItems,
   purchases,
@@ -58,6 +59,45 @@ export type ItemSiteStockRow = InventoryItemSite & {
 export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<typeof inventoryItemSites> {
   constructor(database: PrimaryDatabaseService) {
     super(database, inventoryItemSites);
+  }
+
+  // Adds many items to a site in one insert; returns the rows written
+  createMany(rows: NewInventoryItemSite[]): Promise<InventoryItemSite[]> {
+    return this.db.insert(inventoryItemSites).values(rows).returning();
+  }
+
+  // Stops the named site, else the request's site, buying the given items it carries and has not blocked yet, with why;
+  // returns how many changed
+  async blockMany(inventoryItemIds: string[], reason: string, siteId?: string): Promise<number> {
+    const rows = await this.db
+      .update(inventoryItemSites)
+      .set({ status: SiteItemStatusValues.BLOCKED, blockedReason: reason, blockedAt: new Date() })
+      .where(
+        and(
+          inArray(inventoryItemSites.inventoryItemId, inventoryItemIds),
+          eq(inventoryItemSites.siteId, siteId ?? currentSiteId()),
+          eq(inventoryItemSites.status, SiteItemStatusValues.ACTIVE),
+        ),
+      )
+      .returning({ id: inventoryItemSites.id });
+    return rows.length;
+  }
+
+  // Lets the named site, else the request's site, buy the given items again where it has blocked them; returns how many
+  // changed
+  async unblockMany(inventoryItemIds: string[], siteId?: string): Promise<number> {
+    const rows = await this.db
+      .update(inventoryItemSites)
+      .set({ status: SiteItemStatusValues.ACTIVE, blockedReason: null, blockedAt: null })
+      .where(
+        and(
+          inArray(inventoryItemSites.inventoryItemId, inventoryItemIds),
+          eq(inventoryItemSites.siteId, siteId ?? currentSiteId()),
+          eq(inventoryItemSites.status, SiteItemStatusValues.BLOCKED),
+        ),
+      )
+      .returning({ id: inventoryItemSites.id });
+    return rows.length;
   }
 
   // Returns how the named site, else the request's site, carries the item, if it does
@@ -169,6 +209,24 @@ export class InventoryItemSitesDomainRepository extends PrimaryBaseRepository<ty
       ),
     });
     return rows.map((row) => row.inventoryItemId);
+  }
+
+  // Returns the given items that exist and the named site, else the request's site, does not carry yet
+  async findAddableItemIds(inventoryItemIds: string[], siteId?: string): Promise<string[]> {
+    const carried = this.db
+      .select({ id: inventoryItemSites.id })
+      .from(inventoryItemSites)
+      .where(
+        and(
+          eq(inventoryItemSites.inventoryItemId, inventoryItems.id),
+          eq(inventoryItemSites.siteId, siteId ?? currentSiteId()),
+        ),
+      );
+    const rows = await this.db
+      .select({ id: inventoryItems.id })
+      .from(inventoryItems)
+      .where(and(inArray(inventoryItems.id, inventoryItemIds), notExists(carried)));
+    return rows.map((row) => row.id);
   }
 
   // Returns the given items the site carries with buying them tied to the supplier's item set up there

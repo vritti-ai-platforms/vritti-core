@@ -136,3 +136,78 @@ describe('InventoryItemSitesDomainService.delete', () => {
     expect(repository.delete).not.toHaveBeenCalled();
   });
 });
+
+describe('InventoryItemSitesDomainService bulk actions', () => {
+  // A service over a repository that reports the given items as addable and unblocks the given number of rows
+  function serviceWith({ addable = [] as string[], blocked = 0, unblocked = 0 }) {
+    const repository = {
+      findAddableItemIds: jest.fn().mockResolvedValue(addable),
+      createMany: jest.fn().mockImplementation((rows: unknown[]) => Promise.resolve(rows)),
+      blockMany: jest.fn().mockResolvedValue(blocked),
+      unblockMany: jest.fn().mockResolvedValue(unblocked),
+    };
+    return {
+      service: new InventoryItemSitesDomainService(repository as unknown as InventoryItemSitesDomainRepository),
+      repository,
+    };
+  }
+
+  it('adds every selected item, each restocked manually', async () => {
+    const { service, repository } = serviceWith({ addable: ['a', 'b'] });
+    await expect(service.createMany({ inventoryItemIds: ['a', 'b', 'a'] })).resolves.toEqual({
+      success: true,
+      message: '2 items added to the site, restocked manually.',
+    });
+    expect(repository.findAddableItemIds).toHaveBeenCalledWith(['a', 'b'], undefined);
+    expect(repository.createMany).toHaveBeenCalledWith([
+      expect.objectContaining({ inventoryItemId: 'a', replenishment: 'MANUAL', reorderPoint: null, maxStock: null }),
+      expect.objectContaining({ inventoryItemId: 'b', replenishment: 'MANUAL', reorderPoint: null, maxStock: null }),
+    ]);
+  });
+
+  it('writes nothing while the site already carries any selected item', async () => {
+    const { service, repository } = serviceWith({ addable: ['b'] });
+    await expect(service.createMany({ inventoryItemIds: ['a', 'b'] })).rejects.toMatchObject({
+      response: expect.objectContaining({
+        label: 'Already Carried',
+        detail:
+          "1 selected item can't be added: the site already carries them or they no longer exist. Select only items it does not carry.",
+      }),
+    });
+    expect(repository.createMany).not.toHaveBeenCalled();
+  });
+
+  it('blocks the carried items still allowed, with the trimmed reason, and counts the rest as skipped', async () => {
+    const { service, repository } = serviceWith({ blocked: 2 });
+    await expect(
+      service.blockMany({ inventoryItemIds: ['a', 'b', 'c'], reason: '  Recalled batch ' }),
+    ).resolves.toEqual({
+      success: true,
+      message: 'Purchasing blocked for 2 items. Skipped 1 item not carried here or already blocked.',
+    });
+    expect(repository.blockMany).toHaveBeenCalledWith(['a', 'b', 'c'], 'Recalled batch', undefined);
+  });
+
+  it('refuses when none of the items can be blocked', async () => {
+    const { service } = serviceWith({ blocked: 0 });
+    await expect(service.blockMany({ inventoryItemIds: ['a'], reason: 'Recalled' })).rejects.toMatchObject({
+      response: expect.objectContaining({ label: 'Nothing to Block' }),
+    });
+  });
+
+  it('allows purchasing of the blocked items and counts the rest as skipped', async () => {
+    const { service, repository } = serviceWith({ unblocked: 1 });
+    await expect(service.unblockMany({ inventoryItemIds: ['a', 'b', 'a'] })).resolves.toEqual({
+      success: true,
+      message: 'Purchasing allowed for 1 item. Skipped 1 item not blocked here.',
+    });
+    expect(repository.unblockMany).toHaveBeenCalledWith(['a', 'b'], undefined);
+  });
+
+  it('refuses when none of the items is blocked', async () => {
+    const { service } = serviceWith({ unblocked: 0 });
+    await expect(service.unblockMany({ inventoryItemIds: ['a'] })).rejects.toMatchObject({
+      response: expect.objectContaining({ label: 'Not Blocked' }),
+    });
+  });
+});

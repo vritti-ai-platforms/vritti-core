@@ -1,4 +1,6 @@
 import type { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
+import type { BulkBlockSiteItemsDto } from '@commerce/inventory-item-sites/dto/request/bulk-block-site-items.dto';
+import type { BulkSiteItemsDto } from '@commerce/inventory-item-sites/dto/request/bulk-site-items.dto';
 import type { CreateSiteInventoryItemDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item.dto';
 import type { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
 import type { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
@@ -54,6 +56,14 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'site.inventoryItems.setup.create', { inventoryItemId, ...dto });
   }
 
+  // Adds the selected inventory items to the current site, each restocked manually; refused while it carries any
+  bulkAddToSite(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkCreate — ${dto.inventoryItemIds.length} selected`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.bulkCreate', {
+      inventoryItemIds: dto.inventoryItemIds,
+    });
+  }
+
   // Creates an item-location config; returns the created entity so the client inserts it into the cached feed.
   async createItemLocation(
     inventoryItemId: string,
@@ -105,10 +115,27 @@ export class SiteInventoryItemsGatewayService {
     return this.nats.send('commerce', 'site.inventoryItems.setup.block', { inventoryItemId, ...dto });
   }
 
+  // Stops the current site buying the selected inventory items, with one reason for all
+  bulkBlock(dto: BulkBlockSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkBlock — ${dto.inventoryItemIds.length} selected`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.bulkBlock', {
+      inventoryItemIds: dto.inventoryItemIds,
+      reason: dto.reason,
+    });
+  }
+
   // Lets the current site buy an inventory item again
   unblock(inventoryItemId: string): Promise<SuccessResponseDto> {
     this.logger.log(`site.inventoryItems.setup.unblock — inventoryItemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'site.inventoryItems.setup.unblock', { inventoryItemId });
+  }
+
+  // Lets the current site buy the selected inventory items again where it has blocked them
+  bulkUnblock(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkUnblock — ${dto.inventoryItemIds.length} selected`);
+    return this.nats.send('commerce', 'site.inventoryItems.setup.bulkUnblock', {
+      inventoryItemIds: dto.inventoryItemIds,
+    });
   }
 
   // Returns a single inventory item

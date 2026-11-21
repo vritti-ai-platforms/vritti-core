@@ -1,5 +1,7 @@
 import type { InventoryItemSiteDto } from '@domain/inventory-item-sites/dto/entity/inventory-item-site.dto';
 import { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block-site-item.dto';
+import { BulkBlockSiteItemsDto } from '@domain/inventory-item-sites/dto/request/bulk-block-site-items.dto';
+import { BulkSiteItemsDto } from '@domain/inventory-item-sites/dto/request/bulk-site-items.dto';
 import { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
@@ -26,6 +28,13 @@ export class InventoryItemsRootController {
     return this.rootService.addToSite(dto);
   }
 
+  // Adds the selected items to the current site, each restocked manually until its levels are set; refused while it carries any
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.bulkCreate' })
+  bulkAddToSite(@Payload() dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkCreate — ${dto.inventoryItemIds.length} selected`);
+    return this.rootService.bulkAddToSite(dto);
+  }
+
   // Changes how the current site replenishes an item
   @MessagePattern({ cmd: 'site.inventoryItems.setup.update' })
   updateReplenishment(@Payload() dto: ReplenishmentDto): Promise<SuccessResponseDto> {
@@ -40,11 +49,25 @@ export class InventoryItemsRootController {
     return this.rootService.block(dto);
   }
 
+  // Stops the current site buying the selected items, with one reason for all
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.bulkBlock' })
+  bulkBlock(@Payload() dto: BulkBlockSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkBlock — ${dto.inventoryItemIds.length} selected`);
+    return this.rootService.bulkBlock(dto);
+  }
+
   // Lets the current site buy an item again
   @MessagePattern({ cmd: 'site.inventoryItems.setup.unblock' })
   unblock(@Payload() dto: SiteItemRefDto): Promise<SuccessResponseDto> {
     this.logger.log(`site.inventoryItems.setup.unblock — inventoryItemId: ${dto.inventoryItemId}`);
     return this.rootService.unblock(dto.inventoryItemId);
+  }
+
+  // Lets the current site buy the selected items again where it has blocked them
+  @MessagePattern({ cmd: 'site.inventoryItems.setup.bulkUnblock' })
+  bulkUnblock(@Payload() dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`site.inventoryItems.setup.bulkUnblock — ${dto.inventoryItemIds.length} selected`);
+    return this.rootService.bulkUnblock(dto);
   }
 
   // Returns a single master inventory item by ID (shared detail)

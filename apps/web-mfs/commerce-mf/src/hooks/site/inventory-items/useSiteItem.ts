@@ -9,6 +9,9 @@ import type { BlockSiteItemFormData, InventoryItemSiteData, ReplenishmentPayload
 import {
   addToSite,
   blockSiteItem,
+  bulkAddToSite,
+  bulkBlockSiteItems,
+  bulkUnblockSiteItems,
   getSiteItem,
   removeFromSite,
   unblockSiteItem,
@@ -18,6 +21,7 @@ import { INVENTORY_ITEM_SETUP_KEY } from './keys';
 
 type ReplenishmentVariables = { inventoryItemId: string; data: ReplenishmentPayload };
 type BlockVariables = { inventoryItemId: string; data: BlockSiteItemFormData };
+type BulkBlockVariables = { inventoryItemIds: string[]; data: BlockSiteItemFormData };
 
 // Adds an item to the current site and invalidates the table and how the site carries it
 export function useAddToSite(
@@ -31,6 +35,22 @@ export function useAddToSite(
   return useMutation<CreateResponse<InventoryItemSiteData>, AxiosError, ReplenishmentVariables>({
     ...options,
     mutationFn: ({ inventoryItemId, data }) => addToSite(inventoryItemId, data),
+    onSuccess: (...args) => {
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+// Adds the selected items the current site does not carry yet and invalidates the table and how the site carries them
+export function useBulkAddToSite(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string[]>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<SuccessResponse, AxiosError, string[]>({
+    ...options,
+    mutationFn: bulkAddToSite,
     onSuccess: (...args) => {
       invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
@@ -70,6 +90,22 @@ export function useBlockSiteItem(
   });
 }
 
+// Stops the current site buying the selected items and invalidates the table and how the site carries them
+export function useBulkBlockSiteItems(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, BulkBlockVariables>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<SuccessResponse, AxiosError, BulkBlockVariables>({
+    ...options,
+    mutationFn: ({ inventoryItemIds, data }) => bulkBlockSiteItems(inventoryItemIds, data),
+    onSuccess: (...args) => {
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
 // Lets the current site buy an item again and invalidates the table and how the site carries it
 export function useUnblockSiteItem(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
@@ -79,6 +115,22 @@ export function useUnblockSiteItem(
   return useMutation<SuccessResponse, AxiosError, string>({
     ...options,
     mutationFn: unblockSiteItem,
+    onSuccess: (...args) => {
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+// Lets the current site buy the selected items again and invalidates the table and how the site carries them
+export function useBulkUnblockSiteItems(
+  options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string[]>, 'mutationFn'>,
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<SuccessResponse, AxiosError, string[]>({
+    ...options,
+    mutationFn: bulkUnblockSiteItems,
     onSuccess: (...args) => {
       invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);

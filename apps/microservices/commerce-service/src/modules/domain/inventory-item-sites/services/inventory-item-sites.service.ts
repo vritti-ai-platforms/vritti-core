@@ -15,6 +15,8 @@ import {
 } from '@/db/schema';
 import type { ItemStockBySiteDto, SiteItemStockDto } from '../dto/entity/item-site-stock.dto';
 import type { BlockSiteItemDto } from '../dto/request/block-site-item.dto';
+import type { BulkBlockSiteItemsDto } from '../dto/request/bulk-block-site-items.dto';
+import type { BulkSiteItemsDto } from '../dto/request/bulk-site-items.dto';
 import type { ReplenishmentDto } from '../dto/request/replenishment.dto';
 import type { SetSupplierItemsRequiredDto } from '../dto/request/set-supplier-items-required.dto';
 import type { SiteItemRefDto } from '../dto/request/site-item-ref.dto';
@@ -53,6 +55,35 @@ export class InventoryItemSitesDomainService {
     return entity;
   }
 
+  // Adds the given items to the site, each replenished manually until its levels are set; refused whole while the site
+  // already carries any of them, so nothing it carries is touched
+  async createMany(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    const requested = [...new Set(dto.inventoryItemIds)];
+    const addable = await this.repository.findAddableItemIds(requested, dto.siteId);
+    const refused = requested.length - addable.length;
+    if (refused > 0) {
+      throw new ConflictException({
+        label: 'Already Carried',
+        detail: `${pluralize('selected item', refused, true)} can't be added: the site already carries them or they no longer exist. Select only items it does not carry.`,
+      });
+    }
+    const created = await this.repository.createMany(
+      addable.map((inventoryItemId) => ({
+        inventoryItemId,
+        siteId: dto.siteId,
+        replenishment: ReplenishmentMethodValues.MANUAL,
+        safetyStock: null,
+        reorderPoint: null,
+        maxStock: null,
+      })),
+    );
+    this.logger.log(`Added ${created.length} inventory items to a site`);
+    return {
+      success: true,
+      message: `${pluralize('item', created.length, true)} added to the site, restocked manually.`,
+    };
+  }
+
   // Changes how a site replenishes the item: the method and, for a reorder point, its levels
   async update(dto: ReplenishmentDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findAtSiteOrThrow(dto.inventoryItemId, dto.siteId);
@@ -80,6 +111,30 @@ export class InventoryItemSitesDomainService {
     return { success: true, message: 'Purchasing blocked at the site.' };
   }
 
+  // Stops the site buying the given items it carries and has not blocked yet, with one reason for all; the others are
+  // skipped, and nothing changes when none of them can be blocked
+  async blockMany(dto: BulkBlockSiteItemsDto): Promise<SuccessResponseDto> {
+    const requested = [...new Set(dto.inventoryItemIds)];
+    const blocked = await this.repository.blockMany(requested, dto.reason.trim(), dto.siteId);
+    if (blocked === 0) {
+      throw new ConflictException({
+        label: 'Nothing to Block',
+        detail: 'None of the selected items is carried here with purchasing allowed.',
+      });
+    }
+    const skipped = requested.length - blocked;
+    this.logger.log(`Blocked purchasing of ${blocked} items at a site, skipped ${skipped}`);
+    return {
+      success: true,
+      message: [
+        `Purchasing blocked for ${pluralize('item', blocked, true)}.`,
+        skipped > 0 && `Skipped ${pluralize('item', skipped, true)} not carried here or already blocked.`,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    };
+  }
+
   // Lets the site buy the item again
   async unblock(dto: SiteItemRefDto): Promise<SuccessResponseDto> {
     const existing = await this.repository.findAtSiteOrThrow(dto.inventoryItemId, dto.siteId);
@@ -93,6 +148,30 @@ export class InventoryItemSitesDomainService {
     });
     this.logger.log(`Unblocked purchasing of item ${dto.inventoryItemId} at site ${existing.siteId}`);
     return { success: true, message: 'Purchasing unblocked at the site.' };
+  }
+
+  // Lets the site buy the given items again where it has blocked them; the others are skipped, and nothing changes when
+  // none of them is blocked
+  async unblockMany(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    const requested = [...new Set(dto.inventoryItemIds)];
+    const unblocked = await this.repository.unblockMany(requested, dto.siteId);
+    if (unblocked === 0) {
+      throw new ConflictException({
+        label: 'Not Blocked',
+        detail: 'Purchasing of none of the selected items is blocked here.',
+      });
+    }
+    const skipped = requested.length - unblocked;
+    this.logger.log(`Unblocked purchasing of ${unblocked} items at a site, skipped ${skipped}`);
+    return {
+      success: true,
+      message: [
+        `Purchasing allowed for ${pluralize('item', unblocked, true)}.`,
+        skipped > 0 && `Skipped ${pluralize('item', skipped, true)} not blocked here.`,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    };
   }
 
   // Makes buying the item at the site need the supplier's item set up there, or lets the site's own rule decide

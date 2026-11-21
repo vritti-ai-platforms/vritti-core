@@ -20964,6 +20964,47 @@
         ]
       }
     },
+    "/commerce-api/site/inventory-items/setup/bulk": {
+      "post": {
+        "description": "Adds the selected items to the current site, each restocked manually until its levels are set. Refused whole while the site already carries any of them.",
+        "operationId": "SiteInventoryItemsGatewayController_bulkAddToSite",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSiteItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Items added to the site.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The site already carries a selected item."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add inventory items to the site",
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/site/inventory-items/{id}/locations": {
       "post": {
         "operationId": "SiteInventoryItemsGatewayController_createLocation",
@@ -21120,6 +21161,47 @@
         ]
       }
     },
+    "/commerce-api/site/inventory-items/setup/bulk/block": {
+      "post": {
+        "description": "Stops the current site buying the selected items it carries, with one reason for all. Items it does not carry or has already blocked are skipped; stock on hand and goods already ordered still move.",
+        "operationId": "SiteInventoryItemsGatewayController_bulkBlock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkBlockSiteItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Purchasing blocked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "None of the selected items can be blocked."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Block purchasing of inventory items at the site",
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/site/inventory-items/{id}/setup/unblock": {
       "post": {
         "operationId": "SiteInventoryItemsGatewayController_unblock",
@@ -21143,6 +21225,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/setup/bulk/unblock": {
+      "post": {
+        "description": "Lets the current site buy the selected items again where it has blocked them. Items not blocked here are skipped.",
+        "operationId": "SiteInventoryItemsGatewayController_bulkUnblock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkSiteItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Purchasing allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "None of the selected items is blocked here."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Allow purchasing of inventory items at the site",
         "tags": [
           "Commerce - Inventory Items"
         ]
@@ -69290,6 +69413,22 @@
           "lineCount"
         ]
       },
+      "BulkSiteItemsDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemIds": {
+            "description": "Inventory item IDs the action applies to",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "inventoryItemIds"
+        ]
+      },
       "CreateInventoryItemLocationDto": {
         "type": "object",
         "properties": {
@@ -69317,6 +69456,29 @@
         },
         "required": [
           "isBlocked"
+        ]
+      },
+      "BulkBlockSiteItemsDto": {
+        "type": "object",
+        "properties": {
+          "inventoryItemIds": {
+            "description": "Inventory item IDs the action applies to",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why the site stops buying the items",
+            "example": "Recalled batch",
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "inventoryItemIds",
+          "reason"
         ]
       },
       "InventoryItemLedgerDisplayResponseDto": {

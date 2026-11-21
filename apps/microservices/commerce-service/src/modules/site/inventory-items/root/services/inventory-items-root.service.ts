@@ -1,5 +1,7 @@
 import { InventoryItemSiteDto } from '@domain/inventory-item-sites/dto/entity/inventory-item-site.dto';
 import type { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block-site-item.dto';
+import type { BulkBlockSiteItemsDto } from '@domain/inventory-item-sites/dto/request/bulk-block-site-items.dto';
+import type { BulkSiteItemsDto } from '@domain/inventory-item-sites/dto/request/bulk-site-items.dto';
 import type { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import type { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
@@ -31,6 +33,12 @@ export class SiteInventoryItemsService {
     return { success: true, message: 'Item added to this site.', data: InventoryItemSiteDto.from(entity) };
   }
 
+  // Adds the selected items to the current site, each restocked manually until its levels are set; refused while it carries any
+  bulkAddToSite(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`bulkAddToSite — ${dto.inventoryItemIds.length} selected`);
+    return this.siteItemsService.createMany({ inventoryItemIds: dto.inventoryItemIds });
+  }
+
   // Changes how the current site replenishes an item
   updateReplenishment(dto: ReplenishmentDto): Promise<SuccessResponseDto> {
     this.logger.log(`updateReplenishment — inventoryItemId=${dto.inventoryItemId}`);
@@ -43,10 +51,22 @@ export class SiteInventoryItemsService {
     return this.siteItemsService.block({ ...dto, siteId: undefined });
   }
 
+  // Stops the current site buying the selected items, with one reason for all
+  bulkBlock(dto: BulkBlockSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`bulkBlock — ${dto.inventoryItemIds.length} selected`);
+    return this.siteItemsService.blockMany({ inventoryItemIds: dto.inventoryItemIds, reason: dto.reason });
+  }
+
   // Lets the current site buy an item again
   unblock(inventoryItemId: string): Promise<SuccessResponseDto> {
     this.logger.log(`unblock — inventoryItemId=${inventoryItemId}`);
     return this.siteItemsService.unblock({ inventoryItemId });
+  }
+
+  // Lets the current site buy the selected items again where it has blocked them
+  bulkUnblock(dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`bulkUnblock — ${dto.inventoryItemIds.length} selected`);
+    return this.siteItemsService.unblockMany({ inventoryItemIds: dto.inventoryItemIds });
   }
 
   // Returns a single master inventory item by ID (shared detail)

@@ -35,6 +35,9 @@ export { useInventoryItemsStockTable } from './useInventoryItemsStockTable';
 export {
   useAddToSite,
   useBlockSiteItem,
+  useBulkAddToSite,
+  useBulkBlockSiteItems,
+  useBulkUnblockSiteItems,
   useRemoveFromSite,
   useSiteItem,
   useUnblockSiteItem,

@@ -1,4 +1,6 @@
 import { BlockSiteItemDto } from '@commerce/inventory-item-sites/dto/request/block-site-item.dto';
+import { BulkBlockSiteItemsDto } from '@commerce/inventory-item-sites/dto/request/bulk-block-site-items.dto';
+import { BulkSiteItemsDto } from '@commerce/inventory-item-sites/dto/request/bulk-site-items.dto';
 import { CreateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/create-inventory-item-location.dto';
 import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/replenishment.dto';
 import { UpdateInventoryItemLocationDto } from '@commerce/inventory-item-sites/dto/request/update-inventory-item-location.dto';
@@ -32,6 +34,9 @@ import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-ite
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import {
+  ApiBulkAddToSite,
+  ApiBulkBlock,
+  ApiBulkUnblock,
   ApiFindInventoryItemCounts,
   ApiGetLedgerTable,
   ApiGetLotsTable,
@@ -59,6 +64,16 @@ export class SiteInventoryItemsGatewayController {
   ): Promise<CreateResponseDto<InventoryItemSiteResponseDto>> {
     this.logger.log(`POST /commerce-api/site/inventory-items/${id}/setup`);
     return this.service.addToSite(id, dto);
+  }
+
+  // Adds the selected inventory items to the current site, each restocked manually; refused while it carries any
+  @Post('setup/bulk')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.add)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBulkAddToSite()
+  bulkAddToSite(@Body() dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(`POST /commerce-api/site/inventory-items/setup/bulk — ${dto.inventoryItemIds.length} selected`);
+    return this.service.bulkAddToSite(dto);
   }
 
   // Creates an item-location config for an inventory item
@@ -105,6 +120,18 @@ export class SiteInventoryItemsGatewayController {
     return this.service.block(id, dto);
   }
 
+  // Stops the current site buying the selected inventory items, with one reason for all
+  @Post('setup/bulk/block')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.block)
+  @HttpCode(HttpStatus.OK)
+  @ApiBulkBlock()
+  bulkBlock(@Body() dto: BulkBlockSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `POST /commerce-api/site/inventory-items/setup/bulk/block — ${dto.inventoryItemIds.length} selected`,
+    );
+    return this.service.bulkBlock(dto);
+  }
+
   // Lets the current site buy an inventory item again
   @Post(':id/setup/unblock')
   @RequirePermission(SITE_INVENTORY_ITEMS.setup.block)
@@ -112,6 +139,18 @@ export class SiteInventoryItemsGatewayController {
   unblock(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`POST /commerce-api/site/inventory-items/${id}/setup/unblock`);
     return this.service.unblock(id);
+  }
+
+  // Lets the current site buy the selected inventory items again where it has blocked them
+  @Post('setup/bulk/unblock')
+  @RequirePermission(SITE_INVENTORY_ITEMS.setup.block)
+  @HttpCode(HttpStatus.OK)
+  @ApiBulkUnblock()
+  bulkUnblock(@Body() dto: BulkSiteItemsDto): Promise<SuccessResponseDto> {
+    this.logger.log(
+      `POST /commerce-api/site/inventory-items/setup/bulk/unblock — ${dto.inventoryItemIds.length} selected`,
+    );
+    return this.service.bulkUnblock(dto);
   }
 
   // Returns a single inventory item

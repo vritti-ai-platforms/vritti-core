@@ -32,6 +32,11 @@ export function addToSite(
     .then((r) => r.data);
 }
 
+// Adds the selected items the current site does not carry yet, each restocked manually
+export function bulkAddToSite(inventoryItemIds: string[]): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/setup/bulk`, { inventoryItemIds }).then((r) => r.data);
+}
+
 // Changes how the current site replenishes an item
 export function updateReplenishment(inventoryItemId: string, data: ReplenishmentPayload): Promise<SuccessResponse> {
   return axios.patch<SuccessResponse>(`${BASE}/${inventoryItemId}/setup`, data).then((r) => r.data);
@@ -42,9 +47,19 @@ export function blockSiteItem(inventoryItemId: string, data: BlockSiteItemFormDa
   return axios.post<SuccessResponse>(`${BASE}/${inventoryItemId}/setup/block`, data).then((r) => r.data);
 }
 
+// Stops the current site buying the selected items, with one reason for all
+export function bulkBlockSiteItems(inventoryItemIds: string[], data: BlockSiteItemFormData): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/setup/bulk/block`, { inventoryItemIds, ...data }).then((r) => r.data);
+}
+
 // Lets the current site buy an item again
 export function unblockSiteItem(inventoryItemId: string): Promise<SuccessResponse> {
   return axios.post<SuccessResponse>(`${BASE}/${inventoryItemId}/setup/unblock`).then((r) => r.data);
+}
+
+// Lets the current site buy the selected items again where it has blocked them
+export function bulkUnblockSiteItems(inventoryItemIds: string[]): Promise<SuccessResponse> {
+  return axios.post<SuccessResponse>(`${BASE}/setup/bulk/unblock`, { inventoryItemIds }).then((r) => r.data);
 }
 
 // How the current site carries an item, or null while it does not
