@@ -1,6 +1,7 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  CatalogChannelCounts,
   CatalogChannelType,
   ChannelEntryData,
   ChannelItemsTableResponse,
@@ -50,6 +51,13 @@ export function getChannelItems(channelId: string): Promise<ChannelItemsTableRes
 
 export function getChannelCurrencies(channelId: string): Promise<string[]> {
   return axios.get<string[]>(`${BASE}/${channelId}/currencies`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many listings and currencies a channel carries, one per tab
+export function getChannelCounts(channelId: string): Promise<CatalogChannelCounts> {
+  return axios
+    .get<CatalogChannelCounts>(`${BASE}/${channelId}/counts`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 export function getChannelPrices({

@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartyRegistrationPayload,
   PartyRegistrationsTableResponse,
@@ -16,7 +17,7 @@ import {
   setPersonRegistrationActive,
   updatePersonRegistration,
 } from '@/services/organization/people.service';
-import { PERSON_KEY, PERSON_REGISTRATIONS_TABLE_KEY } from './keys';
+import { PERSON_REGISTRATIONS_TABLE_KEY } from './keys';
 
 // Fetches a person's tax registrations; self-gates on the registrations view permission
 export function usePersonRegistrationsTable(
@@ -41,8 +42,7 @@ export function useCreatePersonRegistration(
     ...options,
     mutationFn: (data) => createPersonRegistration({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -67,7 +67,7 @@ export function useUpdatePersonRegistration(
     ...options,
     mutationFn: ({ registrationId, data }) => updatePersonRegistration({ personId, registrationId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -82,8 +82,7 @@ export function useDeletePersonRegistration(
     ...options,
     mutationFn: (registrationId) => deletePersonRegistration({ personId, registrationId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -99,7 +98,7 @@ export function useSetPersonRegistrationActive(
     ...options,
     mutationFn: ({ registrationId, isActive }) => setPersonRegistrationActive({ personId, registrationId, isActive }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_REGISTRATIONS_TABLE_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });

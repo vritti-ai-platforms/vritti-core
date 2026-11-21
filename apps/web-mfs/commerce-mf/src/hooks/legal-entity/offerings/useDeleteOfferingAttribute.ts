@@ -1,19 +1,19 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteAttribute } from '@/services/legal-entity/offerings.service';
-import { useInvalidate } from './useInvalidate';
 
 export function useDeleteOfferingAttribute(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
-  const invalidate = useInvalidate();
+  const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, string>({
     ...options,
     mutationFn: deleteAttribute,
     onSuccess: (...args) => {
-      invalidate();
+      invalidateWrites(queryClient, [Tables.offeringAttributes, Tables.offeringAttributeValues]);
       options?.onSuccess?.(...args);
     },
   });

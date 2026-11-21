@@ -5,6 +5,7 @@ import type {
   PaymentScheduleData,
   PaymentScheduleQuery,
   PaymentTermBaseline,
+  PaymentTermCounts,
   PaymentTermData,
   PaymentTermDetailData,
   PaymentTermRuleFormData,
@@ -21,6 +22,11 @@ export function getPaymentTermsTable(): Promise<PaymentTermsTableResponse> {
 
 export function getPaymentTerm(id: string): Promise<PaymentTermDetailData> {
   return axios.get<PaymentTermDetailData>(`${BASE}/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many rules a payment term has, one per tab
+export function getPaymentTermCounts(id: string): Promise<PaymentTermCounts> {
+  return axios.get<PaymentTermCounts>(`${BASE}/${id}/counts`, { showSuccessToast: false }).then((r) => r.data);
 }
 
 export function createPaymentTerm(data: CreatePaymentTermPayload): Promise<PaymentTermData> {

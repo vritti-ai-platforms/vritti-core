@@ -3,6 +3,7 @@ import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-ite
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   CreateInventoryItemLocationFormData,
   InventoryItemLocationData,
@@ -32,7 +33,7 @@ export function useInventoryItemLocationsTable(inventoryItemId: string) {
   });
 }
 
-// Assigns the item a fixed location and refreshes the list
+// Assigns the item a fixed location and refreshes the list and the tab counts
 export function useCreateInventoryItemLocation(
   inventoryItemId: string,
   options?: Omit<
@@ -45,7 +46,7 @@ export function useCreateInventoryItemLocation(
     ...options,
     mutationFn: (data) => createInventoryItemLocation(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemLocations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -62,13 +63,13 @@ export function useUpdateInventoryItemLocation(
     mutationFn: ({ locationConfigId, isBlocked }) =>
       updateInventoryItemLocation(inventoryItemId, locationConfigId, { isBlocked }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemLocations]);
       options?.onSuccess?.(...args);
     },
   });
 }
 
-// Removes a fixed location and refreshes the list
+// Removes a fixed location and refreshes the list and the tab counts
 export function useDeleteInventoryItemLocation(
   inventoryItemId: string,
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
@@ -78,7 +79,7 @@ export function useDeleteInventoryItemLocation(
     ...options,
     mutationFn: (locationConfigId) => deleteInventoryItemLocation(inventoryItemId, locationConfigId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_LOCATIONS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemLocations]);
       options?.onSuccess?.(...args);
     },
   });

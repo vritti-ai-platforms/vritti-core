@@ -1,4 +1,6 @@
 export {
+  SUPPLIER_COUNTS_KEY,
+  SUPPLIER_ITEM_COUNTS_KEY,
   SUPPLIER_ITEM_KEY,
   SUPPLIER_ITEM_PRICE_HISTORY_KEY,
   SUPPLIER_ITEM_PRICES_TABLE_KEY,
@@ -22,7 +24,9 @@ export { useSetSupplierDefaultPaymentTerm } from './useSetSupplierDefaultPayment
 export { useSetSupplierPaymentBlocked } from './useSetSupplierPaymentBlocked';
 export { useSetSupplierPurchasingBlocked } from './useSetSupplierPurchasingBlocked';
 export { useSupplier, useSupplierLookup } from './useSupplier';
+export { useSupplierCounts } from './useSupplierCounts';
 export { useSupplierItem } from './useSupplierItem';
+export { useSupplierItemCounts } from './useSupplierItemCounts';
 export {
   useAddSupplierItemPrice,
   useDeleteSupplierItemPrice,

@@ -2,10 +2,10 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateOrgInventoryItemFormData, InventoryItemData } from '@/schemas/inventory-items';
 import { createOrgInventoryItem } from '@/services/organization/inventory-items.service';
 import { ORG_OFFERINGS_TABLE_KEY } from '../offerings/keys';
-import { ORG_INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Creates a new ORG inventory item and invalidates the table (and the offerings table when one was created with it)
 export function useCreateInventoryItem(
@@ -20,7 +20,12 @@ export function useCreateInventoryItem(
     ...options,
     mutationFn: createOrgInventoryItem,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEMS_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.inventoryItems,
+        Tables.offerings,
+        Tables.offeringVariants,
+        Tables.offeringBom,
+      ]);
       if (args[1].createOffering) queryClient.invalidateQueries({ queryKey: ORG_OFFERINGS_TABLE_KEY });
       options?.onSuccess?.(...args);
     },

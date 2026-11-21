@@ -5,11 +5,12 @@ import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
+import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeletePerson, usePersonById, usePersonCompanies, usePersonIdentifiers } from '@/hooks/organization/people';
+import { useDeletePerson, usePersonById, usePersonCounts } from '@/hooks/organization/people';
 import { AddressesTab } from '../party/tabs/addresses/AddressesTab';
 import { BankAccountsTab } from '../party/tabs/bank-accounts/BankAccountsTab';
 import { CommunicationsTab } from '../party/tabs/communications/CommunicationsTab';
@@ -27,10 +28,7 @@ export const PersonDetailPage = () => {
   const { id } = useSlugParams('personSlug');
   const navigate = useNavigate();
   const { data: person } = usePersonById(id);
-  const { data: companies } = usePersonCompanies(id);
-  const { data: identifiers } = usePersonIdentifiers(id);
-  const companyCount = companies?.count ?? 0;
-  const idCount = identifiers?.count ?? 0;
+  const { data: counts, isLoading: countsLoading } = usePersonCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
   const confirm = useConfirm();
@@ -50,7 +48,11 @@ export const PersonDetailPage = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={person.displayName}
-        description={`${companyCount} ${companyCount === 1 ? 'company' : 'companies'} · ${idCount} identity ${idCount === 1 ? 'document' : 'documents'}`}
+        description={
+          counts
+            ? `${pluralize('company', counts.companyCount, true)} · ${counts.identifierCount} identity ${pluralize('document', counts.identifierCount)}`
+            : undefined
+        }
         titleSlot={
           <Badge variant={person.isActive ? 'success' : 'outline'}>{person.isActive ? 'Active' : 'Inactive'}</Badge>
         }
@@ -78,54 +80,72 @@ export const PersonDetailPage = () => {
           {
             value: 'addresses',
             label: 'Addresses',
+            count: counts?.addressCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.addresses.view,
             content: <AddressesTab partyId={person.id} binding={personBindings.addresses} />,
           },
           {
             value: 'communications',
             label: 'Communications',
+            count: counts?.communicationCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.communications.view,
             content: <CommunicationsTab partyId={person.id} binding={personBindings.communications} />,
           },
           {
             value: 'social-profiles',
             label: 'Social Profiles',
+            count: counts?.socialProfileCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.socialProfiles.view,
             content: <SocialProfilesTab partyId={person.id} binding={personBindings.socialProfiles} />,
           },
           {
             value: 'companies',
             label: 'Companies',
+            count: counts?.companyCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.companies.view,
             content: <CompaniesTab partyId={person.id} />,
           },
           {
             value: 'registrations',
             label: 'Tax Registrations',
+            count: counts?.registrationCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.registrations.view,
             content: <RegistrationsTab partyId={person.id} binding={personBindings.registrations} />,
           },
           {
             value: 'licenses',
             label: 'Licenses',
+            count: counts?.licenseCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.licenses.view,
             content: <LicensesTab partyId={person.id} binding={personBindings.licenses} />,
           },
           {
             value: 'bank-accounts',
             label: 'Bank Accounts',
+            count: counts?.bankAccountCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.bankAccounts.view,
             content: <BankAccountsTab partyId={person.id} binding={personBindings.bankAccounts} />,
           },
           {
             value: 'wishlist',
             label: 'Wishlist',
+            count: counts?.wishlistCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.wishlist.view,
             content: <WishlistTab partyId={person.id} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
+            count: counts?.identifierCount,
+            countLoading: countsLoading,
             permission: ORG_PEOPLE.identifiers.view,
             content: <IdentifiersTab partyId={person.id} binding={personBindings.identifiers} />,
           },

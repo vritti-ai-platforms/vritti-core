@@ -88,6 +88,11 @@ export interface PaymentTermRuleData extends PaymentTermRuleFormData {
   id: string;
 }
 
+// How many rows each tab of a payment term's detail page lists
+export interface PaymentTermCounts {
+  ruleCount: number;
+}
+
 export interface PaymentTermData {
   id: string;
   name: string;

@@ -1,6 +1,7 @@
 import axios from '@vritti/quantum-ui/axios';
 import type {
   InboundDeliveriesTableResponse,
+  InboundDeliveryCounts,
   InboundDeliveryData,
   InboundDeliveryLinesTableResponse,
 } from '@/schemas/inbound-deliveries';
@@ -13,6 +14,11 @@ export function getInboundDeliveriesTable(): Promise<InboundDeliveriesTableRespo
 // Fetches one inbound delivery
 export function getInboundDelivery(id: string): Promise<InboundDeliveryData> {
   return axios.get<InboundDeliveryData>(`commerce-api/le/inbound-deliveries/${id}`).then((r) => r.data);
+}
+
+// Fetches how many lines an inbound delivery has, one per tab
+export function getInboundDeliveryCounts(id: string): Promise<InboundDeliveryCounts> {
+  return axios.get<InboundDeliveryCounts>(`commerce-api/le/inbound-deliveries/${id}/counts`).then((r) => r.data);
 }
 
 // Fetches an inbound delivery's lines for the data table

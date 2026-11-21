@@ -6,6 +6,7 @@ import {
   INBOUND_DELIVERY_LINES_TABLE_KEY,
   useInboundDeliveriesTable,
   useInboundDelivery,
+  useInboundDeliveryCounts,
   useInboundDeliveryLinesTable,
 } from '@/hooks/legal-entity/inbound-deliveries';
 import { SupplierFilter } from '@/selectors/supplier';
@@ -25,5 +26,6 @@ export const binding: InboundDeliveriesBinding = {
 
   useTable: useInboundDeliveriesTable,
   useInboundDelivery,
+  useInboundDeliveryCounts,
   useLinesTable: useInboundDeliveryLinesTable,
 };

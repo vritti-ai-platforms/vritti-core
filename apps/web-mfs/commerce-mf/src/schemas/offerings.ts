@@ -170,6 +170,13 @@ export type BulkSetVariantsAttributeFormData = z.infer<typeof bulkSetVariantsAtt
 
 export type OfferingOwnerScope = 'ORG' | 'LE' | 'SITE';
 
+// How many rows each tab of an offering's detail page lists
+export interface OfferingCounts {
+  dimensionCount: number;
+  attributeCount: number;
+  variantCount: number;
+}
+
 export interface OfferingData {
   id: string;
   code: string;
@@ -275,6 +282,11 @@ export interface BomLineData {
   uomId: string;
   uomName: string;
   sortOrder: number;
+}
+
+// How many rows each tab of a variant's detail page lists
+export interface OfferingVariantCounts {
+  bomLineCount: number;
 }
 
 export interface OfferingVariantData {

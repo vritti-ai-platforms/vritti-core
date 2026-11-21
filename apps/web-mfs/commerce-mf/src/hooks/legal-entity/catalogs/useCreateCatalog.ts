@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CatalogData } from '@/schemas/catalogs';
 import { type CreateCatalogPayload, createCatalog } from '@/services/legal-entity/catalogs.service';
-import { CATALOGS_KEY } from './keys';
 
 export function useCreateCatalog(
   options?: Omit<UseMutationOptions<CreateResponse<CatalogData>, AxiosError, CreateCatalogPayload>, 'mutationFn'>,
@@ -13,7 +13,7 @@ export function useCreateCatalog(
     ...options,
     mutationFn: createCatalog,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
+      invalidateWrites(queryClient, [Tables.catalogs]);
       options?.onSuccess?.(...args);
     },
   });

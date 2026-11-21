@@ -7,6 +7,7 @@ import type {
   ChangePurchaseOrderExchangeRatePayload,
   ChangePurchaseOrderSupplierPayload,
   CreatePurchaseOrderPayload,
+  PurchaseOrderCounts,
   PurchaseOrderData,
   PurchaseOrderDetail,
   PurchaseOrderItemDefaults,
@@ -35,6 +36,11 @@ export function createPurchaseOrder(data: CreatePurchaseOrderPayload): Promise<C
 // Fetches one purchase order
 export function getPurchaseOrder(id: string): Promise<PurchaseOrderDetail> {
   return axios.get<PurchaseOrderDetail>(`commerce-api/site/purchase-orders/${id}`).then((r) => r.data);
+}
+
+// Fetches how many lines a purchase order has and how many deliveries, receipts and invoices are on them, one per tab
+export function getPurchaseOrderCounts(id: string): Promise<PurchaseOrderCounts> {
+  return axios.get<PurchaseOrderCounts>(`commerce-api/site/purchase-orders/${id}/counts`).then((r) => r.data);
 }
 
 // Fetches what a new line of an item starts with on a purchase order: the supplier's unit, price, scheme and delivery

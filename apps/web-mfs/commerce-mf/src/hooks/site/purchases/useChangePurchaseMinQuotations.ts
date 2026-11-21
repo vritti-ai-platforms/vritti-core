@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { ChangePurchaseMinQuotationsPayload } from '@/schemas/purchases';
 import { changePurchaseMinQuotations } from '@/services/site/purchases.service';
-import { invalidatePurchase } from './keys';
 
 // Changes how many posted quotations each item needs before its supplier is submitted, then refreshes the purchase and its actions
 export function useChangePurchaseMinQuotations(
@@ -14,8 +14,7 @@ export function useChangePurchaseMinQuotations(
     ...options,
     mutationFn: changePurchaseMinQuotations,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id);
+      invalidateWrites(queryClient, [Tables.purchases, Tables.purchaseQuotationChanges]);
       options?.onSuccess?.(...args);
     },
   });

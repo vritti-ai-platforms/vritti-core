@@ -1,7 +1,7 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { SITE_SUPPLIERS_KEY } from '@/hooks/site/suppliers/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateSupplierEnrollmentVars } from '@/schemas/supplier-enrollments';
 import { updateSupplierEnrollment } from '@/services/site/suppliers.service';
 
@@ -14,7 +14,7 @@ export function useUpdateSupplierEnrollment(
     ...options,
     mutationFn: updateSupplierEnrollment,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIERS_KEY });
+      invalidateWrites(queryClient, [Tables.supplierEnrollments]);
       options?.onSuccess?.(...args);
     },
   });

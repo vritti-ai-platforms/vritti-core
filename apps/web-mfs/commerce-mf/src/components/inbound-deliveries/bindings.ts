@@ -8,6 +8,7 @@ import type {
   UseDeleteInboundDelivery,
   UseInboundDeliveriesTable,
   UseInboundDelivery,
+  UseInboundDeliveryCounts,
   UseInboundDeliveryLinesTable,
   UseRemoveInboundDeliveryLine,
   UseUpdateInboundDelivery,
@@ -41,6 +42,7 @@ export interface InboundDeliveriesBinding {
 
   useTable: UseInboundDeliveriesTable;
   useInboundDelivery: UseInboundDelivery;
+  useInboundDeliveryCounts: UseInboundDeliveryCounts;
   useLinesTable: UseInboundDeliveryLinesTable;
 
   mutations?: InboundDeliveryMutationsBinding;

@@ -137,6 +137,12 @@ export interface StockAdjustmentTreeNode {
   display?: Record<'totalQuantity', DisplayQuantity | null>;
 }
 
+// How many rows an adjustment's Breakdown tab lists: its lines, and the draft lots opening stock groups them under
+export interface StockAdjustmentCounts {
+  lineCount: number;
+  lotCount: number;
+}
+
 export type StockAdjustmentsTableResponse = TableResponse<StockAdjustmentData>;
 export type StockAdjustmentLinesTableResponse = TableResponse<StockAdjustmentLineData>;
 export type StockAdjustmentLineItemsTableResponse = TableResponse<StockAdjustmentLineItemData>;

@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteTaxGroup } from '@/services/organization/tax-groups.service';
-import { TAX_GROUPS_TABLE_KEY } from './keys';
 
 // Deletes a tax group and refreshes the groups lists
 export function useDeleteTaxGroup(
@@ -13,7 +13,7 @@ export function useDeleteTaxGroup(
     ...options,
     mutationFn: deleteTaxGroup,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.taxGroups, Tables.taxGroupRates]);
       options?.onSuccess?.(...args);
     },
   });

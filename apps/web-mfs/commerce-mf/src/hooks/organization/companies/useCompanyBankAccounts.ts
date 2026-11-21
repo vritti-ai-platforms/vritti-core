@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartyBankAccountPayload,
   PartyBankAccountRow,
@@ -15,7 +16,7 @@ import {
   getCompanyBankAccounts,
   updateCompanyBankAccount,
 } from '@/services/organization/companies.service';
-import { COMPANY_BANK_ACCOUNTS_TABLE_KEY, COMPANY_KEY } from './keys';
+import { COMPANY_BANK_ACCOUNTS_TABLE_KEY } from './keys';
 
 // Fetches a company's bank accounts; self-gates on the bank accounts view permission
 export function useCompanyBankAccountsTable(
@@ -40,8 +41,7 @@ export function useCreateCompanyBankAccount(
     ...options,
     mutationFn: (data) => createCompanyBankAccount({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_BANK_ACCOUNTS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts]);
       options?.onSuccess?.(...args);
     },
   });
@@ -61,7 +61,7 @@ export function useUpdateCompanyBankAccount(
     ...options,
     mutationFn: ({ bankAccountId, data }) => updateCompanyBankAccount({ companyId, bankAccountId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_BANK_ACCOUNTS_TABLE_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts]);
       options?.onSuccess?.(...args);
     },
   });
@@ -76,8 +76,7 @@ export function useDeleteCompanyBankAccount(
     ...options,
     mutationFn: (bankAccountId) => deleteCompanyBankAccount({ companyId, bankAccountId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_BANK_ACCOUNTS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts, Tables.supplierEnrollments]);
       options?.onSuccess?.(...args);
     },
   });

@@ -1,6 +1,7 @@
 export * from './keys';
 export * from './useCatalogChannels';
 export * from './useCatalogChannelsForCatalog';
+export * from './useChannelCounts';
 export * from './useChannelCurrencies';
 export * from './useChannelItems';
 export * from './useChannelPrices';

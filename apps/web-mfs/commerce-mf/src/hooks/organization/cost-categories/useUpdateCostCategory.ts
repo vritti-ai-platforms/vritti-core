@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateCostCategoryPayload } from '@/schemas/cost-categories';
 import { updateCostCategory } from '@/services/organization/cost-categories.service';
-import { COST_CATEGORIES_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -19,7 +19,7 @@ export function useUpdateCostCategory(
     ...options,
     mutationFn: updateCostCategory,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COST_CATEGORIES_KEY });
+      invalidateWrites(queryClient, [Tables.costCategories]);
       options?.onSuccess?.(...args);
     },
   });

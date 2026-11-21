@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PriceHistory } from '@/components/suppliers/PriceHistory';
 import { PricesTable } from '@/components/suppliers/PricesTable';
-import { useSupplierItem, useUnlinkSupplierItem } from '@/hooks/legal-entity/suppliers';
+import { useSupplierItem, useSupplierItemCounts, useUnlinkSupplierItem } from '@/hooks/legal-entity/suppliers';
 import { pricesBinding } from '../../pricesBinding';
 import { AddItemPriceAction } from './AddItemPriceAction';
 import { UpdateSupplierItemDialog } from './forms/UpdateSupplierItemDialog';
@@ -22,6 +22,7 @@ export const SupplierItemDetailPage = () => {
   const { id: supplierId } = useSlugParams('supplierSlug');
   const { id: itemId } = useSlugParams('itemSlug');
   const { data: item } = useSupplierItem(supplierId, itemId);
+  const { data: counts, isLoading: countsLoading } = useSupplierItemCounts(supplierId, itemId);
   const navigate = useNavigate();
   const confirm = useConfirm();
   const editDialog = useDialog();
@@ -80,12 +81,16 @@ export const SupplierItemDetailPage = () => {
           {
             value: 'site-items',
             label: 'Sites',
+            count: counts?.siteItemCount,
+            countLoading: countsLoading,
             permission: LE_SUPPLIERS.siteItems.view,
             content: <SiteItemsTab supplierId={supplierId} itemId={itemId} />,
           },
           {
             value: 'prices',
             label: 'Prices',
+            count: counts?.priceCount,
+            countLoading: countsLoading,
             permission: LE_SUPPLIERS.items.prices.view,
             content: (
               <PricesTable

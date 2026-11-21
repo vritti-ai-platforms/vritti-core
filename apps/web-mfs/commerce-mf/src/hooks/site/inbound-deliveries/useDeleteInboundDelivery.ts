@@ -1,9 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { PURCHASE_ORDERS_KEY } from '@/hooks/site/purchase-orders/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteInboundDelivery } from '@/services/site/inbound-deliveries.service';
-import { INBOUND_DELIVERIES_TABLE_KEY } from './keys';
 
 // Deletes a delivery; its purchase order lines become editable again
 export function useDeleteInboundDelivery(
@@ -14,8 +13,7 @@ export function useDeleteInboundDelivery(
     ...options,
     mutationFn: deleteInboundDelivery,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INBOUND_DELIVERIES_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_KEY });
+      invalidateWrites(queryClient, [Tables.inboundDeliveries, Tables.inboundDeliveryLines]);
       options?.onSuccess?.(...args);
     },
   });

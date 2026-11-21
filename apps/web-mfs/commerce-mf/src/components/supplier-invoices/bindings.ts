@@ -11,6 +11,7 @@ import type {
   UsePurchaseOrderInvoicesTable,
   UseReleaseInvoiceHold,
   UseRemoveInvoiceLine,
+  UseSupplierInvoiceCounts,
   UseUpdateInvoice,
   UseUpdateInvoiceLine,
 } from './types';
@@ -32,6 +33,7 @@ export interface SupplierInvoiceCreateBinding {
 export interface SupplierInvoicesBinding extends SupplierInvoicesListBinding, SupplierInvoiceCreateBinding {
   permissions: SupplierInvoicePermissions;
   listPath: string;
+  useSupplierInvoiceCounts: UseSupplierInvoiceCounts;
   useUpdateInvoice: UseUpdateInvoice;
   usePostInvoice: UseInvoiceAction;
   useInvoiceableGoodsReceipts: UseInvoiceableGoodsReceipts;

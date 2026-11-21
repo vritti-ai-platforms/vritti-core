@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { RejectPurchaseLegPayload } from '@/schemas/purchases';
 import { rejectPurchaseLeg } from '@/services/legal-entity/purchases.service';
-import { invalidatePurchase } from './keys';
 
 // Rejects a supplier leg of a purchase back to sourcing and refreshes the purchase's header, suppliers and sourcing items
 export function useRejectPurchaseLeg(
@@ -14,8 +14,7 @@ export function useRejectPurchaseLeg(
     ...options,
     mutationFn: rejectPurchaseLeg,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id);
+      invalidateWrites(queryClient, [Tables.purchaseSuppliers]);
       options?.onSuccess?.(...args);
     },
   });

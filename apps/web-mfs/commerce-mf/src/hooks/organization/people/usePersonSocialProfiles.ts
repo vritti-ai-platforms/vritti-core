@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartySocialProfilePayload,
   PartySocialProfileRow,
@@ -15,7 +16,7 @@ import {
   getPersonSocialProfiles,
   updatePersonSocialProfile,
 } from '@/services/organization/people.service';
-import { PERSON_KEY, PERSON_SOCIAL_PROFILES_TABLE_KEY } from './keys';
+import { PERSON_SOCIAL_PROFILES_TABLE_KEY } from './keys';
 
 // Fetches a person's social profiles; self-gates on the social profiles view permission
 export function usePersonSocialProfilesTable(
@@ -40,8 +41,7 @@ export function useCreatePersonSocialProfile(
     ...options,
     mutationFn: (data) => createPersonSocialProfile({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_SOCIAL_PROFILES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });
@@ -61,7 +61,7 @@ export function useUpdatePersonSocialProfile(
     ...options,
     mutationFn: ({ profileId, data }) => updatePersonSocialProfile({ personId, profileId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_SOCIAL_PROFILES_TABLE_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });
@@ -76,8 +76,7 @@ export function useDeletePersonSocialProfile(
     ...options,
     mutationFn: (profileId) => deletePersonSocialProfile({ personId, profileId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_SOCIAL_PROFILES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });

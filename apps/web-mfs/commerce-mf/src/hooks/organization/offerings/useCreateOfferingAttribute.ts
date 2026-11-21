@@ -1,10 +1,10 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateAttributeData, OfferingAttributeData } from '@/schemas/offerings';
 import { createAttribute } from '@/services/organization/offerings.service';
-import { useInvalidate } from './useInvalidate';
 
 export function useCreateOfferingAttribute(
   options?: Omit<
@@ -12,12 +12,12 @@ export function useCreateOfferingAttribute(
     'mutationFn'
   >,
 ) {
-  const invalidate = useInvalidate();
+  const queryClient = useQueryClient();
   return useMutation<CreateResponse<OfferingAttributeData>, AxiosError, CreateAttributeData>({
     ...options,
     mutationFn: createAttribute,
     onSuccess: (...args) => {
-      invalidate();
+      invalidateWrites(queryClient, [Tables.offeringAttributes]);
       options?.onSuccess?.(...args);
     },
   });

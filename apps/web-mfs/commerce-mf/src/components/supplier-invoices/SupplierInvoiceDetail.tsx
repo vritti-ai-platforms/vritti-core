@@ -31,6 +31,7 @@ export const SupplierInvoiceDetail: React.FC<SupplierInvoiceDetailProps> = ({ bi
   const [activeTab, setActiveTab] = useState('overview');
   const { pathname } = useLocation();
   const isPosted = invoice.status === 'POSTED';
+  const { data: counts, isLoading: countsLoading } = binding.useSupplierInvoiceCounts(invoice);
 
   // A Receive with Invoice's draft is entered on its Receive with Invoice screen, never in the invoice editor
   if (invoice.isReceiveWithInvoice && invoice.status === 'DRAFT') {
@@ -70,13 +71,17 @@ export const SupplierInvoiceDetail: React.FC<SupplierInvoiceDetailProps> = ({ bi
           },
           {
             value: 'lines',
-            label: `Lines (${invoice.lines.length})`,
+            label: 'Lines',
+            count: counts?.lineCount,
+            countLoading: countsLoading,
             permission: binding.permissions.view,
             content: <SupplierInvoiceLinesTable binding={binding} invoice={invoice} />,
           },
           {
             value: 'holds',
-            label: `Holds (${invoice.holds.length})`,
+            label: 'Holds',
+            count: counts?.holdCount,
+            countLoading: countsLoading,
             permission: binding.permissions.view,
             content: <SupplierInvoiceHoldsTable binding={binding} invoice={invoice} />,
           },

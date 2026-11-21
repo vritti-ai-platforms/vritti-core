@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { type UpdatePersonPayload, updatePerson } from '@/services/organization/people.service';
-import { PEOPLE_TABLE_KEY, PERSON_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -16,9 +16,13 @@ export function useUpdatePerson(options?: Omit<UseMutationOptions<SuccessRespons
     ...options,
     mutationFn: updatePerson,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: PEOPLE_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(vars.id) });
+      invalidateWrites(queryClient, [
+        Tables.parties,
+        Tables.partyCommunications,
+        Tables.partyCommunicationApps,
+        Tables.partyFunctions,
+        Tables.partySocialProfiles,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

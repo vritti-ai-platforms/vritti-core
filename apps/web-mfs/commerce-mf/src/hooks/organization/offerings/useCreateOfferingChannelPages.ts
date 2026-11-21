@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateChannelPagesData } from '@/schemas/offerings';
 import { createChannelPages } from '@/services/organization/offerings.service';
-import { CHANNEL_VARIANTS_KEY } from './keys';
 
 // Creates pages on one channel's storefront, then re-reads that channel's rows
 export function useCreateOfferingChannelPages(options?: { onSuccess?: () => void }) {
   const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, CreateChannelPagesData>({
     mutationFn: createChannelPages,
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: CHANNEL_VARIANTS_KEY(variables.offeringId, variables.targetId) });
+    onSuccess: () => {
+      invalidateWrites(queryClient, [Tables.externalStorefrontProductStatuses]);
       options?.onSuccess?.();
     },
   });

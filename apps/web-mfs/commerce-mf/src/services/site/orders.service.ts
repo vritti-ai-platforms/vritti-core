@@ -1,6 +1,13 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
-import type { OrderData, OrderDetail, OrderPayment, OrderStatus, OrdersTableResponse } from '@/schemas/orders';
+import type {
+  OrderCounts,
+  OrderData,
+  OrderDetail,
+  OrderPayment,
+  OrderStatus,
+  OrdersTableResponse,
+} from '@/schemas/orders';
 
 export interface CreateOrderPayload {
   type: string;
@@ -32,6 +39,13 @@ export function createOrder(data: CreateOrderPayload): Promise<OrderData> {
 
 export function getOrder(id: string): Promise<OrderDetail> {
   return axios.get<OrderDetail>(`commerce-api/site/orders/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many items and payments an order has, one per tab
+export function getOrderCounts(id: string): Promise<OrderCounts> {
+  return axios
+    .get<OrderCounts>(`commerce-api/site/orders/${id}/counts`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 export function updateOrderStatus({ id, status }: { id: string; status: OrderStatus }): Promise<SuccessResponse> {

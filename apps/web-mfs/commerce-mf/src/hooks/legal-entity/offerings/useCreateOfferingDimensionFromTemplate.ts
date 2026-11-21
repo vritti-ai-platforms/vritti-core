@@ -1,10 +1,10 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateDimensionFromTemplateData, OfferingDimensionData } from '@/schemas/offerings';
 import { createDimensionFromTemplate } from '@/services/legal-entity/offerings.service';
-import { useInvalidate } from './useInvalidate';
 
 export function useCreateOfferingDimensionFromTemplate(
   options?: Omit<
@@ -12,12 +12,12 @@ export function useCreateOfferingDimensionFromTemplate(
     'mutationFn'
   >,
 ) {
-  const invalidate = useInvalidate();
+  const queryClient = useQueryClient();
   return useMutation<CreateResponse<OfferingDimensionData>, AxiosError, CreateDimensionFromTemplateData>({
     ...options,
     mutationFn: createDimensionFromTemplate,
     onSuccess: (...args) => {
-      invalidate();
+      invalidateWrites(queryClient, [Tables.offeringDimensions, Tables.offeringDimensionValues]);
       options?.onSuccess?.(...args);
     },
   });

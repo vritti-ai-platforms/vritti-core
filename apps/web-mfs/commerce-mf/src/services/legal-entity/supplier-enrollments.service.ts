@@ -5,6 +5,7 @@ import type {
   LeSupplierEnrollmentDetail,
   SetSupplierEnrollmentActiveVars,
   SupplierEnrollment,
+  SupplierEnrollmentCounts,
   SupplierEnrollmentKey,
   SupplierEnrollmentsTableResponse,
   UpdateEnrollmentPurchasingVars,
@@ -27,6 +28,14 @@ export function getSupplierEnrollment({
   siteId,
 }: SupplierEnrollmentKey): Promise<LeSupplierEnrollmentDetail> {
   return axios.get<LeSupplierEnrollmentDetail>(`${base(supplierId)}/${siteId}`).then((r) => r.data);
+}
+
+// Fetches how many items and quotations the supplier has at one of the legal entity's sites, one per tab
+export function getSupplierEnrollmentCounts({
+  supplierId,
+  siteId,
+}: SupplierEnrollmentKey): Promise<SupplierEnrollmentCounts> {
+  return axios.get<SupplierEnrollmentCounts>(`${base(supplierId)}/${siteId}/counts`).then((r) => r.data);
 }
 
 // Enrolls the supplier at one of the legal entity's sites

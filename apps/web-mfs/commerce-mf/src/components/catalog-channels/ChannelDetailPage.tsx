@@ -13,6 +13,7 @@ interface ChannelDetailPageProps {
 // What one channel offers: the items it carries, and what it charges in each currency
 export const ChannelDetailPage: React.FC<ChannelDetailPageProps> = ({ binding }) => {
   const { id: channelId } = useSlugParams('slug');
+  const { data: counts, isLoading: countsLoading } = binding.useChannelCounts(channelId);
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -27,12 +28,16 @@ export const ChannelDetailPage: React.FC<ChannelDetailPageProps> = ({ binding })
           {
             value: 'listings',
             label: 'Listings',
+            count: counts?.listingCount,
+            countLoading: countsLoading,
             permission: binding.permissions.listings,
             content: <ListingsTab binding={binding} channelId={channelId} />,
           },
           {
             value: 'currencies',
             label: 'Currencies',
+            count: counts?.currencyCount,
+            countLoading: countsLoading,
             permission: binding.permissions.prices,
             content: <CurrenciesTab binding={binding} channelId={channelId} />,
           },

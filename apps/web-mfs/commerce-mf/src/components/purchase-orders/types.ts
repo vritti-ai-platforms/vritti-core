@@ -8,6 +8,7 @@ import type {
   ChangePurchaseOrderExchangeRatePayload,
   ChangePurchaseOrderSupplierPayload,
   CreatePurchaseOrderPayload,
+  PurchaseOrderCounts,
   PurchaseOrderData,
   PurchaseOrderDetail,
   PurchaseOrderItemDefaults,
@@ -40,6 +41,7 @@ export type UsePurchaseOrdersTable = () => {
   isFetching: boolean;
 };
 export type UsePurchaseOrder = (id: string) => { data: PurchaseOrderDetail };
+export type UsePurchaseOrderCounts = (id: string) => { data: PurchaseOrderCounts | undefined; isLoading: boolean };
 export type UsePurchaseOrderItemIds = (id: string) => { data: string[] };
 export type UsePurchaseOrderItemDefaults = (
   id: string,

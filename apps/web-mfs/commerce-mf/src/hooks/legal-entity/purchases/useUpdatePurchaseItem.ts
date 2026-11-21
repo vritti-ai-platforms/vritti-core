@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdatePurchaseItemPayload } from '@/schemas/purchases';
 import { updatePurchaseItem } from '@/services/legal-entity/purchases.service';
-import { invalidatePurchase } from './keys';
 
 // Updates an item of a purchase's items and refreshes the purchase's header, items
 export function useUpdatePurchaseItem(
@@ -14,8 +14,7 @@ export function useUpdatePurchaseItem(
     ...options,
     mutationFn: updatePurchaseItem,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id);
+      invalidateWrites(queryClient, [Tables.purchaseItems]);
       options?.onSuccess?.(...args);
     },
   });

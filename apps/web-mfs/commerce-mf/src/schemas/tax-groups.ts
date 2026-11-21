@@ -119,6 +119,12 @@ export type CreateTaxGroupFormData = z.infer<typeof createTaxGroupSchema>;
 export const editTaxGroupFormSchema = z.object({ countryCode: z.string(), ...taxGroupFields });
 export type EditTaxGroupFormData = z.infer<typeof editTaxGroupFormSchema>;
 
+// How many rows each tab of a tax group's detail page lists
+export interface TaxGroupCounts {
+  rateCount: number;
+  classCount: number;
+}
+
 export interface TaxGroupData {
   id: string;
   countryCode: string;

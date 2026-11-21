@@ -31,7 +31,7 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
   const { purchaseSlug, itemSlug } = useSlugParams('purchaseSlug', 'itemSlug');
   const { data: purchase } = binding.usePurchase(purchaseSlug.id);
   const { data: item } = binding.usePurchaseItem(purchase.id, itemSlug.id);
-  const { data: counts } = binding.usePurchaseItemCounts(purchase.id, item.id);
+  const { data: counts, isLoading: countsLoading } = binding.usePurchaseItemCounts(purchase.id, item.id);
   const { data: siteStock } = binding.usePurchaseItemSiteStock(purchase.id, item.id);
   const { data: actions } = binding.usePurchaseActions(purchase.id);
   const editDialog = useDialog();
@@ -45,8 +45,6 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
   const allocateTip = isOpenForAllocation ? (blocked?.detail ?? '') : closedTip;
   // Quotes matter once the purchase requires them, or while the item still has some
   const showsQuotes = purchase.quotationsRequired || (counts?.quoteCount ?? 0) > 0;
-  const withCount = (label: string, count: number | undefined) =>
-    count === undefined ? label : `${label} (${fmt.number(count).primary})`;
   const tabProps = { binding, purchase, item };
 
   return (
@@ -98,7 +96,9 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
             tabs={[
               {
                 value: 'allocations',
-                label: withCount('Allocations', counts?.allocationCount),
+                label: 'Allocations',
+                count: counts?.allocationCount,
+                countLoading: countsLoading,
                 permission: permissions.view,
                 content: (
                   <PurchaseItemAllocationsTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />
@@ -108,7 +108,9 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
                 ? [
                     {
                       value: 'quotes',
-                      label: withCount('Quotes', counts?.quoteCount),
+                      label: 'Quotes',
+                      count: counts?.quoteCount,
+                      countLoading: countsLoading,
                       permission: permissions.quotations.view,
                       content: (
                         <PurchaseItemQuotesTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />
@@ -118,7 +120,9 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
                 : []),
               {
                 value: 'documents',
-                label: withCount('Documents', counts?.documentCount),
+                label: 'Documents',
+                count: counts?.documentCount,
+                countLoading: countsLoading,
                 permission: permissions.view,
                 content: <PurchaseItemDocumentsTab {...tabProps} />,
               },

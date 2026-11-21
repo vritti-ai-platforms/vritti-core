@@ -149,6 +149,18 @@ export interface UpdateCompanyPersonPayload {
 }
 export type CompanyRegistrationPayload = PartyRegistrationPayload;
 
+// How many rows each tab of a company's detail page lists
+export interface CompanyCounts {
+  addressCount: number;
+  communicationCount: number;
+  socialProfileCount: number;
+  personCount: number;
+  registrationCount: number;
+  licenseCount: number;
+  bankAccountCount: number;
+  identifierCount: number;
+}
+
 export interface CompanyData {
   id: string;
   displayName: string;

@@ -4,6 +4,7 @@ import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-ite
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { BlockSiteItemFormData, InventoryItemSiteData, ReplenishmentPayload } from '@/schemas/site-items';
 import {
   addToSite,
@@ -13,7 +14,7 @@ import {
   unblockSiteItem,
   updateReplenishment,
 } from '@/services/site/inventory-items.service';
-import { INVENTORY_ITEM_SETUP_KEY, INVENTORY_ITEMS_STOCK_TABLE_KEY } from './keys';
+import { INVENTORY_ITEM_SETUP_KEY } from './keys';
 
 type ReplenishmentVariables = { inventoryItemId: string; data: ReplenishmentPayload };
 type BlockVariables = { inventoryItemId: string; data: BlockSiteItemFormData };
@@ -31,8 +32,7 @@ export function useAddToSite(
     ...options,
     mutationFn: ({ inventoryItemId, data }) => addToSite(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_STOCK_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SETUP_KEY(args[1].inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -48,8 +48,7 @@ export function useUpdateReplenishment(
     ...options,
     mutationFn: ({ inventoryItemId, data }) => updateReplenishment(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_STOCK_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SETUP_KEY(args[1].inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -65,8 +64,7 @@ export function useBlockSiteItem(
     ...options,
     mutationFn: ({ inventoryItemId, data }) => blockSiteItem(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_STOCK_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SETUP_KEY(args[1].inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -82,8 +80,7 @@ export function useUnblockSiteItem(
     ...options,
     mutationFn: unblockSiteItem,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_STOCK_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SETUP_KEY(args[1]) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -114,8 +111,7 @@ export function useRemoveFromSite(
     ...options,
     mutationFn: () => removeFromSite(inventoryItemId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEMS_STOCK_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: INVENTORY_ITEM_SETUP_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });

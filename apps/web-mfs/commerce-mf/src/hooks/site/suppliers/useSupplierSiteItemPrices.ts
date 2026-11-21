@@ -11,6 +11,7 @@ import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddSupplierSiteItemPricePayload,
   SupplierItemPriceHistory,
@@ -25,11 +26,7 @@ import {
   getSupplierSiteItemPricesTable,
   updateSupplierSiteItemPrice,
 } from '@/services/site/suppliers.service';
-import {
-  SITE_SUPPLIER_SITE_ITEM_KEY,
-  SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
-  SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY,
-} from './keys';
+import { SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY, SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY } from './keys';
 
 // Fetches a supplier item's price timeline for this site; self-gates on the prices view permission
 export function useSupplierSiteItemPricesTable(
@@ -68,8 +65,7 @@ export function useAddSupplierSiteItemPrice(
     ...options,
     mutationFn: (data) => addSupplierSiteItemPrice({ supplierId, itemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_KEY(supplierId, itemId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices, Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });
@@ -90,8 +86,7 @@ export function useUpdateSupplierSiteItemPrice(
     ...options,
     mutationFn: ({ priceId, data }) => updateSupplierSiteItemPrice({ supplierId, itemId, priceId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_KEY(supplierId, itemId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices]);
       options?.onSuccess?.(...args);
     },
   });
@@ -107,8 +102,7 @@ export function useDeleteSupplierSiteItemPrice(
     ...options,
     mutationFn: (priceId) => deleteSupplierSiteItemPrice({ supplierId, itemId, priceId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_SITE_ITEM_KEY(supplierId, itemId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices]);
       options?.onSuccess?.(...args);
     },
   });

@@ -9,7 +9,8 @@ import {
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
+import type { CartCounts, CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
 import type { AddCartLinePayload, createCartsService } from '@/services/site/carts.service';
 
 type CartsService = ReturnType<typeof createCartsService>;
@@ -17,6 +18,7 @@ type CartsService = ReturnType<typeof createCartsService>;
 interface CartKeys {
   table: readonly unknown[];
   cart: (cartId: string) => readonly unknown[];
+  counts: (cartId: string) => readonly unknown[];
   items: (cartId: string) => readonly unknown[];
   itemsTable: (cartId: string) => readonly unknown[];
 }
@@ -47,6 +49,13 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
       queryFn: () => service.getCartItems(cartId),
     });
 
+  // How many lines a basket has, for its Items tab; under the basket's key, so every line mutation refreshes it
+  const useCartCounts = (cartId: string) =>
+    useQuery<CartCounts, AxiosError>({
+      queryKey: keys.counts(cartId),
+      queryFn: () => service.getCartCounts(cartId),
+    });
+
   // Self-gated like every table read: without the permission no request is made
   const useCartItemsTable = (
     cartId: string,
@@ -67,7 +76,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
       ...options,
       mutationFn: service.openCart,
       onSuccess: (...args) => {
-        queryClient.invalidateQueries({ queryKey: keys.table });
+        invalidateWrites(queryClient, [Tables.carts]);
         options?.onSuccess?.(...args);
       },
     });
@@ -83,9 +92,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
       mutationFn: (data) => service.addCartLine({ id: cartId, data }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
-        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
-        queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
-        queryClient.invalidateQueries({ queryKey: keys.table });
+        invalidateWrites(queryClient, [Tables.cartItems]);
         options?.onSuccess?.(lines, ...rest);
       },
     });
@@ -105,8 +112,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
         service.updateCartLine({ id: cartId, offeringVariantId, data: { partyId, quantity } }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
-        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
-        queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
+        invalidateWrites(queryClient, [Tables.cartItems]);
         options?.onSuccess?.(lines, ...rest);
       },
     });
@@ -126,9 +132,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
         service.removeCartLine({ id: cartId, offeringVariantId, partyId }),
       onSuccess: (lines, ...rest) => {
         queryClient.setQueryData(keys.items(cartId), lines);
-        queryClient.invalidateQueries({ queryKey: keys.itemsTable(cartId) });
-        queryClient.invalidateQueries({ queryKey: keys.cart(cartId) });
-        queryClient.invalidateQueries({ queryKey: keys.table });
+        invalidateWrites(queryClient, [Tables.cartItems]);
         options?.onSuccess?.(lines, ...rest);
       },
     });
@@ -140,7 +144,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
       ...options,
       mutationFn: service.closeCart,
       onSuccess: (...args) => {
-        queryClient.invalidateQueries({ queryKey: keys.table });
+        invalidateWrites(queryClient, [Tables.carts, Tables.cartItems]);
         options?.onSuccess?.(...args);
       },
     });
@@ -150,6 +154,7 @@ export function createCartHooks(service: CartsService, keys: CartKeys, viewPermi
     useCartsTable,
     useCart,
     useCartItems,
+    useCartCounts,
     useCartItemsTable,
     useOpenCart,
     useAddCartLine,

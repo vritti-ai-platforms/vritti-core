@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
 import {
   createPersonLicense,
@@ -11,7 +12,7 @@ import {
   getPersonLicenses,
   updatePersonLicense,
 } from '@/services/organization/people.service';
-import { PERSON_KEY, PERSON_LICENSES_TABLE_KEY } from './keys';
+import { PERSON_LICENSES_TABLE_KEY } from './keys';
 
 // Fetches a person's licenses; self-gates on the licenses view permission
 export function usePersonLicensesTable(
@@ -36,8 +37,7 @@ export function useCreatePersonLicense(
     ...options,
     mutationFn: (data) => createPersonLicense({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_LICENSES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });
@@ -57,7 +57,7 @@ export function useUpdatePersonLicense(
     ...options,
     mutationFn: ({ licenseId, data }) => updatePersonLicense({ personId, licenseId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_LICENSES_TABLE_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });
@@ -72,8 +72,7 @@ export function useDeletePersonLicense(
     ...options,
     mutationFn: (licenseId) => deletePersonLicense({ personId, licenseId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_LICENSES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });

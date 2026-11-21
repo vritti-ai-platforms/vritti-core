@@ -23,6 +23,7 @@ interface CatalogDetailPageProps {
 export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding }) => {
   const { id } = useSlugParams('slug');
   const { data: catalog } = binding.useCatalog(id);
+  const { data: counts, isLoading: countsLoading } = binding.useCatalogCounts(id);
   const navigate = useNavigate();
   const editDialog = useDialog();
   const confirm = useConfirm();
@@ -72,17 +73,23 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
           {
             value: 'channels',
             label: 'Channels',
+            count: counts?.channelCount,
+            countLoading: countsLoading,
             content: <ChannelsTab binding={binding} catalogId={catalog.id} />,
           },
           {
             value: 'listings',
             label: 'Listings',
+            count: counts?.listingCount,
+            countLoading: countsLoading,
             permission: binding.permissions.listings.view,
             content: <ListingsTab binding={binding} catalogId={catalog.id} />,
           },
           {
             value: 'currencies',
             label: 'Currencies',
+            count: counts?.currencyCount,
+            countLoading: countsLoading,
             permission: binding.permissions.currencies.view,
             content: <CurrenciesTab binding={binding} catalog={catalog} />,
           },

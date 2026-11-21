@@ -19,6 +19,7 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
   const { slug, variantSlug } = useSlugParams('slug', 'variantSlug');
   const { data: offering } = binding.useOffering(slug.id);
   const { data: variant } = binding.useOfferingVariant(variantSlug.id);
+  const { data: counts, isLoading: countsLoading } = binding.useOfferingVariantCounts(variantSlug.id);
   const setStatusMutation = binding.useUpdateOfferingVariant();
   const meta = FULFILMENT_TYPE_META[variant.fulfilmentType];
 
@@ -78,6 +79,8 @@ export const VariantDetail: React.FC<VariantDetailProps> = ({ binding }) => {
           {
             value: 'bom',
             label: 'Bill of Materials',
+            count: counts?.bomLineCount,
+            countLoading: countsLoading,
             permission: PERMISSIONS.variants.bom.view,
             content: (
               <BomTab

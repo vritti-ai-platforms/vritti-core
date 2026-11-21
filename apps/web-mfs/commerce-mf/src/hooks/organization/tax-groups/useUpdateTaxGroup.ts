@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateTaxGroupPayload } from '@/schemas/tax-groups';
 import { updateTaxGroup } from '@/services/organization/tax-groups.service';
-import { TAX_GROUPS_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -17,7 +17,7 @@ export function useUpdateTaxGroup(options?: Omit<UseMutationOptions<SuccessRespo
     ...options,
     mutationFn: updateTaxGroup,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_KEY });
+      invalidateWrites(queryClient, [Tables.taxGroups]);
       options?.onSuccess?.(...args);
     },
   });

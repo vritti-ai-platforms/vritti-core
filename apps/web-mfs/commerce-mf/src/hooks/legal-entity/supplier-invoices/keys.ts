@@ -3,6 +3,8 @@ import type { InvoiceableGoodsReceiptsParams } from '@/schemas/supplier-invoices
 export const LE_SUPPLIER_INVOICES_KEY = ['commerce', 'le', 'supplier-invoices'] as const;
 export const LE_SUPPLIER_INVOICES_TABLE_KEY = [...LE_SUPPLIER_INVOICES_KEY, 'table'] as const;
 export const LE_SUPPLIER_INVOICE_KEY = (invoiceId: string) => [...LE_SUPPLIER_INVOICES_KEY, invoiceId] as const;
+export const LE_SUPPLIER_INVOICE_COUNTS_KEY = (invoiceId: string) =>
+  [...LE_SUPPLIER_INVOICE_KEY(invoiceId), 'counts'] as const;
 export const LE_INVOICEABLE_GOODS_RECEIPTS_KEY = (
   supplierId: string,
   siteId: string,

@@ -3,6 +3,7 @@ import { LE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   BlockSiteItemFormData,
   InventoryItemSiteData,
@@ -36,7 +37,7 @@ export function useAddToLeSite(
     ...options,
     mutationFn: ({ siteId, data }) => addToLeSite(inventoryItemId, siteId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -52,7 +53,7 @@ export function useUpdateLeSiteReplenishment(
     ...options,
     mutationFn: ({ siteId, data }) => updateLeSiteReplenishment(inventoryItemId, siteId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -68,7 +69,7 @@ export function useBlockLeSiteItem(
     ...options,
     mutationFn: ({ siteId, data }) => blockLeSiteItem(inventoryItemId, siteId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -84,7 +85,7 @@ export function useUnblockLeSiteItem(
     ...options,
     mutationFn: (siteId) => unblockLeSiteItem(inventoryItemId, siteId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -101,7 +102,7 @@ export function useSetLeSiteItemSupplierItemsRequired(
     ...options,
     mutationFn: ({ siteId, required }) => setLeSiteItemSupplierItemsRequired(inventoryItemId, siteId, required),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });
@@ -128,7 +129,7 @@ export function useRemoveFromLeSite(
     ...options,
     mutationFn: (siteId) => removeFromLeSite(inventoryItemId, siteId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LE_SITE_ITEMS_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
       options?.onSuccess?.(...args);
     },
   });

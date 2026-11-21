@@ -1,8 +1,3 @@
-import type { QueryClient } from '@tanstack/react-query';
-import { GOODS_RECEIPTS_KEY } from '@/hooks/site/goods-receipts/keys';
-import { INBOUND_DELIVERIES_KEY } from '@/hooks/site/inbound-deliveries/keys';
-import { PURCHASE_ORDERS_KEY } from '@/hooks/site/purchase-orders/keys';
-import { SITE_SUPPLIER_INVOICES_KEY } from '@/hooks/site/supplier-invoices/keys';
 import type { ReceiveWithInvoiceOpenLinesParams } from '@/schemas/receive-with-invoices';
 
 export const PURCHASES_KEY = ['commerce', 'purchases'] as const;
@@ -40,16 +35,3 @@ export const RECEIVE_WITH_INVOICES_KEY = [...PURCHASES_KEY, 'receive-with-invoic
 export const RECEIVE_WITH_INVOICE_KEY = (invoiceId: string) => [...RECEIVE_WITH_INVOICES_KEY, invoiceId] as const;
 export const RECEIVE_WITH_INVOICE_OPEN_LINES_KEY = (params: ReceiveWithInvoiceOpenLinesParams) =>
   [...RECEIVE_WITH_INVOICES_KEY, 'open-lines', params] as const;
-export const PURCHASE_DOCUMENT_KEYS = [
-  PURCHASE_ORDERS_KEY,
-  INBOUND_DELIVERIES_KEY,
-  GOODS_RECEIPTS_KEY,
-  SITE_SUPPLIER_INVOICES_KEY,
-] as const;
-
-// Refreshes the purchases list and everything shown of a purchase: an allocation, a supplier's step or a document
-// moves its header, items, suppliers and documents together
-export function invalidatePurchase(queryClient: QueryClient, id: string): void {
-  queryClient.invalidateQueries({ queryKey: PURCHASE_KEY(id) });
-  queryClient.invalidateQueries({ queryKey: PURCHASES_TABLE_KEY });
-}

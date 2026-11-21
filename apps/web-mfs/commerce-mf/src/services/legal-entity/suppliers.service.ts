@@ -4,8 +4,10 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddSupplierSiteItemPayload,
   BulkSetSupplierSiteItemPreferredPayload,
+  SupplierCounts,
   SupplierData,
   SupplierDetail,
+  SupplierItemCounts,
   SupplierItemData,
   SupplierItemDetail,
   SupplierItemPriceHistory,
@@ -67,6 +69,13 @@ export function createSupplier(data: CreateSupplierPayload): Promise<SupplierDat
 // Fetches supplier detail with linked items
 export function getSupplier(id: string): Promise<SupplierDetail> {
   return axios.get<SupplierDetail>(`commerce-api/le/suppliers/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many items, site enrollments, quotations and people a supplier has, one per tab
+export function getSupplierCounts(id: string): Promise<SupplierCounts> {
+  return axios
+    .get<SupplierCounts>(`commerce-api/le/suppliers/${id}/counts`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 // Fetches linked supplier items for the table
@@ -280,6 +289,21 @@ export function getSupplierItem({
 }): Promise<SupplierItemDetail> {
   return axios
     .get<SupplierItemDetail>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches how many sites and prices a supplier item has, one per tab
+export function getSupplierItemCounts({
+  supplierId,
+  itemId,
+}: {
+  supplierId: string;
+  itemId: string;
+}): Promise<SupplierItemCounts> {
+  return axios
+    .get<SupplierItemCounts>(`commerce-api/le/suppliers/${supplierId}/items/${itemId}/counts`, {
+      showSuccessToast: false,
+    })
     .then((r) => r.data);
 }
 

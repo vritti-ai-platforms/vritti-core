@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { TaxJurisdictionCreateResponse, TaxJurisdictionPayload } from '@/schemas/tax-jurisdictions';
 import { createTaxJurisdiction } from '@/services/organization/tax-jurisdictions.service';
-import { TAX_JURISDICTIONS_KEY } from './keys';
 
 export function useCreateTaxJurisdiction(
   options?: Omit<UseMutationOptions<TaxJurisdictionCreateResponse, AxiosError, TaxJurisdictionPayload>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useCreateTaxJurisdiction(
     ...options,
     mutationFn: createTaxJurisdiction,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: TAX_JURISDICTIONS_KEY });
+      invalidateWrites(queryClient, [Tables.taxJurisdictions]);
       options?.onSuccess?.(...args);
     },
   });

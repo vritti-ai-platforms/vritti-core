@@ -1,5 +1,7 @@
+export const STOCK_ADJUSTMENTS_KEY = ['commerce', 'stock-adjustments'] as const;
 export const STOCK_ADJUSTMENTS_TABLE_KEY = ['commerce', 'stock-adjustments', 'table'] as const;
 export const STOCK_ADJUSTMENT_KEY = (id: string) => ['commerce', 'stock-adjustments', id] as const;
+export const STOCK_ADJUSTMENT_COUNTS_KEY = (id: string) => [...STOCK_ADJUSTMENT_KEY(id), 'counts'] as const;
 export const STOCK_ADJUSTMENT_TREE_KEY = (id: string) => ['commerce', 'stock-adjustments', id, 'tree'] as const;
 export const STOCK_ADJUSTMENT_LOTS_KEY = (id: string) => ['commerce', 'stock-adjustments', id, 'lots'] as const;
 export const STOCK_ADJUSTMENT_LOT_KEY = (adjustmentId: string, lotId: string) =>

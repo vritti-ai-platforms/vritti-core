@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deletePerson } from '@/services/organization/people.service';
-import { PEOPLE_TABLE_KEY } from './keys';
 
 export function useDeletePerson(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>) {
   const queryClient = useQueryClient();
@@ -11,7 +11,25 @@ export function useDeletePerson(options?: Omit<UseMutationOptions<SuccessRespons
     ...options,
     mutationFn: deletePerson,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PEOPLE_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.parties,
+        Tables.partyAddresses,
+        Tables.partyIdentifiers,
+        Tables.partyRelationships,
+        Tables.partyTaxRegistrations,
+        Tables.partyLicenses,
+        Tables.partyBankAccounts,
+        Tables.partyCommunications,
+        Tables.partyCommunicationApps,
+        Tables.partySocialProfiles,
+        Tables.partyFunctions,
+        Tables.carts,
+        Tables.cartItems,
+        Tables.checkouts,
+        Tables.checkoutLines,
+        Tables.wishlistItems,
+        Tables.orders,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

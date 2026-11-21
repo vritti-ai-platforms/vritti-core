@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateCompanyPayload } from '@/schemas/companies';
 import { updateCompany } from '@/services/organization/companies.service';
-import { COMPANIES_TABLE_KEY, COMPANY_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -18,9 +18,14 @@ export function useUpdateCompany(options?: Omit<UseMutationOptions<SuccessRespon
     ...options,
     mutationFn: updateCompany,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: COMPANIES_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(vars.id) });
+      invalidateWrites(queryClient, [
+        Tables.parties,
+        Tables.partyCommunications,
+        Tables.partyCommunicationApps,
+        Tables.partyFunctions,
+        Tables.partySocialProfiles,
+        Tables.partyAddresses,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

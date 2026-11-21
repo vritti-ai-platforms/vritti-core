@@ -5,6 +5,7 @@ export {
   PERSON_BANK_ACCOUNTS_TABLE_KEY,
   PERSON_COMMUNICATIONS_TABLE_KEY,
   PERSON_COMPANIES_TABLE_KEY,
+  PERSON_COUNTS_KEY,
   PERSON_IDENTIFIERS_KEY,
   PERSON_KEY,
   PERSON_LICENSES_TABLE_KEY,
@@ -34,6 +35,7 @@ export {
   useUpdatePersonCommunication,
 } from './usePersonCommunications';
 export { usePersonCompanies } from './usePersonCompanies';
+export { usePersonCounts } from './usePersonCounts';
 export { useAddPersonIdentifier, usePersonIdentifiers, useRemovePersonIdentifier } from './usePersonIdentifiers';
 export {
   useCreatePersonLicense,

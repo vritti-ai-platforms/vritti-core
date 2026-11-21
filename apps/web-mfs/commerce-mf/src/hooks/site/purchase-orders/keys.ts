@@ -1,6 +1,7 @@
 export const PURCHASE_ORDERS_KEY = ['commerce', 'purchase-orders'] as const;
 export const PURCHASE_ORDERS_TABLE_KEY = [...PURCHASE_ORDERS_KEY, 'table'] as const;
 export const PURCHASE_ORDER_KEY = (id: string) => [...PURCHASE_ORDERS_KEY, id] as const;
+export const PURCHASE_ORDER_COUNTS_KEY = (id: string) => [...PURCHASE_ORDER_KEY(id), 'counts'] as const;
 export const PURCHASE_ORDER_ITEMS_IDS_KEY = (id: string) => [...PURCHASE_ORDER_KEY(id), 'items', 'ids'] as const;
 export const PURCHASE_ORDER_ITEM_DEFAULTS_KEY = (
   id: string,

@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreatePurchasePayload, PurchaseData } from '@/schemas/purchases';
 import { createPurchase } from '@/services/legal-entity/purchases.service';
-import { PURCHASES_KEY } from './keys';
 
 // Creates a purchase and refreshes the purchases
 export function useCreatePurchase(
@@ -14,7 +14,7 @@ export function useCreatePurchase(
     ...options,
     mutationFn: createPurchase,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      invalidateWrites(queryClient, [Tables.purchases]);
       options?.onSuccess?.(...args);
     },
   });

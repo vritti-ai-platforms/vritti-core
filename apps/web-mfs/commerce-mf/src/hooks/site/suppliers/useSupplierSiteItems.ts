@@ -10,6 +10,7 @@ import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   SupplierSiteItemDataTableResponse,
   SupplierSiteItemDetail,
@@ -20,7 +21,7 @@ import {
   getSupplierSiteItemsTable,
   updateSupplierSiteItem,
 } from '@/services/site/suppliers.service';
-import { SITE_SUPPLIER_KEY, SITE_SUPPLIER_SITE_ITEM_KEY, SITE_SUPPLIER_SITE_ITEMS_TABLE_KEY } from './keys';
+import { SITE_SUPPLIER_SITE_ITEM_KEY, SITE_SUPPLIER_SITE_ITEMS_TABLE_KEY } from './keys';
 
 // Fetches an enrolled supplier's items as set up at this site; self-gates on the site items view permission
 export function useSupplierSiteItemsTable(
@@ -53,7 +54,7 @@ export function useUpdateSupplierSiteItem(
     ...options,
     mutationFn: ({ supplierSiteItemId, data }) => updateSupplierSiteItem({ supplierId, supplierSiteItemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SITE_SUPPLIER_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });

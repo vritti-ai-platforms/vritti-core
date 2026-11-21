@@ -64,6 +64,14 @@ export const nextPurchaseOrderStatusAction: Partial<
   SENT: { label: 'Confirm Purchase Order', status: 'CONFIRMED' },
 };
 
+// How many rows each tab of a purchase order's detail page lists
+export interface PurchaseOrderCounts {
+  itemCount: number;
+  inboundDeliveryCount: number;
+  goodsReceiptCount: number;
+  invoiceCount: number;
+}
+
 export interface PurchaseOrderData {
   id: string;
   legalEntityId: string;

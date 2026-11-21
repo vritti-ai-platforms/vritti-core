@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { setSupplierPurchasingBlocked } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_KEY, SUPPLIERS_TABLE_KEY } from './keys';
 
 export interface SetSupplierPurchasingBlockedPayload {
   id: string;
@@ -20,8 +20,7 @@ export function useSetSupplierPurchasingBlocked(
     ...options,
     mutationFn: setSupplierPurchasingBlocked,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(args[1].id) });
+      invalidateWrites(queryClient, [Tables.suppliers]);
       options?.onSuccess?.(...args);
     },
   });

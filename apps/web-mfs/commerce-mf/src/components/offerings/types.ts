@@ -16,9 +16,11 @@ import type {
   GenerateVariantsData,
   OfferingAttributeData,
   OfferingChannelTypeData,
+  OfferingCounts,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
+  OfferingVariantCounts,
   OfferingVariantData,
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
@@ -90,7 +92,12 @@ export type UseOfferingVariantsTable = (offeringId: string) => {
 export type UseOfferingsTable = () => { data: OfferingsTableResponse | undefined; isLoading: boolean };
 
 export type UseSuspenseOffering = (id: string) => { data: OfferingData };
+export type UseOfferingCounts = (id: string) => { data: OfferingCounts | undefined; isLoading: boolean };
 export type UseSuspenseOfferingVariant = (variantId: string) => { data: OfferingVariantData };
+export type UseOfferingVariantCounts = (variantId: string) => {
+  data: OfferingVariantCounts | undefined;
+  isLoading: boolean;
+};
 export type UseOfferingVariantBom = (variantId: string) => {
   data: VariantBomData | undefined;
   isLoading: boolean;

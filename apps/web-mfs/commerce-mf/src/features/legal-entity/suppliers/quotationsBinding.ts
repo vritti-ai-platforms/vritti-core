@@ -18,6 +18,7 @@ import {
   useRemoveSupplierQuotationItem,
   useSupplierEnrollmentQuotationsTable,
   useSupplierQuotation,
+  useSupplierQuotationCounts,
   useSupplierQuotationsTable,
   useUpdateSupplierQuotation,
   useUpdateSupplierQuotationItem,
@@ -84,6 +85,7 @@ export const quotationsBinding: SupplierQuotationsBinding = {
         },
   useQuotationRef,
   useQuotation: useSupplierQuotation,
+  useQuotationCounts: useSupplierQuotationCounts,
   quotationKey: SUPPLIER_QUOTATION_KEY,
   useSupplierName,
   // The legal entity writes every quotation of its own and its sites', and posts any of them to any enrolled site

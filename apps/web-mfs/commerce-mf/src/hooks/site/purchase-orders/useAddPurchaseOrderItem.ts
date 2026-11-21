@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { AddPurchaseOrderItemPayload, PurchaseOrderData } from '@/schemas/purchase-orders';
 import { addPurchaseOrderItem } from '@/services/site/purchase-orders.service';
-import { PURCHASE_ORDER_KEY, PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Adds a line to a purchase order
 export function useAddPurchaseOrderItem(
@@ -17,9 +17,7 @@ export function useAddPurchaseOrderItem(
     ...options,
     mutationFn: addPurchaseOrderItem,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_KEY(variables.id) });
+      invalidateWrites(queryClient, [Tables.purchaseOrderItems, Tables.purchaseOrders]);
       options?.onSuccess?.(...args);
     },
   });

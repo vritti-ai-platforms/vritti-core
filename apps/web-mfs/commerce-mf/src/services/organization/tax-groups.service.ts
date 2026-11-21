@@ -5,6 +5,7 @@ import type {
   CreateTaxGroupPayload,
   TaxClassGroupData,
   TaxClassGroupsTableResponse,
+  TaxGroupCounts,
   TaxGroupData,
   TaxGroupRateData,
   TaxGroupRatePayload,
@@ -25,6 +26,11 @@ export function getTaxGroupsTable(): Promise<TaxGroupsTableResponse> {
 // Fetches one tax group by ID
 export function getTaxGroup(id: string): Promise<TaxGroupData> {
   return axios.get<TaxGroupData>(`${BASE}/${id}`).then((r) => r.data);
+}
+
+// Fetches how many rates and class mappings a tax group has, one per tab
+export function getTaxGroupCounts(id: string): Promise<TaxGroupCounts> {
+  return axios.get<TaxGroupCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 // Creates a tax group in a country

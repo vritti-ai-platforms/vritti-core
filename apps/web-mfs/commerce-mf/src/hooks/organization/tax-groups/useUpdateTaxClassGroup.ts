@@ -1,10 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateTaxClassGroupPayload } from '@/schemas/tax-groups';
 import { updateTaxClassGroup } from '@/services/organization/tax-groups.service';
-import { TAX_CLASSES_TABLE_KEY } from '../tax-classes/keys';
-import { TAX_GROUP_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
 
 interface Vars {
   taxGroupId: string;
@@ -21,10 +20,7 @@ export function useUpdateTaxClassGroup(
     ...options,
     mutationFn: updateTaxClassGroup,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: TAX_GROUP_KEY(vars.taxGroupId) });
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: TAX_CLASSES_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.taxClassGroups]);
       options?.onSuccess?.(...args);
     },
   });

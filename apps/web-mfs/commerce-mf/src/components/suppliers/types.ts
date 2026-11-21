@@ -7,6 +7,7 @@ import type {
   EnrollmentPurchasing,
   SetSupplierEnrollmentActiveVars,
   SupplierEnrollment,
+  SupplierEnrollmentCounts,
   SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
   SupplierEnrollmentsTableResponse,
@@ -15,6 +16,7 @@ import type {
   UpdateSupplierEnrollmentVars,
 } from '@/schemas/supplier-enrollments';
 import type {
+  SupplierQuotationCounts,
   SupplierQuotationData,
   SupplierQuotationDetail,
   SupplierQuotationItemPayload,
@@ -23,6 +25,7 @@ import type {
 } from '@/schemas/supplier-quotations';
 import type {
   AddSupplierSiteItemPricePayload,
+  SupplierItemCounts,
   SupplierItemPriceHistory,
   SupplierItemPriceRow,
   SupplierSiteItemDataTableResponse,
@@ -73,6 +76,10 @@ export type UseEnrollmentsTable = (scope: Partial<SupplierEnrollmentKey>) => {
   isLoading: boolean;
 };
 export type UseEnrollment = (key: SupplierEnrollmentKey) => { data: SupplierEnrollmentDetail };
+export type UseEnrollmentCounts = (key: SupplierEnrollmentKey) => {
+  data: SupplierEnrollmentCounts | undefined;
+  isLoading: boolean;
+};
 export type UseSupplierParty = (supplierId: string | undefined) => SupplierParty | undefined;
 export type UseCreateEnrollment = (
   options?: MutationOptions<SupplierEnrollment, CreateSupplierEnrollmentPayload>,
@@ -96,6 +103,10 @@ export type UseSiteItemsTable = (ref: SupplierEnrollmentRef) => {
   isLoading: boolean;
 };
 export type UseSiteItem = (supplierId: string, itemId: string) => { data: SupplierSiteItemDetail };
+export type UseSiteItemCounts = (
+  supplierId: string,
+  itemId: string,
+) => { data: SupplierItemCounts | undefined; isLoading: boolean };
 export type UseUpdateSiteItem = (
   supplierId: string,
   itemId: string,
@@ -131,6 +142,10 @@ export type UseQuotationsTable = (
   siteId: string | undefined,
 ) => { data: SupplierQuotationsTableResponse | undefined; isLoading: boolean };
 export type UseQuotation = (supplierId: string, quotationId: string) => { data: SupplierQuotationDetail };
+export type UseQuotationCounts = (
+  supplierId: string,
+  quotationId: string,
+) => { data: SupplierQuotationCounts | undefined; isLoading: boolean };
 export type QuotationPath = (quotation: Pick<SupplierQuotationData, 'id' | 'quotationNumber'>) => string;
 
 // The supplier's default currency and every currency it trades in, which a quotation is priced in one of

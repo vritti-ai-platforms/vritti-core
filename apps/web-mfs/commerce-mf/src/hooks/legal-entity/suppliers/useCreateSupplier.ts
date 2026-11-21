@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { SupplierData } from '@/schemas/suppliers';
 import { type CreateSupplierPayload, createSupplier } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIERS_TABLE_KEY } from './keys';
 
 // Creates a new supplier and invalidates the table
 export function useCreateSupplier(
@@ -15,7 +15,7 @@ export function useCreateSupplier(
     ...options,
     mutationFn: createSupplier,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIERS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.suppliers]);
       options?.onSuccess?.(...args);
     },
   });

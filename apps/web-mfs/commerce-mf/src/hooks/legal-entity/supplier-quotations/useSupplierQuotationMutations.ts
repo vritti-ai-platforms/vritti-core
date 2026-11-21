@@ -1,7 +1,7 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { SUPPLIER_KEY } from '@/hooks/legal-entity/suppliers/keys';
+import { invalidateWrites, type Table, Tables } from '@/hooks/shared/invalidation';
 import type {
   SupplierQuotationData,
   SupplierQuotationItemPayload,
@@ -17,16 +17,13 @@ import {
   updateSupplierQuotation,
   updateSupplierQuotationItem,
 } from '@/services/legal-entity/supplier-quotations.service';
-import { SUPPLIER_QUOTATIONS_KEY } from './keys';
 
 type Options<TData, TVars> = Omit<UseMutationOptions<TData, AxiosError, TVars>, 'mutationFn'>;
 
-// Quotation edits refresh the supplier's quotations; posting and removal also move its prices, so they refresh
-// everything under the supplier
+// Every quotation mutation refreshes whatever reads the tables it writes; posting and removal also move prices
 function useSupplierMutation<TData, TVars>(
-  supplierId: string,
   mutationFn: (vars: TVars) => Promise<TData>,
-  scope: 'quotations' | 'supplier',
+  tables: readonly Table[],
   options?: Options<TData, TVars>,
 ) {
   const queryClient = useQueryClient();
@@ -34,9 +31,7 @@ function useSupplierMutation<TData, TVars>(
     ...options,
     mutationFn,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({
-        queryKey: scope === 'supplier' ? SUPPLIER_KEY(supplierId) : SUPPLIER_QUOTATIONS_KEY(supplierId),
-      });
+      invalidateWrites(queryClient, tables);
       options?.onSuccess?.(...args);
     },
   });
@@ -47,9 +42,8 @@ export function useCreateSupplierQuotation(
   options?: Options<SupplierQuotationData, SupplierQuotationPayload>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (data) => createSupplierQuotation({ supplierId, data }),
-    'quotations',
+    [Tables.supplierQuotations],
     options,
   );
 }
@@ -60,18 +54,21 @@ export function useUpdateSupplierQuotation(
   options?: Options<SuccessResponse, Partial<SupplierQuotationPayload>>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (data) => updateSupplierQuotation({ supplierId, quotationId, data }),
-    'quotations',
+    [Tables.supplierQuotations],
     options,
   );
 }
 
 export function useDeleteSupplierQuotation(supplierId: string, options?: Options<SuccessResponse, string>) {
   return useSupplierMutation(
-    supplierId,
     (quotationId) => deleteSupplierQuotation({ supplierId, quotationId }),
-    'supplier',
+    [
+      Tables.supplierQuotations,
+      Tables.supplierQuotationItems,
+      Tables.supplierQuotationSites,
+      Tables.supplierItemPrices,
+    ],
     options,
   );
 }
@@ -82,9 +79,8 @@ export function useAddSupplierQuotationItem(
   options?: Options<SuccessResponse, SupplierQuotationItemPayload & { inventoryItemId: string; uomId: string }>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (data) => addSupplierQuotationItem({ supplierId, quotationId, data }),
-    'quotations',
+    [Tables.supplierQuotationItems, Tables.inventoryItemMrps],
     options,
   );
 }
@@ -95,9 +91,8 @@ export function useUpdateSupplierQuotationItem(
   options?: Options<SuccessResponse, { itemId: string; data: SupplierQuotationItemPayload }>,
 ) {
   return useSupplierMutation(
-    supplierId,
     ({ itemId, data }) => updateSupplierQuotationItem({ supplierId, quotationId, itemId, data }),
-    'quotations',
+    [Tables.supplierQuotationItems, Tables.inventoryItemMrps],
     options,
   );
 }
@@ -108,9 +103,8 @@ export function useRemoveSupplierQuotationItem(
   options?: Options<SuccessResponse, string>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (itemId) => removeSupplierQuotationItem({ supplierId, quotationId, itemId }),
-    'quotations',
+    [Tables.supplierQuotationItems],
     options,
   );
 }
@@ -121,9 +115,8 @@ export function usePostSupplierQuotationToSite(
   options?: Options<SuccessResponse, string | null>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (siteId) => postSupplierQuotationToSite({ supplierId, quotationId, siteId }),
-    'supplier',
+    [Tables.supplierQuotationSites, Tables.supplierItems, Tables.supplierSiteItems, Tables.supplierItemPrices],
     options,
   );
 }
@@ -134,9 +127,8 @@ export function useRemoveSupplierQuotationFromSite(
   options?: Options<SuccessResponse, string | null>,
 ) {
   return useSupplierMutation(
-    supplierId,
     (siteId) => removeSupplierQuotationFromSite({ supplierId, quotationId, siteId }),
-    'supplier',
+    [Tables.supplierItemPrices, Tables.supplierQuotationSites],
     options,
   );
 }

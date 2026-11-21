@@ -9,6 +9,7 @@ import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddSupplierSiteItemPayload,
   SupplierSiteItemRow,
@@ -21,7 +22,7 @@ import {
   getSupplierSiteItemsTable,
   updateSupplierSiteItem,
 } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_ITEM_KEY, SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_SITE_ITEMS_TABLE_KEY } from './keys';
+import { SUPPLIER_SITE_ITEMS_TABLE_KEY } from './keys';
 
 // Fetches the sites a supplier item is set up at; self-gates on the site items view permission
 export function useSupplierSiteItemsTable(
@@ -48,8 +49,7 @@ export function useAddSupplierSiteItem(
     ...options,
     mutationFn: (data) => addSupplierSiteItem({ supplierId, itemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });
@@ -66,8 +66,7 @@ export function useUpdateSupplierSiteItem(
     mutationFn: ({ supplierSiteItemId, data }) =>
       updateSupplierSiteItem({ supplierId, itemId, supplierSiteItemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });
@@ -83,8 +82,7 @@ export function useDeleteSupplierSiteItem(
     ...options,
     mutationFn: (supplierSiteItemId) => deleteSupplierSiteItem({ supplierId, itemId, supplierSiteItemId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });

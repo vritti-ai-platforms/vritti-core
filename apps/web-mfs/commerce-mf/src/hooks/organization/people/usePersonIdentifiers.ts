@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddIdentifierPayload,
   PartyIdentifierRow,
@@ -14,7 +15,7 @@ import {
   getPersonIdentifiers,
   removePersonIdentifier,
 } from '@/services/organization/people.service';
-import { PERSON_IDENTIFIERS_KEY, PERSON_KEY } from './keys';
+import { PERSON_IDENTIFIERS_KEY } from './keys';
 
 // Fetches a person's identifiers; self-gates on the identifiers view permission
 export function usePersonIdentifiers(
@@ -39,8 +40,7 @@ export function useAddPersonIdentifier(
     ...options,
     mutationFn: (data) => addPersonIdentifier({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_IDENTIFIERS_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyIdentifiers]);
       options?.onSuccess?.(...args);
     },
   });
@@ -55,8 +55,7 @@ export function useRemovePersonIdentifier(
     ...options,
     mutationFn: (identifierId) => removePersonIdentifier({ personId, identifierId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_IDENTIFIERS_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyIdentifiers]);
       options?.onSuccess?.(...args);
     },
   });

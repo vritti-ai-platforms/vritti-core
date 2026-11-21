@@ -90,6 +90,12 @@ export interface OrderPayment {
   createdAt: string;
 }
 
+// How many rows each tab of an order's detail page lists
+export interface OrderCounts {
+  itemCount: number;
+  paymentCount: number;
+}
+
 export type OrdersTableResponse = TableResponse<OrderData>;
 
 const orderItemSchema = z.object({

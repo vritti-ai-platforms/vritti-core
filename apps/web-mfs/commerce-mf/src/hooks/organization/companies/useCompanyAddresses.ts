@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { AddAddressPayload, PartyAddressesTableResponse, PartyAddressRow } from '@/schemas/party-addresses';
 import {
   addCompanyAddress,
@@ -11,7 +12,7 @@ import {
   removeCompanyAddress,
   updateCompanyAddress,
 } from '@/services/organization/companies.service';
-import { COMPANY_ADDRESSES_TABLE_KEY, COMPANY_KEY } from './keys';
+import { COMPANY_ADDRESSES_TABLE_KEY } from './keys';
 
 interface UpdateCompanyAddressVars {
   partyId: string;
@@ -42,15 +43,14 @@ export function useAddCompanyAddress(
     ...options,
     mutationFn: (data) => addCompanyAddress({ partyId: companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_ADDRESSES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useUpdateCompanyAddress(
-  companyId: string,
+  _companyId: string,
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdateCompanyAddressVars>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
@@ -58,8 +58,7 @@ export function useUpdateCompanyAddress(
     ...options,
     mutationFn: (vars) => updateCompanyAddress(vars),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_ADDRESSES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -74,8 +73,7 @@ export function useRemoveCompanyAddress(
     ...options,
     mutationFn: (addressId) => removeCompanyAddress({ partyId: companyId, addressId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_ADDRESSES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions, Tables.checkouts]);
       options?.onSuccess?.(...args);
     },
   });

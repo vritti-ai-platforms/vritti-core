@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteCustomer } from '@/services/site/customers.service';
-import { CUSTOMERS_TABLE_KEY } from './keys';
 
 // Deletes a customer and invalidates the table
 export function useDeleteCustomer(
@@ -15,7 +15,7 @@ export function useDeleteCustomer(
     ...options,
     mutationFn: deleteCustomer,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CUSTOMERS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.customers]);
       options?.onSuccess?.(...args);
     },
   });

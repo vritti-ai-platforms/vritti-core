@@ -6,6 +6,7 @@ import type {
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
   CreateGoodsReceiptFromDeliveryPayload,
+  GoodsReceiptCounts,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -37,6 +38,7 @@ type Query<TData> = { data: TData | undefined; isLoading: boolean };
 
 export type UseGoodsReceiptsTable = () => Query<GoodsReceiptsTableResponse> & { isFetching: boolean };
 export type UseGoodsReceipt = (id: string) => { data: GoodsReceiptData };
+export type UseGoodsReceiptCounts = (id: string) => { data: GoodsReceiptCounts | undefined; isLoading: boolean };
 export type UseGoodsReceiptTree = (id: string) => Query<GoodsReceiptTreeNode[]>;
 export type UseGoodsReceiptItemsCost = (id: string) => Query<GoodsReceiptItemsCostData>;
 export type UseGoodsReceiptItemQuants = (id: string, itemId: string) => Query<GoodsReceiptItemQuantsData>;

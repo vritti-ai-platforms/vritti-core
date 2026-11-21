@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteOrgInventoryItem } from '@/services/organization/inventory-items.service';
-import { ORG_INVENTORY_ITEMS_TABLE_KEY } from './keys';
 
 // Deletes an ORG inventory item and invalidates the table
 export function useDeleteInventoryItem(
@@ -15,7 +15,25 @@ export function useDeleteInventoryItem(
     ...options,
     mutationFn: deleteOrgInventoryItem,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEMS_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.inventoryItems,
+        Tables.inventoryItemLedger,
+        Tables.inventoryItemLocations,
+        Tables.inventoryItemLots,
+        Tables.inventoryItemMrps,
+        Tables.inventoryItemQuants,
+        Tables.inventoryItemQuantCosts,
+        Tables.inventoryItemSerials,
+        Tables.inventoryItemSites,
+        Tables.inventoryItemStorageTypes,
+        Tables.inventoryItemUomConversions,
+        Tables.supplierItems,
+        Tables.supplierSiteItems,
+        Tables.goodsReceiptLines,
+        Tables.goodsReceiptLots,
+        Tables.stockAdjustmentLines,
+        Tables.stockAdjustmentLots,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

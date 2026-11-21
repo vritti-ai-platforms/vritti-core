@@ -10,7 +10,12 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Tags } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteTaxClass, useSetTaxClassActive, useTaxClass } from '@/hooks/organization/tax-classes';
+import {
+  useDeleteTaxClass,
+  useSetTaxClassActive,
+  useTaxClass,
+  useTaxClassCounts,
+} from '@/hooks/organization/tax-classes';
 import { EditTaxClassDialog } from './forms/EditTaxClassDialog';
 import { GroupsTab } from './tabs/groups/GroupsTab';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -19,6 +24,7 @@ export const TaxClassDetailPage = () => {
   const { id } = useSlugParams('taxClassSlug');
   const navigate = useNavigate();
   const { data: taxClass } = useTaxClass(id);
+  const { data: counts, isLoading: countsLoading } = useTaxClassCounts(id);
   const editDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteTaxClass();
@@ -77,6 +83,8 @@ export const TaxClassDetailPage = () => {
           {
             value: 'groups',
             label: 'Groups',
+            count: counts?.groupCount,
+            countLoading: countsLoading,
             permission: ORG_TAX_CLASSES.groups.view,
             content: <GroupsTab taxClass={taxClass} />,
           },

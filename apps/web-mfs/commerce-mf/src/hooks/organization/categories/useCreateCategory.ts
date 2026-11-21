@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CategoryCreateResponse, CategoryFormData } from '@/schemas/categories';
 import { createCategory } from '@/services/organization/categories.service';
-import { CATEGORIES_KEY } from './keys';
 
 export function useCreateCategory(
   options?: Omit<UseMutationOptions<CategoryCreateResponse, AxiosError, CategoryFormData>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useCreateCategory(
     ...options,
     mutationFn: createCategory,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+      invalidateWrites(queryClient, [Tables.categories]);
       options?.onSuccess?.(...args);
     },
   });

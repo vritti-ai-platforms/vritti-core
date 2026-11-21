@@ -3,6 +3,7 @@ import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-item
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddInventoryItemMrpFormData,
   InventoryItemMrpData,
@@ -32,7 +33,7 @@ export function useInventoryItemMrpTable(inventoryItemId: string) {
   });
 }
 
-// Adds a new MRP row and invalidates the MRP list
+// Adds a new MRP row and invalidates the MRP list and the item's counts
 export function useAddInventoryItemMrp(
   inventoryItemId: string,
   options?: UseMutationOptions<InventoryItemMrpData, AxiosError, AddInventoryItemMrpFormData>,
@@ -41,7 +42,7 @@ export function useAddInventoryItemMrp(
   return useMutation<InventoryItemMrpData, AxiosError, AddInventoryItemMrpFormData>({
     mutationFn: (data) => addOrgInventoryItemMrp({ inventoryItemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_MRP_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemMrps]);
       options?.onSuccess?.(...args);
     },
   });
@@ -58,13 +59,13 @@ export function useUpdateInventoryItemMrp(
   return useMutation<InventoryItemMrpData, AxiosError, UpdateMrpPayload>({
     mutationFn: ({ mrpId, data }) => updateOrgInventoryItemMrp({ inventoryItemId, mrpId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_MRP_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemMrps]);
       options?.onSuccess?.(...args);
     },
   });
 }
 
-// Deletes an MRP row and invalidates the MRP list
+// Deletes an MRP row and invalidates the MRP list and the item's counts
 export function useDeleteInventoryItemMrp(
   inventoryItemId: string,
   options?: UseMutationOptions<SuccessResponse, AxiosError, string>,
@@ -73,7 +74,7 @@ export function useDeleteInventoryItemMrp(
   return useMutation<SuccessResponse, AxiosError, string>({
     mutationFn: (mrpId) => deleteOrgInventoryItemMrp({ inventoryItemId, mrpId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_MRP_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemMrps]);
       options?.onSuccess?.(...args);
     },
   });

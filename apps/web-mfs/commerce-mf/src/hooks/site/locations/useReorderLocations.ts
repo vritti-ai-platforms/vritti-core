@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { ReorderLocationsData } from '@/schemas/locations';
 import { reorderLocations } from '@/services/site/locations.service';
-import { LOCATIONS_KEY } from './keys';
 
 export function useReorderLocations(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, ReorderLocationsData>, 'mutationFn'>,
@@ -15,7 +15,7 @@ export function useReorderLocations(
     ...options,
     mutationFn: reorderLocations,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: LOCATIONS_KEY });
+      invalidateWrites(queryClient, [Tables.locations]);
       options?.onSuccess?.(...args);
     },
   });

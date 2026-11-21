@@ -22,12 +22,13 @@ interface PurchaseOrderDetailProps {
 
 // `…/purchase-orders/<number~id>` — an order, its lines, the deliveries carrying them and the goods received against it;
 // once confirmed its header shows how much is received and invoiced. The legal entity's names its site, and where the
-// binding carries invoices the order's invoices get a tab
+// binding carries invoices the order's invoices get a tab; each listing tab shows how many rows it holds
 export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ binding }) => {
   const { permissions, invoices } = binding;
   const { id } = useSlugParams('poSlug');
   const { data: purchaseOrder } = binding.usePurchaseOrder(id);
   const { data: itemIds } = binding.useItemIds(id);
+  const { data: counts, isLoading: countsLoading } = binding.usePurchaseOrderCounts(id);
   const tracksReceipts = purchaseOrder.status === 'CONFIRMED' || purchaseOrder.status === 'DELIVERY_COMPLETED';
 
   return (
@@ -60,19 +61,25 @@ export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ bindin
           },
           {
             value: 'items',
-            label: `Line Items (${itemIds.length})`,
+            label: 'Line Items',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <LineItemsTab binding={binding} purchaseOrder={purchaseOrder} />,
           },
           {
             value: 'deliveries',
             label: 'Inbound Deliveries',
+            count: counts?.inboundDeliveryCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <InboundDeliveriesTab binding={binding} purchaseOrder={purchaseOrder} />,
           },
           {
             value: 'receipts',
             label: 'Goods Receipts',
+            count: counts?.goodsReceiptCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <GoodsReceiptsTab binding={binding} purchaseOrder={purchaseOrder} />,
           },
@@ -81,6 +88,8 @@ export const PurchaseOrderDetail: React.FC<PurchaseOrderDetailProps> = ({ bindin
                 {
                   value: 'invoices',
                   label: 'Invoices',
+                  count: counts?.invoiceCount,
+                  countLoading: countsLoading,
                   permission: invoices.permission,
                   content: <invoices.Tab purchaseOrder={purchaseOrder} />,
                 },

@@ -2,6 +2,7 @@ import type { UseMutationResult, UseQueryResult, UseSuspenseQueryResult } from '
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type {
+  CatalogChannelCounts,
   CatalogChannelType,
   ChannelEntryData,
   ChannelItemsTableResponse,
@@ -25,6 +26,7 @@ type Mutation<TVars, TData = SuccessResponse> = (options?: {
 export type UseCatalogChannels = () => UseSuspenseQueryResult<ChannelEntryData[], AxiosError>;
 export type UseChannelItems = (channelId: string) => UseQueryResult<ChannelItemsTableResponse, AxiosError>;
 export type UseChannelCurrencies = (channelId: string) => UseQueryResult<string[], AxiosError>;
+export type UseChannelCounts = (channelId: string) => { data: CatalogChannelCounts | undefined; isLoading: boolean };
 export type UseChannelPrices = (
   channelId: string,
   currencyCode: string,

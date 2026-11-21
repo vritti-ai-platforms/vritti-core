@@ -13,6 +13,7 @@ import {
   useDeletePurchaseOrder,
   useDownloadPurchaseOrderPdf,
   usePurchaseOrder,
+  usePurchaseOrderCounts,
   usePurchaseOrderGoodsReceiptsTable,
   usePurchaseOrderInboundDeliveriesTable,
   usePurchaseOrderItemDefaults,
@@ -54,6 +55,7 @@ export const binding: PurchaseOrdersBinding = {
 
   useTable: usePurchaseOrdersTable,
   usePurchaseOrder,
+  usePurchaseOrderCounts,
   useItemIds: usePurchaseOrderItemIds,
   useItemDefaults: usePurchaseOrderItemDefaults,
   useItemsTable: usePurchaseOrderItemsTable,

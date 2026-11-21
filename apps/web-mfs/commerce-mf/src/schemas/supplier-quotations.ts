@@ -110,6 +110,12 @@ export interface SupplierQuotationDetail extends SupplierQuotationData {
   sites: SupplierQuotationSiteData[];
 }
 
+// How many rows each tab of a quotation's page lists: its lines and the sites it is posted to
+export interface SupplierQuotationCounts {
+  itemCount: number;
+  siteCount: number;
+}
+
 export type SupplierQuotationsTableResponse = TableResponse<SupplierQuotationData>;
 
 export interface SupplierQuotationPayload {

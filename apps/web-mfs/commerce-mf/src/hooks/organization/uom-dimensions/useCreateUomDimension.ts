@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateUomDimensionData, UomDimensionData } from '@/schemas/uom-dimensions';
 import { createUomDimension } from '@/services/organization/uom-dimensions.service';
-import { UOM_DIMENSIONS_KEY } from './keys';
 
 export function useCreateUomDimension(
   options?: Omit<
@@ -17,7 +17,7 @@ export function useCreateUomDimension(
     ...options,
     mutationFn: createUomDimension,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: UOM_DIMENSIONS_KEY });
+      invalidateWrites(queryClient, [Tables.uomDimensions]);
       options?.onSuccess?.(...args);
     },
   });

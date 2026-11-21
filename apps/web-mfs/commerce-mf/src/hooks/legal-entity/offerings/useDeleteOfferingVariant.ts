@@ -1,19 +1,27 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteVariant } from '@/services/legal-entity/offerings.service';
-import { useInvalidate } from './useInvalidate';
 
 export function useDeleteOfferingVariant(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
 ) {
-  const invalidate = useInvalidate();
+  const queryClient = useQueryClient();
   return useMutation<SuccessResponse, AxiosError, string>({
     ...options,
     mutationFn: deleteVariant,
     onSuccess: (...args) => {
-      invalidate();
+      invalidateWrites(queryClient, [
+        Tables.offeringVariants,
+        Tables.offeringVariantValues,
+        Tables.offeringVariantAttributeValues,
+        Tables.offeringBom,
+        Tables.catalogListings,
+        Tables.catalogListingPrices,
+        Tables.catalogListingChannelExclusions,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

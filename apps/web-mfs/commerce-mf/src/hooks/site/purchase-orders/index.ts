@@ -1,4 +1,5 @@
 export {
+  PURCHASE_ORDER_COUNTS_KEY,
   PURCHASE_ORDER_GOODS_RECEIPTS_TABLE_KEY,
   PURCHASE_ORDER_INBOUND_DELIVERIES_TABLE_KEY,
   PURCHASE_ORDER_ITEMS_IDS_KEY,
@@ -16,6 +17,7 @@ export { useCreatePurchaseOrder } from './useCreatePurchaseOrder';
 export { useDeletePurchaseOrder } from './useDeletePurchaseOrder';
 export { useDownloadPurchaseOrderPdf } from './useDownloadPurchaseOrderPdf';
 export { usePurchaseOrder } from './usePurchaseOrder';
+export { usePurchaseOrderCounts } from './usePurchaseOrderCounts';
 export { usePurchaseOrderGoodsReceiptsTable } from './usePurchaseOrderGoodsReceiptsTable';
 export { usePurchaseOrderInboundDeliveriesTable } from './usePurchaseOrderInboundDeliveriesTable';
 export { usePurchaseOrderItemDefaults } from './usePurchaseOrderItemDefaults';

@@ -11,7 +11,12 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Percent } from 'lucide-react';
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteTaxGroup, useSetTaxGroupActive, useTaxGroup } from '@/hooks/organization/tax-groups';
+import {
+  useDeleteTaxGroup,
+  useSetTaxGroupActive,
+  useTaxGroup,
+  useTaxGroupCounts,
+} from '@/hooks/organization/tax-groups';
 import { TaxTreatmentBadge } from './components/TaxTreatmentBadge';
 import { EditTaxGroupDialog } from './forms/EditTaxGroupDialog';
 import { ClassesTab } from './tabs/classes/ClassesTab';
@@ -22,6 +27,7 @@ export const TaxGroupDetailPage = () => {
   const { id } = useSlugParams('taxGroupSlug');
   const navigate = useNavigate();
   const { data: taxGroup } = useTaxGroup(id);
+  const { data: counts, isLoading: countsLoading } = useTaxGroupCounts(id);
   const editDialog = useDialog();
   const confirm = useConfirm();
   const deleteMutation = useDeleteTaxGroup();
@@ -82,13 +88,17 @@ export const TaxGroupDetailPage = () => {
           },
           {
             value: 'rates',
-            label: `Rates (${taxGroup.rateCount})`,
+            label: 'Rates',
+            count: counts?.rateCount,
+            countLoading: countsLoading,
             permission: ORG_TAX_GROUPS.rates.view,
             content: <RatesTab taxGroup={taxGroup} />,
           },
           {
             value: 'classes',
-            label: `Classes (${taxGroup.classCount})`,
+            label: 'Classes',
+            count: counts?.classCount,
+            countLoading: countsLoading,
             permission: ORG_TAX_GROUPS.classes.view,
             content: <ClassesTab taxGroup={taxGroup} />,
           },

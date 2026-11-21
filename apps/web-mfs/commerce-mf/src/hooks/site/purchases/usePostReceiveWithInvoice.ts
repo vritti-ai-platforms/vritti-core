@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { postReceiveWithInvoice } from '@/services/site/purchases.service';
-import { PURCHASE_DOCUMENT_KEYS, PURCHASES_KEY } from './keys';
 
 // Posts a draft Receive with Invoice and refreshes the purchases and their documents
 export function usePostReceiveWithInvoice(
@@ -13,7 +13,25 @@ export function usePostReceiveWithInvoice(
     ...options,
     mutationFn: postReceiveWithInvoice,
     onSuccess: (...args) => {
-      for (const queryKey of [PURCHASES_KEY, ...PURCHASE_DOCUMENT_KEYS]) queryClient.invalidateQueries({ queryKey });
+      invalidateWrites(queryClient, [
+        Tables.inventoryItemLots,
+        Tables.goodsReceiptLots,
+        Tables.inventoryItemQuants,
+        Tables.inventoryItemSerials,
+        Tables.goodsReceiptLines,
+        Tables.inventoryItemLedger,
+        Tables.inventoryItemCosts,
+        Tables.inventoryItemQuantCosts,
+        Tables.goodsReceipts,
+        Tables.purchaseOrderItems,
+        Tables.purchaseOrders,
+        Tables.inboundDeliveries,
+        Tables.supplierInvoices,
+        Tables.supplierInvoiceLines,
+        Tables.supplierInvoiceHolds,
+        Tables.purchaseSuppliers,
+        Tables.purchases,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

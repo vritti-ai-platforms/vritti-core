@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { ClosePurchasePayload } from '@/schemas/purchases';
 import { closePurchase } from '@/services/legal-entity/purchases.service';
-import { invalidatePurchase } from './keys';
 
 // Closes a purchase and refreshes everything shown of it
 export function useClosePurchase(
@@ -14,8 +14,16 @@ export function useClosePurchase(
     ...options,
     mutationFn: closePurchase,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id);
+      invalidateWrites(queryClient, [
+        Tables.purchases,
+        Tables.purchaseSuppliers,
+        Tables.purchaseOrders,
+        Tables.purchaseOrderItems,
+        Tables.inboundDeliveries,
+        Tables.purchaseItemAllocations,
+        Tables.purchaseItems,
+        Tables.supplierQuotationItems,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

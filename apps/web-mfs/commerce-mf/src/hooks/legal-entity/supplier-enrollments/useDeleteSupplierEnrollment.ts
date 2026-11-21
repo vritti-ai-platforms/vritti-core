@@ -1,7 +1,7 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { SUPPLIER_KEY } from '@/hooks/legal-entity/suppliers/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { SupplierEnrollmentKey } from '@/schemas/supplier-enrollments';
 import { deleteSupplierEnrollment } from '@/services/legal-entity/supplier-enrollments.service';
 
@@ -14,7 +14,7 @@ export function useDeleteSupplierEnrollment(
     ...options,
     mutationFn: deleteSupplierEnrollment,
     onSuccess: (result, variables, ...rest) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(variables.supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierEnrollments]);
       options?.onSuccess?.(result, variables, ...rest);
     },
   });

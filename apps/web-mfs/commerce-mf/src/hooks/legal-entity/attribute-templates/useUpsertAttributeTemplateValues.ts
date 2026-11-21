@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpsertAttributeTemplateValuesData } from '@/schemas/attribute-templates';
 import { upsertAttributeTemplateValues } from '@/services/legal-entity/attribute-templates.service';
-import { ATTRIBUTE_TEMPLATES_KEY } from './keys';
 
 // Replaces a template's values and invalidates template queries
 export function useUpsertAttributeTemplateValues(
@@ -16,7 +16,7 @@ export function useUpsertAttributeTemplateValues(
     ...options,
     mutationFn: upsertAttributeTemplateValues,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ATTRIBUTE_TEMPLATES_KEY });
+      invalidateWrites(queryClient, [Tables.attributeTemplateValues, Tables.attributeTemplates]);
       options?.onSuccess?.(...args);
     },
   });

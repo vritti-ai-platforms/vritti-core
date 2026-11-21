@@ -4,6 +4,7 @@ import type {
   CreateSupplierEnrollmentPayload,
   SetSupplierEnrollmentActiveVars,
   SupplierEnrollment,
+  SupplierEnrollmentCounts,
   SupplierEnrollmentDetail,
   SupplierEnrollmentKey,
   SupplierEnrollmentsTableResponse,
@@ -11,6 +12,7 @@ import type {
 } from '@/schemas/supplier-enrollments';
 import type {
   AddSupplierSiteItemPricePayload,
+  SupplierItemCounts,
   SupplierItemPriceHistory,
   SupplierItemPriceRow,
   SupplierSiteItemDataTableResponse,
@@ -32,6 +34,13 @@ export function getSupplierEnrollment({
   supplierId,
 }: Pick<SupplierEnrollmentKey, 'supplierId'>): Promise<SupplierEnrollmentDetail> {
   return axios.get<SupplierEnrollmentDetail>(`${BASE}/${supplierId}`).then((r) => r.data);
+}
+
+// Fetches how many items, quotations and invoices a supplier has at the session site, one per tab
+export function getSupplierEnrollmentCounts({
+  supplierId,
+}: Pick<SupplierEnrollmentKey, 'supplierId'>): Promise<SupplierEnrollmentCounts> {
+  return axios.get<SupplierEnrollmentCounts>(`${BASE}/${supplierId}/counts`).then((r) => r.data);
 }
 
 // Enrolls a supplier at the session site; the site travels in the request headers
@@ -77,6 +86,19 @@ export function getSupplierSiteItem({
 }): Promise<SupplierSiteItemDetail> {
   return axios
     .get<SupplierSiteItemDetail>(`${BASE}/${supplierId}/site-items/${itemId}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches how many prices this site reads for a supplier item, one per tab
+export function getSupplierSiteItemCounts({
+  supplierId,
+  itemId,
+}: {
+  supplierId: string;
+  itemId: string;
+}): Promise<SupplierItemCounts> {
+  return axios
+    .get<SupplierItemCounts>(`${BASE}/${supplierId}/site-items/${itemId}/counts`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 

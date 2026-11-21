@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateStorageTypePayload, StorageTypeData } from '@/schemas/storage-types';
 import { createStorageType } from '@/services/organization/storage-types.service';
-import { STORAGE_TYPES_KEY } from './keys';
 
 // Creates a storage type and refreshes the table and the pickers
 export function useCreateStorageType(
@@ -17,7 +17,7 @@ export function useCreateStorageType(
     ...options,
     mutationFn: createStorageType,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STORAGE_TYPES_KEY });
+      invalidateWrites(queryClient, [Tables.storageTypes]);
       options?.onSuccess?.(...args);
     },
   });

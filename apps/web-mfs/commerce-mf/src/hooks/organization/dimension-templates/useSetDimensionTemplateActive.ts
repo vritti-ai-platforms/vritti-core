@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { setDimensionTemplateActive } from '@/services/organization/dimension-templates.service';
-import { DIMENSION_TEMPLATES_KEY } from './keys';
 
 type Vars = { id: string; isActive: boolean };
 
@@ -17,7 +17,7 @@ export function useSetDimensionTemplateActive(
     ...options,
     mutationFn: setDimensionTemplateActive,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: DIMENSION_TEMPLATES_KEY });
+      invalidateWrites(queryClient, [Tables.dimensionTemplates]);
       options?.onSuccess?.(...args);
     },
   });

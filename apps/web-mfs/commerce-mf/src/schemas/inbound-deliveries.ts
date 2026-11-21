@@ -49,6 +49,11 @@ export const manualInboundDeliveryStatusTransitions: Record<InboundDeliveryStatu
   CANCELLED: [],
 };
 
+// How many rows each tab of an inbound delivery's detail page lists
+export interface InboundDeliveryCounts {
+  lineCount: number;
+}
+
 export interface InboundDeliveryData {
   id: string;
   deliveryNumber: string;

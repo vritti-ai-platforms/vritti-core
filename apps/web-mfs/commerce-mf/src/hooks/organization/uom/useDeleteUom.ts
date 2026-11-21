@@ -2,9 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteUom } from '@/services/organization/uom.service';
-import { UOM_DIMENSIONS_KEY } from '../uom-dimensions/keys';
-import { UOM_TABLE_KEY } from './keys';
 
 // Deletes a UOM and invalidates the UOM table
 export function useDeleteUom(options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>) {
@@ -14,8 +13,7 @@ export function useDeleteUom(options?: Omit<UseMutationOptions<SuccessResponse, 
     ...options,
     mutationFn: deleteUom,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: UOM_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: UOM_DIMENSIONS_KEY });
+      invalidateWrites(queryClient, [Tables.uom]);
       options?.onSuccess?.(...args);
     },
   });

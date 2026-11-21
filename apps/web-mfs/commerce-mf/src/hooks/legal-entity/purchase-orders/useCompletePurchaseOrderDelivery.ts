@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { completePurchaseOrderDelivery } from '@/services/legal-entity/purchase-orders.service';
-import { PURCHASE_ORDER_KEY, PURCHASE_ORDERS_TABLE_KEY } from './keys';
 
 // Closes a purchase order short
 export function useCompletePurchaseOrderDelivery(
@@ -13,9 +13,7 @@ export function useCompletePurchaseOrderDelivery(
     ...options,
     mutationFn: completePurchaseOrderDelivery,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDER_KEY(variables) });
+      invalidateWrites(queryClient, [Tables.purchaseOrders, Tables.purchaseOrderItems]);
       options?.onSuccess?.(...args);
     },
   });

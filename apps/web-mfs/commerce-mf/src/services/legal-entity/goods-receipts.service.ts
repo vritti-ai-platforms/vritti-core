@@ -5,6 +5,7 @@ import type {
   AddGoodsReceiptLinePayload,
   AddGoodsReceiptLotPayload,
   CreateGoodsReceiptFromDeliveryPayload,
+  GoodsReceiptCounts,
   GoodsReceiptData,
   GoodsReceiptItemData,
   GoodsReceiptItemQuantsData,
@@ -30,6 +31,11 @@ export function getGoodsReceiptsTable(): Promise<GoodsReceiptsTableResponse> {
 // Fetches one goods receipt
 export function getGoodsReceipt(id: string): Promise<GoodsReceiptData> {
   return axios.get<GoodsReceiptData>(`commerce-api/le/goods-receipts/${id}`).then((r) => r.data);
+}
+
+// Fetches how many items a goods receipt has, the count its breakdown and items cost tabs both list
+export function getGoodsReceiptCounts(id: string): Promise<GoodsReceiptCounts> {
+  return axios.get<GoodsReceiptCounts>(`commerce-api/le/goods-receipts/${id}/counts`).then((r) => r.data);
 }
 
 // Fetches a goods receipt's items with their lots and lines as a tree

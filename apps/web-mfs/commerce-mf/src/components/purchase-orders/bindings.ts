@@ -13,6 +13,7 @@ import type {
   UseDeletePurchaseOrder,
   UseDownloadPurchaseOrderPdf,
   UsePurchaseOrder,
+  UsePurchaseOrderCounts,
   UsePurchaseOrderGoodsReceiptsTable,
   UsePurchaseOrderInboundDeliveriesTable,
   UsePurchaseOrderItemDefaults,
@@ -57,6 +58,7 @@ export interface PurchaseOrdersBinding {
 
   useTable: UsePurchaseOrdersTable;
   usePurchaseOrder: UsePurchaseOrder;
+  usePurchaseOrderCounts: UsePurchaseOrderCounts;
   useItemIds: UsePurchaseOrderItemIds;
   useItemDefaults: UsePurchaseOrderItemDefaults;
   useItemsTable: UsePurchaseOrderItemsTable;

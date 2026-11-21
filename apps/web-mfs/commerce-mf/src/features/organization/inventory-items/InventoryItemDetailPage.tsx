@@ -8,7 +8,7 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Package, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteInventoryItem, useInventoryItem } from '@/hooks/organization/inventory-items';
+import { useDeleteInventoryItem, useInventoryItem, useInventoryItemCounts } from '@/hooks/organization/inventory-items';
 import { EditInventoryItemForm } from './forms/EditInventoryItemForm';
 import { MrpTab } from './tabs/mrp/MrpTab';
 import { OverviewTab } from './tabs/OverviewTab';
@@ -20,6 +20,7 @@ export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const navigate = useNavigate();
   const { data: item } = useInventoryItem(id);
+  const { data: counts, isLoading: countsLoading } = useInventoryItemCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
   const confirm = useConfirm();
@@ -64,6 +65,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'uom-conversions',
             label: 'UOM Conversions',
+            count: counts?.conversionCount,
+            countLoading: countsLoading,
             permission: ORG_INVENTORY_ITEMS.conversions.view,
             content: (
               <UomConversionsTab inventoryItemId={item.id} itemUomId={item.uomId} itemUomSymbol={item.uomSymbol} />
@@ -72,6 +75,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'mrp',
             label: 'MRP',
+            count: counts?.mrpCount,
+            countLoading: countsLoading,
             permission: ORG_INVENTORY_ITEMS.mrp.view,
             content: <MrpTab inventoryItemId={item.id} />,
           },
@@ -84,6 +89,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'suppliers',
             label: 'Suppliers',
+            count: counts?.supplierCount,
+            countLoading: countsLoading,
             permission: ORG_INVENTORY_ITEMS.view,
             content: <SuppliersTab inventoryItemId={item.id} />,
           },

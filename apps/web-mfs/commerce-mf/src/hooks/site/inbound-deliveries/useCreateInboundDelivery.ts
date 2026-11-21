@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateInboundDeliveryPayload, InboundDeliveryData } from '@/schemas/inbound-deliveries';
 import { createInboundDelivery } from '@/services/site/inbound-deliveries.service';
-import { INBOUND_DELIVERIES_TABLE_KEY } from './keys';
 
 // Creates an inbound delivery from a supplier at the site
 export function useCreateInboundDelivery(
@@ -17,7 +17,7 @@ export function useCreateInboundDelivery(
     ...options,
     mutationFn: createInboundDelivery,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: INBOUND_DELIVERIES_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.inboundDeliveries]);
       options?.onSuccess?.(...args);
     },
   });

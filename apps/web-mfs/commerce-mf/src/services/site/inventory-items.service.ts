@@ -6,6 +6,7 @@ import type {
   InventoryItemData,
   InventoryItemLedgerTableResponse,
   InventoryItemStockData,
+  SiteInventoryItemCounts,
   SiteStockTableResponse,
 } from '@/schemas/inventory-items';
 import type { BlockSiteItemFormData, InventoryItemSiteData, ReplenishmentPayload } from '@/schemas/site-items';
@@ -58,6 +59,11 @@ export function removeFromSite(inventoryItemId: string): Promise<SuccessResponse
 
 export function getInventoryItem(id: string): Promise<InventoryItemData> {
   return axios.get<InventoryItemData>(`${BASE}/${id}`).then((r) => r.data);
+}
+
+// Fetches how many rows each tab of the item's detail page lists at the current site
+export function getInventoryItemCounts(id: string): Promise<SiteInventoryItemCounts> {
+  return axios.get<SiteInventoryItemCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 export function getInventoryItemQuantsTable(id: string): Promise<InventoryItemQuantsTableResponse> {

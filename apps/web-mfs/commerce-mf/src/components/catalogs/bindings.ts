@@ -7,6 +7,7 @@ import type {
   UseBulkSetCatalogListingAvailability,
   UseBulkSetCatalogListingPrice,
   UseCatalogChannelsForCatalog,
+  UseCatalogCounts,
   UseCatalogCurrencies,
   UseCatalogCurrencyListingsTable,
   UseCatalogListingsTable,
@@ -34,6 +35,7 @@ export interface CatalogsBinding {
 
   useCatalogsTable: UseCatalogsTable;
   useCatalog: UseSuspenseCatalog;
+  useCatalogCounts: UseCatalogCounts;
   useCreateCatalog: UseCreateCatalog;
   useUpdateCatalog: UseUpdateCatalog;
   useDeleteCatalog: UseDeleteCatalog;

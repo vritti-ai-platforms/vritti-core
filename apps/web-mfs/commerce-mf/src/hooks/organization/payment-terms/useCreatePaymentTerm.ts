@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreatePaymentTermPayload, PaymentTermData } from '@/schemas/payment-terms';
 import { createPaymentTerm } from '@/services/organization/payment-terms.service';
-import { PAYMENT_TERMS_TABLE_KEY } from './keys';
 
 export function useCreatePaymentTerm(
   options?: Omit<UseMutationOptions<PaymentTermData, AxiosError, CreatePaymentTermPayload>, 'mutationFn'>,
@@ -13,7 +13,7 @@ export function useCreatePaymentTerm(
     ...options,
     mutationFn: createPaymentTerm,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PAYMENT_TERMS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.paymentTerms]);
       options?.onSuccess?.(...args);
     },
   });

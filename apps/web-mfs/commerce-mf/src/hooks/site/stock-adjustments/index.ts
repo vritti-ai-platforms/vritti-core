@@ -1,4 +1,5 @@
 export {
+  STOCK_ADJUSTMENT_COUNTS_KEY,
   STOCK_ADJUSTMENT_KEY,
   STOCK_ADJUSTMENT_LINE_ITEMS_KEY,
   STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
@@ -23,6 +24,7 @@ export { usePublishStockAdjustment } from './usePublishStockAdjustment';
 export { useRemoveStockAdjustmentLine } from './useRemoveStockAdjustmentLine';
 export { useRemoveStockAdjustmentLineItem } from './useRemoveStockAdjustmentLineItem';
 export { useStockAdjustment } from './useStockAdjustment';
+export { useStockAdjustmentCounts } from './useStockAdjustmentCounts';
 export { useStockAdjustmentLine } from './useStockAdjustmentLine';
 export { useStockAdjustmentLineItems } from './useStockAdjustmentLineItems';
 export { useStockAdjustmentLineItemsTable } from './useStockAdjustmentLineItemsTable';

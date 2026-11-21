@@ -10,7 +10,13 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import { Ban } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useInventoryItem, useRemoveFromSite, useSiteItem, useUnblockSiteItem } from '@/hooks/site/inventory-items';
+import {
+  useInventoryItem,
+  useInventoryItemCounts,
+  useRemoveFromSite,
+  useSiteItem,
+  useUnblockSiteItem,
+} from '@/hooks/site/inventory-items';
 import { SiteItemStatusValues } from '@/schemas/site-items';
 import { BlockSiteItemForm } from './forms/BlockSiteItemForm';
 import { LedgerTab } from './tabs/LedgerTab';
@@ -26,6 +32,7 @@ import { SuppliersTab } from './tabs/SuppliersTab';
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const { data: item } = useInventoryItem(id);
+  const { data: counts, isLoading: countsLoading } = useInventoryItemCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const { data: siteItem } = useSiteItem(id);
   const removeFromSite = useRemoveFromSite(id);
@@ -108,6 +115,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'stock-levels',
             label: 'Stock',
+            count: counts?.stockLevelCount,
+            countLoading: countsLoading,
             content: <StockLevelsTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           ...(item.tracking === 'LOT' || item.tracking === 'LOT_SERIAL'
@@ -115,6 +124,8 @@ export const InventoryItemDetailPage = () => {
                 {
                   value: 'lots',
                   label: 'Lots',
+                  count: counts?.lotCount,
+                  countLoading: countsLoading,
                   content: <LotsTab inventoryItemId={item.id} />,
                 },
               ]
@@ -122,17 +133,23 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'locations',
             label: 'Locations',
+            count: counts?.locationCount,
+            countLoading: countsLoading,
             permission: SITE_INVENTORY_ITEMS.locations.view,
             content: <LocationsTab inventoryItemId={item.id} />,
           },
           {
             value: 'suppliers',
             label: 'Suppliers',
+            count: counts?.supplierCount,
+            countLoading: countsLoading,
             content: <SuppliersTab inventoryItemId={item.id} />,
           },
           {
             value: 'prices',
             label: 'Prices',
+            count: counts?.priceCount,
+            countLoading: countsLoading,
             permission: SITE_INVENTORY_ITEMS.prices.view,
             content: <PricesTab inventoryItemId={item.id} />,
           },
@@ -145,11 +162,15 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'movements',
             label: 'Movements',
+            count: counts?.movementCount,
+            countLoading: countsLoading,
             content: <LedgerTab inventoryItemId={item.id} uomSymbol={item.uomSymbol} />,
           },
           {
             value: 'quants',
             label: 'Quants',
+            count: counts?.quantCount,
+            countLoading: countsLoading,
             content: <QuantsTab inventoryItemId={item.id} />,
           },
         ]}

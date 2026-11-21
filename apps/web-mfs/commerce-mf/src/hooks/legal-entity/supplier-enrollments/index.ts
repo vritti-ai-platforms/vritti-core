@@ -1,4 +1,5 @@
 export {
+  SUPPLIER_ENROLLMENT_COUNTS_KEY,
   SUPPLIER_ENROLLMENT_KEY,
   SUPPLIER_ENROLLMENT_SITE_ITEMS_TABLE_KEY,
   SUPPLIER_ENROLLMENTS_KEY,
@@ -8,6 +9,7 @@ export { useCreateSupplierEnrollment } from './useCreateSupplierEnrollment';
 export { useDeleteSupplierEnrollment } from './useDeleteSupplierEnrollment';
 export { useSetSupplierEnrollmentActive } from './useSetSupplierEnrollmentActive';
 export { useSupplierEnrollment, useSupplierEnrollmentRef } from './useSupplierEnrollment';
+export { useSupplierEnrollmentCounts } from './useSupplierEnrollmentCounts';
 export { useSupplierEnrollmentPurchasing } from './useSupplierEnrollmentPurchasing';
 export { useSupplierEnrollmentSiteItemsTable } from './useSupplierEnrollmentSiteItems';
 export { useSupplierEnrollmentsTable } from './useSupplierEnrollmentsTable';

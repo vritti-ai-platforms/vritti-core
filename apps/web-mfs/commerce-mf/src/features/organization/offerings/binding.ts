@@ -33,10 +33,12 @@ import {
   useOfferingAttributes,
   useOfferingChannels,
   useOfferingChannelVariantsTable,
+  useOfferingCounts,
   useOfferingDimensions,
   useOfferingsTable,
   useOfferingVariant,
   useOfferingVariantBom,
+  useOfferingVariantCounts,
   useOfferingVariantsTable,
   usePreviewOfferingVariantCombinations,
   useReorderOfferingAttributes,
@@ -71,6 +73,7 @@ export const binding: OfferingsBinding = {
 
   useOfferingsTable,
   useOffering,
+  useOfferingCounts,
   useCreateOffering,
   useUpdateOffering,
   useDeleteOffering,
@@ -100,6 +103,7 @@ export const binding: OfferingsBinding = {
 
   useOfferingVariantsTable,
   useOfferingVariant,
+  useOfferingVariantCounts,
   useCreateOfferingVariant,
   useGenerateOfferingVariants,
   usePreviewOfferingVariantCombinations,

@@ -39,6 +39,19 @@ export const updatePersonSchema = z.object({
 export type CreatePersonFormData = z.infer<typeof createPersonSchema>;
 export type UpdatePersonFormData = z.infer<typeof updatePersonSchema>;
 
+// How many rows each tab of a person's detail page lists
+export interface PersonCounts {
+  addressCount: number;
+  communicationCount: number;
+  socialProfileCount: number;
+  companyCount: number;
+  registrationCount: number;
+  licenseCount: number;
+  bankAccountCount: number;
+  wishlistCount: number;
+  identifierCount: number;
+}
+
 export interface PersonData {
   id: string;
   firstName: string;

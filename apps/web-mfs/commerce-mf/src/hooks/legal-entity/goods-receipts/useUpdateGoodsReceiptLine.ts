@@ -1,10 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { PURCHASE_ORDERS_KEY } from '@/hooks/legal-entity/purchase-orders/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateGoodsReceiptLinePayload } from '@/schemas/goods-receipts';
 import { updateGoodsReceiptLine } from '@/services/legal-entity/goods-receipts.service';
-import { GOODS_RECEIPT_KEY } from './keys';
 
 // Updates a line's location or quantity; the receipt and the purchase orders refresh
 export function useUpdateGoodsReceiptLine(
@@ -18,8 +17,7 @@ export function useUpdateGoodsReceiptLine(
     ...options,
     mutationFn: (data) => updateGoodsReceiptLine(goodsReceiptId, itemId, lineId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId) });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_KEY });
+      invalidateWrites(queryClient, [Tables.goodsReceiptLines]);
       options?.onSuccess?.(...args);
     },
   });

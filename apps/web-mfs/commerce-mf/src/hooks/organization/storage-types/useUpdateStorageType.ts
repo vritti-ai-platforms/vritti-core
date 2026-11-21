@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateStorageTypePayload } from '@/schemas/storage-types';
 import { updateStorageType } from '@/services/organization/storage-types.service';
-import { STORAGE_TYPES_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -19,7 +19,7 @@ export function useUpdateStorageType(
     ...options,
     mutationFn: updateStorageType,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STORAGE_TYPES_KEY });
+      invalidateWrites(queryClient, [Tables.storageTypes]);
       options?.onSuccess?.(...args);
     },
   });

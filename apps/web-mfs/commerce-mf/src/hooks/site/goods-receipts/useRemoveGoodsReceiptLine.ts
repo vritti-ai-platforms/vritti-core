@@ -1,9 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { PURCHASE_ORDERS_KEY } from '@/hooks/site/purchase-orders/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { removeGoodsReceiptLine } from '@/services/site/goods-receipts.service';
-import { GOODS_RECEIPT_KEY } from './keys';
 
 // Removes a line with its serials; the receipt and the purchase orders refresh
 export function useRemoveGoodsReceiptLine(
@@ -16,8 +15,7 @@ export function useRemoveGoodsReceiptLine(
     ...options,
     mutationFn: (lineId) => removeGoodsReceiptLine(goodsReceiptId, itemId, lineId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPT_KEY(goodsReceiptId) });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_KEY });
+      invalidateWrites(queryClient, [Tables.goodsReceiptLines, Tables.goodsReceiptLineItems]);
       options?.onSuccess?.(...args);
     },
   });

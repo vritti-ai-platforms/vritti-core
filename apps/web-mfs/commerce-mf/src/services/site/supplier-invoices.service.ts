@@ -8,6 +8,7 @@ import type {
   ReleaseSupplierInvoiceHoldVars,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
+  SupplierInvoiceCounts,
   SupplierInvoiceDetail,
   SupplierInvoiceRef,
   SupplierInvoicesTableResponse,
@@ -25,6 +26,11 @@ export function getSupplierInvoicesTable(supplierId: string): Promise<SupplierIn
 // Fetches one of the supplier's invoices with its lines and holds
 export function getSupplierInvoice(supplierId: string, invoiceId: string): Promise<SupplierInvoiceDetail> {
   return axios.get<SupplierInvoiceDetail>(`${supplierBase(supplierId)}/${invoiceId}`).then((r) => r.data);
+}
+
+// Fetches how many lines and holds one of the supplier's invoices has, one per tab
+export function getSupplierInvoiceCounts(supplierId: string, invoiceId: string): Promise<SupplierInvoiceCounts> {
+  return axios.get<SupplierInvoiceCounts>(`${supplierBase(supplierId)}/${invoiceId}/counts`).then((r) => r.data);
 }
 
 // Fetches the supplier's posted receipt batches at the session site with quantity left to invoice, oldest first

@@ -29,7 +29,7 @@ import type {
   PartySocialProfileRow,
   PartySocialProfilesTableResponse,
 } from '@/schemas/party-social-profiles';
-import type { PeopleTableResponse, PersonCompaniesTableResponse, PersonData } from '@/schemas/people';
+import type { PeopleTableResponse, PersonCompaniesTableResponse, PersonCounts, PersonData } from '@/schemas/people';
 import type { PersonWishlistRow } from '@/schemas/person-shopper';
 
 export interface CreatePersonPayload {
@@ -64,6 +64,11 @@ export function getPeopleTable(): Promise<PeopleTableResponse> {
 
 export function getPerson(id: string): Promise<PersonData> {
   return axios.get<PersonData>(`commerce-api/org/people/${id}`).then((r) => r.data);
+}
+
+// Fetches how many rows each tab of a person's detail page lists
+export function getPersonCounts(id: string): Promise<PersonCounts> {
+  return axios.get<PersonCounts>(`commerce-api/org/people/${id}/counts`).then((r) => r.data);
 }
 
 export function createPerson(data: CreatePersonPayload): Promise<PersonData> {

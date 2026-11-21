@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { type UpdateSupplierItemPayload, updateSupplierItem } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIER_ITEMS_TABLE_KEY, SUPPLIER_KEY } from './keys';
 
 interface UpdateSupplierItemVariables {
   itemId: string;
@@ -21,8 +21,7 @@ export function useUpdateSupplierItem(
     ...options,
     mutationFn: ({ itemId, data }) => updateSupplierItem({ supplierId, itemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEMS_TABLE_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierItems, Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });

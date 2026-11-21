@@ -1,4 +1,5 @@
 export {
+  GOODS_RECEIPT_COUNTS_KEY,
   GOODS_RECEIPT_ITEM_KEY,
   GOODS_RECEIPT_ITEM_QUANTS_KEY,
   GOODS_RECEIPT_ITEMS_COST_KEY,
@@ -18,6 +19,7 @@ export { useAddGoodsReceiptLot } from './useAddGoodsReceiptLot';
 export { useCreateGoodsReceiptFromDelivery } from './useCreateGoodsReceiptFromDelivery';
 export { useDeleteGoodsReceipt } from './useDeleteGoodsReceipt';
 export { useGoodsReceipt } from './useGoodsReceipt';
+export { useGoodsReceiptCounts } from './useGoodsReceiptCounts';
 export { useGoodsReceiptItem } from './useGoodsReceiptItem';
 export { useGoodsReceiptItemQuants } from './useGoodsReceiptItemQuants';
 export { useGoodsReceiptItemsCost } from './useGoodsReceiptItemsCost';

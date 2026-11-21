@@ -17,6 +17,7 @@ import type {
   UseDeletePrice,
   UseDeleteQuotation,
   UseEnrollment,
+  UseEnrollmentCounts,
   UseEnrollmentPurchasing,
   UseEnrollmentRef,
   UseEnrollmentScope,
@@ -24,11 +25,13 @@ import type {
   UsePriceHistoryQuery,
   UsePricesTable,
   UseQuotation,
+  UseQuotationCounts,
   UseQuotationPosting,
   UseQuotationsTable,
   UseRemoveQuotationItem,
   UseSetEnrollmentActive,
   UseSiteItem,
+  UseSiteItemCounts,
   UseSiteItemsTable,
   UseSupplierCurrencies,
   UseSupplierParty,
@@ -74,6 +77,8 @@ export interface SupplierSiteItemPageBinding {
   permissions: SupplierSiteItemPagePermissions;
   useItemId: () => string;
   useSiteItem: UseSiteItem;
+  // How many rows each list tab of the site item page holds
+  useSiteItemCounts: UseSiteItemCounts;
   useUpdateSiteItem: UseUpdateSiteItem;
   prices: SupplierItemPricesBinding;
   useAddSitePrice: UseAddSitePrice;
@@ -97,6 +102,8 @@ export interface SupplierEnrollmentBinding {
 
   useEnrollmentRef: UseEnrollmentRef;
   useEnrollment: UseEnrollment;
+  // How many rows each list tab of the enrollment page holds
+  useEnrollmentCounts: UseEnrollmentCounts;
   // The supplier's party facts for the enrollment forms; idle until the supplier is known
   useSupplierParty: UseSupplierParty;
   useCreateEnrollment: UseCreateEnrollment;
@@ -140,6 +147,8 @@ export interface SupplierQuotationsBinding {
   emptyState: (siteId: string | undefined) => { title: string; description: string };
   useQuotationRef: () => QuotationRef;
   useQuotation: UseQuotation;
+  // How many rows each list tab of a quotation's page holds
+  useQuotationCounts: UseQuotationCounts;
   quotationKey: (supplierId: string, quotationId: string) => readonly unknown[];
   useSupplierName: (supplierId: string) => string;
   authoring?: SupplierQuotationAuthoring;

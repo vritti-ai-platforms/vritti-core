@@ -12,10 +12,12 @@ import {
   useDeleteStockAdjustment,
   usePublishStockAdjustment,
   useStockAdjustment,
+  useStockAdjustmentCounts,
 } from '@/hooks/site/stock-adjustments';
 import {
   type InventoryTracking,
   InventoryTrackingValues,
+  type StockAdjustmentCounts,
   type StockAdjustmentStatus,
   StockAdjustmentStatusValues,
   type StockAdjustmentType,
@@ -50,6 +52,18 @@ function getPublishBlockedTip(type: StockAdjustmentType, tracking: InventoryTrac
   }
 }
 
+// The Breakdown tab lists draft lots for opening stock of a lot-tracked item, and lines for every other adjustment
+function breakdownCount(
+  type: StockAdjustmentType,
+  tracking: InventoryTracking,
+  counts: StockAdjustmentCounts | undefined,
+): number | undefined {
+  const listsLots =
+    type === StockAdjustmentTypeValues.OPENING_STOCK &&
+    (tracking === InventoryTrackingValues.LOT || tracking === InventoryTrackingValues.LOT_SERIAL);
+  return listsLots ? counts?.lotCount : counts?.lineCount;
+}
+
 const typeConfig: Record<
   StockAdjustmentType,
   { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
@@ -75,6 +89,7 @@ export const StockAdjustmentDetailPage = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   const { data: adjustment } = useStockAdjustment(id);
+  const { data: counts, isLoading: countsLoading } = useStockAdjustmentCounts(id);
   const deleteMutation = useDeleteStockAdjustment();
   const publishMutation = usePublishStockAdjustment();
 
@@ -147,6 +162,8 @@ export const StockAdjustmentDetailPage = () => {
           {
             value: 'breakdown',
             label: 'Breakdown',
+            count: breakdownCount(adjustment.type, adjustment.inventoryItemTracking, counts),
+            countLoading: countsLoading,
             content: <BreakdownTab adjustment={adjustment} isDraft={isDraft} />,
           },
         ]}

@@ -1,5 +1,6 @@
 export {
   TAX_GROUP_CLASSES_TABLE_KEY,
+  TAX_GROUP_COUNTS_KEY,
   TAX_GROUP_KEY,
   TAX_GROUP_RATES_TABLE_KEY,
   TAX_GROUPS_KEY,
@@ -14,6 +15,7 @@ export { useDeleteTaxGroupRate } from './useDeleteTaxGroupRate';
 export { useSetTaxGroupActive } from './useSetTaxGroupActive';
 export { useTaxGroup } from './useTaxGroup';
 export { useTaxGroupClassesTable } from './useTaxGroupClassesTable';
+export { useTaxGroupCounts } from './useTaxGroupCounts';
 export { useTaxGroupRatesTable } from './useTaxGroupRatesTable';
 export { useTaxGroupsTable } from './useTaxGroupsTable';
 export { useUpdateTaxClassGroup } from './useUpdateTaxClassGroup';

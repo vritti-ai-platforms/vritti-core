@@ -1,6 +1,7 @@
 export const GOODS_RECEIPTS_KEY = ['commerce', 'goods-receipts'] as const;
 export const GOODS_RECEIPTS_TABLE_KEY = [...GOODS_RECEIPTS_KEY, 'table'] as const;
 export const GOODS_RECEIPT_KEY = (id: string) => [...GOODS_RECEIPTS_KEY, id] as const;
+export const GOODS_RECEIPT_COUNTS_KEY = (id: string) => [...GOODS_RECEIPT_KEY(id), 'counts'] as const;
 export const GOODS_RECEIPT_TREE_KEY = (id: string) => [...GOODS_RECEIPT_KEY(id), 'tree'] as const;
 export const GOODS_RECEIPT_ITEMS_COST_KEY = (id: string) => [...GOODS_RECEIPT_KEY(id), 'items-cost'] as const;
 export const GOODS_RECEIPT_ITEM_KEY = (id: string, itemId: string) =>

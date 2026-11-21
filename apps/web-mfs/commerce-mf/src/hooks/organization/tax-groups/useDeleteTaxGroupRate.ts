@@ -1,9 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteTaxGroupRate } from '@/services/organization/tax-groups.service';
-import { TAX_GROUP_KEY, TAX_GROUPS_TABLE_KEY } from './keys';
 
 interface Vars {
   taxGroupId: string;
@@ -19,9 +18,7 @@ export function useDeleteTaxGroupRate(
     ...options,
     mutationFn: deleteTaxGroupRate,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: TAX_GROUP_KEY(vars.taxGroupId) });
-      queryClient.invalidateQueries({ queryKey: TAX_GROUPS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.taxGroupRates]);
       options?.onSuccess?.(...args);
     },
   });

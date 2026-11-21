@@ -16,6 +16,11 @@ export interface CartData {
 
 export type CartsTableResponse = TableResponse<CartData>;
 
+// How many rows each tab of a basket's detail page lists
+export interface CartCounts {
+  itemCount: number;
+}
+
 export interface CartLineData {
   id: string;
   catalogListingId: string | null;

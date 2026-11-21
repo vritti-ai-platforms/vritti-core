@@ -101,6 +101,31 @@ export const InventoryPickStrategyValues = {
 
 export type InventoryPickStrategy = (typeof InventoryPickStrategyValues)[keyof typeof InventoryPickStrategyValues];
 
+// How many rows each tab of the org's inventory item detail page lists
+export interface OrgInventoryItemCounts {
+  conversionCount: number;
+  mrpCount: number;
+  supplierCount: number;
+}
+
+// How many rows each listing tab of a legal entity's inventory item detail page holds
+export interface LeInventoryItemCounts {
+  supplierCount: number;
+  siteCount: number;
+  mrpCount: number;
+}
+
+// How many rows each listing tab of a site's inventory item detail page holds
+export interface SiteInventoryItemCounts {
+  stockLevelCount: number;
+  lotCount: number;
+  locationCount: number;
+  supplierCount: number;
+  priceCount: number;
+  movementCount: number;
+  quantCount: number;
+}
+
 export interface InventoryItemData extends MeasureFigures {
   id: string;
   name: string;

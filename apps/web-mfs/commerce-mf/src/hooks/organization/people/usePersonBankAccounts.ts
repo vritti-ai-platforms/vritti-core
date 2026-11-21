@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartyBankAccountPayload,
   PartyBankAccountRow,
@@ -15,7 +16,7 @@ import {
   getPersonBankAccounts,
   updatePersonBankAccount,
 } from '@/services/organization/people.service';
-import { PERSON_BANK_ACCOUNTS_TABLE_KEY, PERSON_KEY } from './keys';
+import { PERSON_BANK_ACCOUNTS_TABLE_KEY } from './keys';
 
 // Fetches a person's bank accounts; self-gates on the bank accounts view permission
 export function usePersonBankAccountsTable(
@@ -40,8 +41,7 @@ export function useCreatePersonBankAccount(
     ...options,
     mutationFn: (data) => createPersonBankAccount({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_BANK_ACCOUNTS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts]);
       options?.onSuccess?.(...args);
     },
   });
@@ -61,7 +61,7 @@ export function useUpdatePersonBankAccount(
     ...options,
     mutationFn: ({ bankAccountId, data }) => updatePersonBankAccount({ personId, bankAccountId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_BANK_ACCOUNTS_TABLE_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts]);
       options?.onSuccess?.(...args);
     },
   });
@@ -76,8 +76,7 @@ export function useDeletePersonBankAccount(
     ...options,
     mutationFn: (bankAccountId) => deletePersonBankAccount({ personId, bankAccountId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_BANK_ACCOUNTS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyBankAccounts, Tables.supplierEnrollments]);
       options?.onSuccess?.(...args);
     },
   });

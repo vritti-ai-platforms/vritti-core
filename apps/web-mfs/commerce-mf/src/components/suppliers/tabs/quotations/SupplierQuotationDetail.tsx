@@ -21,6 +21,7 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
   const { supplierId, quotationId } = binding.useQuotationRef();
   const supplierName = binding.useSupplierName(supplierId);
   const { data: quotation } = binding.useQuotation(supplierId, quotationId);
+  const { data: counts, isLoading: countsLoading } = binding.useQuotationCounts(supplierId, quotationId);
   const [activeTab, setActiveTab] = useState('overview');
   const authoring = binding.authoring;
   const { view, mrpView } = binding.permissions;
@@ -45,7 +46,9 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
           },
           {
             value: 'items',
-            label: `Items (${quotation.items.length})`,
+            label: 'Items',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: view,
             content: slot ? (
               <QuotationLinesTab {...slot} />
@@ -63,7 +66,9 @@ export const SupplierQuotationDetail: React.FC<SupplierQuotationDetailProps> = (
             ? [
                 {
                   value: 'sites',
-                  label: `Sites (${quotation.sites.length})`,
+                  label: 'Sites',
+                  count: counts?.siteCount,
+                  countLoading: countsLoading,
                   permission: view,
                   content: <QuotationSitesTab {...slot} />,
                 },

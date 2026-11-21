@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { StockTransferData } from '@/schemas/stock-transfers';
 import { type CreateStockTransferPayload, createStockTransfer } from '@/services/site/stock-transfers.service';
-import { STOCK_TRANSFERS_TABLE_KEY } from './keys';
 
 export function useCreateStockTransfer(
   options?: Omit<UseMutationOptions<StockTransferData, AxiosError, CreateStockTransferPayload>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useCreateStockTransfer(
     ...options,
     mutationFn: createStockTransfer,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_TRANSFERS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.stockTransfers]);
       options?.onSuccess?.(...args);
     },
   });

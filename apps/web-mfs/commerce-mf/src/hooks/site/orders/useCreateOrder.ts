@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { OrderData } from '@/schemas/orders';
 import { type CreateOrderPayload, createOrder } from '@/services/site/orders.service';
-import { ORDERS_TABLE_KEY } from './keys';
 
 export function useCreateOrder(
   options?: Omit<UseMutationOptions<OrderData, AxiosError, CreateOrderPayload>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useCreateOrder(
     ...options,
     mutationFn: createOrder,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORDERS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.orders, Tables.orderItems]);
       options?.onSuccess?.(...args);
     },
   });

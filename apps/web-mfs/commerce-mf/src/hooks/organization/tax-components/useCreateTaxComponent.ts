@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreateTaxComponentPayload, TaxComponentData } from '@/schemas/tax-components';
 import { createTaxComponent } from '@/services/organization/tax-components.service';
-import { TAX_COMPONENTS_TABLE_KEY } from './keys';
 
 export function useCreateTaxComponent(
   options?: Omit<UseMutationOptions<TaxComponentData, AxiosError, CreateTaxComponentPayload>, 'mutationFn'>,
@@ -13,7 +13,7 @@ export function useCreateTaxComponent(
     ...options,
     mutationFn: createTaxComponent,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: TAX_COMPONENTS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.taxComponents]);
       options?.onSuccess?.(...args);
     },
   });

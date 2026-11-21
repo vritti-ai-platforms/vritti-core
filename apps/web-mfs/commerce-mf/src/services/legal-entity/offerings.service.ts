@@ -15,9 +15,11 @@ import type {
   GenerateVariantsData,
   OfferingAttributeData,
   OfferingChannelTypeData,
+  OfferingCounts,
   OfferingData,
   OfferingDimensionData,
   OfferingsTableResponse,
+  OfferingVariantCounts,
   OfferingVariantData,
   OfferingVariantsTableResponse,
   PreviewCombinationsData,
@@ -48,6 +50,11 @@ export function getOfferingsTable(): Promise<OfferingsTableResponse> {
 
 export function getOffering(id: string): Promise<OfferingData> {
   return axios.get<OfferingData>(`${BASE}/${id}`).then((r) => r.data);
+}
+
+// Fetches how many dimensions, attributes and variants an offering has, one per tab
+export function getOfferingCounts(id: string): Promise<OfferingCounts> {
+  return axios.get<OfferingCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 export function createOffering(data: CreateOfferingData): Promise<CreateResponse<OfferingData>> {
@@ -154,6 +161,11 @@ export function deleteAttribute(id: string): Promise<SuccessResponse> {
 // Variants with their dimension values and bill of materials
 export function getVariant(variantId: string): Promise<OfferingVariantData> {
   return axios.get<OfferingVariantData>(`${BASE}/variants/${variantId}`).then((r) => r.data);
+}
+
+// Fetches how many bill-of-materials lines a variant has, one per tab
+export function getVariantCounts(variantId: string): Promise<OfferingVariantCounts> {
+  return axios.get<OfferingVariantCounts>(`${BASE}/variants/${variantId}/counts`).then((r) => r.data);
 }
 
 export function getVariantsTable(offeringId: string): Promise<OfferingVariantsTableResponse> {

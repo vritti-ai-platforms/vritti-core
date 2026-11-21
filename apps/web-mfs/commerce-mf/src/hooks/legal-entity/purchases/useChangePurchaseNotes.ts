@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { ChangePurchaseNotesPayload } from '@/schemas/purchases';
 import { changePurchaseNotes } from '@/services/legal-entity/purchases.service';
-import { invalidatePurchase } from './keys';
 
 // Changes an open purchase's notes, then refreshes the purchase and its actions
 export function useChangePurchaseNotes(
@@ -14,8 +14,7 @@ export function useChangePurchaseNotes(
     ...options,
     mutationFn: changePurchaseNotes,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      invalidatePurchase(queryClient, variables.id);
+      invalidateWrites(queryClient, [Tables.purchases]);
       options?.onSuccess?.(...args);
     },
   });

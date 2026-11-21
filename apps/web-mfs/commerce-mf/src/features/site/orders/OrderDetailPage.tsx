@@ -6,7 +6,7 @@ import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { CheckCircle, ChefHat, PackageCheck, ThumbsUp, XCircle } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useOrder, useUpdateOrderStatus } from '@/hooks/site/orders';
+import { useOrder, useOrderCounts, useUpdateOrderStatus } from '@/hooks/site/orders';
 import type { OrderStatus } from '@/schemas/orders';
 import { OrderAttentionAlerts } from './components/OrderAttentionAlerts';
 import { ORDER_CHANNEL_LABELS, ORDER_STATUS, ORDER_TYPE_LABELS } from './components/order-labels';
@@ -26,6 +26,7 @@ const nextStatusActions: Partial<
 export const OrderDetailPage = () => {
   const { id } = useSlugParams('orderSlug');
   const { data: order } = useOrder(id);
+  const { data: counts, isLoading: countsLoading } = useOrderCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const statusMutation = useUpdateOrderStatus();
   const confirm = useConfirm();
@@ -87,10 +88,18 @@ export const OrderDetailPage = () => {
       <Tabs
         tabs={[
           { value: 'overview', label: 'Overview', content: <OverviewTab order={order} /> },
-          { value: 'items', label: `Items (${order.items.length})`, content: <ItemsTab order={order} /> },
+          {
+            value: 'items',
+            label: 'Items',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
+            content: <ItemsTab order={order} />,
+          },
           {
             value: 'payments',
             label: 'Payments',
+            count: counts?.paymentCount,
+            countLoading: countsLoading,
             permission: SITE_ORDERS.payments.view,
             content: <PaymentsTab orderId={order.id} />,
           },

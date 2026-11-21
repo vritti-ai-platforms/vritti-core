@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateUomData } from '@/schemas/uom';
 import { updateUom } from '@/services/organization/uom.service';
-import { UOM_TABLE_KEY } from './keys';
 
 // Updates a UOM and invalidates the UOM table
 export function useUpdateUom(
@@ -16,7 +16,7 @@ export function useUpdateUom(
     ...options,
     mutationFn: updateUom,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: UOM_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.uom]);
       options?.onSuccess?.(...args);
     },
   });

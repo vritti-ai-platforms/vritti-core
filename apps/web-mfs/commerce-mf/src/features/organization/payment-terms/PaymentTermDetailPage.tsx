@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   useDeletePaymentTerm,
   usePaymentTerm,
+  usePaymentTermCounts,
   usePublishPaymentTerm,
   useUnpublishPaymentTerm,
 } from '@/hooks/organization/payment-terms';
@@ -26,6 +27,7 @@ export const PaymentTermDetailPage = () => {
   const { id } = useSlugParams('paymentTermSlug');
   const navigate = useNavigate();
   const { data: paymentTerm } = usePaymentTerm(id);
+  const { data: counts, isLoading: countsLoading } = usePaymentTermCounts(id);
   const editDialog = useDialog();
   const baselineDialog = useDialog();
   const confirm = useConfirm();
@@ -136,7 +138,9 @@ export const PaymentTermDetailPage = () => {
           },
           {
             value: 'rules',
-            label: `Rules (${paymentTerm.ruleCount})`,
+            label: 'Rules',
+            count: counts?.ruleCount,
+            countLoading: countsLoading,
             permission: ORG_PAYMENT_TERMS.rules.view,
             content: (
               <Suspense fallback={<RulesTabSkeleton />}>

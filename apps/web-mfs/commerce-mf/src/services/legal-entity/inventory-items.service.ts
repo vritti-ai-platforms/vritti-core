@@ -1,7 +1,7 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { InventoryItemMrpTableResponse } from '@/schemas/inventory-item-mrp';
-import type { InventoryItemData, InventoryItemTableResponse } from '@/schemas/inventory-items';
+import type { InventoryItemData, InventoryItemTableResponse, LeInventoryItemCounts } from '@/schemas/inventory-items';
 import type {
   BlockSiteItemFormData,
   InventoryItemSiteData,
@@ -24,6 +24,11 @@ export function getLeInventoryItemsTable(): Promise<InventoryItemTableResponse> 
 
 export function getLeInventoryItem(id: string): Promise<InventoryItemData> {
   return axios.get<InventoryItemData>(`${BASE}/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many suppliers, sites and MRPs a legal entity's item detail page lists, one per tab
+export function getLeInventoryItemCounts(id: string): Promise<LeInventoryItemCounts> {
+  return axios.get<LeInventoryItemCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 export function getLeInventoryItemSuppliersTable(id: string): Promise<InventoryItemSuppliersTableResponse> {

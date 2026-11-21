@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { AttributeTemplateData, CreateAttributeTemplateData } from '@/schemas/attribute-templates';
 import { createAttributeTemplate } from '@/services/legal-entity/attribute-templates.service';
-import { ATTRIBUTE_TEMPLATES_KEY } from './keys';
 
 // Creates an attribute template and invalidates template queries
 export function useCreateAttributeTemplate(
@@ -19,7 +19,7 @@ export function useCreateAttributeTemplate(
     ...options,
     mutationFn: createAttributeTemplate,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ATTRIBUTE_TEMPLATES_KEY });
+      invalidateWrites(queryClient, [Tables.attributeTemplates]);
       options?.onSuccess?.(...args);
     },
   });

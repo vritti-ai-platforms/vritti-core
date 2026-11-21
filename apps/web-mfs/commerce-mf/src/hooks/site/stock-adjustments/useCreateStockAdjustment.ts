@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { type CreateStockAdjustmentPayload, createStockAdjustment } from '@/services/site/stock-adjustments.service';
-import { STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';
 
 export function useCreateStockAdjustment(
   options?: Omit<UseMutationOptions<StockAdjustmentData, AxiosError, CreateStockAdjustmentPayload>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useCreateStockAdjustment(
     ...options,
     mutationFn: createStockAdjustment,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENTS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.stockAdjustments]);
       options?.onSuccess?.(...args);
     },
   });

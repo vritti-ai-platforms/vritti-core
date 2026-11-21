@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { PartyLicensePayload, PartyLicenseRow, PartyLicensesTableResponse } from '@/schemas/party-licenses';
 import {
   createCompanyLicense,
@@ -11,7 +12,7 @@ import {
   getCompanyLicenses,
   updateCompanyLicense,
 } from '@/services/organization/companies.service';
-import { COMPANY_KEY, COMPANY_LICENSES_TABLE_KEY } from './keys';
+import { COMPANY_LICENSES_TABLE_KEY } from './keys';
 
 // Fetches a company's licenses; self-gates on the licenses view permission
 export function useCompanyLicensesTable(
@@ -36,8 +37,7 @@ export function useCreateCompanyLicense(
     ...options,
     mutationFn: (data) => createCompanyLicense({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_LICENSES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });
@@ -57,7 +57,7 @@ export function useUpdateCompanyLicense(
     ...options,
     mutationFn: ({ licenseId, data }) => updateCompanyLicense({ companyId, licenseId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_LICENSES_TABLE_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });
@@ -72,8 +72,7 @@ export function useDeleteCompanyLicense(
     ...options,
     mutationFn: (licenseId) => deleteCompanyLicense({ companyId, licenseId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_LICENSES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyLicenses]);
       options?.onSuccess?.(...args);
     },
   });

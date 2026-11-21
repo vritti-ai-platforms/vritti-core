@@ -6,7 +6,7 @@ import type {
 } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import type { CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
+import type { CartCounts, CartData, CartItemsTableResponse, CartLinesData, CartsTableResponse } from '@/schemas/carts';
 import type { AddCartLinePayload } from '@/services/site/carts.service';
 
 export interface CartPermissions {
@@ -36,6 +36,7 @@ export interface CartsBinding {
   useCartsTable: () => UseQueryResult<CartsTableResponse, AxiosError>;
   useCart: (cartId: string) => UseSuspenseQueryResult<CartData, AxiosError>;
   useCartItems: (cartId: string) => UseSuspenseQueryResult<CartLinesData, AxiosError>;
+  useCartCounts: (cartId: string) => UseQueryResult<CartCounts, AxiosError>;
   useCartItemsTable: (cartId: string) => UseQueryResult<CartItemsTableResponse, AxiosError>;
   useOpenCart: MutationHook<CartData, { partyId: string }>;
   useAddCartLine: LineMutationHook<AddCartLinePayload>;

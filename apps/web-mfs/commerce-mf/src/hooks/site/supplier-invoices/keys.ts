@@ -6,6 +6,8 @@ export const SITE_SUPPLIER_INVOICES_TABLE_KEY = (supplierId: string) =>
   [...SITE_SUPPLIER_INVOICES_KEY, 'suppliers', supplierId, 'table'] as const;
 export const SITE_SUPPLIER_INVOICE_KEY = (supplierId: string, invoiceId: string) =>
   [...SITE_SUPPLIER_INVOICES_KEY, 'suppliers', supplierId, invoiceId] as const;
+export const SITE_SUPPLIER_INVOICE_COUNTS_KEY = (supplierId: string, invoiceId: string) =>
+  [...SITE_SUPPLIER_INVOICE_KEY(supplierId, invoiceId), 'counts'] as const;
 export const SITE_INVOICEABLE_GOODS_RECEIPTS_KEY = (supplierId: string, params: InvoiceableGoodsReceiptsParams) =>
   [...SITE_SUPPLIER_INVOICES_KEY, 'suppliers', supplierId, 'invoiceable-goods-receipts', params] as const;
 

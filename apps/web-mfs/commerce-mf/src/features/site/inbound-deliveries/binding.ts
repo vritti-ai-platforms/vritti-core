@@ -9,6 +9,7 @@ import {
   useDeleteInboundDelivery,
   useInboundDeliveriesTable,
   useInboundDelivery,
+  useInboundDeliveryCounts,
   useInboundDeliveryLinesTable,
   useRemoveInboundDeliveryLine,
   useUpdateInboundDelivery,
@@ -31,6 +32,7 @@ export const binding: InboundDeliveriesBinding = {
 
   useTable: useInboundDeliveriesTable,
   useInboundDelivery,
+  useInboundDeliveryCounts,
   useLinesTable: useInboundDeliveryLinesTable,
 
   mutations: {

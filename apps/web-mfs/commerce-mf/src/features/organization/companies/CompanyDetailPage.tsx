@@ -9,7 +9,7 @@ import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Building2, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCompanyById, useDeleteCompany } from '@/hooks/organization/companies';
+import { useCompanyById, useCompanyCounts, useDeleteCompany } from '@/hooks/organization/companies';
 import { AddressesTab } from '../party/tabs/addresses/AddressesTab';
 import { BankAccountsTab } from '../party/tabs/bank-accounts/BankAccountsTab';
 import { CommunicationsTab } from '../party/tabs/communications/CommunicationsTab';
@@ -26,6 +26,7 @@ export const CompanyDetailPage = () => {
   const { id } = useSlugParams('companySlug');
   const navigate = useNavigate();
   const { data: company } = useCompanyById(id);
+  const { data: counts, isLoading: countsLoading } = useCompanyCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
   const confirm = useConfirm();
@@ -73,48 +74,64 @@ export const CompanyDetailPage = () => {
           {
             value: 'addresses',
             label: 'Addresses',
+            count: counts?.addressCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.addresses.view,
             content: <AddressesTab partyId={company.id} binding={companyBindings.addresses} />,
           },
           {
             value: 'communications',
             label: 'Communications',
+            count: counts?.communicationCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.communications.view,
             content: <CommunicationsTab partyId={company.id} binding={companyBindings.communications} />,
           },
           {
             value: 'social-profiles',
             label: 'Social Profiles',
+            count: counts?.socialProfileCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.socialProfiles.view,
             content: <SocialProfilesTab partyId={company.id} binding={companyBindings.socialProfiles} />,
           },
           {
             value: 'people',
             label: 'People',
+            count: counts?.personCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.people.view,
             content: <PeopleTab companyId={company.id} />,
           },
           {
             value: 'registrations',
             label: 'Tax Registrations',
+            count: counts?.registrationCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.registrations.view,
             content: <RegistrationsTab partyId={company.id} binding={companyBindings.registrations} />,
           },
           {
             value: 'licenses',
             label: 'Licenses',
+            count: counts?.licenseCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.licenses.view,
             content: <LicensesTab partyId={company.id} binding={companyBindings.licenses} />,
           },
           {
             value: 'bank-accounts',
             label: 'Bank Accounts',
+            count: counts?.bankAccountCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.bankAccounts.view,
             content: <BankAccountsTab partyId={company.id} binding={companyBindings.bankAccounts} />,
           },
           {
             value: 'identifiers',
             label: 'Identifiers',
+            count: counts?.identifierCount,
+            countLoading: countsLoading,
             permission: ORG_COMPANIES.identifiers.view,
             content: <IdentifiersTab partyId={company.id} binding={companyBindings.identifiers} />,
           },

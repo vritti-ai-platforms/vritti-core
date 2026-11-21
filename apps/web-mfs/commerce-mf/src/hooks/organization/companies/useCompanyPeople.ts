@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddCompanyPersonPayload,
   CompanyPeopleTableResponse,
@@ -16,7 +17,7 @@ import {
   removeCompanyPerson,
   updateCompanyPerson,
 } from '@/services/organization/companies.service';
-import { COMPANY_KEY, COMPANY_PEOPLE_TABLE_KEY } from './keys';
+import { COMPANY_PEOPLE_TABLE_KEY } from './keys';
 
 // Fetches a company's linked people; self-gates on the people view permission
 export function useCompanyPeopleTable(
@@ -41,8 +42,7 @@ export function useAddCompanyPerson(
     ...options,
     mutationFn: (data) => addCompanyPerson({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyRelationships, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -62,8 +62,7 @@ export function useUpdateCompanyPerson(
     ...options,
     mutationFn: ({ companyPersonId, data }) => updateCompanyPerson({ companyId, companyPersonId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyRelationships, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -78,8 +77,7 @@ export function useRemoveCompanyPerson(
     ...options,
     mutationFn: (companyPersonId) => removeCompanyPerson({ companyId, companyPersonId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_PEOPLE_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyRelationships, Tables.partyFunctions, Tables.supplierEnrollments]);
       options?.onSuccess?.(...args);
     },
   });

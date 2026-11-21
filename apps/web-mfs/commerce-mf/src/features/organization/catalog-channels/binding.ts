@@ -4,6 +4,7 @@ import {
   CHANNEL_ITEMS_KEY,
   CHANNEL_PRICES_KEY,
   useCatalogChannels,
+  useChannelCounts,
   useChannelCurrencies,
   useChannelItems,
   useChannelPrices,
@@ -20,6 +21,7 @@ export const orgCatalogChannelsBinding: CatalogChannelsBinding = {
   pricesKey: CHANNEL_PRICES_KEY,
 
   useCatalogChannels,
+  useChannelCounts,
   useChannelCurrencies,
   useChannelItems,
   useChannelPrices,

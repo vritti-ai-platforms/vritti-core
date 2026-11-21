@@ -19,6 +19,7 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
 
   const { data: cart } = binding.useCart(id);
   const { data: lines } = binding.useCartItems(id);
+  const { data: counts, isLoading: countsLoading } = binding.useCartCounts(id);
   const confirm = useConfirm();
   const closeMutation = binding.useCloseCart();
 
@@ -55,7 +56,9 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
           },
           {
             value: 'items',
-            label: `Items (${lines.items.length})`,
+            label: 'Items',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <ItemsTab binding={binding} cartId={id} partyId={cart.partyId} />,
           },

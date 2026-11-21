@@ -1,4 +1,5 @@
 export {
+  CATALOG_COUNTS_KEY,
   CATALOG_CURRENCIES_KEY,
   CATALOG_CURRENCY_LISTINGS_TABLE_KEY,
   CATALOG_KEY,
@@ -13,6 +14,7 @@ export { useBulkRemoveCatalogListings } from './useBulkRemoveCatalogListings';
 export { useBulkSetCatalogListingAvailability } from './useBulkSetCatalogListingAvailability';
 export { useBulkSetCatalogListingPrice } from './useBulkSetCatalogListingPrice';
 export { useCatalog } from './useCatalog';
+export { useCatalogCounts } from './useCatalogCounts';
 export { useCatalogCurrencies } from './useCatalogCurrencies';
 export { useCatalogCurrencyListingsTable } from './useCatalogCurrencyListingsTable';
 export { useCatalogListingsTable } from './useCatalogListingsTable';

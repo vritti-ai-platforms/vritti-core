@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { bulkSetSupplierActive } from '@/services/legal-entity/suppliers.service';
-import { SUPPLIERS_KEY } from './keys';
 
 export interface BulkSetSupplierActivePayload {
   ids: string[];
@@ -20,7 +20,7 @@ export function useBulkSetSupplierActive(
     ...options,
     mutationFn: bulkSetSupplierActive,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      invalidateWrites(queryClient, [Tables.suppliers, Tables.supplierEnrollments]);
       options?.onSuccess?.(...args);
     },
   });

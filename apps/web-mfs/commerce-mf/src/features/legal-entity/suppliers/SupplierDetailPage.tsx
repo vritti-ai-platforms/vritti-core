@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
@@ -12,11 +13,13 @@ import { useNavigate } from 'react-router-dom';
 import { QuotationsTab } from '@/components/suppliers/tabs/quotations/QuotationsTab';
 import { PeopleTab } from '@/features/organization/companies/tabs/people/PeopleTab';
 import {
+  SUPPLIER_COUNTS_KEY,
   useDeleteSupplier,
   useSetSupplierActive,
   useSetSupplierPaymentBlocked,
   useSetSupplierPurchasingBlocked,
   useSupplier,
+  useSupplierCounts,
 } from '@/hooks/legal-entity/suppliers';
 import { ChangeCurrencyDialog } from './forms/ChangeCurrencyDialog';
 import { ChangeDefaultPaymentTermDialog } from './forms/ChangeDefaultPaymentTermDialog';
@@ -29,7 +32,9 @@ import { OverviewTab } from './tabs/OverviewTab';
 export const SupplierDetailPage = () => {
   const { id } = useSlugParams('supplierSlug');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: supplier } = useSupplier(id);
+  const { data: counts, isLoading: countsLoading } = useSupplierCounts(id);
   const editDialog = useDialog();
   const changeCurrencyDialog = useDialog();
   const changeDefaultPaymentTermDialog = useDialog();
@@ -138,19 +143,25 @@ export const SupplierDetailPage = () => {
           },
           {
             value: 'items',
-            label: `Items (${supplier.itemCount})`,
+            label: 'Items',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: LE_SUPPLIERS.items.view,
             content: <ItemsTab supplierId={supplier.id} />,
           },
           {
             value: 'enrollments',
-            label: `Enrollments (${supplier.enrolledSiteCount})`,
+            label: 'Enrollments',
+            count: counts?.enrollmentCount,
+            countLoading: countsLoading,
             permission: LE_SUPPLIERS.sites.view,
             content: <EnrollmentsTab />,
           },
           {
             value: 'quotations',
             label: 'Quotations',
+            count: counts?.quotationCount,
+            countLoading: countsLoading,
             permission: LE_SUPPLIERS.quotations.view,
             content: <QuotationsTab binding={quotationsBinding} supplierId={supplier.id} />,
           },
@@ -159,7 +170,16 @@ export const SupplierDetailPage = () => {
                 {
                   value: 'persons',
                   label: 'Persons',
-                  content: <PeopleTab companyId={supplier.partyId} />,
+                  count: counts?.personCount,
+                  countLoading: countsLoading,
+                  content: (
+                    <PeopleTab
+                      companyId={supplier.partyId}
+                      onPeopleChange={() =>
+                        queryClient.invalidateQueries({ queryKey: SUPPLIER_COUNTS_KEY(supplier.id) })
+                      }
+                    />
+                  ),
                 },
               ]
             : []),

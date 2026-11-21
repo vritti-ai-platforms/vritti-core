@@ -2,6 +2,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  StockAdjustmentCounts,
   StockAdjustmentData,
   StockAdjustmentLineData,
   StockAdjustmentLineItemData,
@@ -70,6 +71,11 @@ export function getStockAdjustmentsTable(): Promise<StockAdjustmentsTableRespons
 
 export function getStockAdjustment(id: string): Promise<StockAdjustmentData> {
   return axios.get<StockAdjustmentData>(`commerce-api/site/stock-adjustments/${id}`).then((r) => r.data);
+}
+
+// Fetches how many lines and draft lots an adjustment has, for its Breakdown tab
+export function getStockAdjustmentCounts(id: string): Promise<StockAdjustmentCounts> {
+  return axios.get<StockAdjustmentCounts>(`commerce-api/site/stock-adjustments/${id}/counts`).then((r) => r.data);
 }
 
 export function getStockAdjustmentLots(id: string): Promise<StockAdjustmentLotData[]> {

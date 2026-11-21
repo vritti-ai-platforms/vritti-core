@@ -4,6 +4,7 @@ import type {
   AddInboundDeliveryLinesPayload,
   CreateInboundDeliveryPayload,
   InboundDeliveriesTableResponse,
+  InboundDeliveryCounts,
   InboundDeliveryData,
   InboundDeliveryLineRef,
   InboundDeliveryLinesTableResponse,
@@ -20,6 +21,11 @@ export function getInboundDeliveriesTable(): Promise<InboundDeliveriesTableRespo
 // Fetches one inbound delivery
 export function getInboundDelivery(id: string): Promise<InboundDeliveryData> {
   return axios.get<InboundDeliveryData>(`commerce-api/site/inbound-deliveries/${id}`).then((r) => r.data);
+}
+
+// Fetches how many lines an inbound delivery has, one per tab
+export function getInboundDeliveryCounts(id: string): Promise<InboundDeliveryCounts> {
+  return axios.get<InboundDeliveryCounts>(`commerce-api/site/inbound-deliveries/${id}/counts`).then((r) => r.data);
 }
 
 // Fetches an inbound delivery's lines for the data table

@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { type UpdateCatalogPayload, updateCatalog } from '@/services/legal-entity/catalogs.service';
-import { CATALOGS_KEY } from './keys';
 
 export function useUpdateCatalog(
   options?: Omit<
@@ -15,7 +15,7 @@ export function useUpdateCatalog(
     ...options,
     mutationFn: updateCatalog,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
+      invalidateWrites(queryClient, [Tables.catalogs]);
       options?.onSuccess?.(...args);
     },
   });

@@ -3,6 +3,7 @@ import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   AddCatalogListingItem,
+  CatalogCounts,
   CatalogCurrencyData,
   CatalogData,
   CatalogListingData,
@@ -35,6 +36,11 @@ export function getCatalogsTable(): Promise<CatalogsTableResponse> {
 
 export function getCatalog(id: string): Promise<CatalogData> {
   return axios.get<CatalogData>(`${BASE}/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many channels, listings and currencies a catalog has, one per tab
+export function getCatalogCounts(id: string): Promise<CatalogCounts> {
+  return axios.get<CatalogCounts>(`${BASE}/${id}/counts`, { showSuccessToast: false }).then((r) => r.data);
 }
 
 export function createCatalog(data: CreateCatalogPayload): Promise<CreateResponse<CatalogData>> {

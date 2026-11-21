@@ -198,6 +198,13 @@ export interface SupplierItemDetail extends SupplierItemData {
   canDelete: boolean;
 }
 
+// How many rows each tab of a supplier item's page lists: the sites it is set up at and its prices, as far as the
+// workspace reads them
+export interface SupplierItemCounts {
+  siteItemCount: number;
+  priceCount: number;
+}
+
 export interface InventoryItemSupplierData extends SupplierSiteItemTerms {
   id: string;
   supplierId: string;
@@ -219,6 +226,14 @@ export interface SupplierDetail extends SupplierData {
   licenses: SupplierLicenseData[];
   enrolledSiteCount: number;
   itemCount: number;
+}
+
+// How many rows each tab of a supplier's detail page lists; enrollments are every site of the legal entity
+export interface SupplierCounts {
+  itemCount: number;
+  enrollmentCount: number;
+  quotationCount: number;
+  personCount: number;
 }
 
 export const changeSupplierCurrencySchema = z

@@ -1,6 +1,7 @@
 import type {
   CatalogChannelPermissions,
   UseCatalogChannels,
+  UseChannelCounts,
   UseChannelCurrencies,
   UseChannelItems,
   UseChannelPrices,
@@ -18,6 +19,7 @@ export interface CatalogChannelsBinding {
 
   useCatalogChannels: UseCatalogChannels;
   useChannelItems: UseChannelItems;
+  useChannelCounts: UseChannelCounts;
   useChannelCurrencies: UseChannelCurrencies;
   useChannelPrices: UseChannelPrices;
 

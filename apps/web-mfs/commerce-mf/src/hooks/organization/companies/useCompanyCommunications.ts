@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartyCommunicationPayload,
   PartyCommunicationRow,
@@ -16,7 +17,7 @@ import {
   getCompanyCommunications,
   updateCompanyCommunication,
 } from '@/services/organization/companies.service';
-import { COMPANY_COMMUNICATIONS_TABLE_KEY, COMPANY_KEY } from './keys';
+import { COMPANY_COMMUNICATIONS_TABLE_KEY } from './keys';
 
 // Fetches a company's communications; self-gates on the communications view permission
 export function useCompanyCommunicationsTable(
@@ -41,8 +42,7 @@ export function useCreateCompanyCommunication(
     ...options,
     mutationFn: (data) => createCompanyCommunication({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_COMMUNICATIONS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -62,8 +62,7 @@ export function useUpdateCompanyCommunication(
     ...options,
     mutationFn: ({ communicationId, data }) => updateCompanyCommunication({ companyId, communicationId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_COMMUNICATIONS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -78,8 +77,7 @@ export function useDeleteCompanyCommunication(
     ...options,
     mutationFn: (communicationId) => deleteCompanyCommunication({ companyId, communicationId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_COMMUNICATIONS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });

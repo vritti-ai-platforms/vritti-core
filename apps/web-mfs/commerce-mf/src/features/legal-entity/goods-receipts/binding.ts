@@ -12,6 +12,7 @@ import {
   useCreateGoodsReceiptFromDelivery,
   useDeleteGoodsReceipt,
   useGoodsReceipt,
+  useGoodsReceiptCounts,
   useGoodsReceiptItem,
   useGoodsReceiptItemQuants,
   useGoodsReceiptItemsCost,
@@ -50,6 +51,7 @@ export const binding: GoodsReceiptsBinding = {
 
   useTable: useGoodsReceiptsTable,
   useGoodsReceipt,
+  useGoodsReceiptCounts,
   useTree: useGoodsReceiptTree,
   useCreateFromDelivery: useCreateGoodsReceiptFromDelivery,
   useUpdate: useUpdateGoodsReceipt,

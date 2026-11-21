@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { UpdateTaxComponentPayload } from '@/schemas/tax-components';
 import { updateTaxComponent } from '@/services/organization/tax-components.service';
-import { TAX_COMPONENT_KEY, TAX_COMPONENTS_TABLE_KEY } from './keys';
 
 interface Vars {
   id: string;
@@ -19,9 +19,7 @@ export function useUpdateTaxComponent(
     ...options,
     mutationFn: updateTaxComponent,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: TAX_COMPONENTS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: TAX_COMPONENT_KEY(vars.id) });
+      invalidateWrites(queryClient, [Tables.taxComponents]);
       options?.onSuccess?.(...args);
     },
   });

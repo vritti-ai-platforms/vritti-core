@@ -1,5 +1,7 @@
 export {
+  SITE_SUPPLIER_COUNTS_KEY,
   SITE_SUPPLIER_KEY,
+  SITE_SUPPLIER_SITE_ITEM_COUNTS_KEY,
   SITE_SUPPLIER_SITE_ITEM_KEY,
   SITE_SUPPLIER_SITE_ITEM_PRICE_HISTORY_KEY,
   SITE_SUPPLIER_SITE_ITEM_PRICES_TABLE_KEY,
@@ -7,6 +9,7 @@ export {
   SITE_SUPPLIERS_KEY,
   SITE_SUPPLIERS_TABLE_KEY,
 } from './keys';
+export { useSupplierSiteItemCounts } from './useSupplierSiteItemCounts';
 export {
   useAddSupplierSiteItemPrice,
   useDeleteSupplierSiteItemPrice,

@@ -1,6 +1,7 @@
 import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
+  SupplierQuotationCounts,
   SupplierQuotationData,
   SupplierQuotationDetail,
   SupplierQuotationItemPayload,
@@ -21,6 +22,13 @@ export function getSupplierQuotationsTable(supplierId: string): Promise<Supplier
 export function getSupplierQuotation(supplierId: string, quotationId: string): Promise<SupplierQuotationDetail> {
   return axios
     .get<SupplierQuotationDetail>(`${base(supplierId)}/${quotationId}`, { showSuccessToast: false })
+    .then((r) => r.data);
+}
+
+// Fetches how many lines and site postings a quotation the session site reads has, one per tab
+export function getSupplierQuotationCounts(supplierId: string, quotationId: string): Promise<SupplierQuotationCounts> {
+  return axios
+    .get<SupplierQuotationCounts>(`${base(supplierId)}/${quotationId}/counts`, { showSuccessToast: false })
     .then((r) => r.data);
 }
 

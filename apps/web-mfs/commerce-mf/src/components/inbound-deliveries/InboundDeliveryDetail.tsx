@@ -21,6 +21,7 @@ export const InboundDeliveryDetail: React.FC<InboundDeliveryDetailProps> = ({ bi
   const { mutations, viewPermission } = binding;
   const { id } = useSlugParams('deliverySlug');
   const { data: delivery } = binding.useInboundDelivery(id);
+  const { data: counts, isLoading: countsLoading } = binding.useInboundDeliveryCounts(id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +53,9 @@ export const InboundDeliveryDetail: React.FC<InboundDeliveryDetailProps> = ({ bi
           },
           {
             value: 'lines',
-            label: `Lines (${delivery.lineCount})`,
+            label: 'Lines',
+            count: counts?.lineCount,
+            countLoading: countsLoading,
             permission: viewPermission,
             content: <LinesTab binding={binding} delivery={delivery} />,
           },

@@ -3,7 +3,7 @@ import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-item
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { STORAGE_TYPES_KEY } from '@/hooks/organization/storage-types';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddInventoryItemStorageTypeFormData,
   InventoryItemStorageTypeData,
@@ -42,8 +42,7 @@ export function useCreateInventoryItemStorageType(
     ...options,
     mutationFn: (data) => createOrgInventoryItemStorageType(inventoryItemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_STORAGE_TYPES_KEY(inventoryItemId) });
-      queryClient.invalidateQueries({ queryKey: STORAGE_TYPES_KEY });
+      invalidateWrites(queryClient, [Tables.inventoryItemStorageTypes]);
       options?.onSuccess?.(...args);
     },
   });
@@ -59,7 +58,7 @@ export function useUpdateInventoryItemStorageType(
     ...options,
     mutationFn: ({ rowId, ...data }) => updateOrgInventoryItemStorageType(inventoryItemId, rowId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_STORAGE_TYPES_KEY(inventoryItemId) });
+      invalidateWrites(queryClient, [Tables.inventoryItemStorageTypes]);
       options?.onSuccess?.(...args);
     },
   });
@@ -75,8 +74,7 @@ export function useDeleteInventoryItemStorageType(
     ...options,
     mutationFn: (rowId) => deleteOrgInventoryItemStorageType(inventoryItemId, rowId),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ORG_INVENTORY_ITEM_STORAGE_TYPES_KEY(inventoryItemId) });
-      queryClient.invalidateQueries({ queryKey: STORAGE_TYPES_KEY });
+      invalidateWrites(queryClient, [Tables.inventoryItemStorageTypes]);
       options?.onSuccess?.(...args);
     },
   });

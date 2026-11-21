@@ -127,6 +127,14 @@ export type SupplierEnrollmentDetail = SupplierEnrollmentRow & {
   partyTaxIdType: IdentifierType | null;
 };
 
+// How many rows each tab of a supplier's page at one site lists: the items the site lists, the quotations at the site
+// and the supplier's invoices there
+export interface SupplierEnrollmentCounts {
+  siteItemCount: number;
+  quotationCount: number;
+  invoiceCount: number;
+}
+
 // The supplier's party facts an enrollment form needs, whichever workspace resolves them
 export interface SupplierParty {
   partyId: string;

@@ -83,6 +83,13 @@ export type AddCatalogCurrencyFormData = z.infer<typeof addCatalogCurrencySchema
 
 export type CatalogOwnerScope = 'ORG' | 'LE' | 'SITE';
 
+// How many rows each tab of a catalog's detail page lists
+export interface CatalogCounts {
+  channelCount: number;
+  listingCount: number;
+  currencyCount: number;
+}
+
 export interface CatalogData {
   id: string;
   name: string;

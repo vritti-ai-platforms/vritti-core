@@ -2,8 +2,8 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { bulkSetCatalogListingAvailability } from '@/services/legal-entity/catalogs.service';
-import { CATALOGS_KEY } from './keys';
 
 type Variables = { catalogId: string; ids: string[]; channelIds: string[]; visible: boolean };
 
@@ -15,7 +15,7 @@ export function useBulkSetCatalogListingAvailability(
     ...options,
     mutationFn: bulkSetCatalogListingAvailability,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
+      invalidateWrites(queryClient, [Tables.catalogListingChannelExclusions]);
       options?.onSuccess?.(...args);
     },
   });

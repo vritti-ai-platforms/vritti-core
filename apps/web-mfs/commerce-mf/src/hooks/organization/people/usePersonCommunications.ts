@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartyCommunicationPayload,
   PartyCommunicationRow,
@@ -16,7 +17,7 @@ import {
   getPersonCommunications,
   updatePersonCommunication,
 } from '@/services/organization/people.service';
-import { PERSON_COMMUNICATIONS_TABLE_KEY, PERSON_KEY } from './keys';
+import { PERSON_COMMUNICATIONS_TABLE_KEY } from './keys';
 
 // Fetches a person's communications; self-gates on the communications view permission
 export function usePersonCommunicationsTable(
@@ -41,8 +42,7 @@ export function useCreatePersonCommunication(
     ...options,
     mutationFn: (data) => createPersonCommunication({ personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_COMMUNICATIONS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -62,8 +62,7 @@ export function useUpdatePersonCommunication(
     ...options,
     mutationFn: ({ communicationId, data }) => updatePersonCommunication({ personId, communicationId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_COMMUNICATIONS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -78,8 +77,7 @@ export function useDeletePersonCommunication(
     ...options,
     mutationFn: (communicationId) => deletePersonCommunication({ personId, communicationId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_COMMUNICATIONS_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyCommunications, Tables.partyCommunicationApps, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });

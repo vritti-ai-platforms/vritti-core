@@ -2,9 +2,9 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { StockTransferStatus } from '@/schemas/stock-transfers';
 import { updateStockTransferStatus } from '@/services/site/stock-transfers.service';
-import { STOCK_TRANSFER_KEY, STOCK_TRANSFERS_TABLE_KEY } from './keys';
 
 export function useUpdateStockTransferStatus(
   options?: Omit<
@@ -18,9 +18,13 @@ export function useUpdateStockTransferStatus(
     ...options,
     mutationFn: updateStockTransferStatus,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      queryClient.invalidateQueries({ queryKey: STOCK_TRANSFERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: STOCK_TRANSFER_KEY(variables.id) });
+      invalidateWrites(queryClient, [
+        Tables.stockTransfers,
+        Tables.inventoryItemQuants,
+        Tables.inventoryItemLots,
+        Tables.inventoryItemCosts,
+        Tables.inventoryItemQuantCosts,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

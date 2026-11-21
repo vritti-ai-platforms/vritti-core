@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   CompanyRegistrationPayload,
   CompanyRegistrationsTableResponse,
@@ -16,7 +17,7 @@ import {
   setCompanyRegistrationActive,
   updateCompanyRegistration,
 } from '@/services/organization/companies.service';
-import { COMPANY_KEY, COMPANY_REGISTRATIONS_TABLE_KEY } from './keys';
+import { COMPANY_REGISTRATIONS_TABLE_KEY } from './keys';
 
 // Fetches a company's tax registrations; self-gates on the registrations view permission
 export function useCompanyRegistrationsTable(
@@ -41,8 +42,7 @@ export function useCreateCompanyRegistration(
     ...options,
     mutationFn: (data) => createCompanyRegistration({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -67,7 +67,7 @@ export function useUpdateCompanyRegistration(
     ...options,
     mutationFn: ({ registrationId, data }) => updateCompanyRegistration({ companyId, registrationId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -82,8 +82,7 @@ export function useDeleteCompanyRegistration(
     ...options,
     mutationFn: (registrationId) => deleteCompanyRegistration({ companyId, registrationId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });
@@ -99,7 +98,7 @@ export function useSetCompanyRegistrationActive(
     ...options,
     mutationFn: ({ registrationId, isActive }) => setCompanyRegistrationActive({ companyId, registrationId, isActive }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_REGISTRATIONS_TABLE_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyTaxRegistrations]);
       options?.onSuccess?.(...args);
     },
   });

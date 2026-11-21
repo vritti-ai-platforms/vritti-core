@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CustomerData } from '@/schemas/customers';
 import { type CreateCustomerPayload, createCustomer } from '@/services/site/customers.service';
-import { CUSTOMERS_TABLE_KEY } from './keys';
 
 // Creates a new customer and invalidates the table
 export function useCreateCustomer(
@@ -15,7 +15,7 @@ export function useCreateCustomer(
     ...options,
     mutationFn: createCustomer,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CUSTOMERS_TABLE_KEY });
+      invalidateWrites(queryClient, [Tables.customers]);
       options?.onSuccess?.(...args);
     },
   });

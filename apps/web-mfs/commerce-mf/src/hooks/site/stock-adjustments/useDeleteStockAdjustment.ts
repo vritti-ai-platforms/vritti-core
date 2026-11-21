@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteStockAdjustment } from '@/services/site/stock-adjustments.service';
-import { STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';
 
 export function useDeleteStockAdjustment(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
@@ -14,7 +14,12 @@ export function useDeleteStockAdjustment(
     ...options,
     mutationFn: deleteStockAdjustment,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENTS_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.stockAdjustments,
+        Tables.stockAdjustmentLines,
+        Tables.stockAdjustmentLots,
+        Tables.stockAdjustmentLineItems,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

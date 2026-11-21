@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   PartySocialProfilePayload,
   PartySocialProfileRow,
@@ -15,7 +16,7 @@ import {
   getCompanySocialProfiles,
   updateCompanySocialProfile,
 } from '@/services/organization/companies.service';
-import { COMPANY_KEY, COMPANY_SOCIAL_PROFILES_TABLE_KEY } from './keys';
+import { COMPANY_SOCIAL_PROFILES_TABLE_KEY } from './keys';
 
 // Fetches a company's social profiles; self-gates on the social profiles view permission
 export function useCompanySocialProfilesTable(
@@ -40,8 +41,7 @@ export function useCreateCompanySocialProfile(
     ...options,
     mutationFn: (data) => createCompanySocialProfile({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_SOCIAL_PROFILES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });
@@ -61,7 +61,7 @@ export function useUpdateCompanySocialProfile(
     ...options,
     mutationFn: ({ profileId, data }) => updateCompanySocialProfile({ companyId, profileId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_SOCIAL_PROFILES_TABLE_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });
@@ -76,8 +76,7 @@ export function useDeleteCompanySocialProfile(
     ...options,
     mutationFn: (profileId) => deleteCompanySocialProfile({ companyId, profileId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_SOCIAL_PROFILES_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partySocialProfiles]);
       options?.onSuccess?.(...args);
     },
   });

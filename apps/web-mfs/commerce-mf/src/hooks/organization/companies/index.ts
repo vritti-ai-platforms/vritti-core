@@ -4,6 +4,7 @@ export {
   COMPANY_ADDRESSES_TABLE_KEY,
   COMPANY_BANK_ACCOUNTS_TABLE_KEY,
   COMPANY_COMMUNICATIONS_TABLE_KEY,
+  COMPANY_COUNTS_KEY,
   COMPANY_IDENTIFIERS_TABLE_KEY,
   COMPANY_KEY,
   COMPANY_LICENSES_TABLE_KEY,
@@ -31,6 +32,7 @@ export {
   useDeleteCompanyCommunication,
   useUpdateCompanyCommunication,
 } from './useCompanyCommunications';
+export { useCompanyCounts } from './useCompanyCounts';
 export { useAddCompanyIdentifier, useCompanyIdentifiers, useRemoveCompanyIdentifier } from './useCompanyIdentifiers';
 export {
   useCompanyLicensesTable,

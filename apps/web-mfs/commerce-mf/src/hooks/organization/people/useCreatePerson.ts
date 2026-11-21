@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { PersonData } from '@/schemas/people';
 import { type CreatePersonPayload, createPerson } from '@/services/organization/people.service';
-import { PEOPLE_TABLE_KEY } from './keys';
 
 export function useCreatePerson(
   options?: Omit<UseMutationOptions<PersonData, AxiosError, CreatePersonPayload>, 'mutationFn'>,
@@ -13,7 +13,14 @@ export function useCreatePerson(
     ...options,
     mutationFn: createPerson,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PEOPLE_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.parties,
+        Tables.partyCommunications,
+        Tables.partySocialProfiles,
+        Tables.partyIdentifiers,
+        Tables.partyAddresses,
+        Tables.partyFunctions,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

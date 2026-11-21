@@ -12,6 +12,7 @@ import {
   useBulkSetCatalogListingAvailability,
   useBulkSetCatalogListingPrice,
   useCatalog,
+  useCatalogCounts,
   useCatalogCurrencies,
   useCatalogCurrencyListingsTable,
   useCatalogListingsTable,
@@ -38,6 +39,7 @@ export const leCatalogsBinding: CatalogsBinding = {
 
   useCatalogsTable,
   useCatalog,
+  useCatalogCounts,
   useCreateCatalog,
   useUpdateCatalog,
   useDeleteCatalog,

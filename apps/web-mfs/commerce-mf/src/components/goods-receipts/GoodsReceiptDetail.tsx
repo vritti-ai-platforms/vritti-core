@@ -33,6 +33,7 @@ export const GoodsReceiptDetail: React.FC<GoodsReceiptDetailProps> = ({ binding 
   const { pathname } = useLocation();
   const confirm = useConfirm();
   const { data: receipt } = binding.useGoodsReceipt(id);
+  const { data: counts, isLoading: countsLoading } = binding.useGoodsReceiptCounts(id);
   const postMutation = binding.usePost(receipt.id);
   const deleteMutation = binding.useDelete();
   const editDialog = useDialog();
@@ -133,13 +134,17 @@ export const GoodsReceiptDetail: React.FC<GoodsReceiptDetailProps> = ({ binding 
           },
           {
             value: 'breakdown',
-            label: `Breakdown (${receipt.itemCount})`,
+            label: 'Breakdown',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <BreakdownTab binding={binding} receipt={receipt} isDraft={isEditableDraft} />,
           },
           {
             value: 'items-cost',
             label: 'Items Cost',
+            count: counts?.itemCount,
+            countLoading: countsLoading,
             permission: permissions.view,
             content: <ItemsCostTab binding={binding} goodsReceiptId={receipt.id} isDraft={isDraft} />,
           },

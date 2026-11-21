@@ -29,6 +29,7 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') ?? 'overview');
   const { data: supplier } = binding.useEnrollment(supplierRef);
+  const { data: counts, isLoading: countsLoading } = binding.useEnrollmentCounts(supplierRef);
   const navigate = useNavigate();
   const exitPath = binding.useExitPath();
   const confirm = useConfirm();
@@ -115,12 +116,16 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
           {
             value: 'site-items',
             label: 'Items',
+            count: counts?.siteItemCount,
+            countLoading: countsLoading,
             permission: binding.permissions.siteItems.view,
             content: <SiteItemsTab binding={binding} supplierRef={supplierRef} />,
           },
           {
             value: 'quotations',
             label: 'Quotations',
+            count: counts?.quotationCount,
+            countLoading: countsLoading,
             permission: binding.quotations.permissions.siteView,
             content: (
               <QuotationsTab
@@ -153,6 +158,8 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
                 {
                   value: 'invoices',
                   label: 'Invoices',
+                  count: counts?.invoiceCount,
+                  countLoading: countsLoading,
                   permission: binding.invoices.permission,
                   content: <binding.invoices.Tab supplierId={supplierRef.supplierId} />,
                 },

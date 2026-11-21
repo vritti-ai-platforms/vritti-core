@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteCatalogListing } from '@/services/site/catalogs.service';
-import { CATALOGS_KEY } from './keys';
 
 type Variables = { catalogId: string; listingId: string };
 
@@ -14,7 +14,11 @@ export function useDeleteCatalogListing(
     ...options,
     mutationFn: deleteCatalogListing,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
+      invalidateWrites(queryClient, [
+        Tables.catalogListings,
+        Tables.catalogListingPrices,
+        Tables.catalogListingChannelExclusions,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

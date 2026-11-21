@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deletePurchase } from '@/services/legal-entity/purchases.service';
-import { PURCHASES_TABLE_KEY } from './keys';
 
 // Deletes a purchase and refreshes the purchases list
 export function useDeletePurchase(
@@ -13,7 +13,15 @@ export function useDeletePurchase(
     ...options,
     mutationFn: deletePurchase,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PURCHASES_TABLE_KEY });
+      invalidateWrites(queryClient, [
+        Tables.purchases,
+        Tables.purchaseItems,
+        Tables.purchaseSuppliers,
+        Tables.purchaseQuotationChanges,
+        Tables.purchaseItemAllocations,
+        Tables.supplierQuotations,
+        Tables.supplierQuotationItems,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

@@ -28,9 +28,11 @@ import type {
   UseOfferingAttributes,
   UseOfferingChannels,
   UseOfferingChannelVariantsTable,
+  UseOfferingCounts,
   UseOfferingDimensions,
   UseOfferingsTable,
   UseOfferingVariantBom,
+  UseOfferingVariantCounts,
   UseOfferingVariantsTable,
   UsePreviewOfferingVariantCombinations,
   UseReorderOfferingAttributes,
@@ -67,6 +69,7 @@ export interface OfferingsBinding {
 
   useOfferingsTable: UseOfferingsTable;
   useOffering: UseSuspenseOffering;
+  useOfferingCounts: UseOfferingCounts;
   useCreateOffering: UseCreateOffering;
   useUpdateOffering: UseUpdateOffering;
   useDeleteOffering: UseDeleteOffering;
@@ -96,6 +99,7 @@ export interface OfferingsBinding {
 
   useOfferingVariantsTable: UseOfferingVariantsTable;
   useOfferingVariant: UseSuspenseOfferingVariant;
+  useOfferingVariantCounts: UseOfferingVariantCounts;
   useCreateOfferingVariant: UseCreateOfferingVariant;
   useGenerateOfferingVariants: UseGenerateOfferingVariants;
   usePreviewOfferingVariantCombinations: UsePreviewOfferingVariantCombinations;

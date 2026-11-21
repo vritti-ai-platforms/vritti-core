@@ -1,4 +1,5 @@
 export {
+  ORG_INVENTORY_ITEM_COUNTS_KEY,
   ORG_INVENTORY_ITEM_KEY,
   ORG_INVENTORY_ITEM_MRP_KEY,
   ORG_INVENTORY_ITEM_STORAGE_TYPES_KEY,
@@ -10,6 +11,7 @@ export {
 export { useCreateInventoryItem } from './useCreateInventoryItem';
 export { useDeleteInventoryItem } from './useDeleteInventoryItem';
 export { useInventoryItem } from './useInventoryItem';
+export { useInventoryItemCounts } from './useInventoryItemCounts';
 export {
   useAddInventoryItemMrp,
   useDeleteInventoryItemMrp,

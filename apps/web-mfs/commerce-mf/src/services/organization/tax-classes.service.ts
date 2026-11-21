@@ -2,6 +2,7 @@ import axios from '@vritti/quantum-ui/axios';
 import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type {
   CreateTaxClassGroupMappingPayload,
+  TaxClassCounts,
   TaxClassData,
   TaxClassesTableResponse,
   UpdateTaxClassGroupMappingPayload,
@@ -28,6 +29,13 @@ export function getTaxClassesTable(): Promise<TaxClassesTableResponse> {
 
 export function getTaxClass(id: string): Promise<TaxClassData> {
   return axios.get<TaxClassData>(`commerce-api/org/tax-classes/${id}`, { showSuccessToast: false }).then((r) => r.data);
+}
+
+// Fetches how many group mappings a tax class has in every country, one per tab
+export function getTaxClassCounts(id: string): Promise<TaxClassCounts> {
+  return axios
+    .get<TaxClassCounts>(`commerce-api/org/tax-classes/${id}/counts`, { showSuccessToast: false })
+    .then((r) => r.data);
 }
 
 export function createTaxClass(data: CreateTaxClassPayload): Promise<TaxClassData> {

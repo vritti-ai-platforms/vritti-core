@@ -25,6 +25,7 @@ export const SupplierSiteItemDetail: React.FC<SupplierSiteItemDetailProps> = ({ 
   const [activeTab, setActiveTab] = useState('overview');
   const itemId = siteItemPage.useItemId();
   const { data: item } = siteItemPage.useSiteItem(supplierRef.supplierId, itemId);
+  const { data: counts, isLoading: countsLoading } = siteItemPage.useSiteItemCounts(supplierRef.supplierId, itemId);
   const termsDialog = useDialog();
   const addPrice = (
     <AddSitePriceAction
@@ -76,6 +77,8 @@ export const SupplierSiteItemDetail: React.FC<SupplierSiteItemDetailProps> = ({ 
           {
             value: 'prices',
             label: 'Prices',
+            count: counts?.priceCount,
+            countLoading: countsLoading,
             permission: siteItemPage.prices.permissions.view,
             content: (
               <PricesTable

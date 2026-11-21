@@ -3,6 +3,7 @@ import type { CreateResponse, SuccessResponse } from '@vritti/quantum-ui/types/a
 import type {
   AddCompanyPersonPayload,
   CompaniesTableResponse,
+  CompanyCounts,
   CompanyData,
   CompanyPeopleTableResponse,
   CompanyPersonRow,
@@ -45,6 +46,11 @@ export function getCompaniesTable(): Promise<CompaniesTableResponse> {
 
 export function getCompany(id: string): Promise<CompanyData> {
   return axios.get<CompanyData>(`${BASE}/${id}`).then((r) => r.data);
+}
+
+// Fetches how many rows each tab of a company's detail page lists
+export function getCompanyCounts(id: string): Promise<CompanyCounts> {
+  return axios.get<CompanyCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 export function createCompany(data: CreateCompanyPayload): Promise<CreateResponse<CompanyData>> {

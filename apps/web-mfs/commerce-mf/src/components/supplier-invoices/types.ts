@@ -12,6 +12,7 @@ import type {
   ReleaseSupplierInvoiceHoldVars,
   RemoveSupplierInvoiceLineVars,
   SupplierInvoice,
+  SupplierInvoiceCounts,
   SupplierInvoiceRef,
   SupplierInvoicesTableResponse,
   UpdateSupplierInvoiceLineVars,
@@ -44,6 +45,11 @@ export type UseInvoiceableGoodsReceipts = (
   invoice: SupplierInvoiceRef,
   params: InvoiceableGoodsReceiptsParams,
 ) => { data: InvoiceableGoodsReceipt[] | undefined; isLoading: boolean };
+
+export type UseSupplierInvoiceCounts = (invoice: SupplierInvoiceRef) => {
+  data: SupplierInvoiceCounts | undefined;
+  isLoading: boolean;
+};
 
 export type SupplierInvoiceMutationOptions<TData, TVars> = Omit<
   UseMutationOptions<TData, AxiosError, TVars>,

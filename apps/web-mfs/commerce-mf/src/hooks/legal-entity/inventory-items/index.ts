@@ -1,4 +1,5 @@
 export {
+  LE_INVENTORY_ITEM_COUNTS_KEY,
   LE_INVENTORY_ITEM_KEY,
   LE_INVENTORY_ITEM_MRP_KEY,
   LE_INVENTORY_ITEM_PRICE_HISTORY_KEY,
@@ -15,6 +16,7 @@ export {
   useInventoryItemPricesTable,
   useInventoryItemSuppliersTable,
 } from './useInventoryItem';
+export { useInventoryItemCounts } from './useInventoryItemCounts';
 export { useAddInventoryItemSupplier } from './useInventoryItemSuppliers';
 export { useInventoryItemsTable } from './useInventoryItemsTable';
 export {

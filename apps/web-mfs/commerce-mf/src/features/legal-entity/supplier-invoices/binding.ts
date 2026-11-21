@@ -10,6 +10,7 @@ import {
   usePostSupplierInvoice,
   useReleaseSupplierInvoiceHold,
   useRemoveSupplierInvoiceLine,
+  useSupplierInvoiceCounts,
   useUpdateSupplierInvoice,
   useUpdateSupplierInvoiceLine,
 } from '@/hooks/legal-entity/supplier-invoices';
@@ -27,6 +28,7 @@ export const binding: SupplierInvoicesBinding = {
   listPath: '..',
   SupplierSelector,
   useCreateInvoice: useCreateSupplierInvoice,
+  useSupplierInvoiceCounts,
   useUpdateInvoice: useUpdateSupplierInvoice,
   usePostInvoice: usePostSupplierInvoice,
   useInvoiceableGoodsReceipts,

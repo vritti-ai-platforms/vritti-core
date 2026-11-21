@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { SuccessResponse } from '@/schemas/categories';
 import { deleteCategory } from '@/services/organization/categories.service';
-import { CATEGORIES_KEY } from './keys';
 
 export function useDeleteCategory(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
@@ -14,7 +14,7 @@ export function useDeleteCategory(
     ...options,
     mutationFn: deleteCategory,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY });
+      invalidateWrites(queryClient, [Tables.categories]);
       options?.onSuccess?.(...args);
     },
   });

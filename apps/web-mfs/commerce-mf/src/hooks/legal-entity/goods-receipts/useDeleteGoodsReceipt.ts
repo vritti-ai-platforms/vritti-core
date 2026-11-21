@@ -1,10 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-import { INBOUND_DELIVERIES_KEY } from '@/hooks/legal-entity/inbound-deliveries/keys';
-import { PURCHASE_ORDERS_KEY } from '@/hooks/legal-entity/purchase-orders/keys';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { deleteGoodsReceipt } from '@/services/legal-entity/goods-receipts.service';
-import { GOODS_RECEIPTS_TABLE_KEY } from './keys';
 
 // Deletes a draft goods receipt; the receipts list and the purchase orders' receipt lists refresh
 export function useDeleteGoodsReceipt(
@@ -15,9 +13,13 @@ export function useDeleteGoodsReceipt(
     ...options,
     mutationFn: deleteGoodsReceipt,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: GOODS_RECEIPTS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PURCHASE_ORDERS_KEY });
-      queryClient.invalidateQueries({ queryKey: INBOUND_DELIVERIES_KEY });
+      invalidateWrites(queryClient, [
+        Tables.goodsReceipts,
+        Tables.goodsReceiptItems,
+        Tables.goodsReceiptLots,
+        Tables.goodsReceiptLines,
+        Tables.goodsReceiptLineItems,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

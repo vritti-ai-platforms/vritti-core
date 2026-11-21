@@ -1,9 +1,9 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { CreateResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CreatedReceiveWithInvoice, ReceiveWithInvoicePayload } from '@/schemas/receive-with-invoices';
 import { createReceiveWithInvoice } from '@/services/site/purchases.service';
-import { PURCHASE_DOCUMENT_KEYS, PURCHASES_KEY } from './keys';
 
 // Drafts a Receive with Invoice and refreshes the purchases and their documents
 export function useCreateReceiveWithInvoice(
@@ -17,7 +17,25 @@ export function useCreateReceiveWithInvoice(
     ...options,
     mutationFn: createReceiveWithInvoice,
     onSuccess: (...args) => {
-      for (const queryKey of [PURCHASES_KEY, ...PURCHASE_DOCUMENT_KEYS]) queryClient.invalidateQueries({ queryKey });
+      invalidateWrites(queryClient, [
+        Tables.supplierInvoices,
+        Tables.supplierInvoiceLines,
+        Tables.supplierInvoiceHolds,
+        Tables.inboundDeliveries,
+        Tables.inboundDeliveryLines,
+        Tables.goodsReceipts,
+        Tables.goodsReceiptItems,
+        Tables.goodsReceiptLots,
+        Tables.goodsReceiptLines,
+        Tables.purchaseSuppliers,
+        Tables.purchases,
+        Tables.purchaseOrders,
+        Tables.purchaseOrderItems,
+        Tables.purchaseItemAllocations,
+        Tables.supplierItems,
+        Tables.supplierSiteItems,
+        Tables.supplierItemPrices,
+      ]);
       options?.onSuccess?.(...args);
     },
   });

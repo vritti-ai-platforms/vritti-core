@@ -5,3 +5,4 @@ export const CHANNEL_CURRENCIES_KEY = (channelId: string) =>
   ['commerce', 'site', 'catalog-channels', channelId, 'currencies'] as const;
 export const CHANNEL_PRICES_KEY = (channelId: string, currencyCode: string) =>
   [...CHANNEL_CURRENCIES_KEY(channelId), currencyCode, 'prices'] as const;
+export const CHANNEL_COUNTS_KEY = (channelId: string) => [...CATALOG_CHANNELS_KEY, channelId, 'counts'] as const;

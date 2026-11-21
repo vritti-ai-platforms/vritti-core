@@ -2,8 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { setAttributeTemplateActive } from '@/services/organization/attribute-templates.service';
-import { ATTRIBUTE_TEMPLATES_KEY } from './keys';
 
 type Vars = { id: string; isActive: boolean };
 
@@ -17,7 +17,7 @@ export function useSetAttributeTemplateActive(
     ...options,
     mutationFn: setAttributeTemplateActive,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ATTRIBUTE_TEMPLATES_KEY });
+      invalidateWrites(queryClient, [Tables.attributeTemplates]);
       options?.onSuccess?.(...args);
     },
   });

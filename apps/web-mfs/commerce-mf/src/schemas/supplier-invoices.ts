@@ -239,6 +239,12 @@ export interface SupplierInvoiceLine {
   holds: SupplierInvoiceHold[];
 }
 
+// How many rows each tab of a supplier invoice's detail page lists
+export interface SupplierInvoiceCounts {
+  lineCount: number;
+  holdCount: number;
+}
+
 export interface SupplierInvoice {
   id: string;
   legalEntityId: string;

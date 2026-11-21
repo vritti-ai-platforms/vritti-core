@@ -2,8 +2,8 @@ import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/
 import type { CurrencyValue } from '@vritti/quantum-ui/currency';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { bulkSetCatalogListingPrice } from '@/services/legal-entity/catalogs.service';
-import { CATALOGS_KEY } from './keys';
 
 type Variables = { catalogId: string; ids: string[]; price: CurrencyValue };
 
@@ -15,7 +15,7 @@ export function useBulkSetCatalogListingPrice(
     ...options,
     mutationFn: bulkSetCatalogListingPrice,
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: CATALOGS_KEY });
+      invalidateWrites(queryClient, [Tables.catalogListingPrices]);
       options?.onSuccess?.(...args);
     },
   });

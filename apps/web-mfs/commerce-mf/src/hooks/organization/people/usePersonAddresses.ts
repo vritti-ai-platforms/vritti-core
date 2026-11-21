@@ -4,6 +4,7 @@ import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { AddAddressPayload, PartyAddressesTableResponse, PartyAddressRow } from '@/schemas/party-addresses';
 import {
   addPersonAddress,
@@ -11,7 +12,7 @@ import {
   removePersonAddress,
   updatePersonAddress,
 } from '@/services/organization/people.service';
-import { PERSON_ADDRESSES_TABLE_KEY, PERSON_KEY } from './keys';
+import { PERSON_ADDRESSES_TABLE_KEY } from './keys';
 
 interface UpdatePersonAddressVars {
   partyId: string;
@@ -42,15 +43,14 @@ export function useAddPersonAddress(
     ...options,
     mutationFn: (data) => addPersonAddress({ partyId: personId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_ADDRESSES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
 }
 
 export function useUpdatePersonAddress(
-  personId: string,
+  _personId: string,
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, UpdatePersonAddressVars>, 'mutationFn'>,
 ) {
   const queryClient = useQueryClient();
@@ -58,8 +58,7 @@ export function useUpdatePersonAddress(
     ...options,
     mutationFn: (vars) => updatePersonAddress(vars),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_ADDRESSES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions]);
       options?.onSuccess?.(...args);
     },
   });
@@ -74,8 +73,7 @@ export function useRemovePersonAddress(
     ...options,
     mutationFn: (addressId) => removePersonAddress({ partyId: personId, addressId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: PERSON_ADDRESSES_TABLE_KEY(personId) });
-      queryClient.invalidateQueries({ queryKey: PERSON_KEY(personId) });
+      invalidateWrites(queryClient, [Tables.partyAddresses, Tables.partyFunctions, Tables.checkouts]);
       options?.onSuccess?.(...args);
     },
   });

@@ -3,7 +3,7 @@ import { useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { OverviewTab } from '@/features/organization/inventory-items/tabs/OverviewTab';
-import { useInventoryItem } from '@/hooks/legal-entity/inventory-items';
+import { useInventoryItem, useInventoryItemCounts } from '@/hooks/legal-entity/inventory-items';
 import { MrpTab } from './tabs/MrpTab';
 import { PriceHistoryTab } from './tabs/PriceHistoryTab';
 import { PricesTableTab } from './tabs/PricesTableTab';
@@ -15,6 +15,7 @@ import { SuppliersTab } from './tabs/suppliers/SuppliersTab';
 export const InventoryItemDetailPage = () => {
   const { id } = useSlugParams('itemSlug');
   const { data: item } = useInventoryItem(id);
+  const { data: counts, isLoading: countsLoading } = useInventoryItemCounts(id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -32,12 +33,16 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'suppliers',
             label: 'Suppliers',
+            count: counts?.supplierCount,
+            countLoading: countsLoading,
             permission: LE_INVENTORY_ITEMS.suppliers.view,
             content: <SuppliersTab inventoryItemId={item.id} itemName={item.name} />,
           },
           {
             value: 'sites',
             label: 'Sites',
+            count: counts?.siteCount,
+            countLoading: countsLoading,
             permission: LE_INVENTORY_ITEMS.sites.view,
             content: (
               <SitesTab
@@ -63,6 +68,8 @@ export const InventoryItemDetailPage = () => {
           {
             value: 'mrp',
             label: 'MRP',
+            count: counts?.mrpCount,
+            countLoading: countsLoading,
             permission: LE_INVENTORY_ITEMS.mrp.view,
             content: <MrpTab inventoryItemId={item.id} />,
           },

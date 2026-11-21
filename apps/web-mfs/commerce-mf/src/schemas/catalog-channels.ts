@@ -83,6 +83,12 @@ export interface ChannelEntryData {
   targets: ChannelTargetData[] | null;
 }
 
+// How many rows each tab of a channel's detail page lists
+export interface CatalogChannelCounts {
+  listingCount: number;
+  currencyCount: number;
+}
+
 export interface CatalogChannelData {
   id: string;
   type: CatalogChannelType;

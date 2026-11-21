@@ -12,6 +12,7 @@ import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
 import type { UpdateSitePriceVars } from '@/components/suppliers/types';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   SupplierItemPriceHistory,
   SupplierItemPriceRow,
@@ -25,12 +26,7 @@ import {
   getSupplierItemPricesTable,
   updateSupplierItemPrice,
 } from '@/services/legal-entity/suppliers.service';
-import {
-  SUPPLIER_ITEM_KEY,
-  SUPPLIER_ITEM_PRICE_HISTORY_KEY,
-  SUPPLIER_ITEM_PRICES_TABLE_KEY,
-  SUPPLIER_KEY,
-} from './keys';
+import { SUPPLIER_ITEM_KEY, SUPPLIER_ITEM_PRICE_HISTORY_KEY, SUPPLIER_ITEM_PRICES_TABLE_KEY } from './keys';
 
 const ITEM_ID_INDEX = SUPPLIER_ITEM_KEY('', '').length - 1;
 
@@ -74,8 +70,7 @@ export function useAddSupplierItemPrice(
     ...options,
     mutationFn: (data) => addSupplierItemPrice({ supplierId, itemId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_PRICES_TABLE_KEY(supplierId, itemId) });
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_ITEM_KEY(supplierId, itemId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices, Tables.supplierSiteItems]);
       options?.onSuccess?.(...args);
     },
   });
@@ -92,7 +87,7 @@ export function useUpdateSupplierItemPrice(
     ...options,
     mutationFn: ({ priceId, data }) => updateSupplierItemPrice({ supplierId, itemId, priceId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices]);
       options?.onSuccess?.(...args);
     },
   });
@@ -108,7 +103,7 @@ export function useDeleteSupplierItemPrice(
     ...options,
     mutationFn: (priceId) => deleteSupplierItemPrice({ supplierId, itemId, priceId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: SUPPLIER_KEY(supplierId) });
+      invalidateWrites(queryClient, [Tables.supplierItemPrices]);
       options?.onSuccess?.(...args);
     },
   });

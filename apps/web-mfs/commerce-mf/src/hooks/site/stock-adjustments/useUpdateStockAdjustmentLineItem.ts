@@ -2,18 +2,11 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import {
   type UpdateStockAdjustmentLineItemPayload,
   updateStockAdjustmentLineItem,
 } from '@/services/site/stock-adjustments.service';
-import {
-  STOCK_ADJUSTMENT_KEY,
-  STOCK_ADJUSTMENT_LINE_ITEMS_KEY,
-  STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY,
-  STOCK_ADJUSTMENT_LINE_KEY,
-  STOCK_ADJUSTMENT_LINES_KEY,
-  STOCK_ADJUSTMENT_LOTS_KEY,
-} from './keys';
 
 export function useUpdateStockAdjustmentLineItem(
   adjustmentId: string,
@@ -27,12 +20,7 @@ export function useUpdateStockAdjustmentLineItem(
     ...options,
     mutationFn: (data) => updateStockAdjustmentLineItem(adjustmentId, lineId, itemId, data),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_KEY(adjustmentId, lineId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_ITEMS_TABLE_KEY(adjustmentId, lineId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(adjustmentId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINE_KEY(adjustmentId, lineId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LOTS_KEY(adjustmentId) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_KEY(adjustmentId) });
+      invalidateWrites(queryClient, [Tables.stockAdjustmentLineItems, Tables.stockAdjustmentLines]);
       options?.onSuccess?.(...args);
     },
   });

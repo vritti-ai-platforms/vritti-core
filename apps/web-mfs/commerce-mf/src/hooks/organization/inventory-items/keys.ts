@@ -1,6 +1,9 @@
+export const ORG_INVENTORY_ITEMS_KEY = ['commerce', 'org', 'inventory-items'] as const;
 export const ORG_INVENTORY_ITEMS_TABLE_KEY = ['commerce', 'org', 'inventory-items', 'table'] as const;
 export const ORG_INVENTORY_ITEM_KEY = (inventoryItemId: string) =>
   ['commerce', 'org', 'inventory-items', inventoryItemId] as const;
+export const ORG_INVENTORY_ITEM_COUNTS_KEY = (inventoryItemId: string) =>
+  [...ORG_INVENTORY_ITEM_KEY(inventoryItemId), 'counts'] as const;
 export const ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY = (inventoryItemId: string) =>
   ['commerce', 'org', 'inventory-items', inventoryItemId, 'uom-conversions'] as const;
 export const ORG_INVENTORY_ITEM_UNITS_KEY = (inventoryItemId: string) =>

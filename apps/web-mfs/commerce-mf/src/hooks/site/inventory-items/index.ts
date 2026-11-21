@@ -1,4 +1,5 @@
 export {
+  INVENTORY_ITEM_COUNTS_KEY,
   INVENTORY_ITEM_KEY,
   INVENTORY_ITEM_LEDGER_KEY,
   INVENTORY_ITEM_LOCATIONS_KEY,
@@ -17,6 +18,7 @@ export {
   useInventoryItemLotsTable,
   useInventoryItemQuantsTable,
 } from './useInventoryItem';
+export { useInventoryItemCounts } from './useInventoryItemCounts';
 export {
   useCreateInventoryItemLocation,
   useDeleteInventoryItemLocation,

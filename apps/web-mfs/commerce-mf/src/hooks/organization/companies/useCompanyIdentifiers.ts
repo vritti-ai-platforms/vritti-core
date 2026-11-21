@@ -4,6 +4,7 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type {
   AddIdentifierPayload,
   PartyIdentifierRow,
@@ -14,7 +15,7 @@ import {
   getCompanyIdentifiers,
   removeCompanyIdentifier,
 } from '@/services/organization/companies.service';
-import { COMPANY_IDENTIFIERS_TABLE_KEY, COMPANY_KEY } from './keys';
+import { COMPANY_IDENTIFIERS_TABLE_KEY } from './keys';
 
 // Fetches a company's identifiers; self-gates on the identifiers view permission
 export function useCompanyIdentifiers(
@@ -39,8 +40,7 @@ export function useAddCompanyIdentifier(
     ...options,
     mutationFn: (data) => addCompanyIdentifier({ companyId, data }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_IDENTIFIERS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyIdentifiers]);
       options?.onSuccess?.(...args);
     },
   });
@@ -55,8 +55,7 @@ export function useRemoveCompanyIdentifier(
     ...options,
     mutationFn: (identifierId) => removeCompanyIdentifier({ companyId, identifierId }),
     onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: COMPANY_IDENTIFIERS_TABLE_KEY(companyId) });
-      queryClient.invalidateQueries({ queryKey: COMPANY_KEY(companyId) });
+      invalidateWrites(queryClient, [Tables.partyIdentifiers]);
       options?.onSuccess?.(...args);
     },
   });

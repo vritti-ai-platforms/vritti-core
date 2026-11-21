@@ -5,6 +5,7 @@ import type { AxiosError } from 'axios';
 import type { CatalogChannelData } from '@/schemas/catalog-channels';
 import type {
   AddCatalogListingItem,
+  CatalogCounts,
   CatalogCurrencyData,
   CatalogData,
   CatalogListingData,
@@ -38,6 +39,7 @@ export type UseCatalogsTable = (options?: { enabled?: boolean }) => {
   isLoading: boolean;
 };
 export type UseSuspenseCatalog = (id: string) => { data: CatalogData };
+export type UseCatalogCounts = (id: string) => { data: CatalogCounts | undefined; isLoading: boolean };
 export type UseCatalogListingsTable = (
   catalogId: string,
   options?: { enabled?: boolean },

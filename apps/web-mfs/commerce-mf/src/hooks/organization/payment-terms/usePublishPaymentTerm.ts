@@ -2,9 +2,8 @@ import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { SuccessResponse } from '@vritti/quantum-ui/types/api-response';
 import type { AxiosError } from 'axios';
-
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import { publishPaymentTerm } from '@/services/organization/payment-terms.service';
-import { PAYMENT_TERM_KEY, PAYMENT_TERMS_TABLE_KEY } from './keys';
 
 export function usePublishPaymentTerm(
   options?: Omit<UseMutationOptions<SuccessResponse, AxiosError, string>, 'mutationFn'>,
@@ -14,9 +13,7 @@ export function usePublishPaymentTerm(
     ...options,
     mutationFn: publishPaymentTerm,
     onSuccess: (...args) => {
-      const [, vars] = args;
-      queryClient.invalidateQueries({ queryKey: PAYMENT_TERMS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: PAYMENT_TERM_KEY(vars) });
+      invalidateWrites(queryClient, [Tables.paymentTerms]);
       options?.onSuccess?.(...args);
     },
   });

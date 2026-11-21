@@ -5,6 +5,7 @@ import type {
   AddInboundDeliveryLinesPayload,
   CreateInboundDeliveryPayload,
   InboundDeliveriesTableResponse,
+  InboundDeliveryCounts,
   InboundDeliveryData,
   InboundDeliveryLineRef,
   InboundDeliveryLinesTableResponse,
@@ -29,6 +30,7 @@ export type UseInboundDeliveriesTable = () => {
   isFetching: boolean;
 };
 export type UseInboundDelivery = (id: string) => { data: InboundDeliveryData };
+export type UseInboundDeliveryCounts = (id: string) => { data: InboundDeliveryCounts | undefined; isLoading: boolean };
 export type UseInboundDeliveryLinesTable = (id: string) => {
   data: InboundDeliveryLinesTableResponse | undefined;
   isLoading: boolean;

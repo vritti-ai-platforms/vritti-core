@@ -17,6 +17,11 @@ export const goodsReceiptStatusConfig: Record<GoodsReceiptStatus, { label: strin
   POSTED: { label: 'Posted', variant: 'success' },
 };
 
+// How many rows each tab of a goods receipt's detail page lists; its breakdown and items cost both list its items
+export interface GoodsReceiptCounts {
+  itemCount: number;
+}
+
 export interface GoodsReceiptData {
   id: string;
   grNumber: string;

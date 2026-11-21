@@ -20,6 +20,11 @@ export type UpdateTaxClassFormData = z.infer<typeof updateTaxClassSchema>;
 export const editTaxClassFormSchema = updateTaxClassSchema.extend({ code: z.string() });
 export type EditTaxClassFormData = z.infer<typeof editTaxClassFormSchema>;
 
+// How many rows each tab of a tax class's detail page lists
+export interface TaxClassCounts {
+  groupCount: number;
+}
+
 export interface TaxClassData {
   id: string;
   code: string;

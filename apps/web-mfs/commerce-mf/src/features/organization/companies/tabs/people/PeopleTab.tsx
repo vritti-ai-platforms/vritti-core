@@ -19,14 +19,15 @@ import { EditCompanyPersonDialog } from './forms/EditCompanyPersonDialog';
 
 interface PeopleTabProps {
   companyId: string;
+  onPeopleChange?: () => void;
 }
 
-export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
+export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId, onPeopleChange }) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const addDialog = useDialog();
   const companyPeopleTableQuery = useCompanyPeopleTable(companyId);
-  const removeMutation = useRemoveCompanyPerson(companyId);
+  const removeMutation = useRemoveCompanyPerson(companyId, { onSuccess: onPeopleChange });
 
   const handleRemove = useCallback(
     async (row: CompanyPersonRow) => {
@@ -160,7 +161,16 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId }) => {
         icon={Users}
         title="Add Person"
         description="Link a person to this company with their role and contact functions."
-        content={(close) => <AddCompanyPersonDialog companyId={companyId} onSuccess={close} onCancel={close} />}
+        content={(close) => (
+          <AddCompanyPersonDialog
+            companyId={companyId}
+            onSuccess={() => {
+              onPeopleChange?.();
+              close();
+            }}
+            onCancel={close}
+          />
+        )}
       />
     </>
   );

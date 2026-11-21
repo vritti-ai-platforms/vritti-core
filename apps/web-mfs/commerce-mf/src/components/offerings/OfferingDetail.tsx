@@ -26,6 +26,7 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
   const { permissions: PERMISSIONS } = binding;
   const { id } = useSlugParams('slug');
   const { data: offering } = binding.useOffering(id);
+  const { data: counts, isLoading: countsLoading } = binding.useOfferingCounts(id);
   const navigate = useNavigate();
   const editDialog = useDialog();
   const taxClassDialog = useDialog();
@@ -99,6 +100,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
           {
             value: 'dimensions',
             label: 'Dimensions',
+            count: counts?.dimensionCount,
+            countLoading: countsLoading,
             permission: PERMISSIONS.dimensions.view,
             content: (
               <DimensionsTab
@@ -117,6 +120,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
           {
             value: 'attributes',
             label: 'Attributes',
+            count: counts?.attributeCount,
+            countLoading: countsLoading,
             permission: PERMISSIONS.attributes.view,
             content: (
               <AttributesTab
@@ -135,6 +140,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
           {
             value: 'variants',
             label: 'Variants',
+            count: counts?.variantCount,
+            countLoading: countsLoading,
             permission: PERMISSIONS.variants.view,
             content: (
               <VariantsTab

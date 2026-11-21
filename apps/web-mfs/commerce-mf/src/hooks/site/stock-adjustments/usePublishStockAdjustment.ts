@@ -1,9 +1,9 @@
 import type { UseMutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { StockAdjustmentData } from '@/schemas/stock-adjustments';
 import { publishStockAdjustment } from '@/services/site/stock-adjustments.service';
-import { STOCK_ADJUSTMENT_KEY, STOCK_ADJUSTMENT_LINES_KEY, STOCK_ADJUSTMENTS_TABLE_KEY } from './keys';
 
 export function usePublishStockAdjustment(
   options?: Omit<UseMutationOptions<StockAdjustmentData, AxiosError, string>, 'mutationFn'>,
@@ -14,9 +14,17 @@ export function usePublishStockAdjustment(
     ...options,
     mutationFn: publishStockAdjustment,
     onSuccess: (data, ...rest) => {
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENTS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_KEY(data.id) });
-      queryClient.invalidateQueries({ queryKey: STOCK_ADJUSTMENT_LINES_KEY(data.id) });
+      invalidateWrites(queryClient, [
+        Tables.stockAdjustments,
+        Tables.stockAdjustmentLines,
+        Tables.stockAdjustmentLots,
+        Tables.inventoryItemLots,
+        Tables.inventoryItemQuants,
+        Tables.inventoryItemSerials,
+        Tables.inventoryItemCosts,
+        Tables.inventoryItemQuantCosts,
+        Tables.inventoryItemLedger,
+      ]);
       options?.onSuccess?.(data, ...rest);
     },
   });

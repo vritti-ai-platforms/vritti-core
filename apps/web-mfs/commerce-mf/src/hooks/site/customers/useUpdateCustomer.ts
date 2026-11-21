@@ -1,8 +1,8 @@
 import { type UseMutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
 import type { CustomerData } from '@/schemas/customers';
 import { type UpdateCustomerPayload, updateCustomer } from '@/services/site/customers.service';
-import { CUSTOMER_KEY, CUSTOMERS_TABLE_KEY } from './keys';
 
 // Updates a customer and invalidates table + detail
 export function useUpdateCustomer(
@@ -17,9 +17,7 @@ export function useUpdateCustomer(
     ...options,
     mutationFn: updateCustomer,
     onSuccess: (...args) => {
-      const [, variables] = args;
-      queryClient.invalidateQueries({ queryKey: CUSTOMERS_TABLE_KEY });
-      queryClient.invalidateQueries({ queryKey: CUSTOMER_KEY(variables.id) });
+      invalidateWrites(queryClient, [Tables.customers]);
       options?.onSuccess?.(...args);
     },
   });

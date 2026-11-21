@@ -11,6 +11,7 @@ import type {
   CreateOrgInventoryItemFormData,
   InventoryItemData,
   InventoryItemTableResponse,
+  OrgInventoryItemCounts,
   UpdateOrgInventoryItemPayload,
 } from '@/schemas/inventory-items';
 import type { InventoryItemSuppliersTableResponse } from '@/schemas/suppliers';
@@ -29,6 +30,11 @@ export function createOrgInventoryItem(
 
 export function getOrgInventoryItem(id: string): Promise<InventoryItemData> {
   return axios.get<InventoryItemData>(`${BASE}/${id}`).then((r) => r.data);
+}
+
+// Fetches how many UOM conversions, MRPs and suppliers an inventory item has, one per tab
+export function getOrgInventoryItemCounts(id: string): Promise<OrgInventoryItemCounts> {
+  return axios.get<OrgInventoryItemCounts>(`${BASE}/${id}/counts`).then((r) => r.data);
 }
 
 export function updateOrgInventoryItem({

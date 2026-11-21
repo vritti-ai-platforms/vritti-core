@@ -6,6 +6,7 @@ import type {
   UseCreateGoodsReceiptFromDelivery,
   UseDeleteGoodsReceipt,
   UseGoodsReceipt,
+  UseGoodsReceiptCounts,
   UseGoodsReceiptItem,
   UseGoodsReceiptItemQuants,
   UseGoodsReceiptItemsCost,
@@ -43,6 +44,7 @@ export interface GoodsReceiptsBinding {
 
   useTable: UseGoodsReceiptsTable;
   useGoodsReceipt: UseGoodsReceipt;
+  useGoodsReceiptCounts: UseGoodsReceiptCounts;
   useTree: UseGoodsReceiptTree;
   useCreateFromDelivery: UseCreateGoodsReceiptFromDelivery;
   useUpdate: UseUpdateGoodsReceipt;
