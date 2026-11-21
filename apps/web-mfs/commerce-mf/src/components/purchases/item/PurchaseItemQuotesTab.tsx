@@ -1,11 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { useConfirm, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { CheckCheck, ExternalLink, FileText } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { PurchaseDetail, PurchaseItemQuoteRow, PurchaseItemView } from '@/schemas/purchases';
 import { workspaceBase } from '@/utils/workspace';
@@ -30,26 +30,12 @@ export const PurchaseItemQuotesTab: React.FC<PurchaseItemQuotesTabProps> = ({
 }) => {
   const { permissions, quotations } = binding;
   const fmt = useFormatters();
-  const confirm = useConfirm();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
   const quotesQuery = binding.usePurchaseItemQuotesTable(purchase.id, item.id);
   const allocateMutation = binding.useAddAllocationsFromQuotation();
   const isFullyAllocated = item.allocatedPrimaryQty >= item.primaryQty;
-
-  // Confirms and allocates what is still unallocated of the item to the quote's supplier, at its unit and price
-  const handleUse = useCallback(
-    async (quote: PurchaseItemQuoteRow) => {
-      const confirmed = await confirm({
-        title: `Use ${quote.quotationNumber}?`,
-        description: `What is still unallocated of ${item.inventoryItemName} is allocated to ${quote.supplierName}, at the quoted unit and price.`,
-        confirmLabel: 'Use Quote',
-      });
-      if (confirmed) allocateMutation.mutate({ id: purchase.id, supplierQuotationItemIds: [quote.line.id] });
-    },
-    [confirm, allocateMutation, purchase.id, item.inventoryItemName],
-  );
 
   const columns = useMemo<ColumnDef<PurchaseItemQuoteRow>[]>(
     () => [
@@ -135,7 +121,13 @@ export const PurchaseItemQuotesTab: React.FC<PurchaseItemQuotesTabProps> = ({
                     : quote.isPosted
                       ? 'The whole quantity is allocated.'
                       : 'Waiting for the quotation to be priced and posted.',
-                  onClick: () => handleUse(quote),
+                  confirm: {
+                    title: `Use ${quote.quotationNumber}?`,
+                    description: `What is still unallocated of ${item.inventoryItemName} is allocated to ${quote.supplierName}, at the quoted unit and price.`,
+                    confirmLabel: 'Use Quote',
+                  },
+                  onClick: () =>
+                    allocateMutation.mutate({ id: purchase.id, supplierQuotationItemIds: [quote.line.id] }),
                 },
                 {
                   id: 'open',
@@ -167,9 +159,11 @@ export const PurchaseItemQuotesTab: React.FC<PurchaseItemQuotesTabProps> = ({
       canAllocate,
       allocateTip,
       isFullyAllocated,
-      handleUse,
       navigate,
       pathname,
+      allocateMutation.mutate,
+      item.inventoryItemName,
+      purchase.id,
     ],
   );
 

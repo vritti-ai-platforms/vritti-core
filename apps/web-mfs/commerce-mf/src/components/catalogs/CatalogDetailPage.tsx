@@ -2,7 +2,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
@@ -26,18 +26,7 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
   const { data: counts, isLoading: countsLoading } = binding.useCatalogCounts(id);
   const navigate = useNavigate();
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = binding.useDeleteCatalog();
-
-  const handleDelete = async () => {
-    const ok = await confirm({
-      title: `Delete "${catalog.name}"?`,
-      description: 'The catalog and its channel mappings will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (ok) deleteMutation.mutate(catalog.id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -101,7 +90,13 @@ export const CatalogDetailPage: React.FC<CatalogDetailPageProps> = ({ binding })
         description="This action cannot be undone. Its channel mappings are removed with it."
         buttonText="Delete Catalog"
         permission={binding.permissions.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${catalog.name}"?`,
+          description: 'The catalog and its channel mappings will be permanently removed.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(catalog.id, { onSuccess: () => navigate('..') })}
         disabled={!catalog.canEdit || catalog.listingCount > 0}
         warning={
           catalog.canEdit

@@ -9,9 +9,9 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, ClipboardMinus, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_TABLE_KEY,
   useRemoveStockAdjustmentLine,
@@ -28,25 +28,11 @@ interface OpeningNoneContentProps {
 }
 
 export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentProps) => {
-  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addLineDialog = useDialog();
 
   const stockAdjustmentLinesTableQuery = useStockAdjustmentLinesTable(adjustment.id);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
-
-  const handleRemove = useCallback(
-    async (line: StockAdjustmentLineData) => {
-      const confirmed = await confirm({
-        title: 'Remove this line?',
-        description: 'This line will be removed.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeLineMutation.mutate(line.id);
-    },
-    [confirm, removeLineMutation],
-  );
 
   const columns = useMemo<ColumnDef<StockAdjustmentLineData>[]>(
     () => [
@@ -104,7 +90,13 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
                       icon: Trash2,
                       label: 'Remove',
                       variant: 'destructive',
-                      onClick: () => handleRemove(row.original),
+                      confirm: {
+                        title: 'Remove this line?',
+                        description: 'This line will be removed.',
+                        confirmLabel: 'Remove',
+                        variant: 'destructive',
+                      },
+                      onClick: () => removeLineMutation.mutate(row.original.id),
                     },
                   ]}
                 />
@@ -115,7 +107,7 @@ export const OpeningNoneContent = ({ adjustment, isDraft }: OpeningNoneContentPr
           ]
         : []),
     ],
-    [adjustment.id, isDraft, handleRemove, adjustment.inventoryItemId],
+    [adjustment.id, isDraft, adjustment.inventoryItemId, removeLineMutation.mutate],
   );
 
   const stockAdjustmentLinesTable = useDataTable({

@@ -9,7 +9,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { SegmentedProgressKey } from '@vritti/quantum-ui/SegmentedProgress';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
@@ -17,7 +17,7 @@ import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Eye, ListPlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   PurchaseActionValues,
@@ -47,7 +47,6 @@ interface PurchaseItemsTabProps {
 // is allocated to and how many have quoted it; items are added, edited and allocated while the purchase is open
 export const PurchaseItemsTab: React.FC<PurchaseItemsTabProps> = ({ binding, purchase }) => {
   const { permissions } = binding;
-  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -62,20 +61,6 @@ export const PurchaseItemsTab: React.FC<PurchaseItemsTabProps> = ({ binding, pur
 
   const bucketOptions = usePurchaseItemBucketOptions(binding, purchase.id);
   const [bySupplier, setBySupplier] = useState(true);
-
-  // Confirms and removes an item from the purchase
-  const handleRemove = useCallback(
-    async (item: PurchaseItemTableRow) => {
-      const confirmed = await confirm({
-        title: `Remove "${item.inventoryItemName}"?`,
-        description: `${item.inventoryItemName} is removed from the purchase.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate({ id: purchase.id, itemId: item.id });
-    },
-    [confirm, removeMutation, purchase.id],
-  );
 
   const columns = useMemo<ColumnDef<PurchaseItemTableRow>[]>(
     () => [
@@ -201,7 +186,13 @@ export const PurchaseItemsTab: React.FC<PurchaseItemsTabProps> = ({ binding, pur
                   disabledTip: canEditItems
                     ? 'Part of it is allocated; remove its allocations or cancel the supplier first.'
                     : closedTip,
-                  onClick: () => handleRemove(item),
+                  confirm: {
+                    title: `Remove "${item.inventoryItemName}"?`,
+                    description: `${item.inventoryItemName} is removed from the purchase.`,
+                    confirmLabel: 'Remove',
+                    variant: 'destructive',
+                  },
+                  onClick: () => removeMutation.mutate({ id: purchase.id, itemId: item.id }),
                 },
               ]}
             />
@@ -217,9 +208,9 @@ export const PurchaseItemsTab: React.FC<PurchaseItemsTabProps> = ({ binding, pur
       canAllocate,
       canEditItems,
       closedTip,
-      handleRemove,
       navigate,
       pathname,
+      removeMutation.mutate,
     ],
   );
 

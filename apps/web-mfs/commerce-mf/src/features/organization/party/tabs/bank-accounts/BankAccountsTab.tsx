@@ -3,10 +3,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Landmark, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { PartyBankAccountRow } from '@/schemas/party-bank-accounts';
 import type { BankAccountsBinding } from '../../bindings';
 import { AddBankAccountDialog } from './forms/AddBankAccountDialog';
@@ -19,23 +19,9 @@ interface BankAccountsTabProps {
 
 export const BankAccountsTab: React.FC<BankAccountsTabProps> = ({ partyId, binding }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const bankAccountsTableQuery = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
-
-  const handleDelete = useCallback(
-    async (row: PartyBankAccountRow) => {
-      const confirmed = await confirm({
-        title: 'Delete bank account?',
-        description: `Delete the account "${row.accountName}" (${row.accountNumber})?`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PartyBankAccountRow>[]>(
     () => [
@@ -106,14 +92,20 @@ export const BankAccountsTab: React.FC<BankAccountsTabProps> = ({ partyId, bindi
                 label: 'Delete',
                 variant: 'destructive',
                 permission: binding.permissions.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Delete bank account?',
+                  description: `Delete the account "${row.original.accountName}" (${row.original.accountNumber})?`,
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
         ),
       },
     ],
-    [handleDelete, partyId, binding],
+    [partyId, binding, deleteMutation.mutate],
   );
 
   const bankAccountsTable = useDataTable({

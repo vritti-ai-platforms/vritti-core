@@ -11,12 +11,12 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
+import { useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { countryFlag, ISOCountryFilter } from '@vritti/quantum-ui/selects/iso-country';
 import { Blocks, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   TAX_COMPONENTS_TABLE_KEY,
   useDeleteTaxComponent,
@@ -31,23 +31,9 @@ export const TaxComponentsPage = () => {
   const queryClient = useQueryClient();
   const taxComponentsTableQuery = useTaxComponentsTable();
   const addDialog = useDialog();
-  const confirm = useConfirm();
 
   const deleteMutation = useDeleteTaxComponent();
   const setActiveMutation = useSetTaxComponentActive();
-
-  const handleDelete = useCallback(
-    async (row: TaxComponentData) => {
-      const ok = await confirm({
-        title: `Delete "${row.name}"?`,
-        description: 'This permanently removes the tax component. Only allowed when nothing references it.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<TaxComponentData>[]>(
     () => [
@@ -141,7 +127,13 @@ export const TaxComponentsPage = () => {
               variant: 'destructive',
               permission: ORG_TAX_COMPONENTS.delete,
               disabled: !r.canDelete,
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Delete "${r.name}"?`,
+                description: 'This permanently removes the tax component. Only allowed when nothing references it.',
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate(r.id),
             },
           ];
           return <RowActions actions={actions} />;
@@ -150,7 +142,7 @@ export const TaxComponentsPage = () => {
         enableHiding: false,
       },
     ],
-    [handleDelete, setActiveMutation],
+    [setActiveMutation, deleteMutation.mutate],
   );
 
   const taxComponentsTable = useDataTable({

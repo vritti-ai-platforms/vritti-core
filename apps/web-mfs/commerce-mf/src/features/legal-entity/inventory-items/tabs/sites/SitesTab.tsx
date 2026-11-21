@@ -45,19 +45,6 @@ export const SitesTab: React.FC<SitesTabProps> = ({ inventoryItemId, itemName, u
   // The site whose purchasing the block dialog is asked for
   const [blockingSite, setBlockingSite] = useState<SiteItemRowData | null>(null);
 
-  const handleRemove = useCallback(
-    async (row: SiteItemRowData) => {
-      const confirmed = await confirm({
-        title: `Remove from ${row.siteName}?`,
-        description: `${row.siteName} can no longer buy or stock ${itemName}. It can't be removed while the site still holds stock or has open purchases for it.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate(row.siteId);
-    },
-    [confirm, removeMutation, itemName],
-  );
-
   // Switching a site's purchasing off asks why in a dialog; switching it back on confirms and unblocks
   const handleBlockedChange = useCallback(
     async (row: SiteItemRowData, blocked: boolean) => {
@@ -192,7 +179,13 @@ export const SitesTab: React.FC<SitesTabProps> = ({ inventoryItemId, itemName, u
                 variant: 'destructive',
                 permission: LE_INVENTORY_ITEMS.sites.delete,
                 hidden: !row.original.atSite,
-                onClick: () => handleRemove(row.original),
+                confirm: {
+                  title: `Remove from ${row.original.siteName}?`,
+                  description: `${row.original.siteName} can no longer buy or stock ${itemName}. It can't be removed while the site still holds stock or has open purchases for it.`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => removeMutation.mutate(row.original.siteId),
               },
             ]}
           />
@@ -200,7 +193,6 @@ export const SitesTab: React.FC<SitesTabProps> = ({ inventoryItemId, itemName, u
       },
     ],
     [
-      handleRemove,
       handleBlockedChange,
       inventoryItemId,
       itemName,
@@ -208,6 +200,7 @@ export const SitesTab: React.FC<SitesTabProps> = ({ inventoryItemId, itemName, u
       uomAllowDecimal,
       unblockMutation,
       sourcingMutation,
+      removeMutation.mutate,
     ],
   );
 

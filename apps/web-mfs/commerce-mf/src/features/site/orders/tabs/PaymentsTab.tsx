@@ -9,9 +9,9 @@ import {
   StringCell,
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
-import { useConfirm, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { CreditCard, RefreshCw, Undo2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useCheckOrderPaymentRefund, useOrderPayments, useRefundOrderPayment } from '@/hooks/site/orders';
 import type { OrderPayment } from '@/schemas/orders';
 import { gatewayName, ORDER_PAYMENT_STATUS } from '../components/order-payment-labels';
@@ -27,22 +27,8 @@ export const PaymentsTab = ({ orderId }: PaymentsTabProps) => {
   const paymentsQuery = useOrderPayments(orderId);
   const refund = useRefundOrderPayment();
   const check = useCheckOrderPaymentRefund();
-  const confirm = useConfirm();
   const fmt = useFormatters();
   const busy = refund.isPending || check.isPending;
-
-  const handleRetry = useCallback(
-    async (payment: OrderPayment) => {
-      const confirmed = await confirm({
-        title: 'Try the refund again?',
-        description: `${fmt.currency(payment.amount).primary} goes back to the shopper through ${gatewayName(payment.gatewayCode)}${payment.providerPaymentId ? ` (${payment.providerPaymentId})` : ''}. The order keeps the payment it was paid with.`,
-        confirmLabel: 'Retry refund',
-        variant: 'destructive',
-      });
-      if (confirmed) refund.mutate({ id: orderId, paymentIntentId: payment.id });
-    },
-    [confirm, fmt, refund, orderId],
-  );
 
   const columns = useMemo<ColumnDef<OrderPayment>[]>(
     () => [
@@ -134,14 +120,20 @@ export const PaymentsTab = ({ orderId }: PaymentsTabProps) => {
                 permission: SITE_ORDERS.payments.refund,
                 hidden: !row.original.refundable,
                 disabled: busy,
-                onClick: () => handleRetry(row.original),
+                confirm: {
+                  title: 'Try the refund again?',
+                  description: `${fmt.currency(row.original.amount).primary} goes back to the shopper through ${gatewayName(row.original.gatewayCode)}${row.original.providerPaymentId ? ` (${row.original.providerPaymentId})` : ''}. The order keeps the payment it was paid with.`,
+                  confirmLabel: 'Retry refund',
+                  variant: 'destructive',
+                },
+                onClick: () => refund.mutate({ id: orderId, paymentIntentId: row.original.id }),
               },
             ]}
           />
         ),
       },
     ],
-    [busy, check, orderId, handleRetry],
+    [busy, check, orderId, fmt.currency, refund.mutate],
   );
 
   const paymentsTable = useDataTable({

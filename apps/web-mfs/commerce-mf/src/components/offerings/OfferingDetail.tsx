@@ -1,7 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
@@ -30,19 +30,8 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
   const navigate = useNavigate();
   const editDialog = useDialog();
   const taxClassDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = binding.useDeleteOffering();
   const setStatusMutation = binding.useSetOfferingStatus();
-
-  const handleDelete = async () => {
-    const confirmed = await confirm({
-      title: `Delete "${offering.name}"?`,
-      description: 'The offering and its dimensions will be permanently removed. This cannot be undone.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(offering.id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -178,7 +167,13 @@ export const OfferingDetail: React.FC<OfferingDetailProps> = ({ binding }) => {
         description="This action cannot be undone. Its dimensions and their values will be removed with it."
         buttonText="Delete Offering"
         permission={PERMISSIONS.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${offering.name}"?`,
+          description: 'The offering and its dimensions will be permanently removed. This cannot be undone.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(offering.id, { onSuccess: () => navigate('..') })}
         disabled={!offering.canDelete}
         warning={
           offering.variantCount > 0

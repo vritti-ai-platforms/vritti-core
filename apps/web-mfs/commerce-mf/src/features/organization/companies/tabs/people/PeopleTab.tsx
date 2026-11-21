@@ -3,10 +3,10 @@ import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   COMPANY_PEOPLE_TABLE_KEY,
   useCompanyPeopleTable,
@@ -24,23 +24,9 @@ interface PeopleTabProps {
 
 export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId, onPeopleChange }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const companyPeopleTableQuery = useCompanyPeopleTable(companyId);
   const removeMutation = useRemoveCompanyPerson(companyId, { onSuccess: onPeopleChange });
-
-  const handleRemove = useCallback(
-    async (row: CompanyPersonRow) => {
-      const confirmed = await confirm({
-        title: 'Remove person?',
-        description: `Remove "${row.childName}" from this company?`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate(row.id);
-    },
-    [confirm, removeMutation],
-  );
 
   const columns = useMemo<ColumnDef<CompanyPersonRow>[]>(
     () => [
@@ -100,7 +86,13 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId, onPeopleChange 
                 label: 'Remove',
                 variant: 'destructive',
                 permission: ORG_COMPANIES.people.delete,
-                onClick: () => handleRemove(row.original),
+                confirm: {
+                  title: 'Remove person?',
+                  description: `Remove "${row.original.childName}" from this company?`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => removeMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -109,7 +101,7 @@ export const PeopleTab: React.FC<PeopleTabProps> = ({ companyId, onPeopleChange 
         enableHiding: false,
       },
     ],
-    [handleRemove, companyId],
+    [companyId, removeMutation.mutate],
   );
 
   const companyPeopleTable = useDataTable({

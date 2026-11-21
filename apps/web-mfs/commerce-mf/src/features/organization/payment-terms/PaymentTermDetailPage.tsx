@@ -58,16 +58,6 @@ export const PaymentTermDetailPage = () => {
     if (ok) unpublishMutation.mutate(paymentTerm.id);
   }, [confirm, unpublishMutation, paymentTerm]);
 
-  const handleDelete = useCallback(async () => {
-    const ok = await confirm({
-      title: `Delete "${paymentTerm.name}"?`,
-      description: 'This permanently removes the payment term and its rules.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (ok) deleteMutation.mutate(paymentTerm.id, { onSuccess: () => navigate('../..', { relative: 'path' }) });
-  }, [confirm, deleteMutation, navigate, paymentTerm]);
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -172,7 +162,15 @@ export const PaymentTermDetailPage = () => {
         description="This action cannot be undone. Terms a supplier uses cannot be deleted."
         buttonText="Delete Payment Term"
         permission={ORG_PAYMENT_TERMS.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${paymentTerm.name}"?`,
+          description: 'This permanently removes the payment term and its rules.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() =>
+          deleteMutation.mutate(paymentTerm.id, { onSuccess: () => navigate('../..', { relative: 'path' }) })
+        }
         isLoading={deleteMutation.isPending}
         disabled={!paymentTerm.canDelete || deleteMutation.isPending}
         warning={inUseTip}

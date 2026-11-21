@@ -12,12 +12,12 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Pencil, Plus, Trash2, Warehouse } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { DimensionsText, MeasureText } from '@/components/storage/MeasureText';
 import {
   STORAGE_TYPES_TABLE_KEY,
@@ -58,21 +58,7 @@ export const StorageTypesPage = () => {
   const queryClient = useQueryClient();
   const storageTypesTableQuery = useStorageTypesTable();
   const addDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeleteStorageType();
-
-  const handleDelete = useCallback(
-    async (storageType: StorageTypeData) => {
-      const ok = await confirm({
-        title: `Delete "${storageType.name}"?`,
-        description: `The storage type ${storageType.name} will be permanently removed. This action cannot be undone.`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate(storageType.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<StorageTypeData>[]>(
     () => [
@@ -171,7 +157,13 @@ export const StorageTypesPage = () => {
               permission: ORG_STORAGE_TYPES.delete,
               disabled: inUse,
               disabledTip: usageText(storageType),
-              onClick: () => handleDelete(storageType),
+              confirm: {
+                title: `Delete "${storageType.name}"?`,
+                description: `The storage type ${storageType.name} will be permanently removed. This action cannot be undone.`,
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate(storageType.id),
             },
           ];
           return <RowActions actions={actions} />;
@@ -180,7 +172,7 @@ export const StorageTypesPage = () => {
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [deleteMutation.mutate],
   );
 
   const storageTypesTable = useDataTable({

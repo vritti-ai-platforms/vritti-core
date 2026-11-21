@@ -2,14 +2,13 @@ import { ORG_TAX_GROUPS } from '@vritti/commerce-permissions/tax-groups';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Percent } from 'lucide-react';
-import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useDeleteTaxGroup,
@@ -29,20 +28,9 @@ export const TaxGroupDetailPage = () => {
   const { data: taxGroup } = useTaxGroup(id);
   const { data: counts, isLoading: countsLoading } = useTaxGroupCounts(id);
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeleteTaxGroup();
   const setActiveMutation = useSetTaxGroupActive();
   const inUseTip = `Mapped to ${pluralize('tax class', taxGroup.classCount, true)}. Remove the mappings first.`;
-
-  const handleDelete = useCallback(async () => {
-    const ok = await confirm({
-      title: `Delete "${taxGroup.name}"?`,
-      description: `${taxGroup.name} and its ${pluralize('rate', taxGroup.rateCount, true)} will be permanently removed. This action cannot be undone.`,
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (ok) deleteMutation.mutate(taxGroup.id, { onSuccess: () => navigate('../..', { relative: 'path' }) });
-  }, [confirm, deleteMutation, navigate, taxGroup]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -118,7 +106,13 @@ export const TaxGroupDetailPage = () => {
         description="This removes the group and its rates and cannot be undone. Groups tax classes are mapped to cannot be deleted."
         buttonText="Delete Tax Group"
         permission={ORG_TAX_GROUPS.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${taxGroup.name}"?`,
+          description: `${taxGroup.name} and its ${pluralize('rate', taxGroup.rateCount, true)} will be permanently removed. This action cannot be undone.`,
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(taxGroup.id, { onSuccess: () => navigate('../..', { relative: 'path' }) })}
         isLoading={deleteMutation.isPending}
         disabled={!taxGroup.canDelete || deleteMutation.isPending}
         warning={inUseTip}

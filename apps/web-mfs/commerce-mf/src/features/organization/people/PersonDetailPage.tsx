@@ -3,7 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
@@ -31,18 +31,7 @@ export const PersonDetailPage = () => {
   const { data: counts, isLoading: countsLoading } = usePersonCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeletePerson();
-
-  const handleDelete = async () => {
-    const confirmed = await confirm({
-      title: `Delete "${person.displayName}"?`,
-      description: 'This person will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(person.id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -159,7 +148,13 @@ export const PersonDetailPage = () => {
         description="This action cannot be undone. This person will be permanently removed."
         buttonText="Delete Person"
         permission={ORG_PEOPLE.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${person.displayName}"?`,
+          description: 'This person will be permanently removed.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(person.id, { onSuccess: () => navigate('..') })}
         disabled={!person.canDelete || deleteMutation.isPending}
         warning="This person is linked to one or more companies (or a supplier) and cannot be deleted. Remove those links first."
         showWarning={!person.canDelete}

@@ -11,10 +11,10 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { CartLineData } from '@/schemas/carts';
 import type { CartsBinding } from '../../types';
 import { AddCartLineDialog } from './forms/AddCartLineDialog';
@@ -29,22 +29,8 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
   const { permissions } = binding;
   const queryClient = useQueryClient();
   const cartItemsTableQuery = binding.useCartItemsTable(cartId);
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const removeMutation = binding.useRemoveCartLine(cartId);
-
-  const handleRemove = useCallback(
-    async (row: CartLineData) => {
-      const confirmed = await confirm({
-        title: 'Remove item?',
-        description: `Remove "${row.name}" from this basket?`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate({ offeringVariantId: row.offeringVariantId, partyId });
-    },
-    [confirm, removeMutation, partyId],
-  );
 
   const columns = useMemo<ColumnDef<CartLineData>[]>(
     () => [
@@ -100,7 +86,13 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
                 label: 'Remove',
                 variant: 'destructive',
                 permission: permissions.delete,
-                onClick: () => handleRemove(row.original),
+                confirm: {
+                  title: 'Remove item?',
+                  description: `Remove "${row.original.name}" from this basket?`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => removeMutation.mutate({ offeringVariantId: row.original.offeringVariantId, partyId }),
               },
             ]}
           />
@@ -109,7 +101,7 @@ export const ItemsTab: React.FC<ItemsTabProps> = ({ binding, cartId, partyId }) 
         enableHiding: false,
       },
     ],
-    [handleRemove, permissions],
+    [permissions, partyId, removeMutation.mutate],
   );
 
   const cartItemsTable = useDataTable({

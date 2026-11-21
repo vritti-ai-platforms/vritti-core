@@ -2,12 +2,11 @@ import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Package, Pencil } from 'lucide-react';
-import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PriceHistory } from '@/components/suppliers/PriceHistory';
 import { PricesTable } from '@/components/suppliers/PricesTable';
@@ -24,22 +23,12 @@ export const SupplierItemDetailPage = () => {
   const { data: item } = useSupplierItem(supplierId, itemId);
   const { data: counts, isLoading: countsLoading } = useSupplierItemCounts(supplierId, itemId);
   const navigate = useNavigate();
-  const confirm = useConfirm();
   const editDialog = useDialog();
   // Deleting returns to the supplier's Items tab
   const deleteMutation = useUnlinkSupplierItem(supplierId, {
     onSuccess: () => navigate('../..', { relative: 'path' }),
   });
 
-  const handleDelete = useCallback(async () => {
-    const confirmed = await confirm({
-      title: `Delete "${item.inventoryItemName}" (${item.uomSymbol}) from this supplier?`,
-      description: 'Its setup at every site and its price history are deleted too. The inventory item itself is kept.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(item.id);
-  }, [confirm, deleteMutation, item]);
   const addPrice = (
     <AddItemPriceAction
       supplierId={supplierId}
@@ -141,7 +130,14 @@ export const SupplierItemDetailPage = () => {
         description="Its setup at every site and its price history are deleted too. The inventory item itself is kept."
         buttonText="Delete Item"
         permission={LE_SUPPLIERS.items.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${item.inventoryItemName}" (${item.uomSymbol}) from this supplier?`,
+          description:
+            'Its setup at every site and its price history are deleted too. The inventory item itself is kept.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(item.id)}
         isLoading={deleteMutation.isPending}
         disabled={!item.canDelete || deleteMutation.isPending}
         warning={`This item has ${pluralize('price', item.priceCount, true)} across ${pluralize('site', item.pricedSiteCount, true)}. Price history is kept, so only an item that was never priced can be deleted.`}

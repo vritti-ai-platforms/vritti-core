@@ -11,10 +11,10 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Pencil, Plus, Ruler, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { UOM_TABLE_KEY, useDeleteUom, useUomTable } from '@/hooks/organization/uom';
 import type { UomData } from '@/schemas/uom';
 import { UomFilter } from '@/selectors/uom';
@@ -27,23 +27,9 @@ interface UomTableProps {
 
 export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const uomTableQuery = useUomTable(dimensionId);
   const deleteMutation = useDeleteUom();
   const addDialog = useDialog();
-
-  const handleDelete = useCallback(
-    async (uom: UomData) => {
-      const confirmed = await confirm({
-        title: `Delete "${uom.name}"?`,
-        description: 'This unit will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(uom.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<UomData>[]>(
     () => [
@@ -114,7 +100,13 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
                   icon: Trash2,
                   label: 'Delete',
                   variant: 'destructive',
-                  onClick: () => handleDelete(uom),
+                  confirm: {
+                    title: `Delete "${uom.name}"?`,
+                    description: 'This unit will be permanently removed.',
+                    confirmLabel: 'Delete',
+                    variant: 'destructive',
+                  },
+                  onClick: () => deleteMutation.mutate(uom.id),
                   disabled: !uom.canDelete,
                 },
               ]}
@@ -125,7 +117,7 @@ export const UomTable: React.FC<UomTableProps> = ({ dimensionId }) => {
         enableHiding: false,
       },
     ],
-    [handleDelete],
+    [deleteMutation.mutate],
   );
 
   const uomTable = useDataTable({

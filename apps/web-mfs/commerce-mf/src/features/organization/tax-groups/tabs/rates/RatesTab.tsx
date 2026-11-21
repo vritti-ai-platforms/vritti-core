@@ -13,11 +13,11 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { DateFilter } from '@vritti/quantum-ui/DateFilter';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { ValueFilter } from '@vritti/quantum-ui/ValueFilter';
 import { Pencil, Percent, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   TAX_GROUP_RATES_TABLE_KEY,
   useDeleteTaxGroupRate,
@@ -49,20 +49,6 @@ export const RatesTab = ({ taxGroup }: RatesTabProps) => {
   const taxGroupRatesTableQuery = useTaxGroupRatesTable(taxGroup.id, { jurisdiction, asOf });
   const deleteMutation = useDeleteTaxGroupRate();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (rate: TaxGroupRateData) => {
-      const ok = await confirm({
-        title: `Delete the ${rate.taxComponentName} rate?`,
-        description: `The ${rate.taxComponentName} rate of ${taxGroup.name} in ${rate.jurisdictionName ?? 'the whole country'} will be permanently removed. This action cannot be undone.`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate({ taxGroupId: taxGroup.id, rateId: rate.id });
-    },
-    [confirm, deleteMutation, taxGroup],
-  );
 
   const columns = useMemo<ColumnDef<TaxGroupRateData>[]>(
     () => [
@@ -152,7 +138,13 @@ export const RatesTab = ({ taxGroup }: RatesTabProps) => {
               label: 'Delete',
               variant: 'destructive',
               permission: ORG_TAX_GROUPS.rates.delete,
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Delete the ${r.taxComponentName} rate?`,
+                description: `The ${r.taxComponentName} rate of ${taxGroup.name} in ${r.jurisdictionName ?? 'the whole country'} will be permanently removed. This action cannot be undone.`,
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate({ taxGroupId: taxGroup.id, rateId: r.id }),
             },
           ];
           return <RowActions actions={actions} />;
@@ -161,7 +153,7 @@ export const RatesTab = ({ taxGroup }: RatesTabProps) => {
         enableHiding: false,
       },
     ],
-    [fmt, handleDelete, taxGroup],
+    [fmt, taxGroup, deleteMutation.mutate],
   );
 
   const taxGroupRatesTable = useDataTable({

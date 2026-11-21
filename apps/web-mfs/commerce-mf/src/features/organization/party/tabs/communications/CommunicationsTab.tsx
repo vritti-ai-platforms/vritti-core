@@ -3,10 +3,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { AtSign, Mail, Pencil, Phone, Plus, Star, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   COMMUNICATION_CHANNEL_LABELS,
   COMMUNICATION_FUNCTION_LABELS,
@@ -25,23 +25,9 @@ interface CommunicationsTabProps {
 
 export const CommunicationsTab: React.FC<CommunicationsTabProps> = ({ partyId, binding }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const communicationsTableQuery = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
-
-  const handleDelete = useCallback(
-    async (row: PartyCommunicationRow) => {
-      const confirmed = await confirm({
-        title: 'Delete communication?',
-        description: `Remove ${COMMUNICATION_CHANNEL_LABELS[row.channel].toLowerCase()} "${row.value}"?`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PartyCommunicationRow>[]>(
     () => [
@@ -132,14 +118,20 @@ export const CommunicationsTab: React.FC<CommunicationsTabProps> = ({ partyId, b
                 label: 'Delete',
                 variant: 'destructive',
                 permission: binding.permissions.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Delete communication?',
+                  description: `Remove ${COMMUNICATION_CHANNEL_LABELS[row.original.channel].toLowerCase()} "${row.original.value}"?`,
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
         ),
       },
     ],
-    [handleDelete, partyId, binding],
+    [partyId, binding, deleteMutation.mutate],
   );
 
   const communicationsTable = useDataTable({

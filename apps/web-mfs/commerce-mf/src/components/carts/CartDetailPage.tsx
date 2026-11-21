@@ -1,6 +1,6 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { useConfirm, useFormatters, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useFormatters, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
@@ -20,18 +20,7 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
   const { data: cart } = binding.useCart(id);
   const { data: lines } = binding.useCartItems(id);
   const { data: counts, isLoading: countsLoading } = binding.useCartCounts(id);
-  const confirm = useConfirm();
   const closeMutation = binding.useCloseCart();
-
-  const handleClose = async () => {
-    const confirmed = await confirm({
-      title: `Close ${cart.partyName}'s basket?`,
-      description: `${pluralize('item', lines.items.length, true)} will be removed with it. This cannot be undone.`,
-      confirmLabel: 'Close basket',
-      variant: 'destructive',
-    });
-    if (confirmed) closeMutation.mutate(id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col gap-6">
@@ -70,7 +59,13 @@ export const CartDetailPage: React.FC<{ binding: CartsBinding }> = ({ binding })
         description="The items go with it. Nothing is kept — a basket that has been paid for is recorded as an order, not as a basket."
         buttonText="Close Basket"
         permission={permissions.delete}
-        onClick={handleClose}
+        confirm={{
+          title: `Close ${cart.partyName}'s basket?`,
+          description: `${pluralize('item', lines.items.length, true)} will be removed with it. This cannot be undone.`,
+          confirmLabel: 'Close basket',
+          variant: 'destructive',
+        }}
+        onClick={() => closeMutation.mutate(id, { onSuccess: () => navigate('..') })}
         disabled={!!cart.checkoutStartedAt || closeMutation.isPending}
         warning="This basket is in the middle of checkout. Let the payment finish first."
         showWarning={!!cart.checkoutStartedAt}

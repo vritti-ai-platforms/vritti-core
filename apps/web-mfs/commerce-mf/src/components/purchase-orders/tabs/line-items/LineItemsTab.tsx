@@ -12,7 +12,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import type { DisplayQuantity } from '@vritti/quantum-ui/format';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Tooltip } from '@vritti/quantum-ui/Tooltip';
 import { Boxes, ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -89,7 +89,6 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
   const areLinesLocked = lockedReason !== undefined;
 
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addItemDialog = useDialog();
   const fmt = useFormatters();
   const navigate = useNavigate();
@@ -119,19 +118,6 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
       }
     },
     [navigate, pathname, invoices, purchaseOrder.supplierId, purchaseOrder.supplierName],
-  );
-
-  const handleRemoveItem = useCallback(
-    async (item: PurchaseOrderItemData) => {
-      const confirmed = await confirm({
-        title: `Remove "${item.inventoryItemName}"?`,
-        description: `${item.inventoryItemName} will be removed from ${purchaseOrder.poNumber}.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeItemMutation.mutate({ id: purchaseOrderId, itemId: item.id });
-    },
-    [confirm, purchaseOrderId, purchaseOrder.poNumber, removeItemMutation],
   );
 
   const columns = useMemo<ColumnDef<PurchaseOrderItemData>[]>(
@@ -342,7 +328,13 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
                 permission: permissions.edit,
                 disabled: areLinesLocked,
                 disabledTip: lockedReason,
-                onClick: () => handleRemoveItem(row.original),
+                confirm: {
+                  title: `Remove "${row.original.inventoryItemName}"?`,
+                  description: `${row.original.inventoryItemName} will be removed from ${purchaseOrder.poNumber}.`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => removeItemMutation.mutate({ id: purchaseOrderId, itemId: row.original.id }),
               },
             ]}
           />
@@ -357,10 +349,11 @@ export const LineItemsTab: React.FC<LineItemsTabProps> = ({ binding, purchaseOrd
       areLinesLocked,
       lockedReason,
       permissions.edit,
-      handleRemoveItem,
       fmt,
       problemsByLine,
       openProblemDocument,
+      purchaseOrderId,
+      removeItemMutation.mutate,
     ],
   );
 

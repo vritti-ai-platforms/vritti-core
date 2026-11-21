@@ -3,12 +3,11 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Tags } from 'lucide-react';
-import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useDeleteTaxClass,
@@ -26,19 +25,8 @@ export const TaxClassDetailPage = () => {
   const { data: taxClass } = useTaxClass(id);
   const { data: counts, isLoading: countsLoading } = useTaxClassCounts(id);
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeleteTaxClass();
   const setActiveMutation = useSetTaxClassActive();
-
-  const handleDelete = useCallback(async () => {
-    const ok = await confirm({
-      title: `Delete "${taxClass.name}"?`,
-      description: `${taxClass.name} and its group mappings will be permanently removed. This action cannot be undone.`,
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (ok) deleteMutation.mutate(taxClass.id, { onSuccess: () => navigate('../..', { relative: 'path' }) });
-  }, [confirm, deleteMutation, navigate, taxClass]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,7 +92,13 @@ export const TaxClassDetailPage = () => {
         description="This removes the class and its group mappings and cannot be undone. System tax classes cannot be deleted."
         buttonText="Delete Tax Class"
         permission={ORG_TAX_CLASSES.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${taxClass.name}"?`,
+          description: `${taxClass.name} and its group mappings will be permanently removed. This action cannot be undone.`,
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(taxClass.id, { onSuccess: () => navigate('../..', { relative: 'path' }) })}
         isLoading={deleteMutation.isPending}
         disabled={!taxClass.canDelete || deleteMutation.isPending}
         warning="This tax class is reserved by the system."

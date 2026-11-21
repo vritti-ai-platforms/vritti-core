@@ -2,7 +2,7 @@ import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-item
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Package, Pencil } from 'lucide-react';
@@ -23,18 +23,7 @@ export const InventoryItemDetailPage = () => {
   const { data: counts, isLoading: countsLoading } = useInventoryItemCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeleteInventoryItem();
-
-  const handleDelete = async () => {
-    const confirmed = await confirm({
-      title: `Delete "${item.name}"?`,
-      description: 'This inventory item and its UOM conversions and MRP will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(item.id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,7 +93,13 @@ export const InventoryItemDetailPage = () => {
         description="This action cannot be undone. All UOM conversions and MRP will be permanently removed."
         buttonText="Delete Item"
         permission={ORG_INVENTORY_ITEMS.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${item.name}"?`,
+          description: 'This inventory item and its UOM conversions and MRP will be permanently removed.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(item.id, { onSuccess: () => navigate('..') })}
         disabled={!item.canDelete}
         warning="This item is referenced by suppliers, catalogs, or purchase orders and cannot be deleted."
         showWarning={!item.canDelete}

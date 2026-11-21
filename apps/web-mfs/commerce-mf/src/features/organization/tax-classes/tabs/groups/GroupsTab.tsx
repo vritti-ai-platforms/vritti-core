@@ -14,10 +14,10 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { filter } from '@vritti/quantum-ui/filter';
-import { useConfirm, useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
+import { useDialog, useOrgCountryCode } from '@vritti/quantum-ui/hooks';
 import { ISOCountryFilter } from '@vritti/quantum-ui/selects/iso-country';
 import { Pencil, Percent, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   TAX_CLASS_GROUPS_TABLE_KEY,
   useDeleteTaxClassGroupMapping,
@@ -38,20 +38,6 @@ export const GroupsTab = ({ taxClass }: GroupsTabProps) => {
   const taxClassGroupsTableQuery = useTaxClassGroupsTable(taxClass.id);
   const deleteMutation = useDeleteTaxClassGroupMapping();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (mapping: TaxClassGroupData) => {
-      const ok = await confirm({
-        title: `Unmap ${mapping.taxGroupName}?`,
-        description: `${taxClass.name} will no longer be taxed by ${mapping.taxGroupName} in ${mapping.countryCode} for this period. Items of an unmapped class can't be taxed. This action cannot be undone.`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate({ taxClassId: taxClass.id, mappingId: mapping.id });
-    },
-    [confirm, deleteMutation, taxClass],
-  );
 
   const columns = useMemo<ColumnDef<TaxClassGroupData>[]>(
     () => [
@@ -118,7 +104,13 @@ export const GroupsTab = ({ taxClass }: GroupsTabProps) => {
               label: 'Delete',
               variant: 'destructive',
               permission: ORG_TAX_CLASSES.groups.delete,
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Unmap ${r.taxGroupName}?`,
+                description: `${taxClass.name} will no longer be taxed by ${r.taxGroupName} in ${r.countryCode} for this period. Items of an unmapped class can't be taxed. This action cannot be undone.`,
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate({ taxClassId: taxClass.id, mappingId: r.id }),
             },
           ];
           return <RowActions actions={actions} />;
@@ -127,7 +119,7 @@ export const GroupsTab = ({ taxClass }: GroupsTabProps) => {
         enableHiding: false,
       },
     ],
-    [handleDelete, taxClass],
+    [taxClass, deleteMutation.mutate],
   );
 
   const taxClassGroupsTable = useDataTable({

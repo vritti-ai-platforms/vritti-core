@@ -10,7 +10,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { buildSlug } from '@vritti/quantum-ui/slug';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -195,23 +195,9 @@ interface EditableLinesTabProps {
 // the delivery is received or cancelled
 const EditableLinesTab: React.FC<EditableLinesTabProps> = ({ binding, mutations, delivery }) => {
   const { permissions } = mutations;
-  const confirm = useConfirm();
   const addLinesDialog = useDialog();
   const removeLineMutation = mutations.useRemoveLine();
   const isLocked = !delivery.isEditable;
-
-  const handleRemove = useCallback(
-    async (line: InboundDeliveryLineData) => {
-      const confirmed = await confirm({
-        title: `Remove "${line.inventoryItemName}"?`,
-        description: `${line.inventoryItemName} of ${line.poNumber} will be taken off ${delivery.deliveryNumber}. The purchase order line stays open.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeLineMutation.mutate({ id: delivery.id, lineId: line.id });
-    },
-    [confirm, delivery.id, delivery.deliveryNumber, removeLineMutation],
-  );
 
   const rowActions = useCallback(
     (line: InboundDeliveryLineData): RowAction[] => [
@@ -238,10 +224,16 @@ const EditableLinesTab: React.FC<EditableLinesTabProps> = ({ binding, mutations,
         hidden: isLocked,
         disabled: line.receivedOnDeliveryQty > 0,
         disabledTip: 'Goods of this line have been received on this delivery, so it cannot be removed.',
-        onClick: () => handleRemove(line),
+        confirm: {
+          title: `Remove "${line.inventoryItemName}"?`,
+          description: `${line.inventoryItemName} of ${line.poNumber} will be taken off ${delivery.deliveryNumber}. The purchase order line stays open.`,
+          confirmLabel: 'Remove',
+          variant: 'destructive',
+        },
+        onClick: () => removeLineMutation.mutate({ id: delivery.id, lineId: line.id }),
       },
     ],
-    [mutations, permissions.edit, isLocked, handleRemove],
+    [mutations, permissions.edit, isLocked, delivery.deliveryNumber, delivery.id, removeLineMutation.mutate],
   );
 
   const addLinesAction = (

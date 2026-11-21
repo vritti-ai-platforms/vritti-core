@@ -108,19 +108,6 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
     if (confirmed) removeLineMutation.mutate(lineId, { onSuccess: () => onLineRemoved() });
   };
 
-  const handleUnpick = useCallback(
-    async (item: StockAdjustmentLineItemData) => {
-      const confirmed = await confirm({
-        title: 'Remove this serial?',
-        description: 'This serial will no longer be consumed by this line.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeItemMutation.mutate(item.id);
-    },
-    [confirm, removeItemMutation],
-  );
-
   const columns = useMemo<ColumnDef<StockAdjustmentLineItemData>[]>(
     () => [
       ...(isDraft ? [getSelectionColumn<StockAdjustmentLineItemData>()] : []),
@@ -149,7 +136,13 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
                       icon: Trash2,
                       label: 'Unpick',
                       variant: 'destructive',
-                      onClick: () => handleUnpick(row.original),
+                      confirm: {
+                        title: 'Remove this serial?',
+                        description: 'This serial will no longer be consumed by this line.',
+                        confirmLabel: 'Remove',
+                        variant: 'destructive',
+                      },
+                      onClick: () => removeItemMutation.mutate(row.original.id),
                     },
                   ]}
                 />
@@ -160,7 +153,7 @@ function LineSerialsPanelContent({ adjustment, lineId, line, isDraft, onLineRemo
           ]
         : []),
     ],
-    [isDraft, handleUnpick],
+    [isDraft, removeItemMutation.mutate],
   );
 
   const stockAdjustmentLineItemsTable = useDataTable({

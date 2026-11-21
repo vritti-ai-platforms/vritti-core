@@ -3,7 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Building2, Eye, Pencil, Plus, Trash2, Truck, UserPlus } from 'lucide-react';
@@ -32,7 +32,6 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
   const { table: tableBinding, permissions } = binding;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const confirm = useConfirm();
   const enrollDialog = useDialog();
   const scope = tableBinding.useScope();
   const enrollmentsTableQuery = tableBinding.useTable(scope);
@@ -43,19 +42,6 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
   const openRow = useCallback(
     (row: SupplierEnrollmentRow) => navigate(tableBinding.rowPath(row), { relative: 'path' }),
     [navigate, tableBinding],
-  );
-
-  const handleUnenroll = useCallback(
-    async (row: SupplierEnrollmentRow) => {
-      const confirmed = await confirm({
-        title: `Unenroll "${row.partyName}" from ${row.siteName}?`,
-        description: 'The site will no longer be able to purchase from this supplier. Its price history is kept.',
-        confirmLabel: 'Unenroll',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate({ supplierId: row.supplierId, siteId: row.siteId });
-    },
-    [confirm, deleteMutation],
   );
 
   const columns = useMemo<ColumnDef<SupplierEnrollmentRow>[]>(
@@ -212,7 +198,15 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
                   variant: 'destructive',
                   permission: permissions.unenroll,
                   hidden: !enrolled,
-                  onClick: () => handleUnenroll(enrollment),
+                  confirm: {
+                    title: `Unenroll "${enrollment.partyName}" from ${enrollment.siteName}?`,
+                    description:
+                      'The site will no longer be able to purchase from this supplier. Its price history is kept.',
+                    confirmLabel: 'Unenroll',
+                    variant: 'destructive',
+                  },
+                  onClick: () =>
+                    deleteMutation.mutate({ supplierId: enrollment.supplierId, siteId: enrollment.siteId }),
                 },
               ]}
             />
@@ -220,7 +214,7 @@ export const EnrollmentsTable: React.FC<EnrollmentsTableProps> = ({ binding, mod
         },
       },
     ],
-    [binding, tableBinding, permissions, listsSites, setActiveMutation, openRow, handleUnenroll],
+    [binding, tableBinding, permissions, listsSites, setActiveMutation, openRow, deleteMutation.mutate],
   );
 
   const enrollmentsTable = useDataTable({

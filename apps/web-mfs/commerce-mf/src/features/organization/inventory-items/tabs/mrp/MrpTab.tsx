@@ -10,10 +10,10 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Pencil, Plus, Tag, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   ORG_INVENTORY_ITEM_MRP_KEY,
   useDeleteInventoryItemMrp,
@@ -29,23 +29,9 @@ interface MrpTabProps {
 
 export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const inventoryItemMrpTableQuery = useInventoryItemMrpTable(inventoryItemId);
   const deleteMutation = useDeleteInventoryItemMrp(inventoryItemId);
-
-  const handleDelete = useCallback(
-    async (row: InventoryItemMrpData) => {
-      const confirmed = await confirm({
-        title: 'Remove MRP?',
-        description: `Remove the ${row.amount.currency} MRP for ${row.uomSymbol}?`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<InventoryItemMrpData>[]>(
     () => [
@@ -104,7 +90,13 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
                 label: 'Delete',
                 permission: ORG_INVENTORY_ITEMS.mrp.delete,
                 variant: 'destructive',
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Remove MRP?',
+                  description: `Remove the ${row.original.amount.currency} MRP for ${row.original.uomSymbol}?`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -113,7 +105,7 @@ export const MrpTab: React.FC<MrpTabProps> = ({ inventoryItemId }) => {
         enableHiding: false,
       },
     ],
-    [inventoryItemId, handleDelete],
+    [inventoryItemId, deleteMutation.mutate],
   );
 
   const inventoryItemMrpTable = useDataTable({

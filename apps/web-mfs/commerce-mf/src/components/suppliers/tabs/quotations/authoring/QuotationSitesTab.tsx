@@ -144,22 +144,6 @@ const PostingsTable: React.FC<PostingsTableProps> = ({
   emptyDescription,
 }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
-
-  const handleRemove = useCallback(
-    async (site: SupplierQuotationSiteData) => {
-      const ok = await confirm({
-        title: site.siteId ? `Remove from ${site.siteName}?` : 'Remove from all sites?',
-        description: site.siteId
-          ? "The quotation's prices are deleted from the site, even those already in effect, and the prices they replaced apply again."
-          : "The quotation's prices for all sites are deleted, even those already in effect, and the prices they replaced apply again.",
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (ok) onRemove(site);
-    },
-    [confirm, onRemove],
-  );
 
   const columns = useMemo<ColumnDef<SupplierQuotationSiteData>[]>(
     () => [
@@ -192,14 +176,22 @@ const PostingsTable: React.FC<PostingsTableProps> = ({
                 disabledTip: row.original.siteId
                   ? `Only ${row.original.siteName} or the legal entity removes it`
                   : 'Only the legal entity removes it',
-                onClick: () => handleRemove(row.original),
+                confirm: {
+                  title: row.original.siteId ? `Remove from ${row.original.siteName}?` : 'Remove from all sites?',
+                  description: row.original.siteId
+                    ? "The quotation's prices are deleted from the site, even those already in effect, and the prices they replaced apply again."
+                    : "The quotation's prices for all sites are deleted, even those already in effect, and the prices they replaced apply again.",
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => onRemove(row.original),
               },
             ]}
           />
         ),
       },
     ],
-    [handleRemove, removePermission],
+    [removePermission, onRemove],
   );
 
   const quotationSitesTable = useDataTable({

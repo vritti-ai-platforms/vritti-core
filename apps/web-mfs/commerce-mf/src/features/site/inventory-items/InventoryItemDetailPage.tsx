@@ -58,16 +58,6 @@ export const InventoryItemDetailPage = () => {
     [blockDialog, confirm, id, item.name, unblockMutation],
   );
 
-  const handleRemoveFromSite = useCallback(async () => {
-    const confirmed = await confirm({
-      title: 'Remove from this site?',
-      description: `This site can no longer buy, receive or stock ${item.name} until it is added again.`,
-      confirmLabel: 'Remove',
-      variant: 'destructive',
-    });
-    if (confirmed) removeFromSite.mutate();
-  }, [confirm, item.name, removeFromSite]);
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -191,7 +181,13 @@ export const InventoryItemDetailPage = () => {
           title="Remove from site"
           description="The site stops buying, receiving and stocking this item until it is added again. Not allowed while the site holds stock of it or has it on an open purchase."
           buttonText="Remove from Site"
-          onClick={handleRemoveFromSite}
+          confirm={{
+            title: 'Remove from this site?',
+            description: `This site can no longer buy, receive or stock ${item.name} until it is added again.`,
+            confirmLabel: 'Remove',
+            variant: 'destructive',
+          }}
+          onClick={() => removeFromSite.mutate()}
           isLoading={removeFromSite.isPending}
           disabled={removeFromSite.isPending}
           permission={SITE_INVENTORY_ITEMS.setup.delete}

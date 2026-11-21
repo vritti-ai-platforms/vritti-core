@@ -4,10 +4,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Building2, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { LeadTimeCell } from '@/components/suppliers/LeadTimeCell';
 import {
   SUPPLIER_SITE_ITEMS_TABLE_KEY,
@@ -25,24 +25,9 @@ interface SiteItemsTabProps {
 
 export const SiteItemsTab: React.FC<SiteItemsTabProps> = ({ supplierId, itemId }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const supplierSiteItemsTableQuery = useSupplierSiteItemsTable(supplierId, itemId);
   const deleteMutation = useDeleteSupplierSiteItem(supplierId, itemId);
-
-  const handleRemove = useCallback(
-    async (row: SupplierSiteItemRow) => {
-      const confirmed = await confirm({
-        title: `Remove "${row.siteName}"?`,
-        description:
-          'The site will no longer be able to order this item from this supplier. Its price history is kept.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<SupplierSiteItemRow>[]>(
     () => [
@@ -103,14 +88,21 @@ export const SiteItemsTab: React.FC<SiteItemsTabProps> = ({ supplierId, itemId }
                 label: 'Remove',
                 variant: 'destructive',
                 permission: LE_SUPPLIERS.siteItems.delete,
-                onClick: () => handleRemove(row.original),
+                confirm: {
+                  title: `Remove "${row.original.siteName}"?`,
+                  description:
+                    'The site will no longer be able to order this item from this supplier. Its price history is kept.',
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
         ),
       },
     ],
-    [supplierId, itemId, handleRemove],
+    [supplierId, itemId, deleteMutation.mutate],
   );
 
   const supplierSiteItemsTable = useDataTable({

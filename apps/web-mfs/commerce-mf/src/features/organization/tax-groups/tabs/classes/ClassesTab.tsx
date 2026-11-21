@@ -12,9 +12,9 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   TAX_GROUP_CLASSES_TABLE_KEY,
   useDeleteTaxClassGroup,
@@ -33,20 +33,6 @@ export const ClassesTab = ({ taxGroup }: ClassesTabProps) => {
   const taxGroupClassesTableQuery = useTaxGroupClassesTable(taxGroup.id);
   const deleteMutation = useDeleteTaxClassGroup();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (mapping: TaxClassGroupData) => {
-      const ok = await confirm({
-        title: `Unmap ${mapping.taxClassName}?`,
-        description: `${mapping.taxClassName} will no longer be taxed by ${taxGroup.name} in ${taxGroup.countryCode}. Items of an unmapped class can't be taxed. This action cannot be undone.`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate({ taxGroupId: taxGroup.id, mappingId: mapping.id });
-    },
-    [confirm, deleteMutation, taxGroup],
-  );
 
   const columns = useMemo<ColumnDef<TaxClassGroupData>[]>(
     () => [
@@ -106,7 +92,13 @@ export const ClassesTab = ({ taxGroup }: ClassesTabProps) => {
               label: 'Delete',
               variant: 'destructive',
               permission: ORG_TAX_GROUPS.classes.delete,
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Unmap ${r.taxClassName}?`,
+                description: `${r.taxClassName} will no longer be taxed by ${taxGroup.name} in ${taxGroup.countryCode}. Items of an unmapped class can't be taxed. This action cannot be undone.`,
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate({ taxGroupId: taxGroup.id, mappingId: r.id }),
             },
           ];
           return <RowActions actions={actions} />;
@@ -115,7 +107,7 @@ export const ClassesTab = ({ taxGroup }: ClassesTabProps) => {
         enableHiding: false,
       },
     ],
-    [handleDelete, taxGroup],
+    [taxGroup, deleteMutation.mutate],
   );
 
   const taxGroupClassesTable = useDataTable({

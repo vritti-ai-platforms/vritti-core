@@ -70,19 +70,6 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
     [bulkRemoveMutation, catalogId, confirm],
   );
 
-  const handleDelete = useCallback(
-    async (row: CatalogListingData) => {
-      const ok = await confirm({
-        title: `Remove "${row.code}"?`,
-        description: 'The listing and its prices are removed from this catalog. The variant itself is untouched.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate({ catalogId, listingId: row.id });
-    },
-    [catalogId, confirm, deleteMutation],
-  );
-
   const columns = useMemo<ColumnDef<CatalogListingData>[]>(
     () => [
       getSelectionColumn<CatalogListingData>(),
@@ -187,7 +174,14 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
               variant: 'destructive',
               permission: binding.permissions.listings.delete,
               disabled: !r.canDelete,
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Remove "${r.code}"?`,
+                description:
+                  'The listing and its prices are removed from this catalog. The variant itself is untouched.',
+                confirmLabel: 'Remove',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate({ catalogId, listingId: r.id }),
             },
           ];
           return <RowActions actions={actions} />;
@@ -196,7 +190,7 @@ export const ListingsTab: React.FC<ListingsTabProps> = ({ binding, catalogId }) 
         enableHiding: false,
       },
     ],
-    [catalogId, handleDelete, binding],
+    [catalogId, binding, deleteMutation.mutate],
   );
 
   const listingsTable = useDataTable({

@@ -1,9 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ClipboardList, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   STOCK_ADJUSTMENT_LINES_TABLE_KEY,
   useRemoveStockAdjustmentLine,
@@ -21,7 +21,6 @@ interface ChangeContentProps {
 }
 
 export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentProps) => {
-  const confirm = useConfirm();
   const queryClient = useQueryClient();
   const addLineDialog = useDialog();
 
@@ -29,19 +28,6 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
 
   const stockAdjustmentLinesTableQuery = useStockAdjustmentLinesTable(adjustment.id);
   const removeLineMutation = useRemoveStockAdjustmentLine(adjustment.id);
-
-  const handleRemoveLine = useCallback(
-    async (line: StockAdjustmentLineData) => {
-      const confirmed = await confirm({
-        title: 'Remove this line?',
-        description: 'This line will be removed.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeLineMutation.mutate(line.id);
-    },
-    [confirm, removeLineMutation],
-  );
 
   const columns = useMemo<ColumnDef<StockAdjustmentLineData>[]>(
     () => [
@@ -112,7 +98,13 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
                       icon: Trash2,
                       label: 'Remove',
                       variant: 'destructive',
-                      onClick: () => handleRemoveLine(row.original),
+                      confirm: {
+                        title: 'Remove this line?',
+                        description: 'This line will be removed.',
+                        confirmLabel: 'Remove',
+                        variant: 'destructive',
+                      },
+                      onClick: () => removeLineMutation.mutate(row.original.id),
                     },
                   ]}
                 />
@@ -123,7 +115,7 @@ export const ChangeContent = ({ adjustment, isDraft, tracking }: ChangeContentPr
           ]
         : []),
     ],
-    [isDraft, uomSymbol, handleRemoveLine, adjustment, tracking],
+    [isDraft, uomSymbol, adjustment, tracking, removeLineMutation.mutate],
   );
 
   const stockAdjustmentLinesTable = useDataTable({

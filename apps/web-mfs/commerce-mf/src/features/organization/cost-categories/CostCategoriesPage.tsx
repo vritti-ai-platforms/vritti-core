@@ -11,7 +11,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { CheckCircle2, Coins, Pencil, Plus, PowerOff, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
@@ -30,39 +30,12 @@ export const CostCategoriesPage = () => {
   const queryClient = useQueryClient();
   const costCategoriesTableQuery = useCostCategoriesTable();
   const addDialog = useDialog();
-  const confirm = useConfirm();
 
   const deactivateMutation = useDeactivateCostCategory();
   const activateMutation = useActivateCostCategory();
   const deleteMutation = useDeleteCostCategory();
 
-  const handleDeactivate = useCallback(
-    async (row: CostCategoryData) => {
-      const ok = await confirm({
-        title: `Deactivate "${row.name}"?`,
-        description:
-          'Existing cost rows referencing this category stay intact. New cost association forms will hide it.',
-        confirmLabel: 'Deactivate',
-      });
-      if (ok) deactivateMutation.mutate(row.id);
-    },
-    [confirm, deactivateMutation],
-  );
-
   const handleActivate = useCallback((row: CostCategoryData) => activateMutation.mutate(row.id), [activateMutation]);
-
-  const handleDelete = useCallback(
-    async (row: CostCategoryData) => {
-      const ok = await confirm({
-        title: `Delete "${row.name}"?`,
-        description: 'This permanently removes the category. Only allowed when no cost rows reference it.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (ok) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<CostCategoryData>[]>(
     () => [
@@ -116,7 +89,13 @@ export const CostCategoriesPage = () => {
                   icon: PowerOff,
                   label: 'Deactivate',
                   permission: ORG_COST_CATEGORIES.edit,
-                  onClick: () => handleDeactivate(r),
+                  confirm: {
+                    title: `Deactivate "${r.name}"?`,
+                    description:
+                      'Existing cost rows referencing this category stay intact. New cost association forms will hide it.',
+                    confirmLabel: 'Deactivate',
+                  },
+                  onClick: () => deactivateMutation.mutate(r.id),
                 }
               : {
                   id: 'activate',
@@ -133,7 +112,13 @@ export const CostCategoriesPage = () => {
               permission: ORG_COST_CATEGORIES.delete,
               disabled: !r.canDelete,
               disabledTip: 'Only a non-system category that no cost line references can be deleted.',
-              onClick: () => handleDelete(r),
+              confirm: {
+                title: `Delete "${r.name}"?`,
+                description: 'This permanently removes the category. Only allowed when no cost rows reference it.',
+                confirmLabel: 'Delete',
+                variant: 'destructive',
+              },
+              onClick: () => deleteMutation.mutate(r.id),
             },
           ];
           return <RowActions actions={actions} />;
@@ -142,7 +127,7 @@ export const CostCategoriesPage = () => {
         enableHiding: false,
       },
     ],
-    [handleActivate, handleDeactivate, handleDelete],
+    [handleActivate, deactivateMutation.mutate, deleteMutation.mutate],
   );
 
   const costCategoriesTable = useDataTable({

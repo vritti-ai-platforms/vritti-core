@@ -4,12 +4,12 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { BadgeCheck, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   TAX_REGISTRATIONS_TABLE_KEY,
   useDeleteTaxRegistration,
@@ -24,20 +24,6 @@ export const TaxRegistrationsPage = () => {
   const taxRegistrationsTableQuery = useTaxRegistrationsTable();
   const deleteMutation = useDeleteTaxRegistration();
   const addDialog = useDialog();
-  const confirm = useConfirm();
-
-  const handleDelete = useCallback(
-    async (registration: TaxRegistrationData) => {
-      const confirmed = await confirm({
-        title: `Remove "${registration.registrationNumber}"?`,
-        description: 'Sites trading under this registration must be reassigned first.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(registration.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<TaxRegistrationData>[]>(
     () => [
@@ -133,7 +119,13 @@ export const TaxRegistrationsPage = () => {
                   permission: LE_TAX_REGISTRATIONS.delete,
                   variant: 'destructive',
                   disabled: deleteMutation.isPending,
-                  onClick: () => handleDelete(row.original),
+                  confirm: {
+                    title: `Remove "${row.original.registrationNumber}"?`,
+                    description: 'Sites trading under this registration must be reassigned first.',
+                    confirmLabel: 'Remove',
+                    variant: 'destructive',
+                  },
+                  onClick: () => deleteMutation.mutate(row.original.id),
                 },
               ]}
             />
@@ -143,7 +135,7 @@ export const TaxRegistrationsPage = () => {
         enableHiding: false,
       },
     ],
-    [deleteMutation.isPending, handleDelete],
+    [deleteMutation.isPending, deleteMutation.mutate],
   );
 
   const taxRegistrationsTable = useDataTable({

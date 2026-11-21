@@ -13,7 +13,7 @@ import {
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
 import { Empty } from '@vritti/quantum-ui/Empty';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { Boxes, Coins, Eraser, Tag } from 'lucide-react';
@@ -44,7 +44,6 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
 
   const { data: currencies = [], isLoading: currenciesLoading } = binding.useCurrencies(catalogId);
   const currencyListingsTableQuery = binding.useCurrencyListingsTable(catalogId, currencyCode);
-  const confirm = useConfirm();
   const clearMutation = binding.useClearListingPrice();
   const bulkPriceDialog = useDialog();
   const bulkClearPriceDialog = useDialog();
@@ -61,19 +60,6 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
   );
 
   const currency = currencies.find((entry) => entry.currencyCode === currencyCode);
-
-  const handleClear = useCallback(
-    async (row: CatalogListingData) => {
-      const ok = await confirm({
-        title: `Clear the ${currencyCode} price of "${row.code}"?`,
-        description: 'Whatever a wider workspace charges applies again, or nothing if none of them priced it.',
-        confirmLabel: 'Clear Price',
-        variant: 'destructive',
-      });
-      if (ok) clearMutation.mutate({ catalogId, listingId: row.id, currencyCode });
-    },
-    [catalogId, clearMutation, confirm, currencyCode],
-  );
 
   const columns = useMemo<ColumnDef<CatalogListingData>[]>(
     () => [
@@ -172,7 +158,13 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
               variant: 'destructive',
               permission: binding.permissions.prices.clear,
               hidden: !own,
-              onClick: () => handleClear(r),
+              confirm: {
+                title: `Clear the ${currencyCode} price of "${r.code}"?`,
+                description: 'Whatever a wider workspace charges applies again, or nothing if none of them priced it.',
+                confirmLabel: 'Clear Price',
+                variant: 'destructive',
+              },
+              onClick: () => clearMutation.mutate({ catalogId, listingId: r.id, currencyCode }),
             },
           ];
           return <RowActions actions={actions} />;
@@ -181,7 +173,7 @@ export const CatalogPricesPage: React.FC<CatalogPricesPageProps> = ({ binding })
         enableHiding: false,
       },
     ],
-    [binding, catalogId, currencyCode, handleClear],
+    [binding, catalogId, currencyCode, clearMutation.mutate],
   );
 
   const currencyListingsTable = useDataTable({

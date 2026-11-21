@@ -56,17 +56,6 @@ export const GoodsReceiptDetail: React.FC<GoodsReceiptDetailProps> = ({ binding 
     if (confirmed) postMutation.mutate();
   };
 
-  // Confirms and deletes the draft, returning to the list; its inbound delivery stays
-  const handleDelete = async () => {
-    const confirmed = await confirm({
-      title: `Delete ${receipt.grNumber}?`,
-      description: `${receipt.grNumber} and all its items, lots, lines and serials will be permanently removed. Inbound delivery ${receipt.deliveryNumber} stays open to receive again.`,
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(receipt.id, { onSuccess: () => navigate('..') });
-  };
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -173,7 +162,13 @@ export const GoodsReceiptDetail: React.FC<GoodsReceiptDetailProps> = ({ binding 
           description="This action cannot be undone. The draft receipt and all its items, lots, lines, and serials will be permanently removed."
           buttonText="Delete Draft"
           permission={permissions.delete}
-          onClick={handleDelete}
+          confirm={{
+            title: `Delete ${receipt.grNumber}?`,
+            description: `${receipt.grNumber} and all its items, lots, lines and serials will be permanently removed. Inbound delivery ${receipt.deliveryNumber} stays open to receive again.`,
+            confirmLabel: 'Delete',
+            variant: 'destructive',
+          }}
+          onClick={() => deleteMutation.mutate(receipt.id, { onSuccess: () => navigate('..') })}
           isLoading={deleteMutation.isPending}
           disabled={!!deleteLock}
           warning={deleteLock}

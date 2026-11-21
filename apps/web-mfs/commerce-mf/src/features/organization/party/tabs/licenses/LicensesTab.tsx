@@ -10,10 +10,10 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { Pencil, Plus, ScrollText, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { type ReactNode, useCallback, useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { LICENSE_TYPE_LABELS, type PartyLicenseRow } from '@/schemas/party-licenses';
 import type { LicensesBinding } from '../../bindings';
 import { AddLicenseDialog } from './forms/AddLicenseDialog';
@@ -39,23 +39,9 @@ function expiryBadge(validTo: string): ReactNode {
 
 export const LicensesTab: React.FC<LicensesTabProps> = ({ partyId, binding }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const licensesTableQuery = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
-
-  const handleDelete = useCallback(
-    async (row: PartyLicenseRow) => {
-      const confirmed = await confirm({
-        title: 'Delete license?',
-        description: `Delete the "${LICENSE_TYPE_LABELS[row.licenseType]}" license ${row.licenseNumber}?`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PartyLicenseRow>[]>(
     () => [
@@ -129,14 +115,20 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({ partyId, binding }) =>
                 label: 'Delete',
                 variant: 'destructive',
                 permission: binding.permissions.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Delete license?',
+                  description: `Delete the "${LICENSE_TYPE_LABELS[row.original.licenseType]}" license ${row.original.licenseNumber}?`,
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
         ),
       },
     ],
-    [handleDelete, partyId, binding],
+    [partyId, binding, deleteMutation.mutate],
   );
 
   const licensesTable = useDataTable({

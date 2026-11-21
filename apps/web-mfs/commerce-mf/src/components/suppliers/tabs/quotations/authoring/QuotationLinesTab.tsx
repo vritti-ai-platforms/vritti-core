@@ -1,7 +1,7 @@
 import { Button } from '@vritti/quantum-ui/Button';
 import type { RowAction } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ListPlus, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useCallback } from 'react';
@@ -15,26 +15,12 @@ export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, autho
   const currencyCode = quotation.currencyCode;
   // A quotation a site owns follows that site's purchasing rules
   const ownerSiteId = quotation.ownerScope === 'SITE' ? quotation.siteId : null;
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const removeMutation = authoring.useRemoveItem(supplierId, quotation.id);
   const isLocked = !quotation.canWrite || quotation.status !== 'DRAFT';
   const lockedTip = quotation.canWrite
     ? 'Lines are fixed once the quotation is posted to a site'
     : `Owned by ${quotation.ownerName}`;
-
-  const handleRemove = useCallback(
-    async (item: SupplierQuotationItemData) => {
-      const ok = await confirm({
-        title: `Remove "${item.inventoryItemName}"?`,
-        description: 'The line is removed from the quotation.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (ok) removeMutation.mutate(item.id);
-    },
-    [confirm, removeMutation],
-  );
 
   const lineActions = useCallback(
     (item: SupplierQuotationItemData): RowAction[] => [
@@ -71,10 +57,16 @@ export const QuotationLinesTab: React.FC<QuotationSlotProps> = ({ binding, autho
         permission: authoring.permissions.edit,
         disabled: isLocked,
         disabledTip: lockedTip,
-        onClick: () => handleRemove(item),
+        confirm: {
+          title: `Remove "${item.inventoryItemName}"?`,
+          description: 'The line is removed from the quotation.',
+          confirmLabel: 'Remove',
+          variant: 'destructive',
+        },
+        onClick: () => removeMutation.mutate(item.id),
       },
     ],
-    [authoring, supplierId, quotation.id, currencyCode, isLocked, lockedTip, handleRemove, ownerSiteId],
+    [authoring, supplierId, quotation.id, currencyCode, isLocked, lockedTip, ownerSiteId, removeMutation.mutate],
   );
 
   const addButton = (

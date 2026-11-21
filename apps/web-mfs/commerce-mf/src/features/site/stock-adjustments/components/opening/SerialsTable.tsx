@@ -66,19 +66,6 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
     if (line?.isBalanced && addSerialDialog.isOpen) addSerialDialog.close();
   }, [line?.isBalanced, addSerialDialog]);
 
-  const handleRemoveSerial = useCallback(
-    async (item: StockAdjustmentLineItemData) => {
-      const confirmed = await confirm({
-        title: 'Remove this serial?',
-        description: 'This serial will no longer be part of this line.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeSerialMutation.mutate(item.id);
-    },
-    [confirm, removeSerialMutation],
-  );
-
   const handleRemoveLine = useCallback(async () => {
     if (!line) return;
     const confirmed = await confirm({
@@ -120,7 +107,13 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
                       icon: Trash2,
                       label: 'Remove',
                       variant: 'destructive',
-                      onClick: () => handleRemoveSerial(row.original),
+                      confirm: {
+                        title: 'Remove this serial?',
+                        description: 'This serial will no longer be part of this line.',
+                        confirmLabel: 'Remove',
+                        variant: 'destructive',
+                      },
+                      onClick: () => removeSerialMutation.mutate(row.original.id),
                     },
                   ]}
                 />
@@ -131,7 +124,7 @@ export const SerialsTable = ({ adjustmentId, inventoryItemId, lineId, isDraft, o
           ]
         : []),
     ],
-    [isDraft, handleRemoveSerial],
+    [isDraft, removeSerialMutation.mutate],
   );
 
   const tableSlug = lineId

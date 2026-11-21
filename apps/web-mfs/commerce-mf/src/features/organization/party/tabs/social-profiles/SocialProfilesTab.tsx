@@ -3,10 +3,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { AtSign, ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { type PartySocialProfileRow, SOCIAL_PLATFORM_LABELS } from '@/schemas/party-social-profiles';
 import type { SocialProfilesBinding } from '../../bindings';
 import { AddSocialProfileDialog } from './forms/AddSocialProfileDialog';
@@ -19,23 +19,9 @@ interface SocialProfilesTabProps {
 
 export const SocialProfilesTab: React.FC<SocialProfilesTabProps> = ({ partyId, binding }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const socialProfilesTableQuery = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
-
-  const handleDelete = useCallback(
-    async (row: PartySocialProfileRow) => {
-      const confirmed = await confirm({
-        title: 'Delete social profile?',
-        description: `Remove the ${SOCIAL_PLATFORM_LABELS[row.platform]} profile?`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PartySocialProfileRow>[]>(
     () => [
@@ -92,14 +78,20 @@ export const SocialProfilesTab: React.FC<SocialProfilesTabProps> = ({ partyId, b
                 label: 'Delete',
                 variant: 'destructive',
                 permission: binding.permissions.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Delete social profile?',
+                  description: `Remove the ${SOCIAL_PLATFORM_LABELS[row.original.platform]} profile?`,
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
         ),
       },
     ],
-    [handleDelete, partyId, binding],
+    [partyId, binding, deleteMutation.mutate],
   );
 
   const socialProfilesTable = useDataTable({

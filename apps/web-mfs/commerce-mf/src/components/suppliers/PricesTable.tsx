@@ -1,11 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { usePermission } from '@vritti/quantum-ui/PermissionGate';
 import { isoTodayDate, workspaceTimeZone } from '@vritti/quantum-ui/timezone';
 import { CalendarClock, Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { SupplierItemPriceRow } from '@/schemas/suppliers';
 import { EnrolledSiteFilter } from '@/selectors/enrolled-site';
 import { isPriceInForce } from '@/utils/supplierPrice';
@@ -36,24 +35,10 @@ export const PricesTable: React.FC<PricesTableProps> = ({
   siteId,
 }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const pricesTableQuery = prices.usePricesTable(supplierId, itemId);
   const deleteMutation = prices.useDeletePrice(supplierId, itemId);
   const showMrp = usePermission(prices.permissions.mrp.view).available;
   const slug = prices.tableSlug(supplierId, itemId);
-
-  const handleDelete = useCallback(
-    async (row: SupplierItemPriceRow) => {
-      const confirmed = await confirm({
-        title: 'Delete scheduled price?',
-        description: 'The previous price re-opens when the windows are contiguous.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<SupplierItemPriceRow>[]>(
     () => [
@@ -113,7 +98,13 @@ export const PricesTable: React.FC<PricesTableProps> = ({
                   hidden: isPriceInForce(row.original, today),
                   disabled: locked,
                   disabledTip: lockedTip,
-                  onClick: () => handleDelete(row.original),
+                  confirm: {
+                    title: 'Delete scheduled price?',
+                    description: 'The previous price re-opens when the windows are contiguous.',
+                    confirmLabel: 'Delete',
+                    variant: 'destructive',
+                  },
+                  onClick: () => deleteMutation.mutate(row.original.id),
                 },
               ]}
             />
@@ -121,7 +112,7 @@ export const PricesTable: React.FC<PricesTableProps> = ({
         },
       },
     ],
-    [prices, showMrp, siteId, supplierId, itemId, inventoryItemId, uomId, currencyCodes, handleDelete],
+    [prices, showMrp, siteId, supplierId, itemId, inventoryItemId, uomId, currencyCodes, deleteMutation.mutate],
   );
 
   const pricesTable = useDataTable({

@@ -10,10 +10,10 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ListPlus, Pencil, Plus, Trash2, Truck } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   SUPPLIER_INVOICE_LINE_TYPE_LABELS,
   type SupplierInvoiceDetail,
@@ -35,26 +35,10 @@ const CANCELLED_TIP = 'A cancelled invoice cannot be changed';
 // An invoice's lines: received batches it covers, with the receipt's batch, expiry and MRP, and landed charges; each
 // with its amounts and the holds it raised
 export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps> = ({ binding, invoice }) => {
-  const confirm = useConfirm();
   const addItemDialog = useDialog();
   const addChargeDialog = useDialog();
   const removeMutation = binding.useRemoveLine();
   const isPosted = invoice.status === 'POSTED';
-
-  const handleRemove = useCallback(
-    async (line: SupplierInvoiceLine) => {
-      const confirmed = await confirm({
-        title: `Remove "${line.inventoryItemName ?? line.costCategoryName}"?`,
-        description: isPosted
-          ? 'The line is removed from the posted invoice: the stock it invoiced goes back to its provisional cost and its order is open to invoice again.'
-          : 'The line is removed from the invoice.',
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate({ invoice, lineId: line.id });
-    },
-    [confirm, removeMutation, invoice, isPosted],
-  );
 
   const columns = useMemo<ColumnDef<SupplierInvoiceLine>[]>(
     () => [
@@ -183,7 +167,15 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
                   permission: binding.permissions.edit,
                   disabled: !invoice.canEdit,
                   disabledTip: CANCELLED_TIP,
-                  onClick: () => handleRemove(line),
+                  confirm: {
+                    title: `Remove "${line.inventoryItemName ?? line.costCategoryName}"?`,
+                    description: isPosted
+                      ? 'The line is removed from the posted invoice: the stock it invoiced goes back to its provisional cost and its order is open to invoice again.'
+                      : 'The line is removed from the invoice.',
+                    confirmLabel: 'Remove',
+                    variant: 'destructive',
+                  },
+                  onClick: () => removeMutation.mutate({ invoice, lineId: line.id }),
                 },
               ]}
             />
@@ -191,7 +183,7 @@ export const SupplierInvoiceLinesTable: React.FC<SupplierInvoiceLinesTableProps>
         },
       },
     ],
-    [binding, invoice, isPosted, handleRemove],
+    [binding, invoice, isPosted, removeMutation.mutate],
   );
 
   const linesTable = useDataTable({

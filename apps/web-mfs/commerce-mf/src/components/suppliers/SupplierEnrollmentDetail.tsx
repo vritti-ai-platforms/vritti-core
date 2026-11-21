@@ -2,13 +2,13 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Pencil, Plus, Truck } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { SupplierEnrollmentBinding } from './bindings';
 import { EditEnrollmentDialog } from './forms/EditEnrollmentDialog';
@@ -32,22 +32,12 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
   const { data: counts, isLoading: countsLoading } = binding.useEnrollmentCounts(supplierRef);
   const navigate = useNavigate();
   const exitPath = binding.useExitPath();
-  const confirm = useConfirm();
   const editDialog = useDialog();
   const enrollDialog = useDialog();
   const deleteMutation = binding.useDeleteEnrollment({ onSuccess: () => navigate(exitPath) });
   const setActiveMutation = binding.useSetEnrollmentActive();
 
   const enrolled = supplier.enrollmentStatus === 'ENROLLED';
-  const handleUnenroll = useCallback(async () => {
-    const confirmed = await confirm({
-      title: `Unenroll "${supplier.partyName}" from ${supplier.siteName}?`,
-      description: 'The site will no longer be able to purchase from this supplier. Its price history is kept.',
-      confirmLabel: 'Unenroll',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(supplierRef);
-  }, [supplier, supplierRef, confirm, deleteMutation]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -201,7 +191,13 @@ export const SupplierEnrollmentDetail: React.FC<SupplierEnrollmentDetailProps> =
             description={`${supplier.siteName} will no longer be able to purchase from this supplier.`}
             buttonText="Unenroll Supplier"
             permission={binding.permissions.unenroll}
-            onClick={handleUnenroll}
+            confirm={{
+              title: `Unenroll "${supplier.partyName}" from ${supplier.siteName}?`,
+              description: 'The site will no longer be able to purchase from this supplier. Its price history is kept.',
+              confirmLabel: 'Unenroll',
+              variant: 'destructive',
+            }}
+            onClick={() => deleteMutation.mutate(supplierRef)}
             isLoading={deleteMutation.isPending}
             disabled={deleteMutation.isPending}
           />

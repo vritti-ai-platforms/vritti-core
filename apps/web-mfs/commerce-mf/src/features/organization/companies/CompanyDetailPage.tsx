@@ -3,7 +3,7 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
+import { useDialog, useSlugParams } from '@vritti/quantum-ui/hooks';
 import { PageHeader } from '@vritti/quantum-ui/PageHeader';
 import { Tabs } from '@vritti/quantum-ui/Tabs';
 import { Building2, Pencil } from 'lucide-react';
@@ -29,18 +29,7 @@ export const CompanyDetailPage = () => {
   const { data: counts, isLoading: countsLoading } = useCompanyCounts(id);
   const [activeTab, setActiveTab] = useState('overview');
   const editDialog = useDialog();
-  const confirm = useConfirm();
   const deleteMutation = useDeleteCompany();
-
-  const handleDelete = async () => {
-    const confirmed = await confirm({
-      title: `Delete "${company.displayName}"?`,
-      description: 'This company and its linked people and tax registrations will be permanently removed.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (confirmed) deleteMutation.mutate(company.id, { onSuccess: () => navigate('..') });
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -145,7 +134,13 @@ export const CompanyDetailPage = () => {
         description="This action cannot be undone. The company and its linked people and tax registrations will be permanently removed."
         buttonText="Delete Company"
         permission={ORG_COMPANIES.delete}
-        onClick={handleDelete}
+        confirm={{
+          title: `Delete "${company.displayName}"?`,
+          description: 'This company and its linked people and tax registrations will be permanently removed.',
+          confirmLabel: 'Delete',
+          variant: 'destructive',
+        }}
+        onClick={() => deleteMutation.mutate(company.id, { onSuccess: () => navigate('..') })}
         disabled={!company.canDelete || deleteMutation.isPending}
         isLoading={deleteMutation.isPending}
         warning="This company is linked to a supplier and cannot be deleted. Remove the supplier record first."

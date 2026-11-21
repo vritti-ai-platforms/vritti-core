@@ -3,10 +3,10 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { CheckCheck, ExternalLink, FileText } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   PurchaseActionValues,
@@ -29,7 +29,6 @@ interface PurchaseQuotationsTabProps {
 export const PurchaseQuotationsTab: React.FC<PurchaseQuotationsTabProps> = ({ binding, purchase }) => {
   const { permissions, quotations } = binding;
   const fmt = useFormatters();
-  const confirm = useConfirm();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
@@ -40,19 +39,6 @@ export const PurchaseQuotationsTab: React.FC<PurchaseQuotationsTabProps> = ({ bi
   const canRequest = actions?.availableActions.includes(PurchaseActionValues.REQUEST_QUOTATION) ?? false;
   const closedTip = `The purchase is ${purchaseStatusConfig[purchase.status].label.toLowerCase()}.`;
   const requestDialog = useDialog();
-
-  // Confirms and allocates the unallocated quantity of every item the quotation prices to its supplier
-  const handleUse = useCallback(
-    async (quotation: PurchaseQuotation) => {
-      const confirmed = await confirm({
-        title: `Use ${quotation.quotationNumber}?`,
-        description: `What is still unallocated of the items it prices is allocated to ${quotation.supplierName}, at the quoted unit and price.`,
-        confirmLabel: 'Use Quotation',
-      });
-      if (confirmed) allocateMutation.mutate({ id: purchase.id, supplierQuotationId: quotation.id });
-    },
-    [confirm, allocateMutation, purchase.id],
-  );
 
   const columns = useMemo<ColumnDef<PurchaseQuotation>[]>(
     () => [
@@ -112,7 +98,12 @@ export const PurchaseQuotationsTab: React.FC<PurchaseQuotationsTabProps> = ({ bi
                   permission: permissions.edit,
                   disabled: !canAllocate || !quotation.isPosted,
                   disabledTip: canAllocate ? 'Waiting for the quotation to be priced and posted.' : closedTip,
-                  onClick: () => handleUse(quotation),
+                  confirm: {
+                    title: `Use ${quotation.quotationNumber}?`,
+                    description: `What is still unallocated of the items it prices is allocated to ${quotation.supplierName}, at the quoted unit and price.`,
+                    confirmLabel: 'Use Quotation',
+                  },
+                  onClick: () => allocateMutation.mutate({ id: purchase.id, supplierQuotationId: quotation.id }),
                 },
                 {
                   id: 'open',
@@ -136,7 +127,17 @@ export const PurchaseQuotationsTab: React.FC<PurchaseQuotationsTabProps> = ({ bi
         },
       },
     ],
-    [fmt, quotations, permissions.edit, canAllocate, closedTip, handleUse, navigate, pathname],
+    [
+      fmt,
+      quotations,
+      permissions.edit,
+      canAllocate,
+      closedTip,
+      navigate,
+      pathname,
+      allocateMutation.mutate,
+      purchase.id,
+    ],
   );
 
   const quotationsTable = useDataTable({

@@ -3,10 +3,10 @@ import { ORG_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-item
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, NumberCell, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { ArrowLeftRight, Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { DimensionsText, MeasureText } from '@/components/storage/MeasureText';
 import {
   ORG_INVENTORY_ITEM_UOM_CONVERSIONS_KEY,
@@ -26,23 +26,9 @@ interface UomConversionsTabProps {
 
 export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryItemId, itemUomId, itemUomSymbol }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const inventoryItemUomConversionsTableQuery = useInventoryItemUomConversionsTable(inventoryItemId);
   const deleteMutation = useDeleteInventoryItemUomConversion(inventoryItemId);
-
-  const handleDelete = useCallback(
-    async (row: InventoryItemUomConversionData) => {
-      const confirmed = await confirm({
-        title: 'Remove conversion?',
-        description: `Remove the UOM conversion for "${row.uomName} (${row.uomSymbol})"?`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<InventoryItemUomConversionData>[]>(
     () => [
@@ -119,7 +105,13 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
                 disabledTip: row.original.isDisplayUnit
                   ? "It is the item's display unit — change that first."
                   : 'A supplier item is priced in this unit.',
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Remove conversion?',
+                  description: `Remove the UOM conversion for "${row.original.uomName} (${row.original.uomSymbol})"?`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -128,7 +120,7 @@ export const UomConversionsTab: React.FC<UomConversionsTabProps> = ({ inventoryI
         enableHiding: false,
       },
     ],
-    [inventoryItemId, handleDelete, itemUomSymbol],
+    [inventoryItemId, itemUomSymbol, deleteMutation.mutate],
   );
 
   const inventoryItemUomConversionsTable = useDataTable({

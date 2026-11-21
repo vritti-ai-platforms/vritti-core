@@ -3,12 +3,12 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { ExternalLink, Pencil, Plus, Trash2, Truck } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PurchaseOrderStatusBadge } from '@/components/purchase-orders/PurchaseOrderStatusBadge';
 import { purchaseOrderStatusConfig } from '@/schemas/purchase-orders';
@@ -45,7 +45,6 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
 }) => {
   const { permissions } = binding;
   const fmt = useFormatters();
-  const confirm = useConfirm();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const queryClient = useQueryClient();
@@ -53,20 +52,6 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
   const removeMutation = binding.useRemoveAllocation();
   const allocateDialog = useDialog();
   const isFullyAllocated = item.allocatedPrimaryQty >= item.primaryQty;
-
-  // Confirms and removes an allocation; the supplier's leg closes with its last one
-  const handleRemove = useCallback(
-    async (allocation: PurchaseItemAllocationRow) => {
-      const confirmed = await confirm({
-        title: `Remove ${allocation.supplierName}'s allocation?`,
-        description: `${item.inventoryItemName} is no longer sourced from ${allocation.supplierName} for this allocation.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeMutation.mutate({ id: purchase.id, allocationId: allocation.id });
-    },
-    [confirm, removeMutation, purchase.id, item.inventoryItemName],
-  );
 
   const columns = useMemo<ColumnDef<PurchaseItemAllocationRow>[]>(
     () => [
@@ -203,7 +188,13 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
                   permission: permissions.edit,
                   disabled: !allocation.isEditable,
                   disabledTip: LOCKED_TIP,
-                  onClick: () => handleRemove(allocation),
+                  confirm: {
+                    title: `Remove ${allocation.supplierName}'s allocation?`,
+                    description: `${item.inventoryItemName} is no longer sourced from ${allocation.supplierName} for this allocation.`,
+                    confirmLabel: 'Remove',
+                    variant: 'destructive',
+                  },
+                  onClick: () => removeMutation.mutate({ id: purchase.id, allocationId: allocation.id }),
                 },
               ]}
             />
@@ -211,7 +202,7 @@ export const PurchaseItemAllocationsTab: React.FC<PurchaseItemAllocationsTabProp
         },
       },
     ],
-    [binding, purchase, item, fmt, permissions.edit, handleRemove, navigate, pathname],
+    [binding, purchase, item, fmt, permissions.edit, navigate, pathname, removeMutation.mutate],
   );
 
   const allocationsTable = useDataTable({

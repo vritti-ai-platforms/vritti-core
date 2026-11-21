@@ -1,8 +1,6 @@
 import { DangerZone } from '@vritti/quantum-ui/DangerZone';
-import { useConfirm } from '@vritti/quantum-ui/hooks';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import type React from 'react';
-import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { QuotationSlotProps } from '@/components/suppliers/bindings';
 
@@ -10,7 +8,6 @@ import type { QuotationSlotProps } from '@/components/suppliers/bindings';
 // its own only while the legal entity has posted it nowhere else.
 export const QuotationDeleteZone: React.FC<QuotationSlotProps> = ({ authoring, supplierId, quotation }) => {
   const navigate = useNavigate();
-  const confirm = useConfirm();
   const deleteMutation = authoring.useDelete(supplierId, {
     onSuccess: () => navigate('../../quotations', { relative: 'path' }),
   });
@@ -22,19 +19,6 @@ export const QuotationDeleteZone: React.FC<QuotationSlotProps> = ({ authoring, s
       ? 'The legal entity has posted it to other sites; it is removed from them before it can be deleted'
       : undefined;
 
-  const handleDelete = useCallback(async () => {
-    const ok = await confirm({
-      title: `Delete quotation "${quotation.quotationNumber}"?`,
-      description:
-        quotation.sites.length > 0
-          ? `It is removed from ${pluralize('site', quotation.sites.length, true)} first: its prices there are deleted and the prices they replaced apply again.`
-          : 'The draft and its lines are deleted.',
-      confirmLabel: 'Delete',
-      variant: 'destructive',
-    });
-    if (ok) deleteMutation.mutate(quotation.id);
-  }, [confirm, deleteMutation, quotation]);
-
   return (
     <DangerZone
       title="Delete this quotation"
@@ -45,7 +29,16 @@ export const QuotationDeleteZone: React.FC<QuotationSlotProps> = ({ authoring, s
       }
       buttonText="Delete Quotation"
       permission={authoring.permissions.delete}
-      onClick={handleDelete}
+      confirm={{
+        title: `Delete quotation "${quotation.quotationNumber}"?`,
+        description:
+          quotation.sites.length > 0
+            ? `It is removed from ${pluralize('site', quotation.sites.length, true)} first: its prices there are deleted and the prices they replaced apply again.`
+            : 'The draft and its lines are deleted.',
+        confirmLabel: 'Delete',
+        variant: 'destructive',
+      }}
+      onClick={() => deleteMutation.mutate(quotation.id)}
       isLoading={deleteMutation.isPending}
       disabled={!!lockReason || deleteMutation.isPending}
       warning={lockReason}

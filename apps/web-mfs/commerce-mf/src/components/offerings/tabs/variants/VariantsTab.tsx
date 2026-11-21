@@ -10,7 +10,7 @@ import {
   useDataTable,
 } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { pluralize } from '@vritti/quantum-ui/pluralize';
 import { SelectFilter } from '@vritti/quantum-ui/Select';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
@@ -105,7 +105,6 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     (variant: { code: string; id: string }) => goTo(`variants/${buildSlug(variant.code, variant.id)}/overview`),
     [goTo],
   );
-  const confirm = useConfirm();
   const offeringVariantsTableQuery = useOfferingVariantsTable(offering.id);
   const { data: dimensions = [] } = useOfferingDimensions(offering.id);
   const { data: attributes = [] } = useOfferingAttributes(offering.id);
@@ -123,19 +122,6 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
   const [attributeTargets, setAttributeTargets] = useState<OfferingVariantData[]>([]);
 
   const meta = FULFILMENT_TYPE_META[offering.fulfilmentType];
-
-  const handleDelete = useCallback(
-    async (variant: OfferingVariantData) => {
-      const confirmed = await confirm({
-        title: `Delete "${variant.code}"?`,
-        description: 'The variant and its bill of materials will be permanently removed.',
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(variant.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<OfferingVariantData>[]>(
     () => [
@@ -237,7 +223,13 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
                 hidden: !offering.canEdit,
                 disabled: !row.original.canDelete,
                 permission: permissions.variants.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: `Delete "${row.original.code}"?`,
+                  description: 'The variant and its bill of materials will be permanently removed.',
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -248,12 +240,12 @@ export const VariantsTab: React.FC<VariantsTabProps> = ({
     ],
     [
       goToVariant,
-      handleDelete,
       meta,
       offering,
       permissions.variants.delete,
       permissions.variants.edit,
       setStatusMutation,
+      deleteMutation.mutate,
     ],
   );
 

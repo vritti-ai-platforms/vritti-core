@@ -3,12 +3,12 @@ import { Badge } from '@vritti/quantum-ui/Badge';
 import { Button } from '@vritti/quantum-ui/Button';
 import { type ColumnDef, DataTable, RowActions, StringCell, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog } from '@vritti/quantum-ui/hooks';
+import { useDialog } from '@vritti/quantum-ui/hooks';
 import { StatusSwitch } from '@vritti/quantum-ui/StatusSwitch';
 import { countryFlag } from '@vritti/quantum-ui/selects/iso-country';
 import { FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   type PartyTaxRegistrationRow,
   REGISTRATION_SCHEME_LABELS,
@@ -25,24 +25,10 @@ interface RegistrationsTabProps {
 
 export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, binding }) => {
   const queryClient = useQueryClient();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const registrationsTableQuery = binding.useList(partyId);
   const deleteMutation = binding.useRemove(partyId);
   const setActiveMutation = binding.useSetActive(partyId);
-
-  const handleDelete = useCallback(
-    async (row: PartyTaxRegistrationRow) => {
-      const confirmed = await confirm({
-        title: 'Delete registration?',
-        description: `Delete the "${REGISTRATION_TYPE_LABELS[row.registrationType]}" registration ${row.registrationNumber}?`,
-        confirmLabel: 'Delete',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation],
-  );
 
   const columns = useMemo<ColumnDef<PartyTaxRegistrationRow>[]>(
     () => [
@@ -125,7 +111,13 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, bin
                 label: 'Delete',
                 variant: 'destructive',
                 permission: binding.permissions.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: 'Delete registration?',
+                  description: `Delete the "${REGISTRATION_TYPE_LABELS[row.original.registrationType]}" registration ${row.original.registrationNumber}?`,
+                  confirmLabel: 'Delete',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -134,7 +126,7 @@ export const RegistrationsTab: React.FC<RegistrationsTabProps> = ({ partyId, bin
         enableHiding: false,
       },
     ],
-    [setActiveMutation, handleDelete, partyId, binding],
+    [setActiveMutation, partyId, binding, deleteMutation.mutate],
   );
 
   const registrationsTable = useDataTable({

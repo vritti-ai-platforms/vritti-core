@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@vrit
 import { type ColumnDef, DataTable, RowActions, useDataTable } from '@vritti/quantum-ui/DataTable';
 import { DetailField } from '@vritti/quantum-ui/DetailField';
 import { Dialog } from '@vritti/quantum-ui/Dialog';
-import { useConfirm, useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useDialog, useFormatters } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Pencil, Plus, Ruler, Trash2, Warehouse } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { DimensionsText, MeasureText } from '@/components/storage/MeasureText';
 import { useDeleteInventoryItemStorageType, useInventoryItemStorageTypes } from '@/hooks/organization/inventory-items';
 import type { InventoryItemStorageTypeData } from '@/schemas/inventory-item-storage-types';
@@ -86,23 +86,9 @@ interface AllowedStorageTypesSectionProps {
 
 const AllowedStorageTypesSection: React.FC<AllowedStorageTypesSectionProps> = ({ item }) => {
   const fmt = useFormatters();
-  const confirm = useConfirm();
   const addDialog = useDialog();
   const { data: rows, isLoading } = useInventoryItemStorageTypes(item.id);
   const deleteMutation = useDeleteInventoryItemStorageType(item.id);
-
-  const handleDelete = useCallback(
-    async (row: InventoryItemStorageTypeData) => {
-      const confirmed = await confirm({
-        title: `Remove ${row.storageTypeName}?`,
-        description: `${item.name} will no longer be put away in ${row.storageTypeName} locations. Stock already stored there blocks the removal.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) deleteMutation.mutate(row.id);
-    },
-    [confirm, deleteMutation, item.name],
-  );
 
   const columns = useMemo<ColumnDef<InventoryItemStorageTypeData>[]>(
     () => [
@@ -146,7 +132,13 @@ const AllowedStorageTypesSection: React.FC<AllowedStorageTypesSectionProps> = ({
                 label: 'Remove',
                 variant: 'destructive',
                 permission: ORG_INVENTORY_ITEMS.storageTypes.delete,
-                onClick: () => handleDelete(row.original),
+                confirm: {
+                  title: `Remove ${row.original.storageTypeName}?`,
+                  description: `${item.name} will no longer be put away in ${row.original.storageTypeName} locations. Stock already stored there blocks the removal.`,
+                  confirmLabel: 'Remove',
+                  variant: 'destructive',
+                },
+                onClick: () => deleteMutation.mutate(row.original.id),
               },
             ]}
           />
@@ -155,7 +147,7 @@ const AllowedStorageTypesSection: React.FC<AllowedStorageTypesSectionProps> = ({
         enableHiding: false,
       },
     ],
-    [fmt, handleDelete, item.id, item.name],
+    [fmt, item.id, item.name, deleteMutation.mutate],
   );
 
   const storageTypesTable = useDataTable({

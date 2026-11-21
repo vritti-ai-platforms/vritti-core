@@ -1,6 +1,6 @@
 import { Badge } from '@vritti/quantum-ui/Badge';
 import { RowActions } from '@vritti/quantum-ui/DataTable';
-import { useConfirm, useFormatters } from '@vritti/quantum-ui/hooks';
+import { useFormatters } from '@vritti/quantum-ui/hooks';
 import { Typography } from '@vritti/quantum-ui/Typography';
 import { Pencil, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -29,7 +29,6 @@ export const PurchaseItemAllocations: React.FC<PurchaseItemAllocationsProps> = (
   readOnly,
 }) => {
   const fmt = useFormatters();
-  const confirm = useConfirm();
   const removeMutation = binding.useRemoveAllocation();
   if (allocations.length === 0) {
     return (
@@ -38,17 +37,6 @@ export const PurchaseItemAllocations: React.FC<PurchaseItemAllocationsProps> = (
       </Typography>
     );
   }
-
-  // Confirms and removes an allocation; the supplier's leg closes with its last one
-  const handleRemove = async (allocation: PurchaseSourcingAllocation) => {
-    const confirmed = await confirm({
-      title: `Remove ${allocation.supplierName}'s allocation?`,
-      description: `${item.inventoryItemName} is no longer sourced from ${allocation.supplierName} for this allocation.`,
-      confirmLabel: 'Remove',
-      variant: 'destructive',
-    });
-    if (confirmed) removeMutation.mutate({ id: purchase.id, allocationId: allocation.id });
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -100,7 +88,13 @@ export const PurchaseItemAllocations: React.FC<PurchaseItemAllocationsProps> = (
                   permission: binding.permissions.edit,
                   disabled: !allocation.isEditable,
                   disabledTip: LOCKED_TIP,
-                  onClick: () => handleRemove(allocation),
+                  confirm: {
+                    title: `Remove ${allocation.supplierName}'s allocation?`,
+                    description: `${item.inventoryItemName} is no longer sourced from ${allocation.supplierName} for this allocation.`,
+                    confirmLabel: 'Remove',
+                    variant: 'destructive',
+                  },
+                  onClick: () => removeMutation.mutate({ id: purchase.id, allocationId: allocation.id }),
                 },
               ]}
             />

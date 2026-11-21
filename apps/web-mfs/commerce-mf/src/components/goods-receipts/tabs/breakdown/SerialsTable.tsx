@@ -72,20 +72,6 @@ export const SerialsTable: React.FC<SerialsTableProps> = ({
     if (line.isBalanced && addSerialDialog.isOpen) addSerialDialog.close();
   }, [line.isBalanced, addSerialDialog]);
 
-  // Confirms and removes one serial
-  const handleRemoveSerial = useCallback(
-    async (serial: GoodsReceiptLineItemData) => {
-      const confirmed = await confirm({
-        title: `Remove serial ${serial.serialNumber}?`,
-        description: `${serial.serialNumber} will no longer be part of this line.`,
-        confirmLabel: 'Remove',
-        variant: 'destructive',
-      });
-      if (confirmed) removeSerialMutation.mutate(serial.id);
-    },
-    [confirm, removeSerialMutation],
-  );
-
   // Confirms and removes the line with its serials
   const handleRemoveLine = useCallback(async () => {
     const location = line.locationName ?? 'this location';
@@ -127,7 +113,13 @@ export const SerialsTable: React.FC<SerialsTableProps> = ({
                       label: 'Remove',
                       variant: 'destructive',
                       permission: permissions.edit,
-                      onClick: () => handleRemoveSerial(row.original),
+                      confirm: {
+                        title: `Remove serial ${row.original.serialNumber}?`,
+                        description: `${row.original.serialNumber} will no longer be part of this line.`,
+                        confirmLabel: 'Remove',
+                        variant: 'destructive',
+                      },
+                      onClick: () => removeSerialMutation.mutate(row.original.id),
                     },
                   ]}
                 />
@@ -138,7 +130,7 @@ export const SerialsTable: React.FC<SerialsTableProps> = ({
           ]
         : []),
     ],
-    [isDraft, permissions.edit, handleRemoveSerial],
+    [isDraft, permissions.edit, removeSerialMutation.mutate],
   );
 
   const lineItemsTable = useDataTable({
