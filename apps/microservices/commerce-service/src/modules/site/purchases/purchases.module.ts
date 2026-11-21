@@ -24,10 +24,10 @@ import { SiteGoodsReceiptsModule } from '@/modules/site/goods-receipts/goods-rec
 import { SitePurchaseProgressModule } from '@/modules/site/purchase-progress/purchase-progress.module';
 import { SitePurchasingRulesModule } from '@/modules/site/purchasing-rules/purchasing-rules.module';
 import { SiteSuppliersModule } from '@/modules/site/suppliers/suppliers.module';
-import { PurchasesAllocationsController } from './allocations/purchases-allocations.controller';
-import { PurchasesAllocationsService } from './allocations/services/purchases-allocations.service';
-import { PurchasesItemsController } from './items/purchases-items.controller';
-import { PurchasesItemsService } from './items/services/purchases-items.service';
+import { PurchasesItemsAllocationsController } from './items/allocations/purchases-items-allocations.controller';
+import { PurchasesAllocationsService } from './items/allocations/services/purchases-allocations.service';
+import { PurchasesItemsController } from './items/root/purchases-items.controller';
+import { PurchasesItemsService } from './items/root/services/purchases-items.service';
 import { PurchasesLegsController } from './legs/purchases-legs.controller';
 import { PurchaseLegDocumentsService } from './legs/services/purchase-leg-documents.service';
 import { PurchasesLegsService } from './legs/services/purchases-legs.service';
@@ -75,8 +75,8 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
   controllers: [
     PurchasesRootController,
     PurchasesItemsController,
+    PurchasesItemsAllocationsController,
     PurchasesQuotationsController,
-    PurchasesAllocationsController,
     PurchasesSuppliersController,
     PurchasesLegsController,
     PurchasesSupplierInvoicesController,
@@ -86,13 +86,11 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
   providers: [
     // Root
     PurchasesService,
-    // Items
+    // Items: root and allocations
     PurchasesItemsService,
+    PurchasesAllocationsService,
     // Quotations
     PurchasesQuotationsService,
-    // Sourcing
-    // Allocations
-    PurchasesAllocationsService,
     // Suppliers
     PurchasesSuppliersService,
     // Legs
@@ -107,8 +105,8 @@ import { PurchasesSuppliersService } from './suppliers/services/purchases-suppli
   exports: [
     PurchasesService,
     PurchasesItemsService,
-    PurchasesQuotationsService,
     PurchasesAllocationsService,
+    PurchasesQuotationsService,
     PurchasesSuppliersService,
     PurchasesLegsService,
     PurchasesSupplierInvoicesService,

@@ -4,6 +4,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
+import type { PurchaseItemQuoteRowDto } from '@/modules/site/purchases/items/root/dto/entity/purchase-item-quote.dto';
 import { PurchasesQuotationsService } from './services/purchases-quotations.service';
 
 @Controller()
@@ -27,5 +28,15 @@ export class PurchasesQuotationsController {
     const { id, ...state } = data;
     this.logger.log(`site.purchases.quotations.table — id: ${id}`);
     return this.service.findForTable(id, state);
+  }
+
+  // Returns one page of the quotation lines quoting a purchase item, priced per primary unit, the cheapest marked
+  @MessagePattern({ cmd: 'site.purchases.quotations.itemTable' })
+  itemTable(
+    @Payload() data: { id: string; itemId: string } & TableState,
+  ): Promise<{ result: PurchaseItemQuoteRowDto[]; count: number }> {
+    const { id, itemId, ...state } = data;
+    this.logger.log(`site.purchases.quotations.itemTable — id: ${id}, item: ${itemId}`);
+    return this.service.findItemQuotesTable(id, itemId, state);
   }
 }

@@ -22,10 +22,9 @@ import type { CurrencyCode } from '@vritti/api-sdk/money';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
 import { toSiteStockDisplay } from '@/modules/site/inventory-items/root/dto/entity/site-stock-display.dto';
-import { PurchasesQuotationsService } from '../../quotations/services/purchases-quotations.service';
-import { PurchaseItemAllocationRowDto } from '../dto/entity/purchase-item-allocation-row.dto';
+import { PurchasesQuotationsService } from '../../../quotations/services/purchases-quotations.service';
 import type { PurchaseItemComparisonDto } from '../dto/entity/purchase-item-detail.dto';
-import { PurchaseItemQuoteDto, type PurchaseItemQuoteRowDto } from '../dto/entity/purchase-item-quote.dto';
+import { PurchaseItemQuoteDto } from '../dto/entity/purchase-item-quote.dto';
 import {
   type PurchaseItemProgressInDisplayUnit,
   PurchaseItemRowDto,
@@ -100,47 +99,6 @@ export class PurchasesItemsService {
     const purchase = await this.purchasesRepository.findDetailOrThrow(id);
     const { result, count } = await this.itemsService.findForTable(purchase, this.quotingScopeOf(purchase), state);
     return { result: result.map((row) => PurchaseItemRowDto.fromRow(row, this.progressInDisplayUnit(row))), count };
-  }
-
-  // Returns one page of a purchase item's allocations, each with its supplier and leg state, the PO it became and whether
-  // it may still change
-  async findAllocationsTable(
-    id: string,
-    itemId: string,
-    state: TableState,
-  ): Promise<{ result: PurchaseItemAllocationRowDto[]; count: number }> {
-    const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    const [page, legs, ratios] = await Promise.all([
-      this.allocationsService.findForItemTable(purchase.id, itemId, state),
-      this.legsService.findByPurchaseId(purchase.id),
-      this.purchaseItemsRepository.findDisplayUnitRatiosOrThrow(purchase.id, itemId),
-    ]);
-    const legsById = _.keyBy(legs, 'id');
-    return {
-      result: page.result.map((row) => {
-        const leg = legsById[row.purchaseSupplierId];
-        return PurchaseItemAllocationRowDto.fromRow(
-          row,
-          leg,
-          this.allocationsService.isEditable(purchase, leg),
-          this.uomConversionsService.toDisplayUomQuantities(
-            _.pick(row, ['primaryUomQty', 'receivedPrimaryQty', 'invoicedPrimaryQty']),
-            ratios,
-          ),
-        );
-      }),
-      count: page.count,
-    };
-  }
-
-  // Returns one page of the quotation lines quoting a purchase item, priced per primary unit, the cheapest marked
-  async findQuotesTable(
-    id: string,
-    itemId: string,
-    state: TableState,
-  ): Promise<{ result: PurchaseItemQuoteRowDto[]; count: number }> {
-    const purchase = await this.purchasesRepository.findDetailOrThrow(id);
-    return this.purchaseQuotationsService.findItemQuotesTable(purchase, itemId, state);
   }
 
   // Returns one page of the document lines that move a purchase item: its PO lines and the deliveries, receipts and

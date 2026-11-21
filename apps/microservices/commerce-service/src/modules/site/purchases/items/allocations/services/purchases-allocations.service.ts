@@ -20,6 +20,7 @@ import { SupplierQuotationsDomainService } from '@domain/supplier-quotations/ser
 import { SuppliersDomainService } from '@domain/suppliers/services/suppliers.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
+import type { TableState } from '@vritti/api-sdk/data-table';
 import { PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import Decimal from '@vritti/api-sdk/decimal';
 import { BadRequestException } from '@vritti/api-sdk/exceptions';
@@ -29,6 +30,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { formatISO } from 'date-fns';
 import type { PurchaseSupplier, Supplier } from '@/db/schema';
 import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
+import { PurchaseItemAllocationRowDto } from '../dto/entity/purchase-item-allocation-row.dto';
 
 interface QuotedAllocationLine {
   term: PurchaseQuotationItemTermsDto & { purchaseItemId: string };
@@ -228,6 +230,36 @@ export class PurchasesAllocationsService {
     return {
       success: true,
       message: `Allocation of "${item.inventoryItemName}" updated on "${purchase.purchaseNumber}".`,
+    };
+  }
+  // Returns one page of a purchase item's allocations, each with its supplier and leg state, the PO it became and whether
+  // it may still change
+  async findForItemTable(
+    id: string,
+    itemId: string,
+    state: TableState,
+  ): Promise<{ result: PurchaseItemAllocationRowDto[]; count: number }> {
+    const purchase = await this.purchasesRepository.findDetailOrThrow(id);
+    const [page, legs, ratios] = await Promise.all([
+      this.allocationsService.findForItemTable(purchase.id, itemId, state),
+      this.legsService.findByPurchaseId(purchase.id),
+      this.purchaseItemsRepository.findDisplayUnitRatiosOrThrow(purchase.id, itemId),
+    ]);
+    const legsById = _.keyBy(legs, 'id');
+    return {
+      result: page.result.map((row) => {
+        const leg = legsById[row.purchaseSupplierId];
+        return PurchaseItemAllocationRowDto.fromRow(
+          row,
+          leg,
+          this.allocationsService.isEditable(purchase, leg),
+          this.uomConversionsService.toDisplayUomQuantities(
+            _.pick(row, ['primaryUomQty', 'receivedPrimaryQty', 'invoicedPrimaryQty']),
+            ratios,
+          ),
+        );
+      }),
+      count: page.count,
     };
   }
 

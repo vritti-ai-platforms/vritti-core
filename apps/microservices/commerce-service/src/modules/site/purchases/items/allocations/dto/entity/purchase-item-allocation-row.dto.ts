@@ -2,7 +2,7 @@ import type { PurchaseItemAllocationTableRow } from '@domain/purchase-item-alloc
 import type { PurchaseSupplierRow } from '@domain/purchase-suppliers/repositories/purchase-suppliers.repository';
 import type { DisplayUomQuantityDto } from '@domain/uom-conversions/dto/entity/display-uom-quantity.dto';
 import type { PurchaseOrderStatus } from '@/db/schema';
-import { PurchaseSourcingAllocationDto } from './purchase-sourcing-allocation.dto';
+import { PurchaseSourcingAllocationDto } from '@/modules/site/purchases/items/root/dto/entity/purchase-sourcing-allocation.dto';
 
 export class PurchaseItemAllocationRowDisplayDto {
   primaryUomQty: DisplayUomQuantityDto | null;

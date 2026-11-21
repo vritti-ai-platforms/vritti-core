@@ -112,9 +112,9 @@ export class PurchasesGatewayService {
     dto: CreatePurchaseAllocationDto,
   ): Promise<CreateResponseDto<CreatedPurchaseAllocationResponseDto>> {
     this.logger.log(
-      `site.purchases.allocations.create — id: ${id}, purchaseItemId: ${dto.purchaseItemId}, supplierId: ${dto.supplierId}`,
+      `site.purchases.items.allocations.create — id: ${id}, purchaseItemId: ${dto.purchaseItemId}, supplierId: ${dto.supplierId}`,
     );
-    return this.nats.send('commerce', 'site.purchases.allocations.create', { id, ...dto });
+    return this.nats.send('commerce', 'site.purchases.items.allocations.create', { id, ...dto });
   }
 
   // Allocates items from posted quotation lines
@@ -123,9 +123,9 @@ export class PurchasesGatewayService {
     dto: CreatePurchaseAllocationsFromQuotationDto,
   ): Promise<SuccessResponseDto> {
     this.logger.log(
-      `site.purchases.allocations.createFromQuotation — id: ${id}, quotation: ${dto.supplierQuotationId ?? 'lines'}`,
+      `site.purchases.items.allocations.createFromQuotation — id: ${id}, quotation: ${dto.supplierQuotationId ?? 'lines'}`,
     );
-    return this.nats.send('commerce', 'site.purchases.allocations.createFromQuotation', { id, ...dto });
+    return this.nats.send('commerce', 'site.purchases.items.allocations.createFromQuotation', { id, ...dto });
   }
 
   // Creates a leg's purchase orders, one per currency of its allocations
@@ -216,8 +216,8 @@ export class PurchasesGatewayService {
 
   // Changes an allocation
   updateAllocation(id: string, allocationId: string, dto: UpdatePurchaseAllocationDto): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchases.allocations.update — id: ${id}, allocationId: ${allocationId}`);
-    return this.nats.send('commerce', 'site.purchases.allocations.update', { id, allocationId, ...dto });
+    this.logger.log(`site.purchases.items.allocations.update — id: ${id}, allocationId: ${allocationId}`);
+    return this.nats.send('commerce', 'site.purchases.items.allocations.update', { id, allocationId, ...dto });
   }
 
   // Replaces a draft Receive with Invoice
@@ -371,14 +371,14 @@ export class PurchasesGatewayService {
 
   // Returns one page of the quotation lines quoting a purchase item, the cheapest marked, with server-stored table state
   async findItemQuotesTable(id: string, itemId: string, userId: string): Promise<PurchaseItemQuoteTableResponseDto> {
-    this.logger.log(`site.purchases.items.quotes.table — id: ${id}, itemId: ${itemId}`);
+    this.logger.log(`site.purchases.quotations.itemTable — id: ${id}, itemId: ${itemId}`);
     const { state, activeViewId } = await this.tableStateService.getTableState(
       userId,
       `commerce-site-purchase-${id}-item-${itemId}-quotes`,
     );
     const { result, count } = await this.nats.send<Omit<PurchaseItemQuoteTableResponseDto, 'state' | 'activeViewId'>>(
       'commerce',
-      'site.purchases.items.quotes.table',
+      'site.purchases.quotations.itemTable',
       { id, itemId, ...state },
     );
     return { result, count, state, activeViewId };
@@ -511,8 +511,8 @@ export class PurchasesGatewayService {
 
   // Removes an allocation, closing its leg when it was the last one
   deleteAllocation(id: string, allocationId: string): Promise<SuccessResponseDto> {
-    this.logger.log(`site.purchases.allocations.delete — id: ${id}, allocationId: ${allocationId}`);
-    return this.nats.send('commerce', 'site.purchases.allocations.delete', { id, allocationId });
+    this.logger.log(`site.purchases.items.allocations.delete — id: ${id}, allocationId: ${allocationId}`);
+    return this.nats.send('commerce', 'site.purchases.items.allocations.delete', { id, allocationId });
   }
 
   // Discards a draft Receive with Invoice and the documents it drafted

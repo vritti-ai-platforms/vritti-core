@@ -17,7 +17,7 @@ import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto } from '@vritti/api-sdk/responses';
 import { formatISO } from 'date-fns';
 import { PurchasingRulesService } from '@/modules/site/purchasing-rules/services/purchasing-rules.service';
-import { PurchaseItemQuoteDto, PurchaseItemQuoteRowDto } from '../../items/dto/entity/purchase-item-quote.dto';
+import { PurchaseItemQuoteDto, PurchaseItemQuoteRowDto } from '../../items/root/dto/entity/purchase-item-quote.dto';
 import { PurchaseDetailQuotationDto } from '../dto/entity/purchase-detail-quotation.dto';
 
 @Injectable()
@@ -110,10 +110,11 @@ export class PurchasesQuotationsService {
   // Returns one page of the quotation lines quoting a purchase item, each priced per primary unit and marked when it is
   // the cheapest in its currency among the posted quotes valid today
   async findItemQuotesTable(
-    purchase: PurchaseRow,
+    id: string,
     purchaseItemId: string,
     state: TableState,
   ): Promise<{ result: PurchaseItemQuoteRowDto[]; count: number }> {
+    const purchase = await this.purchasesRepository.findDetailOrThrow(id);
     const [page, quotations] = await Promise.all([
       this.supplierQuotationsService.findForPurchaseItemTable(purchase.id, purchase.siteId, purchaseItemId, state),
       this.findForItems(purchase, [purchaseItemId]),
