@@ -14,17 +14,16 @@ import { PurchaseStatusBadge } from '../PurchaseStatusBadge';
 import { PurchaseItemProblems } from '../tabs/items/PurchaseItemProblems';
 import { PurchaseItemAllocationsTab } from './PurchaseItemAllocationsTab';
 import { PurchaseItemDocumentsTab } from './PurchaseItemDocumentsTab';
-import { PurchaseItemInfoCard } from './PurchaseItemInfoCard';
-import { PurchaseItemProgressCard } from './PurchaseItemProgressCard';
+import { PurchaseItemOverviewTab } from './PurchaseItemOverviewTab';
 import { PurchaseItemQuotesTab } from './PurchaseItemQuotesTab';
-import { PurchaseItemSiteStockCard } from './PurchaseItemSiteStockCard';
 
 interface PurchaseItemViewProps {
   binding: PurchasesBinding;
 }
 
-// `…/purchases/<number~id>/items/<name~id>/<tab>` — one purchase item: its header with what stops it being bought, how
-// far it has got, its allocations, quotes and documents a table each, and its stock at the purchase's site
+// `…/purchases/<number~id>/items/<name~id>/<tab>` — one purchase item: its header with what stops it being bought, an
+// overview of how far it has got, its stock at the purchase's site and what it is, then its allocations, quotes and
+// documents a table each
 export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) => {
   const fmt = useFormatters();
   const { permissions } = binding;
@@ -88,52 +87,45 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
         />
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex min-w-0 flex-col gap-4">
-          <PurchaseItemProgressCard binding={binding} purchase={purchase} item={item} />
-          <Tabs
-            routeParam="tab"
-            tabs={[
-              {
-                value: 'allocations',
-                label: 'Allocations',
-                count: counts?.allocationCount,
-                countLoading: countsLoading,
-                permission: permissions.view,
-                content: (
-                  <PurchaseItemAllocationsTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />
-                ),
-              },
-              ...(showsQuotes
-                ? [
-                    {
-                      value: 'quotes',
-                      label: 'Quotes',
-                      count: counts?.quoteCount,
-                      countLoading: countsLoading,
-                      permission: permissions.quotations.view,
-                      content: (
-                        <PurchaseItemQuotesTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />
-                      ),
-                    },
-                  ]
-                : []),
-              {
-                value: 'documents',
-                label: 'Documents',
-                count: counts?.documentCount,
-                countLoading: countsLoading,
-                permission: permissions.view,
-                content: <PurchaseItemDocumentsTab {...tabProps} />,
-              },
-            ]}
-          />
-        </div>
-        <div className="flex flex-col gap-4">
-          <PurchaseItemSiteStockCard binding={binding} purchase={purchase} item={item} />
-          <PurchaseItemInfoCard item={item} />
-        </div>
-      </div>
+      <Tabs
+        routeParam="tab"
+        tabs={[
+          {
+            value: 'overview',
+            label: 'Overview',
+            permission: permissions.view,
+            content: <PurchaseItemOverviewTab {...tabProps} />,
+          },
+          {
+            value: 'allocations',
+            label: 'Allocations',
+            count: counts?.allocationCount,
+            countLoading: countsLoading,
+            permission: permissions.view,
+            content: <PurchaseItemAllocationsTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />,
+          },
+          ...(showsQuotes
+            ? [
+                {
+                  value: 'quotes',
+                  label: 'Quotes',
+                  count: counts?.quoteCount,
+                  countLoading: countsLoading,
+                  permission: permissions.quotations.view,
+                  content: <PurchaseItemQuotesTab {...tabProps} canAllocate={canAllocate} allocateTip={allocateTip} />,
+                },
+              ]
+            : []),
+          {
+            value: 'documents',
+            label: 'Documents',
+            count: counts?.documentCount,
+            countLoading: countsLoading,
+            permission: permissions.view,
+            content: <PurchaseItemDocumentsTab {...tabProps} />,
+          },
+        ]}
+      />
 
       <Dialog
         handle={editDialog}
