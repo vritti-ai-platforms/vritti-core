@@ -1,4 +1,5 @@
 import { CardSkeleton } from '@vritti/quantum-ui/Card';
+import { DangerZoneSkeleton } from '@vritti/quantum-ui/DangerZone';
 import { DataTableSkeleton } from '@vritti/quantum-ui/DataTable';
 import { PageHeaderSkeleton } from '@vritti/quantum-ui/PageHeader';
 import { Skeleton } from '@vritti/quantum-ui/Skeleton';
@@ -54,7 +55,7 @@ const ProgressCardSkeleton = () => (
 );
 
 // The purchase item page while it loads: header, the tab strip, and the opened tab — the overview's progress, site
-// stock and item cards, or a listing tab's table
+// stock and item cards or a listing tab's table — and the danger zone below
 export const PurchaseItemDetailSkeleton = () => {
   const { tab = 'overview' } = useParams();
   return (
@@ -78,6 +79,7 @@ export const PurchaseItemDetailSkeleton = () => {
           <DataTableSkeleton mode="tab" columns={6} />
         )}
       </div>
+      <DangerZoneSkeleton />
     </div>
   );
 };

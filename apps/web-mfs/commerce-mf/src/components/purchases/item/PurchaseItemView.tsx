@@ -13,6 +13,7 @@ import { EditPurchaseItemDialog } from '../forms/EditPurchaseItemDialog';
 import { PurchaseStatusBadge } from '../PurchaseStatusBadge';
 import { PurchaseItemProblems } from '../tabs/items/PurchaseItemProblems';
 import { PurchaseItemAllocationsTab } from './PurchaseItemAllocationsTab';
+import { PurchaseItemDangerZone } from './PurchaseItemDangerZone';
 import { PurchaseItemDocumentsTab } from './PurchaseItemDocumentsTab';
 import { PurchaseItemOverviewTab } from './PurchaseItemOverviewTab';
 import { PurchaseItemQuotesTab } from './PurchaseItemQuotesTab';
@@ -23,7 +24,7 @@ interface PurchaseItemViewProps {
 
 // `…/purchases/<number~id>/items/<name~id>/<tab>` — one purchase item: its header with what stops it being bought, an
 // overview of how far it has got, its stock at the purchase's site and what it is, then its allocations, quotes and
-// documents a table each
+// documents a table each, and removing it from the purchase below the tabs
 export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) => {
   const fmt = useFormatters();
   const { permissions } = binding;
@@ -126,6 +127,8 @@ export const PurchaseItemView: React.FC<PurchaseItemViewProps> = ({ binding }) =
           },
         ]}
       />
+
+      <PurchaseItemDangerZone {...tabProps} />
 
       <Dialog
         handle={editDialog}
