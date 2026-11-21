@@ -16,6 +16,7 @@ import {
   ApiCreateCatalog,
   ApiDeleteCatalog,
   ApiDeleteCatalogListing,
+  ApiFindCatalogCounts,
   ApiGetCatalog,
   ApiRemoveCatalogCurrency,
   ApiSetCatalogListingChannelVisibility,
@@ -36,6 +37,7 @@ import { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.
 import { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import { SetCatalogListingVisibilityDto } from '@commerce/catalogs/dto/request/set-catalog-listing-visibility.dto';
 import { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
+import type { CatalogCountsResponseDto } from '@commerce/catalogs/dto/response/catalog-counts-response.dto';
 import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
 import type { CatalogListingResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
 import type { CatalogListingTableResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-table-response.dto';
@@ -245,6 +247,15 @@ export class CatalogsGatewayController {
   getCurrencies(@Param('id') id: string): Promise<CatalogCurrencyResponseDto[]> {
     this.logger.log(`GET /commerce-api/org/catalogs/${id}/currencies`);
     return this.service.findCurrencies(id);
+  }
+
+  // Counts a catalog's channels, listings and currencies, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(ORG_CATALOGS.view)
+  @ApiFindCatalogCounts()
+  findCounts(@Param('id') id: string): Promise<CatalogCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/catalogs/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   @Delete(':id')

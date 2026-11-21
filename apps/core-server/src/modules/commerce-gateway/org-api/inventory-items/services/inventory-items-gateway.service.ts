@@ -16,6 +16,7 @@ import type {
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
+import type { OrgInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/org-inventory-item-counts-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -178,6 +179,12 @@ export class InventoryItemsGatewayService {
   findStorageTypes(inventoryItemId: string): Promise<InventoryItemStorageTypeResponseDto[]> {
     this.logger.log(`org.inventoryItems.storageTypes.findAll — inventoryItemId: ${inventoryItemId}`);
     return this.nats.send('commerce', 'org.inventoryItems.storageTypes.findAll', { inventoryItemId });
+  }
+
+  // Counts an inventory item's UOM conversions, MRPs and suppliers, one per tab of its detail page
+  findCounts(id: string): Promise<OrgInventoryItemCountsResponseDto> {
+    this.logger.log(`org.inventoryItems.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.inventoryItems.findCounts', { id });
   }
 
   // Deletes an inventory item

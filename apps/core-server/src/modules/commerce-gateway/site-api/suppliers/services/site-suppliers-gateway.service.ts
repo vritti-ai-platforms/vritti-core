@@ -1,5 +1,6 @@
 import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentRowResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-row-response.dto';
@@ -10,12 +11,14 @@ import type { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/
 import type { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import type { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import type { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
 } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import type { UpdateSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/update-supplier-site-item.dto';
+import type { SupplierItemCountsResponseDto } from '@commerce/supplier-items/dto/response/supplier-item-counts-response.dto';
 import type { SupplierSiteItemRowResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-response.dto';
 import type { SupplierSiteItemRowTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-table-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
@@ -183,6 +186,24 @@ export class SiteSuppliersGatewayService {
       `site.suppliers.invoices.invoiceableGoodsReceipts — supplierId: ${supplierId}, purchaseOrderId: ${query.purchaseOrderId}`,
     );
     return this.nats.send('commerce', 'site.suppliers.invoices.invoiceableGoodsReceipts', { ...query, supplierId });
+  }
+
+  // Counts the lines and holds of one of the supplier's invoices, one per tab of its detail page
+  findInvoiceCounts(supplierId: string, id: string): Promise<SupplierInvoiceCountsResponseDto> {
+    this.logger.log(`site.suppliers.invoices.findCounts — supplierId: ${supplierId}, id: ${id}`);
+    return this.nats.send('commerce', 'site.suppliers.invoices.findCounts', { supplierId, id });
+  }
+
+  // Counts a supplier's items, quotations and invoices at this site
+  findCounts(supplierId: string): Promise<SupplierEnrollmentCountsResponseDto> {
+    this.logger.log(`site.suppliers.findCounts — supplierId: ${supplierId}`);
+    return this.nats.send('commerce', 'site.suppliers.findCounts', { supplierId });
+  }
+
+  // Counts a supplier item's prices this site reads
+  findSiteItemCounts(supplierItemId: string): Promise<SupplierItemCountsResponseDto> {
+    this.logger.log(`site.suppliers.siteItems.findCounts — supplierItemId: ${supplierItemId}`);
+    return this.nats.send('commerce', 'site.suppliers.siteItems.findCounts', { supplierItemId });
   }
 
   // Removes a supplier's enrollment at the session site

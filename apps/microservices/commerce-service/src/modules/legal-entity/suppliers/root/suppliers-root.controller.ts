@@ -1,4 +1,5 @@
 import type { SupplierDetailDto, SupplierDto } from '@domain/suppliers/dto/entity/supplier.dto';
+import type { SupplierCountsDto } from '@domain/suppliers/dto/entity/supplier-counts.dto';
 import { BulkSetSupplierActiveDto } from '@domain/suppliers/dto/request/bulk-set-supplier-active.dto';
 import { BulkSetSupplierDefaultPaymentTermDto } from '@domain/suppliers/dto/request/bulk-set-supplier-default-payment-term.dto';
 import { ChangeSupplierCurrencyDto } from '@domain/suppliers/dto/request/change-supplier-currency.dto';
@@ -92,6 +93,13 @@ export class SuppliersRootController {
   async table(@Payload() state: TableState): Promise<{ result: SupplierDto[]; count: number }> {
     this.logger.log('suppliers.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts a supplier's items, quotations and party people, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.suppliers.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<SupplierCountsDto> {
+    this.logger.log(`suppliers.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.delete' })

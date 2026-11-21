@@ -14,6 +14,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type CatalogChannelType,
   catalogChannels,
@@ -23,6 +24,7 @@ import {
   channelSpecificity,
   type FulfilmentType,
   type Offering,
+  offeringAttributes,
   offeringBom,
   offeringDimensions,
   offerings,
@@ -99,6 +101,12 @@ export type OfferingWithOwnership = OfferingTableRow & {
   variantsWithoutBom: number;
 };
 
+export type OfferingCounts = {
+  dimensionCount: number;
+  attributeCount: number;
+  variantCount: number;
+};
+
 export type OfferingGuardRow = Pick<Offering, 'id' | 'code' | 'name'> & {
   isOwned: boolean;
   variantCount: number;
@@ -140,6 +148,15 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
     };
   }
 
+  // Counts the rows each of an offering's tabs lists: its dimensions, its attributes and its variants
+  private counts() {
+    return {
+      dimensionCount: this.db.$count(offeringDimensions, eq(offeringDimensions.offeringId, offerings.id)),
+      attributeCount: this.db.$count(offeringAttributes, eq(offeringAttributes.offeringId, offerings.id)),
+      variantCount: this.db.$count(offeringVariants, eq(offeringVariants.offeringId, offerings.id)),
+    };
+  }
+
   // Returns one page of reachable offerings, each flagged with whether this workspace owns it, plus the total
   async findForTable(options: {
     where?: SQL;
@@ -159,6 +176,13 @@ export class OfferingsDomainRepository extends PrimaryBaseRepository<typeof offe
   // Returns one offering with its ownership flag, or undefined when out of reach.
   async findDetailById(id: string): Promise<OfferingWithOwnership | undefined> {
     return this.findById<OfferingWithOwnership>(id, { select: this.detailSelection() });
+  }
+
+  // Counts an offering's dimensions, attributes and variants, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<OfferingCounts> {
+    const counts = await this.findById<OfferingCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Offering not found.');
+    return counts;
   }
 
   // Returns the reachable rows among the given ids with only what a bulk guard decides on

@@ -16,6 +16,7 @@ import {
 } from '@/db/schema';
 import { EnrollmentPurchasingDto } from '../dto/entity/enrollment-purchasing.dto';
 import { SupplierEnrollmentDto } from '../dto/entity/supplier-enrollment.dto';
+import { SupplierEnrollmentCountsDto } from '../dto/entity/supplier-enrollment-counts.dto';
 import { SupplierEnrollmentDetailDto } from '../dto/entity/supplier-enrollment-detail.dto';
 import { SupplierEnrollmentPurchasingDetailDto } from '../dto/entity/supplier-enrollment-purchasing-detail.dto';
 import { SupplierEnrollmentPurchasingSnapshotDto } from '../dto/entity/supplier-enrollment-purchasing-snapshot.dto';
@@ -177,6 +178,13 @@ export class SupplierEnrollmentsDomainService {
       siteId,
     );
     return { result: result.map(SupplierEnrollmentRowDto.from), count };
+  }
+
+  // Counts a supplier's items, quotations and invoices at a site, enrolled or not, one per tab of its enrollment page
+  async findCounts(legalEntityId: string, supplierId: string, siteId?: string): Promise<SupplierEnrollmentCountsDto> {
+    return SupplierEnrollmentCountsDto.from(
+      await this.siteSuppliersRepository.findCountsOrThrow(legalEntityId, supplierId, siteId),
+    );
   }
 
   // Returns a supplier's enrollment at a site with its commercial identity, enrolled or not

@@ -4,6 +4,7 @@ import type { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/
 import type { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import type { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import type { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -99,6 +100,12 @@ export class SupplierInvoicesGatewayService {
   ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(`le.supplierInvoices.invoiceableGoodsReceipts — supplierId: ${query.supplierId}, site: ${siteId}`);
     return this.nats.send('commerce', 'le.supplierInvoices.invoiceableGoodsReceipts', { ...query, siteId });
+  }
+
+  // Counts an invoice's lines and holds, one per tab of its detail page
+  findCounts(id: string): Promise<SupplierInvoiceCountsResponseDto> {
+    this.logger.log(`le.supplierInvoices.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'le.supplierInvoices.findCounts', { id });
   }
 
   // Deletes a draft invoice

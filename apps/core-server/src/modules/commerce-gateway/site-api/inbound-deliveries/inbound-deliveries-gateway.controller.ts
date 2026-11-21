@@ -3,6 +3,7 @@ import { CreateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/reque
 import { SetInboundDeliveryStatusDto } from '@commerce/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import { UpdateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import { UpdateInboundDeliveryLineDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
+import type { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import type { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import type { InboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
 import type { InboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-table-response.dto';
@@ -19,6 +20,7 @@ import {
   ApiDelete,
   ApiFindById,
   ApiFindForTable,
+  ApiFindInboundDeliveryCounts,
   ApiLinesTable,
   ApiRemoveLine,
   ApiSetStatus,
@@ -113,6 +115,15 @@ export class InboundDeliveriesGatewayController {
   linesTable(@Param('id') id: string, @UserId() userId: string): Promise<InboundDeliveryLineTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}/lines/table`);
     return this.service.findLinesTable(id, userId);
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(SITE_INBOUND_DELIVERIES.view)
+  @ApiFindInboundDeliveryCounts()
+  findCounts(@Param('id') id: string): Promise<InboundDeliveryCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/inbound-deliveries/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a planned inbound delivery without lines

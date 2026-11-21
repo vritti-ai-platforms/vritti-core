@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, gte, isNull, lte, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type TaxClass, taxClasses, taxClassGroups, taxGroups } from '@/db/schema';
 
@@ -13,6 +14,10 @@ export interface TaxClassTaxGroupRow {
 }
 
 export type TaxClassTableRow = TaxClass & { taxGroups: TaxClassTaxGroupRow[] };
+
+export type TaxClassCounts = {
+  groupCount: number;
+};
 
 @Injectable()
 export class TaxClassesDomainRepository extends PrimaryBaseRepository<typeof taxClasses> {
@@ -29,6 +34,13 @@ export class TaxClassesDomainRepository extends PrimaryBaseRepository<typeof tax
   async findByCode(code: string): Promise<TaxClass | undefined> {
     const [row] = await this.db.select().from(taxClasses).where(eq(taxClasses.code, code)).limit(1);
     return row as TaxClass | undefined;
+  }
+
+  // Counts a tax class's group mappings, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<TaxClassCounts> {
+    const counts = await this.findById<TaxClassCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Tax class not found.');
+    return counts;
   }
 
   // Returns paginated tax classes, each with the tax groups it is mapped to in a country on a day, filtered by an
@@ -76,5 +88,12 @@ export class TaxClassesDomainRepository extends PrimaryBaseRepository<typeof tax
           : sql`false`,
       )
       .as('class_tax_groups');
+  }
+
+  // Counts the rows each of a tax class's tabs lists: its group mappings in every country
+  private counts() {
+    return {
+      groupCount: this.db.$count(taxClassGroups, eq(taxClassGroups.taxClassId, taxClasses.id)),
+    };
   }
 }

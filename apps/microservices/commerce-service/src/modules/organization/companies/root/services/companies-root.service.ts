@@ -1,4 +1,5 @@
 import type { CompanyDto } from '@domain/parties/dto/entity/company.dto';
+import type { CompanyCountsDto } from '@domain/parties/dto/entity/company-counts.dto';
 import type { CreateCompanyDto } from '@domain/parties/dto/request/create-company.dto';
 import type { UpdateCompanyDto } from '@domain/parties/dto/request/update-company.dto';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
@@ -52,6 +53,11 @@ export class CompaniesService {
   // Paginated COMPANY parties for the companies table
   findForTable(state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
     return this.partiesService.findCompaniesForTable(state);
+  }
+
+  // Counts the rows each tab of a company's detail page lists
+  findCounts(id: string): Promise<CompanyCountsDto> {
+    return this.partiesService.findCompanyCounts(id);
   }
 
   // Deletes a company by ID

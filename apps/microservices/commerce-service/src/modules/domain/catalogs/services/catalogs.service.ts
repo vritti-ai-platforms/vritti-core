@@ -9,6 +9,7 @@ import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions }
 import { catalogs } from '@/db/schema';
 import { CatalogDto } from '../dto/entity/catalog.dto';
 import { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
+import { CatalogCountsDto } from '../dto/entity/catalog-counts.dto';
 import { CatalogCurrencyDto } from '../dto/entity/catalog-currency.dto';
 import type { CreateCatalogDto } from '../dto/request/create-catalog.dto';
 import type { UpdateCatalogDto } from '../dto/request/update-catalog.dto';
@@ -126,6 +127,11 @@ export class CatalogsDomainService {
     const catalog = await this.requireCatalog(catalogId);
     const rows = await this.currencies.findCoverage(catalogId);
     return rows.map((row) => CatalogCurrencyDto.from(row, catalog.items));
+  }
+
+  // Counts a catalog's channels, listings and currencies, one per tab of its detail page
+  async findCounts(id: string): Promise<CatalogCountsDto> {
+    return CatalogCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Deleting cascades into listings and prices, so it is refused while the catalog still has any

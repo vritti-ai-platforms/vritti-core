@@ -24,6 +24,7 @@ import {
   purchaseOrders,
 } from '@/db/schema';
 import { PurchaseOrderDto } from '../dto/entity/purchase-order.dto';
+import { PurchaseOrderCountsDto } from '../dto/entity/purchase-order-counts.dto';
 import type { CreatePurchaseOrderDto } from '../dto/request/create-purchase-order.dto';
 import type { UpdatePurchaseOrderNotesDto } from '../dto/request/update-purchase-order-notes.dto';
 import {
@@ -296,6 +297,11 @@ export class PurchaseOrdersDomainService {
       offset,
     });
     return { result: result.map(PurchaseOrderDto.from), count };
+  }
+
+  // Counts a purchase order's lines and the deliveries, receipts and invoices on them, one per tab of its detail page
+  async findCounts(id: string): Promise<PurchaseOrderCountsDto> {
+    return PurchaseOrderCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns paginated purchase order options for select dropdowns, optionally narrowed to statuses and a supplier

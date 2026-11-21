@@ -1,3 +1,4 @@
+import type { SupplierItemCountsDto } from '@domain/supplier-items/dto/entity/supplier-item-counts.dto';
 import { AddSupplierItemDto } from '@domain/supplier-items/dto/request/add-supplier-item.dto';
 import { BulkSetSupplierItemDefaultLeadTimeDto } from '@domain/supplier-items/dto/request/bulk-set-supplier-item-default-lead-time.dto';
 import { BulkSetSupplierItemMinOrderDto } from '@domain/supplier-items/dto/request/bulk-set-supplier-item-min-order.dto';
@@ -58,6 +59,13 @@ export class SuppliersItemsController {
     this.logger.log('suppliers.itemsTable');
     const { supplierId, ...state } = data;
     return this.domainService.findForTable(supplierId, state);
+  }
+
+  // Counts a supplier item's sites and prices, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.suppliers.findItemCounts' })
+  findItemCounts(@Payload() data: { supplierItemId: string }): Promise<SupplierItemCountsDto> {
+    this.logger.log(`suppliers.findItemCounts — id: ${data.supplierItemId}`);
+    return this.domainService.findCounts(data.supplierItemId);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.unlinkItem' })

@@ -2,6 +2,7 @@ import type { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments
 import type { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import type { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
 import type { EnrollmentPurchasingResponseDto } from '@commerce/supplier-enrollments/dto/response/enrollment-purchasing-response.dto';
+import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import {
@@ -12,6 +13,7 @@ import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enro
 import type { AddSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/add-supplier-site-item.dto';
 import type { BulkSetSupplierSiteItemPreferredDto } from '@commerce/supplier-items/dto/request/bulk-set-supplier-site-item-preferred.dto';
 import type { UpdateSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/update-supplier-site-item.dto';
+import type { SupplierItemCountsResponseDto } from '@commerce/supplier-items/dto/response/supplier-item-counts-response.dto';
 import type { SupplierSiteItemResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-response.dto';
 import type { SupplierSiteItemRowResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-response.dto';
 import type { SupplierSiteItemRowTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-table-response.dto';
@@ -25,6 +27,7 @@ import type { ChangeSupplierCurrencyDto } from '@commerce/suppliers/dto/request/
 import type { CreateSupplierDto } from '@commerce/suppliers/dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '@commerce/suppliers/dto/request/update-supplier.dto';
 import type { UpdateSupplierItemDto } from '@commerce/suppliers/dto/request/update-supplier-item.dto';
+import type { SupplierCountsResponseDto } from '@commerce/suppliers/dto/response/supplier-counts-response.dto';
 import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/supplier-response.dto';
@@ -404,6 +407,30 @@ export class SuppliersGatewayService {
     });
     const [named] = await this.ownerNames.withSiteNames(orgId, [row]);
     return { ...named, purchasing: await this.namePurchasingApprovers(orgId, named.purchasing) };
+  }
+
+  // Counts a supplier's items, quotations and people in commerce, and its Enrollments tab's rows — every site of the
+  // legal entity, which lives in core
+  async findCounts(id: string, orgId: string, legalEntityId: string | undefined): Promise<SupplierCountsResponseDto> {
+    this.logger.log(`le.suppliers.findCounts — id: ${id}`);
+    const leId = SuppliersGatewayService.requireLegalEntity(legalEntityId);
+    const [counts, sites] = await Promise.all([
+      this.nats.send<Omit<SupplierCountsResponseDto, 'enrollmentCount'>>('commerce', 'le.suppliers.findCounts', { id }),
+      this.siteService.findByLegalEntityOrdered(orgId, leId),
+    ]);
+    return { ...counts, enrollmentCount: sites.length };
+  }
+
+  // Counts a supplier item's sites and prices
+  findItemCounts(supplierItemId: string): Promise<SupplierItemCountsResponseDto> {
+    this.logger.log(`le.suppliers.findItemCounts — id: ${supplierItemId}`);
+    return this.nats.send('commerce', 'le.suppliers.findItemCounts', { supplierItemId });
+  }
+
+  // Counts a supplier's items, quotations and invoices at one of the LE's sites
+  findEnrollmentCounts(supplierId: string, siteId: string): Promise<SupplierEnrollmentCountsResponseDto> {
+    this.logger.log(`le.suppliers.enrollments.findCounts — supplierId: ${supplierId}, siteId: ${siteId}`);
+    return this.nats.send('commerce', 'le.suppliers.enrollments.findCounts', { supplierId, siteId });
   }
 
   // Deletes a supplier by ID

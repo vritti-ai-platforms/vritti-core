@@ -4,6 +4,7 @@ import type {
   SupplierQuotationDetailDto,
   SupplierQuotationDto,
 } from '@domain/supplier-quotations/dto/entity/supplier-quotation.dto';
+import type { SupplierQuotationCountsDto } from '@domain/supplier-quotations/dto/entity/supplier-quotation-counts.dto';
 import type { AddSupplierQuotationItemDto } from '@domain/supplier-quotations/dto/request/add-supplier-quotation-item.dto';
 import type { CreateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import type { UpdateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/update-supplier-quotation.dto';
@@ -72,6 +73,11 @@ export class SiteSupplierQuotationsService {
   // Returns the supplier's quotations the site can read
   table(supplierId: string, state: TableState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     return this.quotations.findForSupplierTable(supplierId, state);
+  }
+
+  // Counts the lines and postings of one of the supplier's quotations the site reads
+  findCounts(supplierId: string, quotationId: string): Promise<SupplierQuotationCountsDto> {
+    return this.quotations.findCounts(quotationId, supplierId);
   }
 
   // Deletes a quotation the site owns while it is posted nowhere but the site; elsewhere the legal entity or that site

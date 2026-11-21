@@ -16,6 +16,7 @@ import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-site
 import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
 import type { SiteInventoryItemUomConversionResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-uom-conversion-response.dto';
+import type { SiteInventoryItemCountsResponseDto } from '@commerce/inventory-item-sites/dto/response/site-inventory-item-counts-response.dto';
 import type {
   SiteStockTableResponseDto,
   SiteStockTableRowDto,
@@ -244,6 +245,12 @@ export class SiteInventoryItemsGatewayService {
   }> {
     this.logger.log('org.inventoryItems.feed');
     return this.nats.send('commerce', 'org.inventoryItems.feed', query);
+  }
+
+  // Counts the rows each tab of the item's detail page lists at the current site
+  findCounts(id: string): Promise<SiteInventoryItemCountsResponseDto> {
+    this.logger.log(`site.inventoryItems.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.inventoryItems.findCounts', { id });
   }
 
   // Returns how the current site carries an inventory item, or null while it does not

@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { CatalogCountsResponseDto } from '../dto/response/catalog-counts-response.dto';
 import { CatalogCurrencyResponseDto } from '../dto/response/catalog-currency-response.dto';
 import { CatalogListingResponseDto } from '../dto/response/catalog-listing-response.dto';
 import { CatalogListingTableResponseDto } from '../dto/response/catalog-listing-table-response.dto';
@@ -23,6 +24,18 @@ export function ApiGetCatalog() {
     ApiOperation({ summary: 'Get a catalog' }),
     ApiParam(ID),
     ApiResponse({ status: 200, type: CatalogResponseDto }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiFindCatalogCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a catalog's channels, listings and currencies",
+      description: "One count per tab of the catalog's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: CatalogCountsResponseDto }),
     ApiResponse(NOT_FOUND),
   );
 }

@@ -1,4 +1,5 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
+import type { GoodsReceiptCountsDto } from '@domain/goods-receipts/dto/entity/goods-receipt-counts.dto';
 import { CreateGoodsReceiptFromDeliveryDto } from '@domain/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
 import { UpdateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/update-goods-receipt.dto';
 import {
@@ -64,6 +65,13 @@ export class GoodsReceiptsRootController {
   feed(@Payload() query: GoodsReceiptFeedQuery): Promise<GoodsReceiptFeed> {
     this.logger.log('site.goodsReceipts.feed');
     return this.goodsReceiptsService.findForFeed(query);
+  }
+
+  // Counts a goods receipt's items, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.goodsReceipts.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<GoodsReceiptCountsDto> {
+    this.logger.log(`site.goodsReceipts.findCounts — id: ${data.id}`);
+    return this.goodsReceiptsService.findCounts(data.id);
   }
 
   // Deletes a draft goods receipt

@@ -1,5 +1,6 @@
 import type { CatalogDto } from '@domain/catalogs/dto/entity/catalog.dto';
 import type { CatalogChannelDto } from '@domain/catalogs/dto/entity/catalog-channel.dto';
+import type { CatalogCountsDto } from '@domain/catalogs/dto/entity/catalog-counts.dto';
 import type { CatalogCurrencyDto } from '@domain/catalogs/dto/entity/catalog-currency.dto';
 import { CreateCatalogDto } from '@domain/catalogs/dto/request/create-catalog.dto';
 import { UpdateCatalogDto } from '@domain/catalogs/dto/request/update-catalog.dto';
@@ -72,6 +73,13 @@ export class SiteCatalogsController {
   currencies(@Payload() data: { catalogId: string }): Promise<CatalogCurrencyDto[]> {
     this.logger.log(`catalogs.currencies — catalogId: ${data.catalogId}`);
     return this.service.findCurrencyCoverage(data.catalogId);
+  }
+
+  // Counts a catalog's channels, listings and currencies, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.catalogs.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<CatalogCountsDto> {
+    this.logger.log(`catalogs.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes a catalog; refused while it still lists anything

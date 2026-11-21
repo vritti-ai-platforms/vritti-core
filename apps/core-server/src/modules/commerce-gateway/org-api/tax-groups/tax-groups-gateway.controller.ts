@@ -8,6 +8,7 @@ import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-g
 import { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import type { TaxClassGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-response.dto';
 import type { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
+import type { TaxGroupCountsResponseDto } from '@commerce/tax-groups/dto/response/tax-group-counts-response.dto';
 import type { TaxGroupRateResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-response.dto';
 import type { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
@@ -42,6 +43,7 @@ import {
   ApiFindForTableTaxGroupClasses,
   ApiFindForTableTaxGroupRates,
   ApiFindForTableTaxGroups,
+  ApiFindTaxGroupCounts,
   ApiGetTaxGroup,
   ApiSetTaxGroupActive,
   ApiUpdateTaxGroup,
@@ -186,6 +188,15 @@ export class TaxGroupsGatewayController {
   ): Promise<TaxClassGroupTableResponseDto> {
     this.logger.log(`GET /commerce-api/org/tax-groups/${id}/classes/table`);
     return this.service.findClassesForTable(userId, id);
+  }
+
+  // Counts a tax group's rates and class mappings, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(ORG_TAX_GROUPS.view)
+  @ApiFindTaxGroupCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxGroupCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-groups/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a tax group and its rates unless tax classes are mapped to it

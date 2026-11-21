@@ -1,5 +1,6 @@
 import type { CreateOrderDto } from '@commerce/orders/dto/request/create-order.dto';
 import type { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-order-status.dto';
+import type { OrderCountsResponseDto } from '@commerce/orders/dto/response/order-counts-response.dto';
 import type {
   OrderPaymentRefundCheckResponseDto,
   OrderPaymentResponseDto,
@@ -112,6 +113,17 @@ export class OrdersGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Counts an order's items in commerce and its checkout's payments as its Payments tab lists them, one per tab
+  async findCounts(id: string): Promise<OrderCountsResponseDto> {
+    this.logger.log(`site.orders.findCounts — id: ${id}`);
+    const [{ itemCount }, order] = await Promise.all([
+      this.nats.send<Pick<OrderCountsResponseDto, 'itemCount'>>('commerce', 'site.orders.findCounts', { id }),
+      this.findById(id),
+    ]);
+    const payments = await this.orderIntents(order);
+    return { itemCount, paymentCount: payments.length };
   }
 
   // The payments of the order's checkout, each marked whether the order uses it and whether staff may refund it. The

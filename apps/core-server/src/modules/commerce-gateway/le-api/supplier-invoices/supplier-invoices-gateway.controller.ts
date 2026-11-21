@@ -5,6 +5,7 @@ import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/
 import { SupplierInvoiceSiteParamsDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-site-params.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import type { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -39,6 +40,7 @@ import {
   ApiDeleteSupplierInvoiceLine,
   ApiFindForTableSupplierInvoices,
   ApiFindSupplierInvoiceById,
+  ApiFindSupplierInvoiceCounts,
   ApiFindSupplierInvoiceInvoiceableGoodsReceipts,
   ApiPostSupplierInvoice,
   ApiReleaseSupplierInvoiceHold,
@@ -170,6 +172,15 @@ export class SupplierInvoicesGatewayController {
   ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(`GET /commerce-api/le/supplier-invoices/invoiceable-goods-receipts/sites/${siteId}`);
     return this.service.findInvoiceableGoodsReceipts(siteId, query);
+  }
+
+  // Counts an invoice's lines and holds, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(LE_SUPPLIER_INVOICES.view)
+  @ApiFindSupplierInvoiceCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<SupplierInvoiceCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/supplier-invoices/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a draft invoice

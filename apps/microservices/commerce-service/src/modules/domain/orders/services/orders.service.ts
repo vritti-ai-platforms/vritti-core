@@ -15,6 +15,7 @@ import {
   variantLabel,
 } from '@/db/schema';
 import { OrderDetailDto, OrderDto, OrderItemDto } from '../dto/entity/order.dto';
+import { OrderCountsDto } from '../dto/entity/order-counts.dto';
 import type { CreateOrderDto, CreateOrderItemDto } from '../dto/request/create-order.dto';
 import type { PaidOrderInput } from '../dto/request/paid-order-input.dto';
 import type { UpdateOrderStatusDto } from '../dto/request/update-order-status.dto';
@@ -208,6 +209,11 @@ export class OrdersDomainService {
     });
 
     return { result: rows.map(OrderDto.from), count };
+  }
+
+  // Counts an order's items, for its Items tab
+  async findCounts(id: string): Promise<OrderCountsDto> {
+    return OrderCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Builds denormalized order item rows using the variant's own price

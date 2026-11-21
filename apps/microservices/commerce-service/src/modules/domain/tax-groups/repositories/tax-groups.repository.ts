@@ -5,11 +5,15 @@ import { ConflictException, NotFoundException } from '@vritti/api-sdk/exceptions
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import { type TaxGroup, taxClassGroups, taxGroupRates, taxGroups } from '@/db/schema';
 
-export type TaxGroupDetail = TaxGroup & {
+export type TaxGroupCounts = {
   rateCount: number;
   classCount: number;
-  openClassCount: number;
 };
+
+export type TaxGroupDetail = TaxGroup &
+  TaxGroupCounts & {
+    openClassCount: number;
+  };
 
 @Injectable()
 export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxGroups> {
@@ -34,6 +38,13 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
     const entity = await this.findById<TaxGroupDetail>(id, { select: this.selection() });
     if (!entity) throw new NotFoundException('Tax group not found.');
     return entity;
+  }
+
+  // Counts a tax group's rates and class mappings, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<TaxGroupCounts> {
+    const counts = await this.findById<TaxGroupCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Tax group not found.');
+    return counts;
   }
 
   // Returns paginated tax groups with their rate and class counts, filtered by an already-built where clause
@@ -87,8 +98,7 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
   private selection() {
     return {
       ...getColumns(taxGroups),
-      rateCount: this.db.$count(taxGroupRates, eq(taxGroupRates.taxGroupId, taxGroups.id)),
-      classCount: this.db.$count(taxClassGroups, eq(taxClassGroups.taxGroupId, taxGroups.id)),
+      ...this.counts(),
       openClassCount: this.db.$count(
         taxClassGroups,
         and(
@@ -96,6 +106,14 @@ export class TaxGroupsDomainRepository extends PrimaryBaseRepository<typeof taxG
           or(isNull(taxClassGroups.validTo), gte(taxClassGroups.validTo, sql`current_date`)),
         ),
       ),
+    };
+  }
+
+  // Counts the rows each of a tax group's tabs lists: its rates and its class mappings
+  private counts() {
+    return {
+      rateCount: this.db.$count(taxGroupRates, eq(taxGroupRates.taxGroupId, taxGroups.id)),
+      classCount: this.db.$count(taxClassGroups, eq(taxClassGroups.taxGroupId, taxGroups.id)),
     };
   }
 }

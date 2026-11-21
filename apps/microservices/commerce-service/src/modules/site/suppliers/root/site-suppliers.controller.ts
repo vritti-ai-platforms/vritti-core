@@ -1,4 +1,5 @@
 import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-counts.dto';
 import type { SupplierEnrollmentDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-detail.dto';
 import type { SupplierEnrollmentRowDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-row.dto';
 import { CreateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
@@ -58,6 +59,16 @@ export class SiteSuppliersController {
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     this.logger.log('site.suppliers.table');
     return this.service.findForTable(headers.legalEntityId, state);
+  }
+
+  // Counts a supplier's items, quotations and invoices at the caller's site, one per tab of its page
+  @MessagePattern({ cmd: 'site.suppliers.findCounts' })
+  findCounts(
+    @Payload() data: { supplierId: string },
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SupplierEnrollmentCountsDto> {
+    this.logger.log(`site.suppliers.findCounts — supplierId: ${data.supplierId}`);
+    return this.service.findCounts(headers.legalEntityId, data.supplierId);
   }
 
   // Returns supplier options for a picker at the caller's site with each one's enrollment status there

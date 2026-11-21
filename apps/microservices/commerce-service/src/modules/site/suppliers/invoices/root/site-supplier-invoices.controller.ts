@@ -2,6 +2,7 @@ import type {
   SupplierInvoiceDetailDto,
   SupplierInvoiceDto,
 } from '@domain/supplier-invoices/dto/entity/supplier-invoice.dto';
+import type { SupplierInvoiceCountsDto } from '@domain/supplier-invoices/dto/entity/supplier-invoice-counts.dto';
 import { CreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/create-supplier-invoice.dto';
 import { InvoiceableGoodsReceiptsQueryDto } from '@domain/supplier-invoices/dto/request/invoiceable-goods-receipts-query.dto';
 import { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
@@ -72,6 +73,13 @@ export class SiteSupplierInvoicesController {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.invoices.table — supplierId: ${supplierId}`);
     return this.invoicesService.findForTable(state, { supplierId });
+  }
+
+  // Counts one of the supplier's invoices' lines and holds, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.suppliers.invoices.findCounts' })
+  findCounts(@Payload() data: { supplierId: string; id: string }): Promise<SupplierInvoiceCountsDto> {
+    this.logger.log(`site.suppliers.invoices.findCounts — supplierId: ${data.supplierId}, id: ${data.id}`);
+    return this.invoicesService.findCounts(data.id, { supplierId: data.supplierId });
   }
 
   // Returns the supplier's posted receipt lots at the site still to invoice, for an invoice's line picker

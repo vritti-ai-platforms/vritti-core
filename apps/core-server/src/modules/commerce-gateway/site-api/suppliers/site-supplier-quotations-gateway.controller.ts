@@ -2,6 +2,7 @@ import { AddSupplierQuotationItemDto } from '@commerce/supplier-quotations/dto/r
 import { CreateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import { SupplierQuotationItemFieldsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-item-fields.dto';
 import { UpdateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/update-supplier-quotation.dto';
+import type { SupplierQuotationCountsResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-counts-response.dto';
 import type {
   SupplierQuotationDetailResponseDto,
   SupplierQuotationResponseDto,
@@ -27,6 +28,7 @@ import { SITE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId } from '@/security/decorators';
+import { ApiFindSiteSupplierQuotationCounts } from './docs/site-suppliers-gateway.docs';
 import { SiteSupplierQuotationsGatewayService } from './services/site-supplier-quotations-gateway.service';
 
 // A supplier's quotations at the session site: the site's own, which it writes and posts here, and those posted to it,
@@ -119,6 +121,18 @@ export class SiteSupplierQuotationsGatewayController {
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/quotations/table`);
     return this.service.findForTable(supplierId, userId, orgId);
+  }
+
+  // Counts the lines and postings of a quotation the session site can read, one per tab of its page
+  @Get(':quotationId/counts')
+  @RequirePermission(SITE_SUPPLIERS.quotations.view)
+  @ApiFindSiteSupplierQuotationCounts()
+  findCounts(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Param('quotationId', new ParseUUIDPipe()) quotationId: string,
+  ): Promise<SupplierQuotationCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/quotations/${quotationId}/counts`);
+    return this.service.findCounts(supplierId, quotationId);
   }
 
   // Deletes a quotation the session site owns while it is posted nowhere else

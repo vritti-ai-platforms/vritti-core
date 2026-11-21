@@ -16,7 +16,7 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import { alias, QueryBuilder } from '@vritti/api-sdk/drizzle-pg-core';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
@@ -136,6 +136,8 @@ export type SupplierSiteItemDetailRow = SupplierSiteItemTableRow & {
   supplierCode: string | null;
 } & SupplierCurrencies &
   PriceUsage;
+
+export type SupplierItemCounts = { siteItemCount: number; priceCount: number };
 
 export type InventoryItemSupplierRow = SupplierItem &
   SupplierSiteItemTermsRow & { supplierName: string; supplierCode: string; uomSymbol: string; siteCount: number };
@@ -427,6 +429,13 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
       .where(eq(supplierItems.id, id))
       .limit(1);
     return row as SupplierItemDetailRow | undefined;
+  }
+
+  // Counts a supplier item's sites and prices, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<SupplierItemCounts> {
+    const counts = await this.findById<SupplierItemCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Supplier item not found.');
+    return counts;
   }
 
   // Finds a supplier item as one site sees it — its terms and price in force there, both empty when the site does not
@@ -721,5 +730,14 @@ export class SupplierItemsDomainRepository extends PrimaryBaseRepository<typeof 
   // Orders a supplier item's rows by its setup at the site: set up first, preferred first, then the oldest
   private siteItemsFirst(): SQL[] {
     return [sql`${supplierSiteItems.id} is null`, desc(supplierSiteItems.isPreferred), asc(supplierItems.createdAt)];
+  }
+
+  // Counts the rows each of a supplier item's list tabs shows: the sites it is set up at and its prices, both as far as
+  // the request can read them
+  private counts() {
+    return {
+      siteItemCount: this.db.$count(supplierSiteItems, eq(supplierSiteItems.supplierItemId, supplierItems.id)),
+      priceCount: this.db.$count(supplierItemPrices, eq(supplierItemPrices.supplierItemId, supplierItems.id)),
+    };
   }
 }

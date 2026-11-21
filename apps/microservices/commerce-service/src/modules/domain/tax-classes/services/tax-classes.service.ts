@@ -8,6 +8,7 @@ import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions }
 import { isMatch } from 'date-fns';
 import { taxClasses } from '@/db/schema';
 import { TaxClassDto } from '../dto/entity/tax-class.dto';
+import { TaxClassCountsDto } from '../dto/entity/tax-class-counts.dto';
 import { TaxClassTableRowDto } from '../dto/entity/tax-class-table-row.dto';
 import { CreateTaxClassDto } from '../dto/request/create-tax-class.dto';
 import { UpdateTaxClassDto } from '../dto/request/update-tax-class.dto';
@@ -106,6 +107,11 @@ export class TaxClassesDomainService {
 
     const dtos = rows.map((row) => TaxClassTableRowDto.from(row, !row.isSystem));
     return { result: dtos, count };
+  }
+
+  // Counts a tax class's group mappings, one per tab of its detail page
+  async findCounts(id: string): Promise<TaxClassCountsDto> {
+    return TaxClassCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns paginated tax-class options for select dropdowns

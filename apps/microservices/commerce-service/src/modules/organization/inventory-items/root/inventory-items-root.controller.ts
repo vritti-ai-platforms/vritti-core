@@ -1,4 +1,5 @@
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { OrgInventoryItemCountsDto } from '@domain/inventory-items/dto/entity/org-inventory-item-counts.dto';
 import { UpdateInventoryItemDto } from '@domain/inventory-items/dto/request/update-inventory-item.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
@@ -64,6 +65,13 @@ export class InventoryItemsRootController {
   }> {
     this.logger.log('inventoryItems.feed');
     return this.service.findForFeed(query);
+  }
+
+  // Counts an inventory item's UOM conversions, MRPs and suppliers, one per tab of its detail page
+  @MessagePattern({ cmd: 'org.inventoryItems.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<OrgInventoryItemCountsDto> {
+    this.logger.log(`inventoryItems.findCounts — id: ${data.id}`);
+    return this.service.findOrgCounts(data.id);
   }
 
   // Deletes a master inventory item

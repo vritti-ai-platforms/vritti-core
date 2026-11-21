@@ -1,3 +1,4 @@
+import { TaxClassCountsResponseDto } from '@commerce/tax-classes/dto/response/tax-class-counts-response.dto';
 import { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
 import { CreateTaxClassGroupOnClassDto } from '@commerce/tax-groups/dto/request/create-tax-class-group-on-class.dto';
 import { UpdateTaxClassGroupOnClassDto } from '@commerce/tax-groups/dto/request/update-tax-class-group-on-class.dto';
@@ -28,6 +29,19 @@ export function ApiFindForTableTaxClassGroups() {
     }),
     ApiParam(TAX_CLASS_ID),
     ApiResponse({ status: 200, type: TaxClassGroupTableResponseDto }),
+    ApiResponse({ status: 404, description: 'Tax class not found.' }),
+  );
+}
+
+export function ApiFindTaxClassCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a tax class's group mappings",
+      description:
+        "One count per tab of the class's detail page, so each tab can show how many rows it lists. Group mappings are counted in every country, not only the table context's.",
+    }),
+    ApiParam({ name: 'id', description: 'Tax class ID' }),
+    ApiResponse({ status: 200, type: TaxClassCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Tax class not found.' }),
   );
 }

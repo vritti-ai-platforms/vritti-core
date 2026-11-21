@@ -10,6 +10,7 @@ import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/reques
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
@@ -134,6 +135,19 @@ export function ApiFindProblems() {
     }),
     ApiParam({ name: 'id', description: 'Purchase order ID' }),
     ApiResponse({ status: 200, description: 'Problems retrieved.', type: PurchaseOrderProblemsResponseDto }),
+    ApiResponse({ status: 404, description: 'Purchase order not found.' }),
+  );
+}
+
+export function ApiFindPurchaseOrderCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a purchase order's lines, deliveries, receipts and invoices",
+      description:
+        "One count per tab of the order's detail page — its lines and the inbound deliveries, goods receipts and supplier invoices with a line on it — so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Purchase order ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: PurchaseOrderCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Purchase order not found.' }),
   );
 }

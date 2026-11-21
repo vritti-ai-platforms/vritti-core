@@ -14,6 +14,7 @@ import type { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/
 import type { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import type { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
+import type { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-response.dto';
 import type {
@@ -222,6 +223,12 @@ export class LePurchaseOrdersGatewayService {
   findInvoicesSummary(purchaseOrderId: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`le.purchaseOrders.invoices.summary — purchaseOrderId: ${purchaseOrderId}`);
     return this.nats.send('commerce', 'le.purchaseOrders.invoices.summary', { purchaseOrderId });
+  }
+
+  // Counts a purchase order's lines and the deliveries, receipts and invoices on them, one per tab of its detail page
+  findCounts(id: string): Promise<PurchaseOrderCountsResponseDto> {
+    this.logger.log(`le.purchaseOrders.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'le.purchaseOrders.findCounts', { id });
   }
 
   // Renders the purchase order as a PDF for download

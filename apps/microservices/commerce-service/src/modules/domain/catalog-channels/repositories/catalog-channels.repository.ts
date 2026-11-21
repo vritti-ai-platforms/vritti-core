@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, asc, desc, eq, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, desc, eq, exists, inArray, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type CatalogChannel,
   type CatalogChannelType,
@@ -66,6 +67,11 @@ export interface VariantSiblingRow {
   valueName: string;
   valueSortOrder: number;
 }
+
+export type CatalogChannelCounts = {
+  listingCount: number;
+  currencyCount: number;
+};
 
 export interface ListingFilterSelection {
   code: string;
@@ -136,6 +142,31 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
     return [{ table: posTerminals, on: eq(posTerminals.id, catalogChannels.terminalId) }];
   }
 
+  // Counts the rows each of a channel's tabs lists: its catalog's live listings, and the currencies it is priced in
+  private counts() {
+    return {
+      listingCount: this.db.$count(
+        catalogListings,
+        and(
+          eq(catalogListings.catalogId, catalogChannels.catalogId),
+          exists(
+            this.db
+              .select({ one: sql`1` })
+              .from(offeringVariants)
+              .where(
+                and(
+                  eq(offeringVariants.id, catalogListings.offeringVariantId),
+                  eq(offeringVariants.isActive, true),
+                  eq(offeringVariants.isOfferingActive, true),
+                ),
+              ),
+          ),
+        ),
+      ),
+      currencyCount: this.db.$count(catalogCurrencies, eq(catalogCurrencies.catalogId, catalogChannels.catalogId)),
+    };
+  }
+
   // Returns one channel with its catalog and target names
   async findByIdWithMeta(id: string): Promise<CatalogChannelRow | undefined> {
     const [row] = await this.findAllWithSelect<CatalogChannelRow>({
@@ -146,6 +177,13 @@ export class CatalogChannelsDomainRepository extends PrimaryBaseRepository<typeo
       orderBy: [asc(catalogChannels.type)],
     });
     return row;
+  }
+
+  // Counts a channel's listings and currencies, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<CatalogChannelCounts> {
+    const counts = await this.findById<CatalogChannelCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Channel not found.');
+    return counts;
   }
 
   // The winning row for every slot this workspace can see — each type's default, and each override of it

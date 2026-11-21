@@ -1,3 +1,4 @@
+import type { CartCountsResponseDto } from '@commerce/carts/dto/response/cart-counts-response.dto';
 import {
   Body,
   Controller,
@@ -18,6 +19,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { LE_CARTS } from '@vritti/commerce-permissions/carts';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { ApiFindCartCounts } from './docs/carts-gateway.docs';
 import {
   AddCartLineDto,
   CartsQueryDto,
@@ -116,6 +118,15 @@ export class LeCartsGatewayController {
   ): Promise<CartItemsTableResponse> {
     this.logger.log(`GET /commerce-api/le/carts/${id}/items/table`);
     return this.service.findItemsForTable(id, userId, query.currencyCode ?? DEFAULT_CURRENCY);
+  }
+
+  // Counts a cart's lines, for its Items tab
+  @Get(':id/counts')
+  @RequirePermission(LE_CARTS.view)
+  @ApiFindCartCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<CartCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/carts/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Returns the cart's lines, priced through this outlet's channel

@@ -1,3 +1,4 @@
+import type { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import type { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import type { LeInboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/le-inbound-delivery-response.dto';
 import type { LeInboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/le-inbound-delivery-table-response.dto';
@@ -8,7 +9,12 @@ import { LE_INBOUND_DELIVERIES } from '@vritti/commerce-permissions/inbound-deli
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId } from '@/security/decorators';
-import { ApiFindById, ApiFindForTable, ApiLinesTable } from './docs/inbound-deliveries-gateway.docs';
+import {
+  ApiFindById,
+  ApiFindForTable,
+  ApiFindInboundDeliveryCounts,
+  ApiLinesTable,
+} from './docs/inbound-deliveries-gateway.docs';
 import { LeInboundDeliveriesGatewayService } from './services/inbound-deliveries-gateway.service';
 
 @ApiTags('Commerce - Inbound Deliveries')
@@ -46,5 +52,14 @@ export class LeInboundDeliveriesGatewayController {
   linesTable(@Param('id') id: string, @UserId() userId: string): Promise<InboundDeliveryLineTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/inbound-deliveries/${id}/lines/table`);
     return this.service.findLinesTable(id, userId);
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(LE_INBOUND_DELIVERIES.view)
+  @ApiFindInboundDeliveryCounts()
+  findCounts(@Param('id') id: string): Promise<InboundDeliveryCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/inbound-deliveries/${id}/counts`);
+    return this.service.findCounts(id);
   }
 }

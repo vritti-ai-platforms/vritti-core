@@ -3,12 +3,14 @@ import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/d
 import { SupplierEnrollmentSiteParamsDto } from '@commerce/supplier-enrollments/dto/request/supplier-enrollment-site-params.dto';
 import { UpdateEnrollmentPurchasingDto } from '@commerce/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
 import { AddSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/add-supplier-site-item.dto';
 import { BulkSetSupplierSiteItemPreferredDto } from '@commerce/supplier-items/dto/request/bulk-set-supplier-site-item-preferred.dto';
 import { UpdateSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/update-supplier-site-item.dto';
+import type { SupplierItemCountsResponseDto } from '@commerce/supplier-items/dto/response/supplier-item-counts-response.dto';
 import type { SupplierSiteItemResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-response.dto';
 import type { SupplierSiteItemRowTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-table-response.dto';
 import type { SupplierSiteItemTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-table-response.dto';
@@ -26,6 +28,7 @@ import { SetSupplierPaymentBlockedDto } from '@commerce/suppliers/dto/request/se
 import { SetSupplierPurchasingBlockedDto } from '@commerce/suppliers/dto/request/set-supplier-purchasing-blocked.dto';
 import { UpdateSupplierDto } from '@commerce/suppliers/dto/request/update-supplier.dto';
 import { UpdateSupplierItemDto } from '@commerce/suppliers/dto/request/update-supplier-item.dto';
+import type { SupplierCountsResponseDto } from '@commerce/suppliers/dto/response/supplier-counts-response.dto';
 import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import type { SupplierItemTableResponseDto } from '@commerce/suppliers/dto/response/supplier-item-table-response.dto';
 import type { SupplierResponseDto } from '@commerce/suppliers/dto/response/supplier-response.dto';
@@ -38,6 +41,11 @@ import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { LegalEntityId, OrgId } from '@/security/decorators';
+import {
+  ApiFindSupplierCounts,
+  ApiFindSupplierEnrollmentCounts,
+  ApiFindSupplierItemCounts,
+} from './docs/suppliers-gateway.docs';
 import { SupplierQuotationsGatewayService } from './services/supplier-quotations-gateway.service';
 import { SuppliersGatewayService } from './services/suppliers-gateway.service';
 
@@ -355,6 +363,42 @@ export class SuppliersGatewayController {
   ): Promise<SupplierEnrollmentDetailResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}`);
     return this.suppliersGatewayService.findEnrollment(supplierId, siteId, orgId);
+  }
+
+  // Counts a supplier's items, site enrollments, quotations and people, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(LE_SUPPLIERS.view)
+  @ApiFindSupplierCounts()
+  findCounts(
+    @Param('id') id: string,
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<SupplierCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${id}/counts`);
+    return this.suppliersGatewayService.findCounts(id, orgId, legalEntityId);
+  }
+
+  // Counts a supplier item's sites and prices, one per tab of its detail page
+  @Get(':id/items/:itemId/counts')
+  @RequirePermission(LE_SUPPLIERS.items.view)
+  @ApiFindSupplierItemCounts()
+  findItemCounts(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<SupplierItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/items/${itemId}/counts`);
+    return this.suppliersGatewayService.findItemCounts(itemId);
+  }
+
+  // Counts a supplier's items and quotations at one of the LE's sites, one per tab of its enrollment page
+  @Get(':id/enrollments/:siteId/counts')
+  @RequirePermission(LE_SUPPLIERS.sites.view)
+  @ApiFindSupplierEnrollmentCounts()
+  findEnrollmentCounts(
+    @Param() { id: supplierId, siteId }: SupplierEnrollmentSiteParamsDto,
+  ): Promise<SupplierEnrollmentCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/enrollments/${siteId}/counts`);
+    return this.suppliersGatewayService.findEnrollmentCounts(supplierId, siteId);
   }
 
   // Deletes a supplier by ID

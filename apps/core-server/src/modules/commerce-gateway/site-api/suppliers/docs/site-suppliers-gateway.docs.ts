@@ -1,13 +1,17 @@
+import { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import { CreateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/create-supplier-invoice.dto';
 import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/request/release-supplier-invoice-hold.dto';
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
 } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
+import { SupplierItemCountsResponseDto } from '@commerce/supplier-items/dto/response/supplier-item-counts-response.dto';
+import { SupplierQuotationCountsResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-counts-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -37,6 +41,19 @@ export function ApiFindSiteSupplierInvoiceableGoodsReceipts() {
       description: 'Invoiceable goods receipts retrieved.',
       type: [InvoiceableGoodsReceiptResponseDto],
     }),
+  );
+}
+
+export function ApiFindSiteSupplierInvoiceCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count the lines and holds of one of a supplier's invoices",
+      description: "One count per tab of the invoice's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiParam({ name: 'invoiceId', description: 'Supplier invoice ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: SupplierInvoiceCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Supplier invoice not found.' }),
   );
 }
 
@@ -199,5 +216,45 @@ export function ApiDeleteSiteSupplierInvoiceLine() {
       description:
         'The invoice is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
     }),
+  );
+}
+
+export function ApiFindSiteSupplierCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a supplier's items, quotations and invoices at the site",
+      description:
+        "One count per list tab of the supplier's page at the session site, enrolled or not: the items the site lists, the quotations it reads and its invoices.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiResponse({ status: 200, type: SupplierEnrollmentCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Supplier not found.' }),
+  );
+}
+
+export function ApiFindSiteSupplierSiteItemCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a supplier item's prices the site reads",
+      description:
+        "One count per list tab of the supplier item's page at the session site: the price rows it reads, its own and the legal entity's.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiParam({ name: 'itemId', description: 'Supplier item ID' }),
+    ApiResponse({ status: 200, type: SupplierItemCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Supplier item not found.' }),
+  );
+}
+
+export function ApiFindSiteSupplierQuotationCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a quotation's lines and the sites it is posted to",
+      description: "One count per list tab of the quotation's page at the session site.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier ID' }),
+    ApiParam({ name: 'quotationId', description: 'Supplier quotation ID' }),
+    ApiResponse({ status: 200, type: SupplierQuotationCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Quotation not found.' }),
   );
 }

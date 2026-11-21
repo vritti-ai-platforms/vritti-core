@@ -2,6 +2,7 @@ import type { CreatePersonDto } from '@commerce/parties/dto/request/create-perso
 import type { CreatePersonRegistrationDto } from '@commerce/parties/dto/request/create-person-registration.dto';
 import type { UpdatePersonDto } from '@commerce/parties/dto/request/update-person.dto';
 import type { UpdatePersonRegistrationDto } from '@commerce/parties/dto/request/update-person-registration.dto';
+import type { PersonCountsResponseDto } from '@commerce/parties/dto/response/person-counts-response.dto';
 import type { PersonRegistrationResponseDto } from '@commerce/parties/dto/response/person-registration-response.dto';
 import type { PersonRegistrationTableResponseDto } from '@commerce/parties/dto/response/person-registration-table-response.dto';
 import type { PersonResponseDto } from '@commerce/parties/dto/response/person-response.dto';
@@ -413,6 +414,12 @@ export class PeopleGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Counts the rows each tab of a person's detail page lists
+  findCounts(id: string): Promise<PersonCountsResponseDto> {
+    this.logger.log(`org.people.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.people.findCounts', { id });
   }
 
   // ── The party's own wishlist, for a storefront acting for one signed-in party ──

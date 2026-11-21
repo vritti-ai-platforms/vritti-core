@@ -1,4 +1,5 @@
 import type { CompanyDto } from '@domain/parties/dto/entity/company.dto';
+import type { CompanyCountsDto } from '@domain/parties/dto/entity/company-counts.dto';
 import { CreateCompanyDto } from '@domain/parties/dto/request/create-company.dto';
 import { UpdateCompanyDto } from '@domain/parties/dto/request/update-company.dto';
 import { Controller, Logger } from '@nestjs/common';
@@ -39,6 +40,13 @@ export class CompaniesController {
   async table(@Payload() state: TableState): Promise<{ result: CompanyDto[]; count: number }> {
     this.logger.log('companies.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts the rows each tab of a company's detail page lists
+  @MessagePattern({ cmd: 'org.companies.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<CompanyCountsDto> {
+    this.logger.log(`companies.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes a company by ID

@@ -1,3 +1,4 @@
+import { StockAdjustmentCountsResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-counts-response.dto';
 import { StockAdjustmentLineItemResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-response.dto';
 import { StockAdjustmentLineResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-response.dto';
 import { StockAdjustmentLineTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-table-response.dto';
@@ -128,5 +129,18 @@ export function ApiGetStockAdjustmentLines() {
     }),
     ApiParam({ name: 'id', description: 'Stock adjustment ID' }),
     ApiOkResponse({ type: [StockAdjustmentLineResponseDto] }),
+  );
+}
+
+// Swagger decorator for GET :id/counts
+export function ApiFindStockAdjustmentCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count an adjustment's lines and draft lots",
+      description:
+        "The rows the adjustment's Breakdown tab lists: its lines, and the draft lots opening stock of a lot-tracked item groups them under.",
+    }),
+    ApiParam({ name: 'id', description: 'Stock adjustment ID' }),
+    ApiOkResponse({ type: StockAdjustmentCountsResponseDto }),
   );
 }

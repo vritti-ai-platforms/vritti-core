@@ -4,6 +4,7 @@ import type { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/
 import type { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import { InventoryItemSitesDomainService } from '@domain/inventory-item-sites/services/inventory-item-sites.service';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { SiteInventoryItemCountsDto } from '@domain/inventory-items/dto/entity/site-inventory-item-counts.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
 import { Injectable, Logger } from '@nestjs/common';
@@ -69,6 +70,11 @@ export class SiteInventoryItemsService {
       })),
       count,
     };
+  }
+
+  // Counts the rows each tab of the item's detail page lists at the current site
+  findCounts(id: string): Promise<SiteInventoryItemCountsDto> {
+    return this.inventoryItemsService.findSiteCounts(id);
   }
 
   // How the current site carries an item, or null while it does not; RLS narrows the item's rows to this site

@@ -2,6 +2,7 @@ import type {
   SupplierInvoiceDetailDto,
   SupplierInvoiceDto,
 } from '@domain/supplier-invoices/dto/entity/supplier-invoice.dto';
+import type { SupplierInvoiceCountsDto } from '@domain/supplier-invoices/dto/entity/supplier-invoice-counts.dto';
 import { LeCreateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/le-create-supplier-invoice.dto';
 import { LeInvoiceableGoodsReceiptsQueryDto } from '@domain/supplier-invoices/dto/request/le-invoiceable-goods-receipts-query.dto';
 import { UpdateSupplierInvoiceDto } from '@domain/supplier-invoices/dto/request/update-supplier-invoice.dto';
@@ -76,6 +77,13 @@ export class LeSupplierInvoicesRootController {
   table(@Payload() state: TableState): Promise<{ result: SupplierInvoiceDto[]; count: number }> {
     this.logger.log('le.supplierInvoices.table');
     return this.invoicesService.findForTable(state);
+  }
+
+  // Counts an invoice's lines and holds, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.supplierInvoices.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<SupplierInvoiceCountsDto> {
+    this.logger.log(`le.supplierInvoices.findCounts — id: ${data.id}`);
+    return this.invoicesService.findCounts(data.id);
   }
 
   // Returns a supplier's posted receipt lots at one of the legal entity's sites still to invoice, for an invoice's line picker

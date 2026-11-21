@@ -8,6 +8,7 @@ import { UpdateOpeningStockAdjustmentLineDto } from '@commerce/stock-adjustments
 import { UpdateStockAdjustmentDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import { UpdateStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-line-item.dto';
 import { UpdateStockAdjustmentLotDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-lot.dto';
+import type { StockAdjustmentCountsResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-counts-response.dto';
 import type { StockAdjustmentLineItemResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-table-response.dto';
 import type { StockAdjustmentLineResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-response.dto';
@@ -25,6 +26,7 @@ import { SessionTypeValues } from '@/db/schema';
 import {
   ApiAddStockAdjustmentLineItem,
   ApiFindStockAdjustmentById,
+  ApiFindStockAdjustmentCounts,
   ApiGetStockAdjustmentLine,
   ApiGetStockAdjustmentLines,
   ApiGetStockAdjustmentLinesByLotTable,
@@ -222,6 +224,14 @@ export class StockAdjustmentsGatewayController {
   getLines(@Param('id') id: string): Promise<StockAdjustmentLineResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/lines`);
     return this.service.findLines(id);
+  }
+
+  // Counts an adjustment's lines and draft lots, for its Breakdown tab
+  @Get(':id/counts')
+  @ApiFindStockAdjustmentCounts()
+  findCounts(@Param('id') id: string): Promise<StockAdjustmentCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/stock-adjustments/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   @Delete(':id')

@@ -13,6 +13,7 @@ import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/requ
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
 import type { LePurchaseOrderResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-response.dto';
 import type { LePurchaseOrderTableResponseDto } from '@commerce/purchase-orders/dto/response/le-purchase-order-table-response.dto';
+import type { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
@@ -58,6 +59,7 @@ import {
   ApiFindItemIds,
   ApiFindItemsTable,
   ApiFindProblems,
+  ApiFindPurchaseOrderCounts,
   ApiFindPurchaseOrderInvoicesSummary,
   ApiGetTable,
   ApiRemoveItem,
@@ -307,6 +309,15 @@ export class LePurchaseOrdersGatewayController {
   getInvoicesSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/invoices/summary`);
     return this.service.findInvoicesSummary(id);
+  }
+
+  // Counts a purchase order's lines and the deliveries, receipts and invoices on them, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(LE_PURCHASE_ORDERS.view)
+  @ApiFindPurchaseOrderCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/purchase-orders/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a draft purchase order

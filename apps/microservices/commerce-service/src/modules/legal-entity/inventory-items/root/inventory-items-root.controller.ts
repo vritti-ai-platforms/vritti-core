@@ -1,6 +1,7 @@
 import type { InventoryItemMrpDto } from '@domain/inventory-item-mrps/dto/entity/inventory-item-mrp.dto';
 import { InventoryItemMrpsDomainService } from '@domain/inventory-item-mrps/services/inventory-item-mrps.service';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { LegalEntityInventoryItemCountsDto } from '@domain/inventory-items/dto/entity/legal-entity-inventory-item-counts.dto';
 import { InventoryItemsDomainService } from '@domain/inventory-items/services/inventory-items.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -37,5 +38,12 @@ export class LeInventoryItemsController {
     const { inventoryItemId, ...state } = data;
     this.logger.log(`inventoryItems.mrp.table — inventoryItemId: ${inventoryItemId}`);
     return this.mrpsService.findForTable(inventoryItemId, state);
+  }
+
+  // Counts the item's suppliers and MRPs, one per tab of a legal entity's detail page
+  @MessagePattern({ cmd: 'le.inventoryItems.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<LegalEntityInventoryItemCountsDto> {
+    this.logger.log(`inventoryItems.findCounts — id: ${data.id}`);
+    return this.service.findLegalEntityCounts(data.id);
   }
 }

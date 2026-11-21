@@ -7,9 +7,11 @@ import {
   OFFERING_CHANNEL_TYPES,
   OfferingChannelTypeResponseDto,
 } from '../dto/response/offering-channel-response.dto';
+import { OfferingCountsResponseDto } from '../dto/response/offering-counts-response.dto';
 import { OfferingDimensionResponseDto } from '../dto/response/offering-dimension-response.dto';
 import { OfferingResponseDto } from '../dto/response/offering-response.dto';
 import { OfferingTableResponseDto } from '../dto/response/offering-table-response.dto';
+import { OfferingVariantCountsResponseDto } from '../dto/response/offering-variant-counts-response.dto';
 import { OfferingVariantResponseDto } from '../dto/response/offering-variant-response.dto';
 import { OfferingVariantTableResponseDto } from '../dto/response/offering-variant-table-response.dto';
 import { VariantBomResponseDto } from '../dto/response/variant-bom-response.dto';
@@ -43,6 +45,19 @@ export function ApiGetOffering() {
     ApiOperation({ summary: 'Get an offering', description: 'One offering with its dimension and variant counts.' }),
     ApiParam(ID),
     ApiResponse({ status: 200, type: OfferingResponseDto, description: 'Offering retrieved.' }),
+    ApiResponse(NOT_FOUND),
+    ApiResponse(UNAUTHORIZED),
+  );
+}
+
+export function ApiFindOfferingCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count an offering's dimensions, attributes and variants",
+      description: "One count per tab of the offering's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: OfferingCountsResponseDto }),
     ApiResponse(NOT_FOUND),
     ApiResponse(UNAUTHORIZED),
   );
@@ -330,6 +345,18 @@ export function ApiGetOfferingVariant() {
     }),
     ApiParam({ name: 'variantId', description: 'Variant identifier' }),
     ApiResponse({ status: 200, type: OfferingVariantResponseDto, description: 'Variant retrieved.' }),
+    ApiResponse(NOT_FOUND),
+  );
+}
+
+export function ApiFindOfferingVariantCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a variant's bill-of-materials lines",
+      description: "One count per tab of the variant's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'variantId', description: 'Variant identifier' }),
+    ApiResponse({ status: 200, type: OfferingVariantCountsResponseDto }),
     ApiResponse(NOT_FOUND),
   );
 }

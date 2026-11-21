@@ -13,6 +13,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import type { FindForSelectConfig, SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   GoodsReceiptStatusValues,
@@ -37,18 +38,22 @@ export type InboundDeliveryReceiptProgress = Pick<InboundDelivery, 'id' | 'deliv
   hasShortLine: boolean;
 };
 
-export type InboundDeliveryRow = InboundDelivery & {
-  supplierName: string | null;
-  purchaseNumber: string | null;
+export type InboundDeliveryCounts = {
   lineCount: number;
-  poNumbers: string[];
-  goodsReceiptCount: number;
-  draftGoodsReceiptId: string | null;
-  isEditable: boolean;
-  canCancel: boolean;
-  canDelete: boolean;
-  canReceive: boolean;
 };
+
+export type InboundDeliveryRow = InboundDelivery &
+  InboundDeliveryCounts & {
+    supplierName: string | null;
+    purchaseNumber: string | null;
+    poNumbers: string[];
+    goodsReceiptCount: number;
+    draftGoodsReceiptId: string | null;
+    isEditable: boolean;
+    canCancel: boolean;
+    canDelete: boolean;
+    canReceive: boolean;
+  };
 
 @Injectable()
 export class InboundDeliveriesDomainRepository extends PrimaryBaseRepository<typeof inboundDeliveries> {
@@ -77,6 +82,13 @@ export class InboundDeliveriesDomainRepository extends PrimaryBaseRepository<typ
   // Loads a delivery with its supplier, lines, purchase orders, receipts and what may still happen to it
   findDetail(id: string): Promise<InboundDeliveryRow | undefined> {
     return this.findById<InboundDeliveryRow>(id, { select: this.selection(), leftJoins: this.joins() });
+  }
+
+  // Counts a delivery's lines, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<InboundDeliveryCounts> {
+    const counts = await this.findById<InboundDeliveryCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Inbound delivery not found.');
+    return counts;
   }
 
   // Returns the deliveries a purchase created, oldest first
@@ -253,7 +265,7 @@ export class InboundDeliveriesDomainRepository extends PrimaryBaseRepository<typ
       ...getColumns(inboundDeliveries),
       supplierName: parties.displayName,
       purchaseNumber: purchases.purchaseNumber,
-      lineCount: this.db.$count(inboundDeliveryLines, ownLines),
+      ...this.counts(),
       poNumbers: sql<string[]>`coalesce((${poNumbers}), '{}')`,
       goodsReceiptCount: this.db.$count(goodsReceipts, ownReceipts),
       draftGoodsReceiptId: sql<string | null>`(${draftReceipt})`,
@@ -268,6 +280,13 @@ export class InboundDeliveriesDomainRepository extends PrimaryBaseRepository<typ
         notExists(anyReceipt),
       )}`,
       canReceive: sql<boolean>`${and(isOpen, exists(openLine))}`,
+    };
+  }
+
+  // Counts the rows each of a delivery's tabs lists: its lines
+  private counts() {
+    return {
+      lineCount: this.db.$count(inboundDeliveryLines, eq(inboundDeliveryLines.inboundDeliveryId, inboundDeliveries.id)),
     };
   }
 

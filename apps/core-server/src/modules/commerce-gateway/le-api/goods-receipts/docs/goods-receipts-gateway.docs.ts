@@ -6,6 +6,7 @@ import { LeUpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request
 import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt.dto';
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
+import { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
 import { GoodsReceiptItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-table-response.dto';
@@ -119,6 +120,19 @@ export function ApiPost() {
       description:
         'A lot number already exists for the item with another MRP (Lot MRP Differs); the lot keeps its MRP; or the receipt is a Receive with Invoice draft, changed only through its Purchase (Belongs to a Purchase).',
     }),
+  );
+}
+
+export function ApiFindGoodsReceiptCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a goods receipt's items",
+      description:
+        "One count per tab of the receipt's detail page — its breakdown and its items cost both list its items — so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Goods receipt ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: GoodsReceiptCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Goods receipt not found.' }),
   );
 }
 

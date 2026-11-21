@@ -1,5 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { CatalogChannelCountsResponseDto } from '../dto/response/catalog-channel-counts-response.dto';
 import { ChannelEntryResponseDto } from '../dto/response/catalog-channel-response.dto';
 import { ChannelItemResponseDto, ChannelPriceTableResponseDto } from '../dto/response/channel-item-response.dto';
 
@@ -43,6 +44,18 @@ export function ApiChannelCurrencies() {
       description: 'The currencies its catalog is priced in, in the order the catalog offers them.',
     }),
     ApiResponse({ status: 200, type: [String] }),
+  );
+}
+
+export function ApiFindChannelCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a channel's listings and currencies",
+      description: "One count per tab of the channel's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'channelId', description: 'Channel identifier' }),
+    ApiResponse({ status: 200, type: CatalogChannelCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Channel not found.' }),
   );
 }
 

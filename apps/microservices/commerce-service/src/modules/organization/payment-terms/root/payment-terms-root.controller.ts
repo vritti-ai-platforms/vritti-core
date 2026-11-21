@@ -1,4 +1,5 @@
 import { PaymentTermDetailDto, PaymentTermDto } from '@domain/payment-terms/dto/entity/payment-term.dto';
+import type { PaymentTermCountsDto } from '@domain/payment-terms/dto/entity/payment-term-counts.dto';
 import { ChangePaymentTermBaselineDto } from '@domain/payment-terms/dto/request/change-payment-term-baseline.dto';
 import { CreatePaymentTermDto } from '@domain/payment-terms/dto/request/create-payment-term.dto';
 import { UpdatePaymentTermDto } from '@domain/payment-terms/dto/request/update-payment-term.dto';
@@ -55,6 +56,13 @@ export class PaymentTermsRootController {
   async table(@Payload() state: TableState): Promise<{ result: PaymentTermDto[]; count: number }> {
     this.logger.log('paymentTerms.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts a payment term's rules, one per tab of its detail page
+  @MessagePattern({ cmd: 'org.paymentTerms.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<PaymentTermCountsDto> {
+    this.logger.log(`paymentTerms.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'org.paymentTerms.delete' })

@@ -6,6 +6,7 @@ import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptio
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { inventoryItems, StockAdjustmentStatusValues, type StockAdjustmentType, stockAdjustments } from '@/db/schema';
 import { StockAdjustmentDto } from '../dto/entity/stock-adjustment.dto';
+import { StockAdjustmentCountsDto } from '../dto/entity/stock-adjustment-counts.dto';
 import { StockAdjustmentsDomainRepository } from '../repositories/stock-adjustments.repository';
 
 @Injectable()
@@ -90,6 +91,11 @@ export class StockAdjustmentsDomainService {
     });
 
     return { result: rows.map((r) => StockAdjustmentDto.from(r, leCurrencyCode)), count };
+  }
+
+  // Counts an adjustment's lines and draft lots, for its Breakdown tab
+  async findCounts(id: string): Promise<StockAdjustmentCountsDto> {
+    return StockAdjustmentCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Deletes a DRAFT adjustment and all its lines (CASCADE)

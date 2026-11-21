@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, desc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, desc, eq, exists, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import { alias } from '@vritti/api-sdk/drizzle-pg-core';
-import { BadRequestException } from '@vritti/api-sdk/exceptions';
+import { BadRequestException, NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
+  CONTACTABLE_CHANNELS,
+  offeringVariants,
   type Party,
   type PartyAddress,
   PartyCommunicationChannelValues,
   PartyFunctionTypeValues,
+  PartyTypeValues,
   parties,
   partyAddresses,
+  partyBankAccounts,
   partyCommunications,
   partyFunctions,
+  partyIdentifiers,
+  partyLicenses,
   partyRelationships,
   partySocialProfiles,
+  partyTaxRegistrations,
   SocialPlatformValues,
   suppliers,
   type TaxJurisdiction,
   TaxJurisdictionLevelValues,
   TaxRegistrationTypeValues,
   taxJurisdictions,
+  wishlistItems,
 } from '@/db/schema';
 import type { PartyRegistrationPlacement } from './party-tax-registrations.repository';
 
@@ -50,6 +58,25 @@ export interface PartyTableRow extends Party {
   email: string | null;
   phone: string | null;
 }
+
+export type PartyCounts = {
+  addressCount: number;
+  communicationCount: number;
+  socialProfileCount: number;
+  registrationCount: number;
+  licenseCount: number;
+  bankAccountCount: number;
+  identifierCount: number;
+};
+
+export type CompanyCounts = PartyCounts & {
+  personCount: number;
+};
+
+export type PersonCounts = PartyCounts & {
+  companyCount: number;
+  wishlistCount: number;
+};
 
 @Injectable()
 export class PartiesDomainRepository extends PrimaryBaseRepository<typeof parties> {
@@ -168,6 +195,49 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
     };
   }
 
+  // Counts the rows each of a company's tabs lists, throwing when it is out of reach
+  async findCompanyCountsOrThrow(id: string): Promise<CompanyCounts> {
+    const counts = await this.findById<CompanyCounts>(id, {
+      select: {
+        ...this.partyCounts(),
+        personCount: this.db.$count(partyRelationships, eq(partyRelationships.parentPartyId, parties.id)),
+      },
+      where: eq(parties.partyType, PartyTypeValues.COMPANY),
+    });
+    if (!counts) throw new NotFoundException('Company not found.');
+    return counts;
+  }
+
+  // Counts the rows each of a person's tabs lists, throwing when they are out of reach
+  async findPersonCountsOrThrow(id: string): Promise<PersonCounts> {
+    const counts = await this.findById<PersonCounts>(id, {
+      select: {
+        ...this.partyCounts(),
+        companyCount: this.db.$count(partyRelationships, eq(partyRelationships.childPartyId, parties.id)),
+        wishlistCount: this.db.$count(
+          wishlistItems,
+          and(
+            eq(wishlistItems.partyId, parties.id),
+            exists(
+              this.db
+                .select({ id: offeringVariants.id })
+                .from(offeringVariants)
+                .where(
+                  and(
+                    eq(offeringVariants.organizationId, wishlistItems.organizationId),
+                    eq(offeringVariants.code, wishlistItems.code),
+                  ),
+                ),
+            ),
+          ),
+        ),
+      },
+      where: eq(parties.partyType, PartyTypeValues.PERSON),
+    });
+    if (!counts) throw new NotFoundException('Person not found.');
+    return counts;
+  }
+
   // Returns paginated parties with their EMAIL/PHONE main lines, filtered by an already-built where clause
   findForTable(options: {
     where?: SQL;
@@ -238,5 +308,24 @@ export class PartiesDomainRepository extends PrimaryBaseRepository<typeof partie
       });
     }
     return jurisdiction;
+  }
+
+  // Counts the rows each party tab shared by companies and people lists, matching each tab's table query
+  private partyCounts() {
+    return {
+      addressCount: this.db.$count(partyAddresses, eq(partyAddresses.partyId, parties.id)),
+      communicationCount: this.db.$count(
+        partyCommunications,
+        and(
+          eq(partyCommunications.partyId, parties.id),
+          inArray(partyCommunications.channel, [...CONTACTABLE_CHANNELS]),
+        ),
+      ),
+      socialProfileCount: this.db.$count(partySocialProfiles, eq(partySocialProfiles.partyId, parties.id)),
+      registrationCount: this.db.$count(partyTaxRegistrations, eq(partyTaxRegistrations.partyId, parties.id)),
+      licenseCount: this.db.$count(partyLicenses, eq(partyLicenses.partyId, parties.id)),
+      bankAccountCount: this.db.$count(partyBankAccounts, eq(partyBankAccounts.partyId, parties.id)),
+      identifierCount: this.db.$count(partyIdentifiers, eq(partyIdentifiers.partyId, parties.id)),
+    };
   }
 }

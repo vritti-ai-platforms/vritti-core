@@ -6,6 +6,7 @@ import { UpdateTaxClassGroupDto } from '@commerce/tax-groups/dto/request/update-
 import { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-tax-group.dto';
 import { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
+import { TaxGroupCountsResponseDto } from '@commerce/tax-groups/dto/response/tax-group-counts-response.dto';
 import { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
 import { TaxGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-table-response.dto';
@@ -32,6 +33,18 @@ export function ApiGetTaxGroup() {
     ApiOperation({ summary: 'Get a tax group' }),
     ApiParam(ID),
     ApiResponse({ status: 200, type: TaxGroupResponseDto }),
+    ApiResponse({ status: 404, description: 'Tax group not found.' }),
+  );
+}
+
+export function ApiFindTaxGroupCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a tax group's rates and class mappings",
+      description: "One count per tab of the group's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: TaxGroupCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Tax group not found.' }),
   );
 }

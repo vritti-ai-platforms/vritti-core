@@ -2,6 +2,7 @@ import type { AddSupplierQuotationItemDto } from '@commerce/supplier-quotations/
 import type { CreateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import type { SupplierQuotationItemFieldsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-item-fields.dto';
 import type { UpdateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/update-supplier-quotation.dto';
+import type { SupplierQuotationCountsResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-counts-response.dto';
 import type {
   SupplierQuotationDetailResponseDto,
   SupplierQuotationResponseDto,
@@ -80,6 +81,12 @@ export class SiteSupplierQuotationsGatewayService {
       count: number;
     }>('commerce', 'site.suppliers.quotations.table', { supplierId, ...state });
     return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
+  }
+
+  // Counts the lines and postings of a quotation the session site can read
+  findCounts(supplierId: string, quotationId: string): Promise<SupplierQuotationCountsResponseDto> {
+    this.logger.log(`site.suppliers.quotations.findCounts — supplierId: ${supplierId}, id: ${quotationId}`);
+    return this.nats.send('commerce', 'site.suppliers.quotations.findCounts', { supplierId, quotationId });
   }
 
   // Deletes a quotation the session site owns while it is posted nowhere else

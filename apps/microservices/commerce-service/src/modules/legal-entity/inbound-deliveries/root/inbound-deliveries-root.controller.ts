@@ -1,4 +1,5 @@
 import type { InboundDeliveryDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery.dto';
+import type { InboundDeliveryCountsDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery-counts.dto';
 import { InboundDeliveriesDomainService } from '@domain/inbound-deliveries/services/inbound-deliveries.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -22,5 +23,12 @@ export class LeInboundDeliveriesRootController {
   table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
     this.logger.log('le.inboundDeliveries.table');
     return this.deliveriesService.findForTable(state);
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.inboundDeliveries.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<InboundDeliveryCountsDto> {
+    this.logger.log(`le.inboundDeliveries.findCounts — id: ${data.id}`);
+    return this.deliveriesService.findCounts(data.id);
   }
 }

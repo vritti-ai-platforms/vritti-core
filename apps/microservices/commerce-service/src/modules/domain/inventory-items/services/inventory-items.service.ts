@@ -23,7 +23,10 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { inventoryItems, SiteItemStatusValues, siteStockStatusMatchesSql, siteStockValue } from '@/db/schema';
 import { InventoryItemDto } from '../dto/entity/inventory-item.dto';
+import { LegalEntityInventoryItemCountsDto } from '../dto/entity/legal-entity-inventory-item-counts.dto';
+import { OrgInventoryItemCountsDto } from '../dto/entity/org-inventory-item-counts.dto';
 import type { SiteStockTableItemDto } from '../dto/entity/scoped-inventory-item.dto';
+import { SiteInventoryItemCountsDto } from '../dto/entity/site-inventory-item-counts.dto';
 import type { CreateInventoryItemDto } from '../dto/request/create-inventory-item.dto';
 import type { UpdateInventoryItemDto } from '../dto/request/update-inventory-item.dto';
 import {
@@ -249,6 +252,21 @@ export class InventoryItemsDomainService {
       })),
       count,
     };
+  }
+
+  // Counts an inventory item's UOM conversions, MRPs and suppliers, one per tab of the org's detail page
+  async findOrgCounts(id: string): Promise<OrgInventoryItemCountsDto> {
+    return OrgInventoryItemCountsDto.from(await this.repository.findOrgCountsOrThrow(id));
+  }
+
+  // Counts an inventory item's suppliers and MRPs, one per tab of a legal entity's detail page
+  async findLegalEntityCounts(id: string): Promise<LegalEntityInventoryItemCountsDto> {
+    return LegalEntityInventoryItemCountsDto.from(await this.repository.findLegalEntityCountsOrThrow(id));
+  }
+
+  // Counts the rows each tab of a site's inventory item detail page lists
+  async findSiteCounts(id: string): Promise<SiteInventoryItemCountsDto> {
+    return SiteInventoryItemCountsDto.from(await this.repository.findSiteCountsOrThrow(id));
   }
 
   // Returns a keyset/cursor Relay connection of inventory items for infinite feeds (mobile / GraphQL).

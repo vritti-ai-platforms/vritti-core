@@ -15,6 +15,7 @@ import {
   parties,
 } from '@/db/schema';
 import { InboundDeliveryDto } from '../dto/entity/inbound-delivery.dto';
+import { InboundDeliveryCountsDto } from '../dto/entity/inbound-delivery-counts.dto';
 import type { CreateInboundDeliveryDto } from '../dto/request/create-inbound-delivery.dto';
 import type { UpdateInboundDeliveryDto } from '../dto/request/update-inbound-delivery.dto';
 import {
@@ -197,6 +198,11 @@ export class InboundDeliveriesDomainService {
       offset,
     });
     return { result: result.map(InboundDeliveryDto.from), count };
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  async findCounts(id: string): Promise<InboundDeliveryCountsDto> {
+    return InboundDeliveryCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Loads a delivery with its supplier, lines, purchase orders, receipts and what may still happen to it, throwing when it is out of reach

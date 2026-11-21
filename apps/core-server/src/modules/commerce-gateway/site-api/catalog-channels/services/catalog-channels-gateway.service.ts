@@ -7,6 +7,7 @@ import {
   CatalogChannelTypeValues,
   CHANNEL_TYPES,
 } from '@commerce/catalog-channels/dto/request/create-catalog-channel.dto';
+import type { CatalogChannelCountsResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-counts-response.dto';
 import {
   type CatalogChannelResponseDto,
   type ChannelCatalogResponseDto,
@@ -188,6 +189,12 @@ export class SiteCatalogChannelsGatewayService {
   async findCurrencies(channelId: string): Promise<string[]> {
     this.logger.log(`site.catalogChannels.currencies — channelId: ${channelId}`);
     return this.nats.send('commerce', 'site.catalogChannels.currencies', { channelId });
+  }
+
+  // Counts a channel's listings and currencies, one per tab of its detail page
+  findCounts(channelId: string): Promise<CatalogChannelCountsResponseDto> {
+    this.logger.log(`site.catalogChannels.findCounts — channelId: ${channelId}`);
+    return this.nats.send('commerce', 'site.catalogChannels.findCounts', { channelId });
   }
 
   // Everything below keys on channelId and is type-neutral — only creation differs per type

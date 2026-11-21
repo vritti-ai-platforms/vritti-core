@@ -2,6 +2,7 @@ import type { AddSupplierQuotationItemDto } from '@commerce/supplier-quotations/
 import type { CreateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import type { SupplierQuotationItemFieldsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-item-fields.dto';
 import type { UpdateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/update-supplier-quotation.dto';
+import type { SupplierQuotationCountsResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-counts-response.dto';
 import type {
   SupplierQuotationDetailResponseDto,
   SupplierQuotationResponseDto,
@@ -95,6 +96,12 @@ export class SupplierQuotationsGatewayService {
       count: number;
     }>('commerce', 'le.suppliers.enrollments.quotations.table', { supplierId, siteId, ...state });
     return { result: await this.ownerNames.resolve(orgId, result), count, state, activeViewId };
+  }
+
+  // Counts a quotation's lines and the sites it is posted to
+  findCounts(id: string): Promise<SupplierQuotationCountsResponseDto> {
+    this.logger.log(`le.suppliers.quotations.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'le.suppliers.quotations.findCounts', { id });
   }
 
   delete(id: string): Promise<SuccessResponseDto> {

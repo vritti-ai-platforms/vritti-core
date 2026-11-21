@@ -14,6 +14,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type GoodsReceipt,
   GoodsReceiptStatusValues,
@@ -32,21 +33,25 @@ import {
   suppliers,
 } from '@/db/schema';
 
-export type GoodsReceiptRow = GoodsReceipt & {
-  supplierName: string | null;
-  purchaseNumber: string | null;
-  receiveWithInvoiceInvoiceId: string | null;
-  deliveryNumber: string;
-  deliverySource: InboundDeliverySource;
-  carrier: string | null;
-  trackingNumber: string | null;
-  supplierDeliveryNoteNumber: string | null;
-  supplierDeliveryNoteDate: string | null;
-  poNumbers: string[];
-  expectedDeliveryDate: string | null;
+export type GoodsReceiptCounts = {
   itemCount: number;
-  isPostable: boolean;
 };
+
+export type GoodsReceiptRow = GoodsReceipt &
+  GoodsReceiptCounts & {
+    supplierName: string | null;
+    purchaseNumber: string | null;
+    receiveWithInvoiceInvoiceId: string | null;
+    deliveryNumber: string;
+    deliverySource: InboundDeliverySource;
+    carrier: string | null;
+    trackingNumber: string | null;
+    supplierDeliveryNoteNumber: string | null;
+    supplierDeliveryNoteDate: string | null;
+    poNumbers: string[];
+    expectedDeliveryDate: string | null;
+    isPostable: boolean;
+  };
 
 @Injectable()
 export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof goodsReceipts> {
@@ -65,6 +70,13 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
   // Loads a receipt with its supplier, inbound delivery, purchase orders and post readiness
   findDetail(id: string): Promise<GoodsReceiptRow | undefined> {
     return this.findById<GoodsReceiptRow>(id, { select: this.selection(), leftJoins: this.joins() });
+  }
+
+  // Counts a receipt's items, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<GoodsReceiptCounts> {
+    const counts = await this.findById<GoodsReceiptCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Goods receipt not found.');
+    return counts;
   }
 
   // Loads the given receipts with their detail, oldest first
@@ -176,12 +188,19 @@ export class GoodsReceiptsDomainRepository extends PrimaryBaseRepository<typeof 
       expectedDeliveryDate: sql<string | null>`(${latestExpectedDeliveryDate})`.mapWith(
         purchaseOrderItems.expectedDeliveryDate,
       ),
-      itemCount: this.db.$count(goodsReceiptItems, ownItems),
+      ...this.counts(),
       isPostable: sql<boolean>`${and(
         eq(goodsReceipts.status, GoodsReceiptStatusValues.DRAFT),
         exists(anyItem),
         notExists(undistributedItem),
       )}`,
+    };
+  }
+
+  // Counts the rows each of a receipt's tabs lists: its items, which both its breakdown and its items' cost list
+  private counts() {
+    return {
+      itemCount: this.db.$count(goodsReceiptItems, eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id)),
     };
   }
 

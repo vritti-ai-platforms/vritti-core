@@ -3,6 +3,7 @@ import type { CreateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/
 import type { SetInboundDeliveryStatusDto } from '@commerce/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import type { UpdateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import type { UpdateInboundDeliveryLineDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
+import type { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import type { InboundDeliveryLineResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-response.dto';
 import type { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import type { InboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
@@ -91,6 +92,12 @@ export class InboundDeliveriesGatewayService {
       { inboundDeliveryId, ...state },
     );
     return { result, count, state, activeViewId };
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  findCounts(id: string): Promise<InboundDeliveryCountsResponseDto> {
+    this.logger.log(`site.inboundDeliveries.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.inboundDeliveries.findCounts', { id });
   }
 
   // Deletes a planned inbound delivery without lines

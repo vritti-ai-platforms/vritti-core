@@ -1,4 +1,5 @@
 import type { TaxGroupDto } from '@domain/tax-groups/dto/entity/tax-group.dto';
+import type { TaxGroupCountsDto } from '@domain/tax-groups/dto/entity/tax-group-counts.dto';
 import { CreateTaxGroupDto } from '@domain/tax-groups/dto/request/create-tax-group.dto';
 import { SetTaxGroupActiveDto } from '@domain/tax-groups/dto/request/set-tax-group-active.dto';
 import { UpdateTaxGroupDto } from '@domain/tax-groups/dto/request/update-tax-group.dto';
@@ -48,6 +49,13 @@ export class TaxGroupsRootController {
   async table(@Payload() state: TableState): Promise<{ result: TaxGroupDto[]; count: number }> {
     this.logger.log('taxGroups.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts a tax group's rates and class mappings, one per tab of its detail page
+  @MessagePattern({ cmd: 'org.taxGroups.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<TaxGroupCountsDto> {
+    this.logger.log(`taxGroups.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes a tax group by ID

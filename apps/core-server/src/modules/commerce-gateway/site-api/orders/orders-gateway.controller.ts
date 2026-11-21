@@ -1,5 +1,6 @@
 import { CreateOrderDto } from '@commerce/orders/dto/request/create-order.dto';
 import { UpdateOrderStatusDto } from '@commerce/orders/dto/request/update-order-status.dto';
+import type { OrderCountsResponseDto } from '@commerce/orders/dto/response/order-counts-response.dto';
 import type {
   OrderPaymentRefundCheckResponseDto,
   OrderPaymentResponseDto,
@@ -13,6 +14,7 @@ import type { SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { SITE_ORDERS } from '@vritti/commerce-permissions/orders';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { ApiFindOrderCounts } from './docs/orders-gateway.docs';
 import { OrdersGatewayService } from './services/orders-gateway.service';
 
 @ApiTags('Commerce - Orders')
@@ -73,6 +75,14 @@ export class OrdersGatewayController {
   @RequirePermission(SITE_ORDERS.view)
   getOrderTable(@UserId() userId: string): Promise<OrderTableResponseDto> {
     return this.ordersGatewayService.findForTable(userId);
+  }
+
+  // Counts an order's items and payments, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(SITE_ORDERS.view)
+  @ApiFindOrderCounts()
+  findCounts(@Param('id') id: string): Promise<OrderCountsResponseDto> {
+    return this.ordersGatewayService.findCounts(id);
   }
 
   // Lists the payments of the order's checkout: the one the order uses, and any second payment to refund

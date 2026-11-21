@@ -1,4 +1,5 @@
 import type { GoodsReceiptDto } from '@domain/goods-receipts/dto/entity/goods-receipt.dto';
+import type { GoodsReceiptCountsDto } from '@domain/goods-receipts/dto/entity/goods-receipt-counts.dto';
 import { CreateGoodsReceiptFromDeliveryDto } from '@domain/goods-receipts/dto/request/create-goods-receipt-from-delivery.dto';
 import { UpdateGoodsReceiptDto } from '@domain/goods-receipts/dto/request/update-goods-receipt.dto';
 import { GoodsReceiptsDomainService } from '@domain/goods-receipts/services/goods-receipts.service';
@@ -53,6 +54,13 @@ export class LeGoodsReceiptsRootController {
   table(@Payload() state: TableState): Promise<{ result: GoodsReceiptDto[]; count: number }> {
     this.logger.log('le.goodsReceipts.table');
     return this.goodsReceiptsService.findForTable(state);
+  }
+
+  // Counts a goods receipt's items, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.goodsReceipts.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<GoodsReceiptCountsDto> {
+    this.logger.log(`le.goodsReceipts.findCounts — id: ${data.id}`);
+    return this.goodsReceiptsService.findCounts(data.id);
   }
 
   // Deletes a draft goods receipt

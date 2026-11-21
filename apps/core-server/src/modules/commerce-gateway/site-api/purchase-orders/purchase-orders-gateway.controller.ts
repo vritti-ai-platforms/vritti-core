@@ -11,6 +11,7 @@ import { UpdatePurchaseOrderItemDto } from '@commerce/purchase-orders/dto/reques
 import { UpdatePurchaseOrderNotesDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-notes.dto';
 import { UpdatePurchaseOrderStatusDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-status.dto';
 import { UpdatePurchaseOrderTaxDateDto } from '@commerce/purchase-orders/dto/request/update-purchase-order-tax-date.dto';
+import type { PurchaseOrderCountsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-counts-response.dto';
 import type { PurchaseOrderItemDefaultsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-defaults-response.dto';
 import type { PurchaseOrderItemTableResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-item-table-response.dto';
 import type { PurchaseOrderProblemsResponseDto } from '@commerce/purchase-orders/dto/response/purchase-order-problems-response.dto';
@@ -57,6 +58,7 @@ import {
   ApiFindItemIds,
   ApiFindItemsTable,
   ApiFindProblems,
+  ApiFindPurchaseOrderCounts,
   ApiFindPurchaseOrderInvoicesSummary,
   ApiGetTable,
   ApiRemoveItem,
@@ -306,6 +308,15 @@ export class PurchaseOrdersGatewayController {
   getInvoicesSummary(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderInvoiceSummaryResponseDto> {
     this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/invoices/summary`);
     return this.service.findInvoicesSummary(id);
+  }
+
+  // Counts a purchase order's lines and the deliveries, receipts and invoices on them, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(SITE_PURCHASE_ORDERS.view)
+  @ApiFindPurchaseOrderCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<PurchaseOrderCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/purchase-orders/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a draft purchase order

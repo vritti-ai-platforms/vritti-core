@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, getColumns, ne, type SQL, sql, sum } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type PaymentTerm, paymentTermRules, paymentTerms, supplierEnrollments, suppliers } from '@/db/schema';
 
-export type PaymentTermDetail = PaymentTerm & {
+export type PaymentTermCounts = {
   ruleCount: number;
-  totalPercent: string;
-  supplierCount: number;
-  enrollmentCount: number;
 };
+
+export type PaymentTermDetail = PaymentTerm &
+  PaymentTermCounts & {
+    totalPercent: string;
+    supplierCount: number;
+    enrollmentCount: number;
+  };
 
 @Injectable()
 export class PaymentTermsDomainRepository extends PrimaryBaseRepository<typeof paymentTerms> {
@@ -19,6 +24,13 @@ export class PaymentTermsDomainRepository extends PrimaryBaseRepository<typeof p
   // Loads a payment term with its rule count, rule total and how many suppliers and enrollments use it
   findDetail(id: string): Promise<PaymentTermDetail | undefined> {
     return this.findById<PaymentTermDetail>(id, { select: this.selection() });
+  }
+
+  // Counts a payment term's rules, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<PaymentTermCounts> {
+    const counts = await this.findById<PaymentTermCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Payment term not found.');
+    return counts;
   }
 
   // Loads a payment term only while it is a draft
@@ -41,13 +53,20 @@ export class PaymentTermsDomainRepository extends PrimaryBaseRepository<typeof p
     const ownRules = eq(paymentTermRules.paymentTermId, paymentTerms.id);
     return {
       ...getColumns(paymentTerms),
-      ruleCount: this.db.$count(paymentTermRules, ownRules),
+      ...this.counts(),
       totalPercent: sql<string>`(${this.db
         .select({ total: sql`coalesce(${sum(paymentTermRules.percent)}, 0)` })
         .from(paymentTermRules)
         .where(ownRules)})`,
       supplierCount: this.db.$count(suppliers, eq(suppliers.defaultPaymentTermId, paymentTerms.id)),
       enrollmentCount: this.db.$count(supplierEnrollments, eq(supplierEnrollments.paymentTermId, paymentTerms.id)),
+    };
+  }
+
+  // Counts the rows each of a payment term's tabs lists: its rules
+  private counts() {
+    return {
+      ruleCount: this.db.$count(paymentTermRules, eq(paymentTermRules.paymentTermId, paymentTerms.id)),
     };
   }
 }

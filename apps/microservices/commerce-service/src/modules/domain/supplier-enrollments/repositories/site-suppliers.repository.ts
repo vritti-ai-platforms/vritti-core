@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService, type RepositoryJoin } from '@vritti/api-sdk/database';
-import { and, eq, inArray, isNotNull, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, eq, exists, inArray, isNotNull, isNull, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
 import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
@@ -14,6 +14,11 @@ import {
   partyTaxRegistrations,
   paymentTerms,
   supplierEnrollments,
+  supplierInvoices,
+  supplierItems,
+  supplierQuotationSites,
+  supplierQuotations,
+  supplierSiteItems,
   suppliers,
   TaxIdIdentifierTypes,
   taxJurisdictions,
@@ -39,6 +44,16 @@ const partyTaxIdField = <T>(column: AnyPgColumn) =>
     ORDER BY ${partyIdentifiers.isPrimary} DESC, ${partyIdentifiers.createdAt} ASC
     LIMIT 1
   )`;
+
+// The rows a supplier's list tabs show at a site: the site lists the items it carries once enrolled, the supplier's whole
+// catalog before
+export type SupplierSiteCountsRow = {
+  enrollmentId: string | null;
+  itemCount: number;
+  carriedItemCount: number;
+  quotationCount: number;
+  invoiceCount: number;
+};
 
 @Injectable()
 export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof suppliers> {
@@ -77,6 +92,18 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
       },
       innerJoin: this.partyJoin(),
       leftJoins: this.enrollmentJoins(siteId),
+      where: eq(suppliers.legalEntityId, legalEntityId),
+    });
+    if (!row) throw new NotFoundException('Supplier not found.');
+    return row;
+  }
+
+  // Counts a supplier's items, quotations and invoices as one site sees it, enrolled or not, throwing when it does not
+  // exist
+  async findCountsOrThrow(legalEntityId: string, supplierId: string, siteId?: string): Promise<SupplierSiteCountsRow> {
+    const row = await this.findById<SupplierSiteCountsRow>(supplierId, {
+      select: { enrollmentId: supplierEnrollments.id, ...this.siteCounts(siteId) },
+      leftJoins: [{ table: supplierEnrollments, on: this.enrollmentAtSite(siteId) }],
       where: eq(suppliers.legalEntityId, legalEntityId),
     });
     if (!row) throw new NotFoundException('Supplier not found.');
@@ -170,6 +197,46 @@ export class SiteSuppliersDomainRepository extends PrimaryBaseRepository<typeof 
       orderPhoneCommunicationId: supplierEnrollments.orderPhoneCommunicationId,
       orderPhone: orderPhone.value,
       enrolledAt: supplierEnrollments.createdAt,
+    };
+  }
+
+  // Counts the rows each of a supplier's list tabs shows at a site. A named site is one the legal entity reads: its
+  // quotations are those posted to it and its invoices those entered there; the request's site reads its own through RLS
+  private siteCounts(siteId?: string) {
+    const supplierItemIds = this.db
+      .select({ id: supplierItems.id })
+      .from(supplierItems)
+      .where(eq(supplierItems.supplierId, suppliers.id));
+    const postedToSite = siteId
+      ? exists(
+          this.db
+            .select({ one: sql`1` })
+            .from(supplierQuotationSites)
+            .where(
+              and(
+                eq(supplierQuotationSites.quotationId, supplierQuotations.id),
+                eq(supplierQuotationSites.siteId, siteId),
+              ),
+            ),
+        )
+      : undefined;
+    return {
+      itemCount: this.db.$count(supplierItems, eq(supplierItems.supplierId, suppliers.id)),
+      carriedItemCount: this.db.$count(
+        supplierSiteItems,
+        and(
+          eq(supplierSiteItems.siteId, siteId ?? currentSiteId()),
+          inArray(supplierSiteItems.supplierItemId, supplierItemIds),
+        ),
+      ),
+      quotationCount: this.db.$count(
+        supplierQuotations,
+        and(eq(supplierQuotations.supplierId, suppliers.id), postedToSite),
+      ),
+      invoiceCount: this.db.$count(
+        supplierInvoices,
+        and(eq(supplierInvoices.supplierId, suppliers.id), siteId ? eq(supplierInvoices.siteId, siteId) : undefined),
+      ),
     };
   }
 

@@ -1,3 +1,4 @@
+import { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import { LeInboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/le-inbound-delivery-response.dto';
 import { LeInboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/le-inbound-delivery-table-response.dto';
@@ -37,5 +38,17 @@ export function ApiLinesTable() {
     }),
     ApiParam({ name: 'id', description: 'Inbound delivery ID' }),
     ApiResponse({ status: 200, description: 'Lines retrieved.', type: InboundDeliveryLineTableResponseDto }),
+  );
+}
+
+export function ApiFindInboundDeliveryCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count an inbound delivery's lines",
+      description: "One count per tab of the delivery's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Inbound delivery ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: InboundDeliveryCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Inbound delivery not found.' }),
   );
 }

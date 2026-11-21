@@ -1,4 +1,5 @@
 import type { PersonDto } from '@domain/parties/dto/entity/person.dto';
+import type { PersonCountsDto } from '@domain/parties/dto/entity/person-counts.dto';
 import { CreatePersonDto } from '@domain/parties/dto/request/create-person.dto';
 import { UpdatePersonDto } from '@domain/parties/dto/request/update-person.dto';
 import { Controller, Logger } from '@nestjs/common';
@@ -39,6 +40,13 @@ export class PeopleController {
   async table(@Payload() state: TableState): Promise<{ result: PersonDto[]; count: number }> {
     this.logger.log('people.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts the rows each tab of a person's detail page lists
+  @MessagePattern({ cmd: 'org.people.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<PersonCountsDto> {
+    this.logger.log(`people.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes a person by ID

@@ -3,6 +3,7 @@ import { BlockSiteItemDto } from '@domain/inventory-item-sites/dto/request/block
 import { ReplenishmentDto } from '@domain/inventory-item-sites/dto/request/replenishment.dto';
 import { SiteItemRefDto } from '@domain/inventory-item-sites/dto/request/site-item-ref.dto';
 import type { InventoryItemDto } from '@domain/inventory-items/dto/entity/inventory-item.dto';
+import type { SiteInventoryItemCountsDto } from '@domain/inventory-items/dto/entity/site-inventory-item-counts.dto';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import type { TableState } from '@vritti/api-sdk/data-table';
@@ -61,6 +62,13 @@ export class InventoryItemsRootController {
   ): Promise<{ result: SiteStockTableRowDto[]; count: number }> {
     this.logger.log('inventoryItems.stockTable');
     return this.rootService.findForStockTable(state, leCurrencyCode as CurrencyCode);
+  }
+
+  // Counts the rows each tab of the item's detail page lists at the current site
+  @MessagePattern({ cmd: 'site.inventoryItems.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<SiteInventoryItemCountsDto> {
+    this.logger.log(`site.inventoryItems.findCounts — id: ${data.id}`);
+    return this.rootService.findCounts(data.id);
   }
 
   // Returns how the current site carries an item, or null while it does not

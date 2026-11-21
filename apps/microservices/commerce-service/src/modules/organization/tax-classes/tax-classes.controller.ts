@@ -1,4 +1,5 @@
 import { TaxClassDto } from '@domain/tax-classes/dto/entity/tax-class.dto';
+import type { TaxClassCountsDto } from '@domain/tax-classes/dto/entity/tax-class-counts.dto';
 import type { TaxClassTableRowDto } from '@domain/tax-classes/dto/entity/tax-class-table-row.dto';
 import { CreateTaxClassDto } from '@domain/tax-classes/dto/request/create-tax-class.dto';
 import { SetTaxClassActiveDto } from '@domain/tax-classes/dto/request/set-tax-class-active.dto';
@@ -44,6 +45,13 @@ export class TaxClassesController {
   async table(@Payload() state: TableState): Promise<{ result: TaxClassTableRowDto[]; count: number }> {
     this.logger.log('taxClasses.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts a tax class's group mappings, one per tab of its detail page
+  @MessagePattern({ cmd: 'org.taxClasses.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<TaxClassCountsDto> {
+    this.logger.log(`taxClasses.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'org.taxClasses.delete' })

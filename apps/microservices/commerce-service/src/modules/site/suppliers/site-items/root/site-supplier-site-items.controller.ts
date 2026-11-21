@@ -1,3 +1,4 @@
+import type { SupplierItemCountsDto } from '@domain/supplier-items/dto/entity/supplier-item-counts.dto';
 import type { SupplierSiteItemDetailDto } from '@domain/supplier-items/dto/entity/supplier-site-item-detail.dto';
 import type { SupplierSiteItemRowDto } from '@domain/supplier-items/dto/entity/supplier-site-item-row.dto';
 import { UpdateSupplierSiteItemDto } from '@domain/supplier-items/dto/request/update-supplier-site-item.dto';
@@ -35,5 +36,12 @@ export class SiteSupplierSiteItemsController {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.siteItems.table — supplierId: ${supplierId}`);
     return this.service.findSiteItemsAtSiteForTable(supplierId, state);
+  }
+
+  // Counts a supplier item's prices the caller's site reads, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.suppliers.siteItems.findCounts' })
+  findCounts(@Payload() data: { supplierItemId: string }): Promise<SupplierItemCountsDto> {
+    this.logger.log(`site.suppliers.siteItems.findCounts — supplierItemId: ${data.supplierItemId}`);
+    return this.service.findCounts(data.supplierItemId);
   }
 }

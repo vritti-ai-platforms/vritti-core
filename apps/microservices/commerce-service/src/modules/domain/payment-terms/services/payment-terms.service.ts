@@ -8,6 +8,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { type PaymentTerm, type PaymentTermBaseline, paymentTerms } from '@/db/schema';
 import { PaymentTermDetailDto, PaymentTermDto } from '../dto/entity/payment-term.dto';
+import { PaymentTermCountsDto } from '../dto/entity/payment-term-counts.dto';
 import type { CreatePaymentTermDto } from '../dto/request/create-payment-term.dto';
 import type { UpdatePaymentTermDto } from '../dto/request/update-payment-term.dto';
 import { type PaymentTermDetail, PaymentTermsDomainRepository } from '../repositories/payment-terms.repository';
@@ -118,6 +119,11 @@ export class PaymentTermsDomainService {
       offset,
     });
     return { result: result.map((row) => PaymentTermDto.from(row)), count };
+  }
+
+  // Counts a payment term's rules, one per tab of its detail page
+  async findCounts(id: string): Promise<PaymentTermCountsDto> {
+    return PaymentTermCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns published payment-term options so drafts cannot be picked; `allowUnpublished` lists drafts too, for

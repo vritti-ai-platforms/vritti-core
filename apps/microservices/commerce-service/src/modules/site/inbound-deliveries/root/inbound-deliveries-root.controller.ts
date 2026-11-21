@@ -1,4 +1,5 @@
 import type { InboundDeliveryDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery.dto';
+import type { InboundDeliveryCountsDto } from '@domain/inbound-deliveries/dto/entity/inbound-delivery-counts.dto';
 import { CreateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/create-inbound-delivery.dto';
 import { SetInboundDeliveryStatusDto } from '@domain/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import { UpdateInboundDeliveryDto } from '@domain/inbound-deliveries/dto/request/update-inbound-delivery.dto';
@@ -51,6 +52,13 @@ export class InboundDeliveriesRootController {
   table(@Payload() state: TableState): Promise<{ result: InboundDeliveryDto[]; count: number }> {
     this.logger.log('site.inboundDeliveries.table');
     return this.deliveriesService.findForTable(state);
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.inboundDeliveries.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<InboundDeliveryCountsDto> {
+    this.logger.log(`site.inboundDeliveries.findCounts — id: ${data.id}`);
+    return this.deliveriesService.findCounts(data.id);
   }
 
   // Deletes a planned inbound delivery without lines

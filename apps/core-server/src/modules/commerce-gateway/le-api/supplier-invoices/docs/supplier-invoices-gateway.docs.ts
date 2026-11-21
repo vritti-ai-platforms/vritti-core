@@ -3,6 +3,7 @@ import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/r
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
@@ -50,6 +51,18 @@ export function ApiFindSupplierInvoiceById() {
     }),
     ApiParam({ name: 'id', description: 'Supplier invoice ID' }),
     ApiResponse({ status: 200, description: 'Supplier invoice retrieved.', type: SupplierInvoiceDetailResponseDto }),
+    ApiResponse({ status: 404, description: 'Supplier invoice not found.' }),
+  );
+}
+
+export function ApiFindSupplierInvoiceCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count a supplier invoice's lines and holds",
+      description: "One count per tab of the invoice's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Supplier invoice ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: SupplierInvoiceCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Supplier invoice not found.' }),
   );
 }

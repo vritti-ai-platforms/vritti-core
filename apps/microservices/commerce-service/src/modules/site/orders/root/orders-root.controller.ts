@@ -1,4 +1,5 @@
 import type { OrderDetailDto, OrderDto } from '@domain/orders/dto/entity/order.dto';
+import type { OrderCountsDto } from '@domain/orders/dto/entity/order-counts.dto';
 import { CreateOrderDto } from '@domain/orders/dto/request/create-order.dto';
 import { UpdateOrderStatusDto } from '@domain/orders/dto/request/update-order-status.dto';
 import { OrdersDomainService } from '@domain/orders/services/orders.service';
@@ -36,5 +37,12 @@ export class OrdersRootController {
   async table(@Payload() state: TableState): Promise<{ result: OrderDto[]; count: number }> {
     this.logger.log('orders.table');
     return this.service.findForTable(state);
+  }
+
+  // Counts an order's items, for its Items tab
+  @MessagePattern({ cmd: 'site.orders.findCounts' })
+  async findCounts(@Payload() data: { id: string }): Promise<OrderCountsDto> {
+    this.logger.log(`orders.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 }

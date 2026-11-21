@@ -4,6 +4,7 @@ import { PostSupplierQuotationSiteDto } from '@commerce/supplier-quotations/dto/
 import { SupplierQuotationItemFieldsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-item-fields.dto';
 import { SupplierQuotationSiteParamsDto } from '@commerce/supplier-quotations/dto/request/supplier-quotation-site-params.dto';
 import { UpdateSupplierQuotationDto } from '@commerce/supplier-quotations/dto/request/update-supplier-quotation.dto';
+import type { SupplierQuotationCountsResponseDto } from '@commerce/supplier-quotations/dto/response/supplier-quotation-counts-response.dto';
 import type {
   SupplierQuotationDetailResponseDto,
   SupplierQuotationResponseDto,
@@ -17,6 +18,7 @@ import { LE_SUPPLIERS } from '@vritti/commerce-permissions/suppliers';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import { OrgId } from '@/security/decorators';
+import { ApiFindSupplierQuotationCounts } from './docs/suppliers-gateway.docs';
 import { SupplierQuotationsGatewayService } from './services/supplier-quotations-gateway.service';
 
 @ApiTags('Commerce - Supplier Quotations')
@@ -118,6 +120,15 @@ export class SupplierQuotationsGatewayController {
   ): Promise<SupplierQuotationTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/suppliers/${supplierId}/quotations/table`);
     return this.service.findForTable(supplierId, userId, orgId);
+  }
+
+  // Counts a quotation's lines and the sites it is posted to, one per tab of its page
+  @Get(':quotationId/counts')
+  @RequirePermission(LE_SUPPLIERS.quotations.view)
+  @ApiFindSupplierQuotationCounts()
+  findCounts(@Param('quotationId') quotationId: string): Promise<SupplierQuotationCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/suppliers/quotations/${quotationId}/counts`);
+    return this.service.findCounts(quotationId);
   }
 
   // Deletes a quotation, removing it from every site first

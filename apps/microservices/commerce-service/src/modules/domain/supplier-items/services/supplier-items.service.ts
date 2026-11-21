@@ -25,6 +25,7 @@ import {
   suppliers,
   uom,
 } from '@/db/schema';
+import { SupplierItemCountsDto } from '../dto/entity/supplier-item-counts.dto';
 import { SupplierSiteItemDto } from '../dto/entity/supplier-site-item.dto';
 import { SupplierSiteItemDetailDto } from '../dto/entity/supplier-site-item-detail.dto';
 import { SupplierSiteItemRowDto } from '../dto/entity/supplier-site-item-row.dto';
@@ -373,6 +374,11 @@ export class SupplierItemsDomainService {
       SupplierItemsDomainService.tableOptions(state, SupplierItemsDomainService.SITE_ITEMS_OF_ITEM_FIELD_MAP),
     );
     return { result: result.map(SupplierSiteItemDto.from), count };
+  }
+
+  // Counts a supplier item's sites and prices as far as the request reads them, one per tab of its detail page
+  async findCounts(supplierItemId: string): Promise<SupplierItemCountsDto> {
+    return SupplierItemCountsDto.from(await this.repository.findCountsOrThrow(supplierItemId));
   }
 
   // Returns paginated supplier item options for select dropdowns and filters.

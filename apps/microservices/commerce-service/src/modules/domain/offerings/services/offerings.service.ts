@@ -19,6 +19,7 @@ import {
   workspaceScopeOf,
 } from '@/db/schema';
 import { OfferingDto, type OfferingTableRowDto } from '../dto/entity/offering.dto';
+import { OfferingCountsDto } from '../dto/entity/offering-counts.dto';
 import type { BulkSetOfferingStatusDto } from '../dto/request/bulk-set-offering-status.dto';
 import type { CreateOfferingDto } from '../dto/request/create-offering.dto';
 import type { SetOfferingFulfilmentDto } from '../dto/request/set-offering-fulfilment.dto';
@@ -327,6 +328,11 @@ export class OfferingsDomainService {
     }
 
     return rows;
+  }
+
+  // Counts an offering's dimensions, attributes and variants, one per tab of its detail page
+  async findCounts(id: string): Promise<OfferingCountsDto> {
+    return OfferingCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Deleting cascades into dimensions and variants, so it is blocked while any variant exists — a variant may already

@@ -17,8 +17,10 @@ import {
   partyTaxRegistrations,
 } from '@/db/schema';
 import { CompanyDto } from '../dto/entity/company.dto';
+import { CompanyCountsDto } from '../dto/entity/company-counts.dto';
 import { PartyTaxRegistrationDto } from '../dto/entity/party-tax-registration.dto';
 import { PersonDto } from '../dto/entity/person.dto';
+import { PersonCountsDto } from '../dto/entity/person-counts.dto';
 import type { CreateCompanyRegistrationDto } from '../dto/request/create-company-registration.dto';
 import type { UpdateCompanyRegistrationDto } from '../dto/request/update-company-registration.dto';
 import { emailComm, PartiesDomainRepository, phoneComm } from '../repositories/parties.repository';
@@ -323,6 +325,16 @@ export class PartiesDomainService {
       offset,
     });
     return { result: result.map((row) => PartyTaxRegistrationDto.from(row, row.jurisdictionName)), count };
+  }
+
+  // Counts a company's addresses, communications, people, registrations and other tab rows, one per detail-page tab
+  async findCompanyCounts(id: string): Promise<CompanyCountsDto> {
+    return CompanyCountsDto.from(await this.repository.findCompanyCountsOrThrow(id));
+  }
+
+  // Counts a person's addresses, communications, companies, wishlist and other tab rows, one per detail-page tab
+  async findPersonCounts(id: string): Promise<PersonCountsDto> {
+    return PersonCountsDto.from(await this.repository.findPersonCountsOrThrow(id));
   }
 
   // Returns paginated party options of the given type for select dropdowns

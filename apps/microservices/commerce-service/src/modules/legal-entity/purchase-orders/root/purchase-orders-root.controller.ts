@@ -1,4 +1,5 @@
 import type { PurchaseOrderDto } from '@domain/purchase-orders/dto/entity/purchase-order.dto';
+import type { PurchaseOrderCountsDto } from '@domain/purchase-orders/dto/entity/purchase-order-counts.dto';
 import { ChangePurchaseOrderExchangeRateDto } from '@domain/purchase-orders/dto/request/change-purchase-order-exchange-rate.dto';
 import { ChangePurchaseOrderSupplierDto } from '@domain/purchase-orders/dto/request/change-purchase-order-supplier.dto';
 import { SetPurchaseOrderConversionRateDto } from '@domain/purchase-orders/dto/request/set-purchase-order-conversion-rate.dto';
@@ -109,6 +110,13 @@ export class LePurchaseOrdersRootController {
   problems(@Payload() data: { id: string }): Promise<PurchaseOrderProblemsDto> {
     this.logger.log(`le.purchaseOrders.problems — id: ${data.id}`);
     return this.service.findProblems(data.id);
+  }
+
+  // Counts a purchase order's lines and the deliveries, receipts and invoices on them, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.purchaseOrders.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<PurchaseOrderCountsDto> {
+    this.logger.log(`le.purchaseOrders.findCounts — id: ${data.id}`);
+    return this.purchaseOrdersService.findCounts(data.id);
   }
 
   // Deletes a draft purchase order

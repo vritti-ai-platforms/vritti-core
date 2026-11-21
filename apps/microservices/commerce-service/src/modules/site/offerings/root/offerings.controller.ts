@@ -1,4 +1,5 @@
 import type { OfferingDto, OfferingTableRowDto } from '@domain/offerings/dto/entity/offering.dto';
+import type { OfferingCountsDto } from '@domain/offerings/dto/entity/offering-counts.dto';
 import { BulkSetOfferingStatusDto } from '@domain/offerings/dto/request/bulk-set-offering-status.dto';
 import { CreateOfferingDto } from '@domain/offerings/dto/request/create-offering.dto';
 import { SetOfferingFulfilmentDto } from '@domain/offerings/dto/request/set-offering-fulfilment.dto';
@@ -87,6 +88,13 @@ export class SiteOfferingsController {
   channels(@Payload() data: { offeringId: string; appIds: string[] }): Promise<OfferingTargetRow[]> {
     this.logger.log(`offerings.channels — offeringId: ${data.offeringId}, apps: ${data.appIds.length}`);
     return this.service.findTargetsForOffering(data.offeringId, data.appIds);
+  }
+
+  // Counts an offering's dimensions, attributes and variants, one per tab of its detail page
+  @MessagePattern({ cmd: 'site.offerings.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<OfferingCountsDto> {
+    this.logger.log(`offerings.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes an offering this site owns; refused while it has variants

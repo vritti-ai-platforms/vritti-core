@@ -1,3 +1,4 @@
+import type { StockAdjustmentCountsDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment-counts.dto';
 import { CreateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/create-stock-adjustment.dto';
 import { UpdateStockAdjustmentDto } from '@domain/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import { Controller, Logger } from '@nestjs/common';
@@ -66,6 +67,13 @@ export class StockAdjustmentsRootController {
   ): Promise<{ result: StockAdjustmentWithDisplayDto[]; count: number }> {
     this.logger.log('stockAdjustments.table');
     return this.service.table(state, leCurrencyCode);
+  }
+
+  // Counts an adjustment's lines and draft lots, for its Breakdown tab
+  @MessagePattern({ cmd: 'site.stockAdjustments.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<StockAdjustmentCountsDto> {
+    this.logger.log(`stockAdjustments.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'site.stockAdjustments.delete' })

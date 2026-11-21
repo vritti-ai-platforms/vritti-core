@@ -11,6 +11,7 @@ import type {
   InventoryItemSupplierTableResponseDto,
 } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
+import type { LegalEntityInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/legal-entity-inventory-item-counts-response.dto';
 import type {
   ItemStockBySiteResponseDto,
   SiteItemRowResponseDto,
@@ -202,6 +203,26 @@ export class LeInventoryItemsGatewayService {
       };
     });
     return { result, count, state, activeViewId };
+  }
+
+  // Counts the item's suppliers and MRPs in commerce and the legal entity's sites here — the sites tab lists every one
+  // of them, carrying the item or not
+  async findCounts(
+    inventoryItemId: string,
+    orgId: string,
+    legalEntityId: string | undefined,
+  ): Promise<LegalEntityInventoryItemCountsResponseDto> {
+    this.logger.log(`le.inventoryItems.findCounts — inventoryItemId: ${inventoryItemId}`);
+    const leId = LeInventoryItemsGatewayService.requireLegalEntity(legalEntityId);
+    const [{ supplierCount, mrpCount }, sites] = await Promise.all([
+      this.nats.send<Omit<LegalEntityInventoryItemCountsResponseDto, 'siteCount'>>(
+        'commerce',
+        'le.inventoryItems.findCounts',
+        { id: inventoryItemId },
+      ),
+      this.siteService.findByLegalEntityOrdered(orgId, leId),
+    ]);
+    return { supplierCount, siteCount: sites.length, mrpCount };
   }
 
   // Removes the item from one of the legal entity's sites

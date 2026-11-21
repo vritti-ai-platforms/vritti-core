@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, exists, getColumns, inArray, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   GoodsReceiptStatusValues,
   goodsReceiptItems,
   goodsReceipts,
+  inboundDeliveries,
+  inboundDeliveryLines,
   type PurchaseOrder,
   type PurchaseOrderItem,
   parties,
@@ -12,6 +15,8 @@ import {
   purchaseOrderNumberSeq,
   purchaseOrders,
   purchases,
+  supplierInvoiceLines,
+  supplierInvoices,
   suppliers,
 } from '@/db/schema';
 
@@ -27,6 +32,13 @@ export type PurchaseOrderLineCounters = Pick<
 >;
 
 export type PurchaseOrderProgress = Pick<PurchaseOrder, 'id' | 'poNumber' | 'receiptStatus' | 'invoiceStatus'>;
+
+export type PurchaseOrderCounts = {
+  itemCount: number;
+  inboundDeliveryCount: number;
+  goodsReceiptCount: number;
+  invoiceCount: number;
+};
 
 export type PurchaseOrderRow = PurchaseOrder & {
   supplierName: string | null;
@@ -56,6 +68,13 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
       select: this.selection(),
       leftJoins: this.joins(),
     });
+  }
+
+  // Counts a PO's lines and the deliveries, receipts and invoices on them, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<PurchaseOrderCounts> {
+    const counts = await this.findById<PurchaseOrderCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Purchase order not found.');
+    return counts;
   }
 
   // Returns the POs a purchase created, oldest first
@@ -159,6 +178,33 @@ export class PurchaseOrdersDomainRepository extends PrimaryBaseRepository<typeof
       itemCount: this.db.$count(purchaseOrderItems, eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id)),
       hasPostedGoodsReceipt: sql<boolean>`${exists(postedGoodsReceiptItem)}`,
       latestExpectedDeliveryDate: sql<string | null>`(${latestExpectedDeliveryDate})`,
+    };
+  }
+
+  // Counts the rows each of a PO's tabs lists: its lines, and the inbound deliveries, goods receipts and supplier
+  // invoices with a line on one of them
+  private counts() {
+    const ownLines = eq(purchaseOrderItems.purchaseOrderId, purchaseOrders.id);
+    const deliveryLine = this.db
+      .select({ id: inboundDeliveryLines.id })
+      .from(inboundDeliveryLines)
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, inboundDeliveryLines.purchaseOrderItemId))
+      .where(and(eq(inboundDeliveryLines.inboundDeliveryId, inboundDeliveries.id), ownLines));
+    const receiptItem = this.db
+      .select({ id: goodsReceiptItems.id })
+      .from(goodsReceiptItems)
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, goodsReceiptItems.purchaseOrderItemId))
+      .where(and(eq(goodsReceiptItems.goodsReceiptId, goodsReceipts.id), ownLines));
+    const invoiceLine = this.db
+      .select({ id: supplierInvoiceLines.id })
+      .from(supplierInvoiceLines)
+      .innerJoin(purchaseOrderItems, eq(purchaseOrderItems.id, supplierInvoiceLines.purchaseOrderItemId))
+      .where(and(eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoices.id), ownLines));
+    return {
+      itemCount: this.db.$count(purchaseOrderItems, ownLines),
+      inboundDeliveryCount: this.db.$count(inboundDeliveries, exists(deliveryLine)),
+      goodsReceiptCount: this.db.$count(goodsReceipts, exists(receiptItem)),
+      invoiceCount: this.db.$count(supplierInvoices, exists(invoiceLine)),
     };
   }
 

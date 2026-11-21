@@ -3,6 +3,7 @@ import type {
   ChannelPriceDto,
   ResolvedChannelsDto,
 } from '@domain/catalog-channels/dto/entity/catalog-channel.dto';
+import type { CatalogChannelCountsDto } from '@domain/catalog-channels/dto/entity/catalog-channel-counts.dto';
 import type { ListingFilterDto } from '@domain/catalog-channels/dto/entity/listing-filter.dto';
 import type {
   StorefrontListingDto,
@@ -111,6 +112,13 @@ export class LeCatalogChannelsController {
   findCurrencies(@Payload() data: { channelId: string }): Promise<string[]> {
     this.logger.log(`catalogChannels.currencies — channelId: ${data.channelId}`);
     return this.service.findCurrencies(data.channelId);
+  }
+
+  // Counts a channel's listings and currencies, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.catalogChannels.findCounts' })
+  findCounts(@Payload() data: { channelId: string }): Promise<CatalogChannelCountsDto> {
+    this.logger.log(`catalogChannels.findCounts — channelId: ${data.channelId}`);
+    return this.service.findCounts(data.channelId);
   }
 
   @MessagePattern({ cmd: 'le.catalogChannels.delete' })

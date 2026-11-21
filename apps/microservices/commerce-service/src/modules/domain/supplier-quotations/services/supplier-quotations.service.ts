@@ -18,6 +18,7 @@ import {
 } from '../dto/entity/purchase-quotation.dto';
 import { PurchaseQuotationItemTermsDto } from '../dto/entity/purchase-quotation-item-terms.dto';
 import { SupplierQuotationDetailDto, SupplierQuotationDto } from '../dto/entity/supplier-quotation.dto';
+import { SupplierQuotationCountsDto } from '../dto/entity/supplier-quotation-counts.dto';
 import type { CreatePurchaseQuotationDraftDto } from '../dto/request/create-purchase-quotation-draft.dto';
 import type { CreateSupplierQuotationDto } from '../dto/request/create-supplier-quotation.dto';
 import type { SupplierQuotationItemFieldsDto } from '../dto/request/supplier-quotation-item-fields.dto';
@@ -190,6 +191,11 @@ export class SupplierQuotationsDomainService {
       offset,
     });
     return { result: result.map(SupplierQuotationDto.from), count };
+  }
+
+  // Counts a quotation's lines and the sites it is posted to, one per tab of its page; a named supplier must own it
+  async findCounts(quotationId: string, supplierId?: string): Promise<SupplierQuotationCountsDto> {
+    return SupplierQuotationCountsDto.from(await this.repository.findCountsOrThrow(quotationId, supplierId));
   }
 
   // Returns a quotation with its lines and the sites it is posted to

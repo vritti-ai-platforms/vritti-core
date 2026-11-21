@@ -1,6 +1,7 @@
 import { CreateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
 import { SetSupplierEnrollmentActiveDto } from '@commerce/supplier-enrollments/dto/request/set-supplier-enrollment-active.dto';
 import { UpdateSupplierEnrollmentDto } from '@commerce/supplier-enrollments/dto/request/update-supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-counts-response.dto';
 import type { SupplierEnrollmentDetailResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-detail-response.dto';
 import type { SupplierEnrollmentResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-response.dto';
 import type { SupplierEnrollmentTableResponseDto } from '@commerce/supplier-enrollments/dto/response/supplier-enrollment-table-response.dto';
@@ -10,12 +11,14 @@ import { ReleaseSupplierInvoiceHoldDto } from '@commerce/supplier-invoices/dto/r
 import { SupplierInvoiceLineDto } from '@commerce/supplier-invoices/dto/request/supplier-invoice-line.dto';
 import { UpdateSupplierInvoiceDto } from '@commerce/supplier-invoices/dto/request/update-supplier-invoice.dto';
 import type { InvoiceableGoodsReceiptResponseDto } from '@commerce/supplier-invoices/dto/response/invoiceable-goods-receipt-response.dto';
+import type { SupplierInvoiceCountsResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-counts-response.dto';
 import type {
   SupplierInvoiceDetailResponseDto,
   SupplierInvoiceResponseDto,
 } from '@commerce/supplier-invoices/dto/response/supplier-invoice-response.dto';
 import type { SupplierInvoiceTableResponseDto } from '@commerce/supplier-invoices/dto/response/supplier-invoice-table-response.dto';
 import { UpdateSupplierSiteItemDto } from '@commerce/supplier-items/dto/request/update-supplier-site-item.dto';
+import type { SupplierItemCountsResponseDto } from '@commerce/supplier-items/dto/response/supplier-item-counts-response.dto';
 import type { SupplierSiteItemRowResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-response.dto';
 import type { SupplierSiteItemRowTableResponseDto } from '@commerce/supplier-items/dto/response/supplier-site-item-row-table-response.dto';
 import {
@@ -44,8 +47,11 @@ import {
   ApiCreateSiteSupplierInvoiceLine,
   ApiDeleteSiteSupplierInvoiceLine,
   ApiFindForTableSiteSupplierInvoices,
+  ApiFindSiteSupplierCounts,
   ApiFindSiteSupplierInvoiceableGoodsReceipts,
   ApiFindSiteSupplierInvoiceById,
+  ApiFindSiteSupplierInvoiceCounts,
+  ApiFindSiteSupplierSiteItemCounts,
   ApiPostSiteSupplierInvoice,
   ApiReleaseSiteSupplierInvoiceHold,
   ApiUpdateSiteSupplierInvoice,
@@ -265,6 +271,39 @@ export class SiteSuppliersGatewayController {
   ): Promise<InvoiceableGoodsReceiptResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/invoiceable-goods-receipts`);
     return this.siteSuppliersGatewayService.findInvoiceableGoodsReceipts(supplierId, query);
+  }
+
+  // Counts the lines and holds of one of the supplier's invoices, one per tab of its detail page
+  @Get(':id/invoices/:invoiceId/counts')
+  @RequirePermission(SITE_SUPPLIERS.invoices.view)
+  @ApiFindSiteSupplierInvoiceCounts()
+  findInvoiceCounts(
+    @Param('id', new ParseUUIDPipe()) supplierId: string,
+    @Param('invoiceId', new ParseUUIDPipe()) invoiceId: string,
+  ): Promise<SupplierInvoiceCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/invoices/${invoiceId}/counts`);
+    return this.siteSuppliersGatewayService.findInvoiceCounts(supplierId, invoiceId);
+  }
+
+  // Counts a supplier's items, quotations and invoices at the session site, one per tab of its page
+  @Get(':id/counts')
+  @RequirePermission(SITE_SUPPLIERS.view)
+  @ApiFindSiteSupplierCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) supplierId: string): Promise<SupplierEnrollmentCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/counts`);
+    return this.siteSuppliersGatewayService.findCounts(supplierId);
+  }
+
+  // Counts a supplier item's prices this site reads, one per tab of its page
+  @Get(':id/site-items/:itemId/counts')
+  @RequirePermission(SITE_SUPPLIERS.siteItems.view)
+  @ApiFindSiteSupplierSiteItemCounts()
+  findSiteItemCounts(
+    @Param('id') supplierId: string,
+    @Param('itemId') itemId: string,
+  ): Promise<SupplierItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/suppliers/${supplierId}/site-items/${itemId}/counts`);
+    return this.siteSuppliersGatewayService.findSiteItemCounts(itemId);
   }
 
   // Removes a supplier's enrollment at the session site

@@ -14,6 +14,7 @@ import {
   type SQL,
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   attributesFacetSql,
@@ -76,6 +77,10 @@ export interface VariantOptionRow {
 }
 
 export type VariantWithBomCount = OfferingVariant & { bomLineCount: number };
+
+export type OfferingVariantCounts = {
+  bomLineCount: number;
+};
 
 export interface ExportVariantRow {
   code: string;
@@ -353,6 +358,13 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
     ];
   }
 
+  // Counts the rows each of a variant's tabs lists: its bill-of-materials lines
+  private counts() {
+    return {
+      bomLineCount: this.db.$count(offeringBom, eq(offeringBom.variantId, offeringVariants.id)),
+    };
+  }
+
   async findByIdWithNames(id: string): Promise<OfferingVariantTableRow | undefined> {
     const { result } = await this.findAllAndCount<OfferingVariantTableRow>({
       select: this.tableSelection(),
@@ -362,6 +374,13 @@ export class OfferingVariantsDomainRepository extends PrimaryBaseRepository<type
       offset: 0,
     });
     return result[0];
+  }
+
+  // Counts a variant's bill-of-materials lines, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<OfferingVariantCounts> {
+    const counts = await this.findById<OfferingVariantCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Variant not found.');
+    return counts;
   }
 
   // One page of an offering's variants, plus the unpaginated total for the table footer

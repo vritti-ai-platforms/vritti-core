@@ -3,6 +3,7 @@ import { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/crea
 import { SetRegistrationActiveDto } from '@commerce/parties/dto/request/set-registration-active.dto';
 import { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
 import { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
+import type { CompanyCountsResponseDto } from '@commerce/parties/dto/response/company-counts-response.dto';
 import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
 import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
 import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
@@ -53,6 +54,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { ORG_COMPANIES } from '@vritti/commerce-permissions/companies';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { ApiFindCompanyCounts } from './docs/companies-gateway.docs';
 import { CompaniesGatewayService } from './services/companies-gateway.service';
 
 @ApiTags('Commerce - Companies')
@@ -376,6 +378,15 @@ export class CompaniesGatewayController {
   ): Promise<PartySocialProfileTableResponseDto> {
     this.logger.log(`GET /commerce-api/org/companies/${id}/social-profiles/table`);
     return this.service.listSocialProfiles(id, userId);
+  }
+
+  // Counts the rows each tab of a company's detail page lists
+  @Get(':id/counts')
+  @RequirePermission(ORG_COMPANIES.view)
+  @ApiFindCompanyCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<CompanyCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/companies/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a company by ID

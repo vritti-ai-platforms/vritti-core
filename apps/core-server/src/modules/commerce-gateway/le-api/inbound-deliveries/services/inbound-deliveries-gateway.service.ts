@@ -1,3 +1,4 @@
+import type { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import type { InboundDeliveryLineResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-response.dto';
 import type { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import type { InboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
@@ -56,5 +57,11 @@ export class LeInboundDeliveriesGatewayService {
       { inboundDeliveryId, ...state },
     );
     return { result, count, state, activeViewId };
+  }
+
+  // Counts an inbound delivery's lines, one per tab of its detail page
+  findCounts(id: string): Promise<InboundDeliveryCountsResponseDto> {
+    this.logger.log(`le.inboundDeliveries.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'le.inboundDeliveries.findCounts', { id });
   }
 }

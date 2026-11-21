@@ -1,6 +1,7 @@
 import { InventoryItemLedgerTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-ledger-table-response.dto';
 import { InventoryItemLotTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-lot-table-response.dto';
 import { InventoryItemQuantTableResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-quant-table-response.dto';
+import { SiteInventoryItemCountsResponseDto } from '@commerce/inventory-item-sites/dto/response/site-inventory-item-counts-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
@@ -37,5 +38,19 @@ export function ApiGetLotsTable() {
     }),
     ApiParam({ name: 'id', description: 'Inventory item ID' }),
     ApiResponse({ status: 200, description: 'Lots retrieved.', type: InventoryItemLotTableResponseDto }),
+  );
+}
+
+// Swagger decorator for GET :id/counts
+export function ApiFindInventoryItemCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count the rows of an inventory item's tabs",
+      description:
+        "One count per listing tab of the item's detail page at the site: its stock by location, lots, location setups, suppliers, price rows, movements and quants, each with no table filters applied.",
+    }),
+    ApiParam({ name: 'id', description: 'Inventory item ID' }),
+    ApiResponse({ status: 200, type: SiteInventoryItemCountsResponseDto }),
+    ApiResponse({ status: 404, description: 'Inventory item not found.' }),
   );
 }

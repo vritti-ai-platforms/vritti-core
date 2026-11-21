@@ -10,6 +10,7 @@ import type { InventoryItemQuantTableResponseDto } from '@commerce/inventory-ite
 import type { SiteInventoryItemResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-response.dto';
 import type { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import type { InventoryItemStockResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-stock-response.dto';
+import type { SiteInventoryItemCountsResponseDto } from '@commerce/inventory-item-sites/dto/response/site-inventory-item-counts-response.dto';
 import type { SiteStockTableResponseDto } from '@commerce/inventory-item-sites/dto/response/site-stock-table-response.dto';
 import {
   Body,
@@ -30,7 +31,12 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { SITE_INVENTORY_ITEMS } from '@vritti/commerce-permissions/inventory-items';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
-import { ApiGetLedgerTable, ApiGetLotsTable, ApiGetQuantsTable } from './docs/inventory-items-gateway.docs';
+import {
+  ApiFindInventoryItemCounts,
+  ApiGetLedgerTable,
+  ApiGetLotsTable,
+  ApiGetQuantsTable,
+} from './docs/inventory-items-gateway.docs';
 import { SiteInventoryItemsGatewayService } from './services/inventory-items-gateway.service';
 
 @ApiTags('Commerce - Inventory Items')
@@ -165,6 +171,15 @@ export class SiteInventoryItemsGatewayController {
   getLocationsTable(@Param('id') id: string, @UserId() userId: string): Promise<InventoryItemLocationTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/inventory-items/${id}/locations/table`);
     return this.service.findItemLocationsForTable(id, userId);
+  }
+
+  // Counts the rows each tab of the item's detail page lists at the current site
+  @Get(':id/counts')
+  @RequirePermission(SITE_INVENTORY_ITEMS.view)
+  @ApiFindInventoryItemCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<SiteInventoryItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/inventory-items/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Returns how the current site carries an inventory item, or null while it does not

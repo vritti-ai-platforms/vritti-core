@@ -3,6 +3,7 @@ import type {
   OfferingVariantDto,
   OfferingVariantTableRowDto,
 } from '@domain/offering-variants/dto/entity/offering-variant.dto';
+import type { OfferingVariantCountsDto } from '@domain/offering-variants/dto/entity/offering-variant-counts.dto';
 import type { VariantCombinationsDto } from '@domain/offering-variants/dto/entity/variant-combination.dto';
 import type { BulkClearVariantsTaxClassDto } from '@domain/offering-variants/dto/request/bulk-clear-variants-tax-class.dto';
 import { BulkSetVariantsAttributeDto } from '@domain/offering-variants/dto/request/bulk-set-variants-attribute.dto';
@@ -190,6 +191,13 @@ export class LeOfferingVariantsController {
   ): Promise<Record<string, unknown>[]> {
     this.logger.log(`offerings.variants.exportRows — offeringId: ${data.offeringId}, offset: ${data.offset}`);
     return this.service.findForExport(data.offeringId, data);
+  }
+
+  // Counts a variant's bill-of-materials lines, one per tab of its detail page
+  @MessagePattern({ cmd: 'le.offerings.variants.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<OfferingVariantCountsDto> {
+    this.logger.log(`offerings.variants.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Deletes a variant

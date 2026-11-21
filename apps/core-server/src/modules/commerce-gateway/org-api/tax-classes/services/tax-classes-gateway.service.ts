@@ -1,5 +1,6 @@
 import type { CreateTaxClassDto } from '@commerce/tax-classes/dto/request/create-tax-class.dto';
 import type { UpdateTaxClassDto } from '@commerce/tax-classes/dto/request/update-tax-class.dto';
+import type { TaxClassCountsResponseDto } from '@commerce/tax-classes/dto/response/tax-class-counts-response.dto';
 import type { TaxClassResponseDto } from '@commerce/tax-classes/dto/response/tax-class-response.dto';
 import type { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
 import type { TaxClassTableRowResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-row-response.dto';
@@ -84,6 +85,12 @@ export class TaxClassesGatewayService {
       { taxClassId, ...state },
     );
     return { result, count, state, activeViewId };
+  }
+
+  // Counts a tax class's group mappings, one per tab of its detail page
+  findCounts(id: string): Promise<TaxClassCountsResponseDto> {
+    this.logger.log(`org.taxClasses.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxClasses.findCounts', { id });
   }
 
   // Deletes a tax class by ID

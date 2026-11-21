@@ -3,6 +3,7 @@ import { ReplenishmentDto } from '@commerce/inventory-item-sites/dto/request/rep
 import { SetSupplierItemsRequiredDto } from '@commerce/inventory-item-sites/dto/request/set-supplier-items-required.dto';
 import { InventoryItemSiteResponseDto } from '@commerce/inventory-item-sites/dto/response/inventory-item-site-response.dto';
 import { AddInventoryItemSupplierDto } from '@commerce/inventory-items/dto/request/add-inventory-item-supplier.dto';
+import { LegalEntityInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/legal-entity-inventory-item-counts-response.dto';
 import { SiteItemTableResponseDto } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
 import { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import { applyDecorators } from '@nestjs/common';
@@ -23,6 +24,20 @@ export function ApiFindSiteItemsTable() {
     }),
     ApiParam(ID),
     ApiResponse({ status: 200, description: 'Site items retrieved.', type: SiteItemTableResponseDto }),
+    ApiResponse({ status: 400, description: 'The request was made outside a legal entity workspace.' }),
+    ApiResponse({ status: 404, description: 'Inventory item not found.' }),
+  );
+}
+
+export function ApiFindInventoryItemCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count the rows of an inventory item's tabs",
+      description:
+        "One count per listing tab of the item's detail page in a legal entity: the legal entity's suppliers carrying it, the legal entity's sites and the item's MRPs, each with no table filters applied.",
+    }),
+    ApiParam(ID),
+    ApiResponse({ status: 200, type: LegalEntityInventoryItemCountsResponseDto }),
     ApiResponse({ status: 400, description: 'The request was made outside a legal entity workspace.' }),
     ApiResponse({ status: 404, description: 'Inventory item not found.' }),
   );

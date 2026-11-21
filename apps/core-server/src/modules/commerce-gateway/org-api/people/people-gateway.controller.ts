@@ -3,6 +3,7 @@ import { CreatePersonRegistrationDto } from '@commerce/parties/dto/request/creat
 import { SetRegistrationActiveDto } from '@commerce/parties/dto/request/set-registration-active.dto';
 import { UpdatePersonDto } from '@commerce/parties/dto/request/update-person.dto';
 import { UpdatePersonRegistrationDto } from '@commerce/parties/dto/request/update-person-registration.dto';
+import type { PersonCountsResponseDto } from '@commerce/parties/dto/response/person-counts-response.dto';
 import type { PersonRegistrationResponseDto } from '@commerce/parties/dto/response/person-registration-response.dto';
 import type { PersonRegistrationTableResponseDto } from '@commerce/parties/dto/response/person-registration-table-response.dto';
 import type { PersonResponseDto } from '@commerce/parties/dto/response/person-response.dto';
@@ -51,6 +52,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { ORG_PEOPLE } from '@vritti/commerce-permissions/people';
 import { SessionTypeValues } from '@/db/schema';
 import { RequireFeature, RequirePermission } from '@/rbac/decorators';
+import { ApiFindPersonCounts } from './docs/people-gateway.docs';
 import { PeopleShopperQueryDto } from './dto/request/people-party.dto';
 import { PeopleGatewayService, type StaffWishlistItemRow } from './services/people-gateway.service';
 
@@ -162,7 +164,7 @@ export class PeopleGatewayController {
   // Updates a person by ID
   @Patch(':id')
   @RequirePermission(ORG_PEOPLE.edit)
-  update(@Param('id') id: string, @Body() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdatePersonDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/people/${id}`);
     return this.service.update(id, dto);
   }
@@ -254,7 +256,7 @@ export class PeopleGatewayController {
   // Returns a person by ID
   @Get(':id')
   @RequirePermission(ORG_PEOPLE.view)
-  findById(@Param('id') id: string): Promise<PersonResponseDto> {
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<PersonResponseDto> {
     this.logger.log(`GET /commerce-api/org/people/${id}`);
     return this.service.findById(id);
   }
@@ -366,10 +368,19 @@ export class PeopleGatewayController {
     return this.service.listWishlist(id, query.currencyCode ?? DEFAULT_CURRENCY);
   }
 
+  // Counts the rows each tab of a person's detail page lists
+  @Get(':id/counts')
+  @RequirePermission(ORG_PEOPLE.view)
+  @ApiFindPersonCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<PersonCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/people/${id}/counts`);
+    return this.service.findCounts(id);
+  }
+
   // Deletes a person by ID
   @Delete(':id')
   @RequirePermission(ORG_PEOPLE.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/people/${id}`);
     return this.service.delete(id);
   }

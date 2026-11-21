@@ -8,6 +8,7 @@ import type { UpdateOpeningStockAdjustmentLineDto } from '@commerce/stock-adjust
 import type { UpdateStockAdjustmentDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment.dto';
 import type { UpdateStockAdjustmentLineItemDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-line-item.dto';
 import type { UpdateStockAdjustmentLotDto } from '@commerce/stock-adjustments/dto/request/update-stock-adjustment-lot.dto';
+import type { StockAdjustmentCountsResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-counts-response.dto';
 import type { StockAdjustmentLineItemResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-response.dto';
 import type { StockAdjustmentLineItemTableResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-item-table-response.dto';
 import type { StockAdjustmentLineResponseDto } from '@commerce/stock-adjustments/dto/response/stock-adjustment-line-response.dto';
@@ -228,6 +229,12 @@ export class StockAdjustmentsGatewayService {
   async findLotDetail(adjustmentId: string, lotId: string): Promise<StockAdjustmentLotDetailResponseDto> {
     this.logger.log(`stockAdjustments.lotDetail — adjustment: ${adjustmentId}, lot: ${lotId}`);
     return this.nats.send('commerce', 'site.stockAdjustments.lotDetail', { adjustmentId, lotId });
+  }
+
+  // Counts an adjustment's lines and draft lots, for its Breakdown tab
+  findCounts(id: string): Promise<StockAdjustmentCountsResponseDto> {
+    this.logger.log(`stockAdjustments.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.stockAdjustments.findCounts', { id });
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {

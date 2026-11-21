@@ -13,6 +13,7 @@ import {
   sql,
 } from '@vritti/api-sdk/drizzle-orm';
 import type { AnyPgColumn } from '@vritti/api-sdk/drizzle-pg-core';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   hasSupplierItem,
@@ -24,6 +25,7 @@ import {
   parties,
   partyIdentifiers,
   partyLicenses,
+  partyRelationships,
   partyTaxRegistrations,
   paymentTerms,
   purchaseOrders,
@@ -69,6 +71,12 @@ export type SupplierDetailRow = SupplierWithParty & {
   licenses: PartyLicense[];
   enrolledSiteCount: number;
   itemCount: number;
+};
+
+export type SupplierCounts = {
+  itemCount: number;
+  quotationCount: number;
+  personCount: number;
 };
 
 // Purchase orders that are done with and no longer hold a supplier to their currency
@@ -207,6 +215,13 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
     };
   }
 
+  // Counts a supplier's items, quotations and its party's people, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<SupplierCounts> {
+    const counts = await this.findById<SupplierCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Supplier not found.');
+    return counts;
+  }
+
   // Whether the payment term is a published term of the caller's organization
   async isPaymentTermPublished(id: string): Promise<boolean> {
     const [term] = await this.db
@@ -289,5 +304,14 @@ export class SuppliersDomainRepository extends PrimaryBaseRepository<typeof supp
       .where(inArray(suppliers.id, ids))
       .returning({ id: suppliers.id });
     return rows.length;
+  }
+
+  // Counts the rows each of a supplier's list tabs shows: its items, its quotations and the people of its party
+  private counts() {
+    return {
+      itemCount: this.db.$count(supplierItems, eq(supplierItems.supplierId, suppliers.id)),
+      quotationCount: this.db.$count(supplierQuotations, eq(supplierQuotations.supplierId, suppliers.id)),
+      personCount: this.db.$count(partyRelationships, eq(partyRelationships.parentPartyId, suppliers.partyId)),
+    };
   }
 }

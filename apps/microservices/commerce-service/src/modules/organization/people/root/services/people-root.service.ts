@@ -1,4 +1,5 @@
 import type { PersonDto } from '@domain/parties/dto/entity/person.dto';
+import type { PersonCountsDto } from '@domain/parties/dto/entity/person-counts.dto';
 import type { CreatePersonDto } from '@domain/parties/dto/request/create-person.dto';
 import type { UpdatePersonDto } from '@domain/parties/dto/request/update-person.dto';
 import { PartiesDomainService } from '@domain/parties/services/parties.service';
@@ -54,6 +55,11 @@ export class PeopleService {
   // Returns paginated PERSON parties for the people table
   findForTable(state: TableState): Promise<{ result: PersonDto[]; count: number }> {
     return this.partiesService.findPeopleForTable(state);
+  }
+
+  // Counts the rows each tab of a person's detail page lists
+  findCounts(id: string): Promise<PersonCountsDto> {
+    return this.partiesService.findPersonCounts(id);
   }
 
   // Deletes a person by ID

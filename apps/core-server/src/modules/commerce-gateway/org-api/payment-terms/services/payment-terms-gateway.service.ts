@@ -4,6 +4,7 @@ import type { PaymentScheduleQueryDto } from '@commerce/payment-terms/dto/reques
 import type { PaymentTermRuleDto } from '@commerce/payment-terms/dto/request/payment-term-rule.dto';
 import type { UpdatePaymentTermDto } from '@commerce/payment-terms/dto/request/update-payment-term.dto';
 import type { PaymentScheduleResponseDto } from '@commerce/payment-terms/dto/response/payment-schedule-response.dto';
+import type { PaymentTermCountsResponseDto } from '@commerce/payment-terms/dto/response/payment-term-counts-response.dto';
 import type {
   PaymentTermDetailResponseDto,
   PaymentTermResponseDto,
@@ -89,6 +90,12 @@ export class PaymentTermsGatewayService {
   previewSchedule(paymentTermId: string, query: PaymentScheduleQueryDto): Promise<PaymentScheduleResponseDto> {
     this.logger.log(`paymentTerms.rules.previewSchedule — paymentTermId: ${paymentTermId}`);
     return this.nats.send('commerce', 'org.paymentTerms.rules.previewSchedule', { ...query, paymentTermId });
+  }
+
+  // Counts a payment term's rules, one per tab of its detail page
+  findCounts(id: string): Promise<PaymentTermCountsResponseDto> {
+    this.logger.log(`org.paymentTerms.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.paymentTerms.findCounts', { id });
   }
 
   // Deletes a payment term by ID

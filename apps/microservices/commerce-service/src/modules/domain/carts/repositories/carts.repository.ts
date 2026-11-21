@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, eq, gt, lte, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type Cart,
   type CartItem,
@@ -11,6 +12,10 @@ import {
   parties,
 } from '@/db/schema';
 import type { CartTableRow } from '../dto/entity/cart.dto';
+
+export type CartCounts = {
+  itemCount: number;
+};
 
 @Injectable()
 export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
@@ -105,6 +110,13 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .where(and(line, gt(cartItems.quantity, quantity)));
   }
 
+  // Counts a cart's lines, throwing when this workspace cannot reach it
+  async findCountsOrThrow(id: string): Promise<CartCounts> {
+    const counts = await this.findById<CartCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Cart not found.');
+    return counts;
+  }
+
   // The carts open at this workspace, for the staff table
   async findForTable(options: { where?: SQL; orderBy?: SQL[]; limit: number; offset: number }): Promise<{
     result: CartTableRow[];
@@ -151,5 +163,12 @@ export class CartsDomainRepository extends PrimaryBaseRepository<typeof carts> {
       .where(eq(carts.id, id))
       .limit(1)) as CartTableRow[];
     return rows[0];
+  }
+
+  // Counts the rows each of a cart's tabs lists: its lines
+  private counts() {
+    return {
+      itemCount: this.db.$count(cartItems, eq(cartItems.cartId, carts.id)),
+    };
   }
 }

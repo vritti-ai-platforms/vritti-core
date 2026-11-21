@@ -1,4 +1,5 @@
 import type { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '@domain/carts/dto/entity/cart.dto';
+import type { CartCountsDto } from '@domain/carts/dto/entity/cart-counts.dto';
 import {
   AddCartItemDto,
   CartScopeDto,
@@ -90,6 +91,13 @@ export class CartsController {
     const { cartId, currencyCode, appId, ...state } = payload;
     this.logger.log(`site.carts.items.table — cart: ${cartId}`);
     return this.service.findItemsForTable(cartId, state, currencyCode, appId);
+  }
+
+  // Counts a cart's lines, for its Items tab
+  @MessagePattern({ cmd: 'site.carts.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<CartCountsDto> {
+    this.logger.log(`site.carts.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   // Returns the open cart, or an empty one. Never creates.

@@ -8,6 +8,7 @@ import type { InventoryItemMrpTableResponseDto } from '@commerce/inventory-items
 import type { InventoryItemResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-response.dto';
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
+import type { LegalEntityInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/legal-entity-inventory-item-counts-response.dto';
 import type { SiteItemTableResponseDto } from '@commerce/inventory-items/dto/response/site-item-row-response.dto';
 import type { SupplierItemResponseDto } from '@commerce/suppliers/dto/response/supplier-item-response.dto';
 import {
@@ -34,6 +35,7 @@ import {
   ApiAddSupplier,
   ApiAddToSite,
   ApiBlockSiteItem,
+  ApiFindInventoryItemCounts,
   ApiFindSiteItemsTable,
   ApiRemoveFromSite,
   ApiSetSupplierItemsRequired,
@@ -167,6 +169,19 @@ export class LeInventoryItemsGatewayController {
   ): Promise<SiteItemTableResponseDto> {
     this.logger.log(`GET /commerce-api/le/inventory-items/${id}/sites/table`);
     return this.service.findSiteItemsTable(id, userId, orgId, legalEntityId);
+  }
+
+  // Counts the item's suppliers, the legal entity's sites and the item's MRPs, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(LE_INVENTORY_ITEMS.view)
+  @ApiFindInventoryItemCounts()
+  findCounts(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @OrgId() orgId: string,
+    @LegalEntityId() legalEntityId: string | undefined,
+  ): Promise<LegalEntityInventoryItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/inventory-items/${id}/counts`);
+    return this.service.findCounts(id, orgId, legalEntityId);
   }
 
   // Removes the item from one of the legal entity's sites

@@ -2,6 +2,7 @@ import type {
   SupplierQuotationDetailDto,
   SupplierQuotationDto,
 } from '@domain/supplier-quotations/dto/entity/supplier-quotation.dto';
+import type { SupplierQuotationCountsDto } from '@domain/supplier-quotations/dto/entity/supplier-quotation-counts.dto';
 import { AddSupplierQuotationItemDto } from '@domain/supplier-quotations/dto/request/add-supplier-quotation-item.dto';
 import { CreateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import { UpdateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/update-supplier-quotation.dto';
@@ -69,6 +70,13 @@ export class SiteSupplierQuotationsController {
     const { supplierId, ...state } = data;
     this.logger.log(`site.suppliers.quotations.table — supplierId: ${supplierId}`);
     return this.service.table(supplierId, state);
+  }
+
+  // Counts the lines and postings of one of the supplier's quotations the caller's site reads, one per tab of its page
+  @MessagePattern({ cmd: 'site.suppliers.quotations.findCounts' })
+  findCounts(@Payload() data: { supplierId: string; quotationId: string }): Promise<SupplierQuotationCountsDto> {
+    this.logger.log(`site.suppliers.quotations.findCounts — supplierId: ${data.supplierId}, id: ${data.quotationId}`);
+    return this.service.findCounts(data.supplierId, data.quotationId);
   }
 
   // Deletes a quotation the caller's site owns while it is posted nowhere else

@@ -6,6 +6,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { taxGroups } from '@/db/schema';
 import { TaxGroupDto } from '../dto/entity/tax-group.dto';
+import { TaxGroupCountsDto } from '../dto/entity/tax-group-counts.dto';
 import type { CreateTaxGroupDto } from '../dto/request/create-tax-group.dto';
 import type { UpdateTaxGroupDto } from '../dto/request/update-tax-group.dto';
 import { TaxGroupsDomainRepository } from '../repositories/tax-groups.repository';
@@ -93,6 +94,11 @@ export class TaxGroupsDomainService {
       offset,
     });
     return { result: result.map(TaxGroupDto.from), count };
+  }
+
+  // Counts a tax group's rates and class mappings, one per tab of its detail page
+  async findCounts(id: string): Promise<TaxGroupCountsDto> {
+    return TaxGroupCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns tax-group options for select dropdowns, only one country's when `country` is given

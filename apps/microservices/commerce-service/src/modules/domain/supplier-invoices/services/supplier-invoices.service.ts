@@ -24,6 +24,7 @@ import {
 } from '../dto/entity/invoiceable-goods-receipt.dto';
 import { PurchaseOrderInvoiceSummaryDto } from '../dto/entity/purchase-order-invoice-summary.dto';
 import { SupplierInvoiceDetailDto, SupplierInvoiceDto } from '../dto/entity/supplier-invoice.dto';
+import { SupplierInvoiceCountsDto } from '../dto/entity/supplier-invoice-counts.dto';
 import { SupplierInvoiceHoldDto } from '../dto/entity/supplier-invoice-hold.dto';
 import { SupplierInvoiceLineDto } from '../dto/entity/supplier-invoice-line.dto';
 import type { CreateSupplierInvoiceDto } from '../dto/request/create-supplier-invoice.dto';
@@ -183,6 +184,11 @@ export class SupplierInvoicesDomainService {
       offset,
     });
     return { result: result.map(SupplierInvoiceDto.from), count };
+  }
+
+  // Counts an invoice's lines and holds in the scope, one per tab of its detail page
+  async findCounts(id: string, scope: SupplierInvoiceScope = {}): Promise<SupplierInvoiceCountsDto> {
+    return SupplierInvoiceCountsDto.from(await this.repository.findCountsOrThrow(id, scope));
   }
 
   // Returns the posted receipt lots (or items without lots) of a supplier's orders at a site still to invoice, each with

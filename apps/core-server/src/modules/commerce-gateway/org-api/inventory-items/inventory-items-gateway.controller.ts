@@ -13,6 +13,7 @@ import type { InventoryItemStorageTypeResponseDto } from '@commerce/inventory-it
 import type { InventoryItemSupplierTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-supplier-response.dto';
 import type { InventoryItemTableResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-table-response.dto';
 import type { InventoryItemUomConversionResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-uom-conversion-response.dto';
+import type { OrgInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/org-inventory-item-counts-response.dto';
 import {
   Body,
   Controller,
@@ -35,6 +36,7 @@ import { RequireFeature, RequirePermission } from '@/rbac/decorators';
 import {
   ApiCreateInventoryItemStorageType,
   ApiDeleteInventoryItemStorageType,
+  ApiFindInventoryItemCounts,
   ApiFindInventoryItemStorageTypes,
   ApiUpdateInventoryItemStorageType,
 } from './docs/inventory-items-gateway.docs';
@@ -192,6 +194,15 @@ export class InventoryItemsGatewayController {
   findStorageTypes(@Param('id', new ParseUUIDPipe()) id: string): Promise<InventoryItemStorageTypeResponseDto[]> {
     this.logger.log(`GET /commerce-api/org/inventory-items/${id}/storage-types`);
     return this.service.findStorageTypes(id);
+  }
+
+  // Counts an inventory item's UOM conversions, MRPs and suppliers, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(ORG_INVENTORY_ITEMS.view)
+  @ApiFindInventoryItemCounts()
+  findCounts(@Param('id') id: string): Promise<OrgInventoryItemCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/inventory-items/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes an inventory item

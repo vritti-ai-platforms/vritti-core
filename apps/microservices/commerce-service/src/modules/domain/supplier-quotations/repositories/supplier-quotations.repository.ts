@@ -40,6 +40,8 @@ export type SupplierQuotationTableRow = SupplierQuotation & { itemCount: number;
 
 export type SupplierQuotationRow = SupplierQuotation & { canWrite: boolean };
 
+export type SupplierQuotationCounts = { itemCount: number; siteCount: number };
+
 export type SupplierQuotationSiteRow = SupplierQuotationSite & { canRemove: boolean };
 
 export type SupplierQuotationItemRow = SupplierQuotationItem & {
@@ -157,6 +159,17 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
       where: eq(supplierQuotations.id, quotationId),
     });
     return row;
+  }
+
+  // Counts a quotation's lines and the sites it is posted to, only one of the supplier's when a supplier is named,
+  // throwing when it is out of reach
+  async findCountsOrThrow(quotationId: string, supplierId?: string): Promise<SupplierQuotationCounts> {
+    const counts = await this.findById<SupplierQuotationCounts>(quotationId, {
+      select: this.counts(),
+      where: supplierId ? eq(supplierQuotations.supplierId, supplierId) : undefined,
+    });
+    if (!counts) throw new NotFoundException('Quotation not found.');
+    return counts;
   }
 
   // Selects a quotation with whether the request can change it: its owner, or the legal entity for its sites'
@@ -558,5 +571,13 @@ export class SupplierQuotationsDomainRepository extends PrimaryBaseRepository<ty
 
   async deleteSite(id: string): Promise<void> {
     await this.db.delete(supplierQuotationSites).where(eq(supplierQuotationSites.id, id));
+  }
+
+  // Counts the rows each of a quotation's list tabs shows: its lines and the sites it is posted to
+  private counts() {
+    return {
+      itemCount: this.db.$count(supplierQuotationItems, eq(supplierQuotationItems.quotationId, supplierQuotations.id)),
+      siteCount: this.db.$count(supplierQuotationSites, eq(supplierQuotationSites.quotationId, supplierQuotations.id)),
+    };
   }
 }

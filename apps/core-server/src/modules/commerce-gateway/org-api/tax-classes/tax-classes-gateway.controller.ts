@@ -1,6 +1,7 @@
 import { CreateTaxClassDto } from '@commerce/tax-classes/dto/request/create-tax-class.dto';
 import { SetTaxClassActiveDto } from '@commerce/tax-classes/dto/request/set-tax-class-active.dto';
 import { UpdateTaxClassDto } from '@commerce/tax-classes/dto/request/update-tax-class.dto';
+import type { TaxClassCountsResponseDto } from '@commerce/tax-classes/dto/response/tax-class-counts-response.dto';
 import type { TaxClassResponseDto } from '@commerce/tax-classes/dto/response/tax-class-response.dto';
 import type { TaxClassTableResponseDto } from '@commerce/tax-classes/dto/response/tax-class-table-response.dto';
 import { CreateTaxClassGroupOnClassDto } from '@commerce/tax-groups/dto/request/create-tax-class-group-on-class.dto';
@@ -31,6 +32,7 @@ import {
   ApiDeleteTaxClassGroup,
   ApiFindForTableTaxClasses,
   ApiFindForTableTaxClassGroups,
+  ApiFindTaxClassCounts,
   ApiUpdateTaxClassGroup,
 } from './docs/tax-classes-gateway.docs';
 import { TaxClassesGatewayService } from './services/tax-classes-gateway.service';
@@ -70,7 +72,7 @@ export class TaxClassesGatewayController {
   // Updates a tax class by ID
   @Patch(':id')
   @RequirePermission(ORG_TAX_CLASSES.edit)
-  update(@Param('id') id: string, @Body() dto: UpdateTaxClassDto): Promise<SuccessResponseDto> {
+  update(@Param('id', new ParseUUIDPipe()) id: string, @Body() dto: UpdateTaxClassDto): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}`);
     return this.service.update(id, dto);
   }
@@ -91,7 +93,10 @@ export class TaxClassesGatewayController {
   // Activates or deactivates a tax class
   @Patch(':id/active')
   @RequirePermission(ORG_TAX_CLASSES.toggle)
-  setActive(@Param('id') id: string, @Body() dto: SetTaxClassActiveDto): Promise<SuccessResponseDto> {
+  setActive(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: SetTaxClassActiveDto,
+  ): Promise<SuccessResponseDto> {
     this.logger.log(`PATCH /commerce-api/org/tax-classes/${id}/active`);
     return this.service.setActive(id, dto.isActive);
   }
@@ -99,7 +104,7 @@ export class TaxClassesGatewayController {
   // Returns a tax class by ID
   @Get(':id')
   @RequirePermission(ORG_TAX_CLASSES.view)
-  findById(@Param('id') id: string): Promise<TaxClassResponseDto> {
+  findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxClassResponseDto> {
     this.logger.log(`GET /commerce-api/org/tax-classes/${id}`);
     return this.service.findById(id);
   }
@@ -125,10 +130,19 @@ export class TaxClassesGatewayController {
     return this.service.findGroupsForTable(userId, taxClassId);
   }
 
+  // Counts a tax class's group mappings, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(ORG_TAX_CLASSES.view)
+  @ApiFindTaxClassCounts()
+  findCounts(@Param('id', new ParseUUIDPipe()) id: string): Promise<TaxClassCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/org/tax-classes/${id}/counts`);
+    return this.service.findCounts(id);
+  }
+
   // Deletes a tax class by ID
   @Delete(':id')
   @RequirePermission(ORG_TAX_CLASSES.delete)
-  delete(@Param('id') id: string): Promise<SuccessResponseDto> {
+  delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<SuccessResponseDto> {
     this.logger.log(`DELETE /commerce-api/org/tax-classes/${id}`);
     return this.service.delete(id);
   }

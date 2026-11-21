@@ -2,6 +2,7 @@ import type { CreateCompanyDto } from '@commerce/parties/dto/request/create-comp
 import type { CreateCompanyRegistrationDto } from '@commerce/parties/dto/request/create-company-registration.dto';
 import type { UpdateCompanyDto } from '@commerce/parties/dto/request/update-company.dto';
 import type { UpdateCompanyRegistrationDto } from '@commerce/parties/dto/request/update-company-registration.dto';
+import type { CompanyCountsResponseDto } from '@commerce/parties/dto/response/company-counts-response.dto';
 import type { CompanyRegistrationResponseDto } from '@commerce/parties/dto/response/company-registration-response.dto';
 import type { CompanyRegistrationTableResponseDto } from '@commerce/parties/dto/response/company-registration-table-response.dto';
 import type { CompanyResponseDto } from '@commerce/parties/dto/response/company-response.dto';
@@ -323,6 +324,12 @@ export class CompaniesGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Counts the rows each tab of a company's detail page lists
+  findCounts(id: string): Promise<CompanyCountsResponseDto> {
+    this.logger.log(`org.companies.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.companies.findCounts', { id });
   }
 
   // Deletes a company by ID

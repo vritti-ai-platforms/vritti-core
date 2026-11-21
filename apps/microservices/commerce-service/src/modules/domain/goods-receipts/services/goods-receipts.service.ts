@@ -13,6 +13,7 @@ import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { type GoodsReceipt, GoodsReceiptStatusValues, goodsReceipts, inboundDeliveries, parties } from '@/db/schema';
 import { GoodsReceiptDto } from '../dto/entity/goods-receipt.dto';
+import { GoodsReceiptCountsDto } from '../dto/entity/goods-receipt-counts.dto';
 import {
   type GoodsReceiptDraftLine,
   GoodsReceiptItemsDomainRepository,
@@ -144,6 +145,11 @@ export class GoodsReceiptsDomainService {
       offset,
     });
     return { result: result.map(GoodsReceiptDto.from), count };
+  }
+
+  // Counts a goods receipt's items, one per tab of its detail page
+  async findCounts(id: string): Promise<GoodsReceiptCountsDto> {
+    return GoodsReceiptCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns a keyset page of goods receipts for the mobile infinite feed, newest first

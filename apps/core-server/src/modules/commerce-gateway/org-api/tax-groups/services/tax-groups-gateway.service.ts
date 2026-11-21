@@ -7,6 +7,7 @@ import type { UpdateTaxGroupDto } from '@commerce/tax-groups/dto/request/update-
 import type { UpdateTaxGroupRateDto } from '@commerce/tax-groups/dto/request/update-tax-group-rate.dto';
 import type { TaxClassGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-response.dto';
 import type { TaxClassGroupTableResponseDto } from '@commerce/tax-groups/dto/response/tax-class-group-table-response.dto';
+import type { TaxGroupCountsResponseDto } from '@commerce/tax-groups/dto/response/tax-group-counts-response.dto';
 import type { TaxGroupRateResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-response.dto';
 import type { TaxGroupRateTableResponseDto } from '@commerce/tax-groups/dto/response/tax-group-rate-table-response.dto';
 import type { TaxGroupResponseDto } from '@commerce/tax-groups/dto/response/tax-group-response.dto';
@@ -116,6 +117,12 @@ export class TaxGroupsGatewayService {
       { taxGroupId, ...state },
     );
     return { result, count, state, activeViewId };
+  }
+
+  // Counts a tax group's rates and class mappings, one per tab of its detail page
+  findCounts(id: string): Promise<TaxGroupCountsResponseDto> {
+    this.logger.log(`org.taxGroups.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.taxGroups.findCounts', { id });
   }
 
   // Deletes a tax group by ID

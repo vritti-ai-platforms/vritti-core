@@ -29,9 +29,11 @@ import type {
   OfferingTargetRow,
 } from '@commerce/offerings/dto/response/offering-channel-response.dto';
 import { OFFERING_CHANNEL_TYPES } from '@commerce/offerings/dto/response/offering-channel-response.dto';
+import type { OfferingCountsResponseDto } from '@commerce/offerings/dto/response/offering-counts-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
+import type { OfferingVariantCountsResponseDto } from '@commerce/offerings/dto/response/offering-variant-counts-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
 import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
@@ -480,6 +482,18 @@ export class SiteOfferingsGatewayService {
     }));
 
     return { result: rows, count, state, activeViewId, storefront: Boolean(appId), catalogName, isOwn };
+  }
+
+  // Counts an offering's dimensions, attributes and variants, one per tab of its detail page
+  findCounts(id: string): Promise<OfferingCountsResponseDto> {
+    this.logger.log(`site.offerings.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.offerings.findCounts', { id });
+  }
+
+  // Counts a variant's bill-of-materials lines, one per tab of its detail page
+  findVariantCounts(variantId: string): Promise<OfferingVariantCountsResponseDto> {
+    this.logger.log(`site.offerings.variants.findCounts — id: ${variantId}`);
+    return this.nats.send('commerce', 'site.offerings.variants.findCounts', { id: variantId });
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {

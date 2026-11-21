@@ -1,4 +1,5 @@
 import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-counts.dto';
 import type { SupplierEnrollmentDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-detail.dto';
 import type { SupplierEnrollmentRowDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-row.dto';
 import type { CreateSupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/request/create-supplier-enrollment.dto';
@@ -45,6 +46,11 @@ export class SiteSuppliersService {
     state: TableState,
   ): Promise<{ result: SupplierEnrollmentRowDto[]; count: number }> {
     return this.supplierEnrollmentsService.findForSiteTable(legalEntityId, state);
+  }
+
+  // Counts a supplier's items, quotations and invoices at the caller's site, enrolled or not
+  findCounts(legalEntityId: string, supplierId: string): Promise<SupplierEnrollmentCountsDto> {
+    return this.supplierEnrollmentsService.findCounts(legalEntityId, supplierId);
   }
 
   // Returns supplier options for the site's pickers with each one's enrollment there, marking those set up for the

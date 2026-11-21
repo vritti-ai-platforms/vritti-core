@@ -10,6 +10,7 @@ import type {
   SupplierQuotationDetailDto,
   SupplierQuotationDto,
 } from '@domain/supplier-quotations/dto/entity/supplier-quotation.dto';
+import type { SupplierQuotationCountsDto } from '@domain/supplier-quotations/dto/entity/supplier-quotation-counts.dto';
 import type { AddSupplierQuotationItemDto } from '@domain/supplier-quotations/dto/request/add-supplier-quotation-item.dto';
 import type { CreateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import type { UpdateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/update-supplier-quotation.dto';
@@ -151,6 +152,11 @@ export class LeSupplierQuotationsService {
 
   table(supplierId: string, state: TableState): Promise<{ result: SupplierQuotationDto[]; count: number }> {
     return this.quotations.findForSupplierTable(supplierId, state);
+  }
+
+  // Counts a quotation's lines and the sites it is posted to
+  findCounts(id: string): Promise<SupplierQuotationCountsDto> {
+    return this.quotations.findCounts(id);
   }
 
   // Deletes a quotation; removing it from every site first takes its prices with it

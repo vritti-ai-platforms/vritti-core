@@ -2,6 +2,7 @@ import type {
   SupplierQuotationDetailDto,
   SupplierQuotationDto,
 } from '@domain/supplier-quotations/dto/entity/supplier-quotation.dto';
+import type { SupplierQuotationCountsDto } from '@domain/supplier-quotations/dto/entity/supplier-quotation-counts.dto';
 import { AddSupplierQuotationItemDto } from '@domain/supplier-quotations/dto/request/add-supplier-quotation-item.dto';
 import { CreateSupplierQuotationDto } from '@domain/supplier-quotations/dto/request/create-supplier-quotation.dto';
 import { SupplierQuotationSiteRefDto } from '@domain/supplier-quotations/dto/request/supplier-quotation-site-ref.dto';
@@ -76,6 +77,13 @@ export class SupplierQuotationsController {
     const { supplierId, ...state } = data;
     this.logger.log(`suppliers.quotations.table — supplierId: ${supplierId}`);
     return this.service.table(supplierId, state);
+  }
+
+  // Counts a quotation's lines and the sites it is posted to, one per tab of its page
+  @MessagePattern({ cmd: 'le.suppliers.quotations.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<SupplierQuotationCountsDto> {
+    this.logger.log(`suppliers.quotations.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'le.suppliers.quotations.delete' })

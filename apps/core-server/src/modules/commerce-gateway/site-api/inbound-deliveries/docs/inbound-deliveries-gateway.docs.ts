@@ -3,6 +3,7 @@ import { CreateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/reque
 import { SetInboundDeliveryStatusDto } from '@commerce/inbound-deliveries/dto/request/set-inbound-delivery-status.dto';
 import { UpdateInboundDeliveryDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery.dto';
 import { UpdateInboundDeliveryLineDto } from '@commerce/inbound-deliveries/dto/request/update-inbound-delivery-line.dto';
+import { InboundDeliveryCountsResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-counts-response.dto';
 import { InboundDeliveryLineTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-line-table-response.dto';
 import { InboundDeliveryResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-response.dto';
 import { InboundDeliveryTableResponseDto } from '@commerce/inbound-deliveries/dto/response/inbound-delivery-table-response.dto';
@@ -91,6 +92,18 @@ export function ApiSetStatus() {
       status: 400,
       description: 'The move is not allowed from the current status, or a goods receipt blocks cancelling.',
     }),
+    ApiResponse({ status: 404, description: 'Inbound delivery not found.' }),
+  );
+}
+
+export function ApiFindInboundDeliveryCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count an inbound delivery's lines",
+      description: "One count per tab of the delivery's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam({ name: 'id', description: 'Inbound delivery ID' }),
+    ApiResponse({ status: 200, description: 'Counts retrieved.', type: InboundDeliveryCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Inbound delivery not found.' }),
   );
 }

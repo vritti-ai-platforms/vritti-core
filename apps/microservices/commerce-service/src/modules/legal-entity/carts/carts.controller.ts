@@ -1,4 +1,5 @@
 import type { CartDetailDto, CartDto, CartItemDto, StaffCartItemDto } from '@domain/carts/dto/entity/cart.dto';
+import type { CartCountsDto } from '@domain/carts/dto/entity/cart-counts.dto';
 import { CartsDomainService } from '@domain/carts/services/carts.service';
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -61,6 +62,13 @@ export class LeCartsController {
     const { cartId, currencyCode, appId, ...state } = payload;
     this.logger.log(`le.carts.items.table — cart: ${cartId}`);
     return this.service.findItemsForTable(cartId, state, currencyCode, appId);
+  }
+
+  // Counts a cart's lines, for its Items tab
+  @MessagePattern({ cmd: 'le.carts.findCounts' })
+  findCounts(@Payload() data: { id: string }): Promise<CartCountsDto> {
+    this.logger.log(`le.carts.findCounts — id: ${data.id}`);
+    return this.service.findCounts(data.id);
   }
 
   @MessagePattern({ cmd: 'le.carts.findItemsById' })

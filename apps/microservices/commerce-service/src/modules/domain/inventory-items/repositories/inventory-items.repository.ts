@@ -1,18 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { and, eq, exists, getColumns, gt, inArray, notExists, or, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import {
+  and,
+  eq,
+  exists,
+  getColumns,
+  gt,
+  inArray,
+  isNull,
+  notExists,
+  or,
+  type SQL,
+  sql,
+} from '@vritti/api-sdk/drizzle-orm';
 import { type AnyPgColumn, alias, QueryBuilder, union } from '@vritti/api-sdk/drizzle-pg-core';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import { type FindForSelectConfig, type SelectQueryResult } from '@vritti/api-sdk/select';
 import {
   categories,
+  currentSiteId,
   type DisplayUnitRatios,
   displayUnitRatios,
   hasSupplierItem,
   type InventoryItem,
+  inventoryItemLedger,
+  inventoryItemLocations,
+  inventoryItemLots,
+  inventoryItemMrps,
   inventoryItemQuants,
   inventoryItemSites,
   inventoryItems,
   inventoryItemUomConversions,
+  inventoryStockLevels,
   itemStockAtSite,
   locations,
   purchaseItems,
@@ -30,6 +49,7 @@ import {
   stockAdjustments,
   stockStatusSql,
   stockTransfers,
+  supplierItemPrices,
   supplierItems,
   taxClasses,
   uom,
@@ -44,6 +64,27 @@ export type InventoryItemNames = {
 };
 
 type TableRow = InventoryItem & InventoryItemNames;
+
+export type OrgInventoryItemCounts = {
+  conversionCount: number;
+  mrpCount: number;
+  supplierCount: number;
+};
+
+export type LegalEntityInventoryItemCounts = {
+  supplierCount: number;
+  mrpCount: number;
+};
+
+export type SiteInventoryItemCounts = {
+  stockLevelCount: number;
+  lotCount: number;
+  locationCount: number;
+  supplierCount: number;
+  priceCount: number;
+  movementCount: number;
+  quantCount: number;
+};
 
 export type SiteStockTableRow = TableRow & {
   atSite: boolean;
@@ -373,12 +414,86 @@ export class InventoryItemsDomainRepository extends PrimaryBaseRepository<typeof
     return row ?? null;
   }
 
+  // Counts the rows each tab of the org's item detail page lists, throwing when the item is out of reach
+  async findOrgCountsOrThrow(id: string): Promise<OrgInventoryItemCounts> {
+    const counts = await this.findById<OrgInventoryItemCounts>(id, { select: this.orgCounts() });
+    if (!counts) throw new NotFoundException('Inventory item not found.');
+    return counts;
+  }
+
+  // Counts the rows each tab of a legal entity's item detail page lists, throwing when the item is out of reach
+  async findLegalEntityCountsOrThrow(id: string): Promise<LegalEntityInventoryItemCounts> {
+    const counts = await this.findById<LegalEntityInventoryItemCounts>(id, { select: this.legalEntityCounts() });
+    if (!counts) throw new NotFoundException('Inventory item not found.');
+    return counts;
+  }
+
+  // Counts the rows each tab of a site's item detail page lists, throwing when the item is out of reach
+  async findSiteCountsOrThrow(id: string): Promise<SiteInventoryItemCounts> {
+    const counts = await this.findById<SiteInventoryItemCounts>(id, { select: this.siteCounts() });
+    if (!counts) throw new NotFoundException('Inventory item not found.');
+    return counts;
+  }
+
   // Org-wide master list (no site filter — RLS scopes to org). Alias of findAllWithUom for the master table.
   findForOrgTable(options?: { where?: SQL; orderBy?: SQL[]; limit?: number; offset?: number }): Promise<{
     result: TableRow[];
     count: number;
   }> {
     return this.findAllWithUom(options);
+  }
+
+  // Counts the rows the org item detail page's tabs list: its UOM conversions, its MRPs and every supplier carrying it
+  private orgCounts() {
+    return {
+      conversionCount: this.db.$count(
+        inventoryItemUomConversions,
+        eq(inventoryItemUomConversions.inventoryItemId, inventoryItems.id),
+      ),
+      mrpCount: this.db.$count(inventoryItemMrps, eq(inventoryItemMrps.inventoryItemId, inventoryItems.id)),
+      supplierCount: this.db.$count(supplierItems, eq(supplierItems.inventoryItemId, inventoryItems.id)),
+    };
+  }
+
+  // Counts the rows a legal entity's item detail page's tabs list: the suppliers carrying it and its MRPs; RLS narrows the
+  // suppliers to the legal entity's
+  private legalEntityCounts() {
+    return {
+      supplierCount: this.db.$count(supplierItems, eq(supplierItems.inventoryItemId, inventoryItems.id)),
+      mrpCount: this.db.$count(inventoryItemMrps, eq(inventoryItemMrps.inventoryItemId, inventoryItems.id)),
+    };
+  }
+
+  // Counts the rows a site's item detail page's tabs list: its stock by location, lots, location setups, suppliers, the
+  // site's and legal entity's price rows, movements and quants; RLS narrows each to the request's site
+  private siteCounts() {
+    return {
+      stockLevelCount: this.db.$count(
+        inventoryStockLevels,
+        eq(inventoryStockLevels.inventoryItemId, inventoryItems.id),
+      ),
+      lotCount: this.db.$count(inventoryItemLots, eq(inventoryItemLots.inventoryItemId, inventoryItems.id)),
+      locationCount: this.db.$count(
+        inventoryItemLocations,
+        eq(inventoryItemLocations.inventoryItemId, inventoryItems.id),
+      ),
+      supplierCount: this.db.$count(supplierItems, eq(supplierItems.inventoryItemId, inventoryItems.id)),
+      priceCount: this.db.$count(
+        supplierItemPrices,
+        and(
+          inArray(
+            supplierItemPrices.supplierItemId,
+            new QueryBuilder()
+              .select({ id: supplierItems.id })
+              .from(supplierItems)
+              .where(eq(supplierItems.inventoryItemId, inventoryItems.id)),
+          ),
+          or(eq(supplierItemPrices.siteId, currentSiteId()), isNull(supplierItemPrices.siteId)),
+        ),
+      ),
+      movementCount: this.db.$count(inventoryItemLedger, eq(inventoryItemLedger.inventoryItemId, inventoryItems.id)),
+      quantCount: this.db.$count(inventoryItemQuants, eq(inventoryItemQuants.inventoryItemId, inventoryItems.id)),
+    };
   }
 
   // The master columns every scope's table shows, with the names its foreign keys point at

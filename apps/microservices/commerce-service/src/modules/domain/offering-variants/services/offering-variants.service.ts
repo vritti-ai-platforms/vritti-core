@@ -26,6 +26,7 @@ import {
   offeringVariantValues,
 } from '@/db/schema';
 import { OfferingVariantDto, type OfferingVariantTableRowDto } from '../dto/entity/offering-variant.dto';
+import { OfferingVariantCountsDto } from '../dto/entity/offering-variant-counts.dto';
 import type { VariantCombinationsDto } from '../dto/entity/variant-combination.dto';
 import type { BulkClearVariantsTaxClassDto } from '../dto/request/bulk-clear-variants-tax-class.dto';
 import type { BulkSetVariantsAttributeDto } from '../dto/request/bulk-set-variants-attribute.dto';
@@ -537,6 +538,11 @@ export class OfferingVariantsDomainService {
       total: combinations.length,
       existingCount: combinations.filter((combination) => combination.exists).length,
     };
+  }
+
+  // Counts a variant's bill-of-materials lines, one per tab of its detail page
+  async findCounts(id: string): Promise<OfferingVariantCountsDto> {
+    return OfferingVariantCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {

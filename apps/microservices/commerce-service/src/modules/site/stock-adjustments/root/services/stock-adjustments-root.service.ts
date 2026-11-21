@@ -11,6 +11,7 @@ import { StockAdjustmentLinesDomainRepository } from '@domain/stock-adjustment-l
 import { StockAdjustmentLinesDomainService } from '@domain/stock-adjustment-lines/services/stock-adjustment-lines.service';
 import { StockAdjustmentLotsDomainRepository } from '@domain/stock-adjustment-lots/repositories/stock-adjustment-lots.repository';
 import { type StockAdjustmentDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment.dto';
+import type { StockAdjustmentCountsDto } from '@domain/stock-adjustments/dto/entity/stock-adjustment-counts.dto';
 import { StockAdjustmentsDomainRepository } from '@domain/stock-adjustments/repositories/stock-adjustments.repository';
 import { StockAdjustmentsDomainService } from '@domain/stock-adjustments/services/stock-adjustments.service';
 import { UomConversionsDomainService } from '@domain/uom-conversions/services/uom-conversions.service';
@@ -185,6 +186,11 @@ export class StockAdjustmentsService {
   ): Promise<{ result: StockAdjustmentWithDisplayDto[]; count: number }> {
     const { result, count } = await this.adjustmentsService.findForTable(state, leCurrencyCode);
     return { result: result.map((adjustment) => this.withDisplay(adjustment)), count };
+  }
+
+  // Counts an adjustment's lines and draft lots, for its Breakdown tab
+  findCounts(id: string): Promise<StockAdjustmentCountsDto> {
+    return this.adjustmentsService.findCounts(id);
   }
 
   delete(id: string): Promise<SuccessResponseDto> {

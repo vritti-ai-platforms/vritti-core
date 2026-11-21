@@ -6,6 +6,7 @@ import { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request/upda
 import { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import { UpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-lot.dto';
+import type { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-table-response.dto';
@@ -33,6 +34,7 @@ import {
   ApiDelete,
   ApiFindById,
   ApiFindForTable,
+  ApiFindGoodsReceiptCounts,
   ApiInventoryItemIds,
   ApiItemDetail,
   ApiItemQuants,
@@ -323,6 +325,15 @@ export class GoodsReceiptsGatewayController {
   lots(@Param('id') goodsReceiptId: string, @Param('itemId') itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
     this.logger.log(`GET /commerce-api/site/goods-receipts/${goodsReceiptId}/items/${itemId}/lots`);
     return this.service.findLots(goodsReceiptId, itemId);
+  }
+
+  // Counts a goods receipt's items, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(SITE_GOODS_RECEIPTS.view)
+  @ApiFindGoodsReceiptCounts()
+  findCounts(@Param('id') id: string): Promise<GoodsReceiptCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/goods-receipts/${id}/counts`);
+    return this.service.findCounts(id);
   }
 
   // Deletes a draft goods receipt

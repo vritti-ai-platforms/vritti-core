@@ -23,6 +23,8 @@ import {
   ApiDeleteOfferingVariant,
   ApiExportOfferings,
   ApiExportOfferingVariants,
+  ApiFindOfferingCounts,
+  ApiFindOfferingVariantCounts,
   ApiGenerateOfferingVariants,
   ApiGetOffering,
   ApiGetOfferingVariant,
@@ -82,9 +84,11 @@ import type {
   ChannelVariantPagesTableResponseDto,
   OfferingChannelTypeResponseDto,
 } from '@commerce/offerings/dto/response/offering-channel-response.dto';
+import type { OfferingCountsResponseDto } from '@commerce/offerings/dto/response/offering-counts-response.dto';
 import type { OfferingDimensionResponseDto } from '@commerce/offerings/dto/response/offering-dimension-response.dto';
 import type { OfferingResponseDto } from '@commerce/offerings/dto/response/offering-response.dto';
 import type { OfferingTableResponseDto } from '@commerce/offerings/dto/response/offering-table-response.dto';
+import type { OfferingVariantCountsResponseDto } from '@commerce/offerings/dto/response/offering-variant-counts-response.dto';
 import type { OfferingVariantResponseDto } from '@commerce/offerings/dto/response/offering-variant-response.dto';
 import type { OfferingVariantTableResponseDto } from '@commerce/offerings/dto/response/offering-variant-table-response.dto';
 import type { VariantBomResponseDto } from '@commerce/offerings/dto/response/variant-bom-response.dto';
@@ -600,6 +604,24 @@ export class SiteOfferingsGatewayController {
   ): Promise<ChannelVariantPagesTableResponseDto> {
     this.logger.log(`GET /commerce-api/site/offerings/${id}/channels/${channelType}/targets/${targetId}`);
     return this.service.channelVariantPages(orgId, userId, id, channelType, targetId);
+  }
+
+  // Counts an offering's dimensions, attributes and variants, one per tab of its detail page
+  @Get(':id/counts')
+  @RequirePermission(SITE_OFFERINGS.view)
+  @ApiFindOfferingCounts()
+  findCounts(@Param('id') id: string): Promise<OfferingCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/offerings/${id}/counts`);
+    return this.service.findCounts(id);
+  }
+
+  // Counts a variant's bill-of-materials lines, one per tab of its detail page
+  @Get('variants/:variantId/counts')
+  @RequirePermission(SITE_OFFERINGS.variants.view)
+  @ApiFindOfferingVariantCounts()
+  findVariantCounts(@Param('variantId') variantId: string): Promise<OfferingVariantCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/site/offerings/variants/${variantId}/counts`);
+    return this.service.findVariantCounts(variantId);
   }
 
   // Deletes an offering; refused while it has variants

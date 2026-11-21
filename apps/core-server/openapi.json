@@ -11820,6 +11820,91 @@
         ]
       }
     },
+    "/commerce-api/org/offerings/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the offering's detail page, so each tab can show how many rows it lists.",
+        "operationId": "OrgOfferingsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingCountsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an offering's dimensions, attributes and variants",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
+    "/commerce-api/org/offerings/variants/{variantId}/counts": {
+      "get": {
+        "description": "One count per tab of the variant's detail page, so each tab can show how many rows it lists.",
+        "operationId": "OrgOfferingsGatewayController_findVariantCounts",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingVariantCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a variant's bill-of-materials lines",
+        "tags": [
+          "Commerce - Offerings (Org)"
+        ]
+      }
+    },
     "/commerce-api/le/offerings": {
       "post": {
         "description": "Creates an offering owned by the calling workspace. It stays inactive until it has at least one variant.",
@@ -14089,6 +14174,91 @@
           }
         ],
         "summary": "This offering’s variants as one channel sees them",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the offering's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeOfferingsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingCountsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an offering's dimensions, attributes and variants",
+        "tags": [
+          "Commerce - Offerings (LE)"
+        ]
+      }
+    },
+    "/commerce-api/le/offerings/variants/{variantId}/counts": {
+      "get": {
+        "description": "One count per tab of the variant's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeOfferingsGatewayController_findVariantCounts",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingVariantCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a variant's bill-of-materials lines",
         "tags": [
           "Commerce - Offerings (LE)"
         ]
@@ -16368,6 +16538,91 @@
         ]
       }
     },
+    "/commerce-api/site/offerings/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the offering's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SiteOfferingsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingCountsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an offering's dimensions, attributes and variants",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
+    "/commerce-api/site/offerings/variants/{variantId}/counts": {
+      "get": {
+        "description": "One count per tab of the variant's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SiteOfferingsGatewayController_findVariantCounts",
+        "parameters": [
+          {
+            "name": "variantId",
+            "required": true,
+            "in": "path",
+            "description": "Variant identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OfferingVariantCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or out of reach."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a variant's bill-of-materials lines",
+        "tags": [
+          "Commerce - Offerings (Site)"
+        ]
+      }
+    },
     "/commerce-api/org/categories": {
       "post": {
         "description": "Creates a new category for the sites. organizationId is resolved from the authenticated user.",
@@ -17543,6 +17798,50 @@
         ]
       }
     },
+    "/commerce-api/le/inventory-items/{id}/counts": {
+      "get": {
+        "description": "One count per listing tab of the item's detail page in a legal entity: the legal entity's suppliers carrying it, the legal entity's sites and the item's MRPs, each with no table filters applied.",
+        "operationId": "LeInventoryItemsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalEntityInventoryItemCountsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request was made outside a legal entity workspace."
+          },
+          "404": {
+            "description": "Inventory item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count the rows of an inventory item's tabs",
+        "tags": [
+          "Commerce - LE Inventory Items"
+        ]
+      }
+    },
     "/commerce-api/le/inventory-items/{id}/prices/table": {
       "get": {
         "description": "Every supplier's standing for the item at the site in the caller's saved table state (`filters.context`, field `site`) on its context day (field `asOf`, YYYY-MM-DD): the price in force, per the item's primary unit and after its free-goods scheme. Both are required context — a state without either has no rows.",
@@ -17997,6 +18296,47 @@
         ]
       }
     },
+    "/commerce-api/site/carts/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the cart's detail page, so each tab can show how many rows it lists.",
+        "operationId": "CartsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Cart ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cart not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a cart's lines",
+        "tags": [
+          "Commerce - Carts"
+        ]
+      }
+    },
     "/commerce-api/le/carts": {
       "post": {
         "operationId": "LeCartsGatewayController_open",
@@ -18324,6 +18664,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Company Carts"
+        ]
+      }
+    },
+    "/commerce-api/le/carts/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the cart's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeCartsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Cart ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CartCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cart not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a cart's lines",
         "tags": [
           "Commerce - Company Carts"
         ]
@@ -19828,6 +20209,47 @@
         ]
       }
     },
+    "/commerce-api/site/goods-receipts/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the receipt's detail page — its breakdown and its items cost both list its items — so each tab can show how many rows it lists.",
+        "operationId": "GoodsReceiptsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Goods receipt ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Goods receipt not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a goods receipt's items",
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/site/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items/{subItemId}": {
       "delete": {
         "description": "Removes a serial from a line of a draft receipt.",
@@ -20375,6 +20797,47 @@
         ]
       }
     },
+    "/commerce-api/site/inbound-deliveries/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the delivery's detail page, so each tab can show how many rows it lists.",
+        "operationId": "InboundDeliveriesGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inbound delivery ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboundDeliveryCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inbound delivery not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an inbound delivery's lines",
+        "tags": [
+          "Commerce - Inbound Deliveries"
+        ]
+      }
+    },
     "/commerce-api/site/inventory-items/{id}/setup": {
       "post": {
         "operationId": "SiteInventoryItemsGatewayController_addToSite",
@@ -20897,6 +21360,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/site/inventory-items/{id}/counts": {
+      "get": {
+        "description": "One count per listing tab of the item's detail page at the site: its stock by location, lots, location setups, suppliers, price rows, movements and quants, each with no table filters applied.",
+        "operationId": "SiteInventoryItemsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteInventoryItemCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inventory item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count the rows of an inventory item's tabs",
         "tags": [
           "Commerce - Inventory Items"
         ]
@@ -21577,6 +22081,47 @@
         ]
       }
     },
+    "/commerce-api/org/catalog-channels/{channelId}/counts": {
+      "get": {
+        "description": "One count per tab of the channel's detail page, so each tab can show how many rows it lists.",
+        "operationId": "CatalogChannelsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a channel's listings and currencies",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
     "/commerce-api/org/catalog-channels/{channelId}": {
       "delete": {
         "description": "The catalog itself is untouched; callers fall back to this workspace’s default, then to a wider one. Rejected when the channel is inherited.",
@@ -21940,6 +22485,47 @@
         ]
       }
     },
+    "/commerce-api/le/catalog-channels/{channelId}/counts": {
+      "get": {
+        "description": "One count per tab of the channel's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeCatalogChannelsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a channel's listings and currencies",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
     "/commerce-api/le/catalog-channels/{channelId}": {
       "delete": {
         "description": "The catalog itself is untouched; callers fall back to this workspace’s default, then to a wider one. Rejected when the channel is inherited.",
@@ -22298,6 +22884,47 @@
           }
         ],
         "summary": "Currencies this channel can quote in",
+        "tags": [
+          "Commerce - Catalog Channels"
+        ]
+      }
+    },
+    "/commerce-api/site/catalog-channels/{channelId}/counts": {
+      "get": {
+        "description": "One count per tab of the channel's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SiteCatalogChannelsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "description": "Channel identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogChannelCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a channel's listings and currencies",
         "tags": [
           "Commerce - Catalog Channels"
         ]
@@ -23153,6 +23780,47 @@
           }
         ],
         "summary": "Channels carrying this catalog",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
+    "/commerce-api/org/catalogs/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the catalog's detail page, so each tab can show how many rows it lists.",
+        "operationId": "CatalogsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a catalog's channels, listings and currencies",
         "tags": [
           "Commerce - Catalogs"
         ]
@@ -24062,6 +24730,47 @@
         ]
       }
     },
+    "/commerce-api/le/catalogs/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the catalog's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeCatalogsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a catalog's channels, listings and currencies",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
     "/commerce-api/le/catalogs/{id}/listings/{listingId}": {
       "delete": {
         "operationId": "LeCatalogsGatewayController_deleteListing",
@@ -24966,6 +25675,47 @@
         ]
       }
     },
+    "/commerce-api/site/catalogs/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the catalog's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SiteCatalogsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Catalog identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Catalog not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a catalog's channels, listings and currencies",
+        "tags": [
+          "Commerce - Catalogs"
+        ]
+      }
+    },
     "/commerce-api/site/catalogs/{id}/listings/{listingId}": {
       "delete": {
         "operationId": "SiteCatalogsGatewayController_deleteListing",
@@ -25229,6 +25979,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Orders"
+        ]
+      }
+    },
+    "/commerce-api/site/orders/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the order's detail page, so each tab can show how many rows it lists.",
+        "operationId": "OrdersGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Order ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an order's items and payments",
         "tags": [
           "Commerce - Orders"
         ]
@@ -26745,6 +27536,47 @@
           }
         ],
         "summary": "Summarize a purchase order's invoices",
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/site/purchase-orders/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the order's detail page — its lines and the inbound deliveries, goods receipts and supplier invoices with a line on it — so each tab can show how many rows it lists.",
+        "operationId": "PurchaseOrdersGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase order ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase order not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a purchase order's lines, deliveries, receipts and invoices",
         "tags": [
           "Commerce - Purchase Orders"
         ]
@@ -30425,6 +31257,44 @@
         ]
       }
     },
+    "/commerce-api/site/stock-adjustments/{id}/counts": {
+      "get": {
+        "description": "The rows the adjustment's Breakdown tab lists: its lines, and the draft lots opening stock of a lot-tracked item groups them under.",
+        "operationId": "StockAdjustmentsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Stock adjustment ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StockAdjustmentCountsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an adjustment's lines and draft lots",
+        "tags": [
+          "Commerce - Stock Adjustments"
+        ]
+      }
+    },
     "/commerce-api/site/stock-transfers": {
       "post": {
         "operationId": "StockTransfersGatewayController_create",
@@ -31397,6 +32267,147 @@
         ]
       }
     },
+    "/commerce-api/site/suppliers/{id}/invoices/{invoiceId}/counts": {
+      "get": {
+        "description": "One count per tab of the invoice's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SiteSuppliersGatewayController_findInvoiceCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "invoiceId",
+            "required": true,
+            "in": "path",
+            "description": "Supplier invoice ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierInvoiceCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier invoice not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count the lines and holds of one of a supplier's invoices",
+        "tags": [
+          "Commerce - Site Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/counts": {
+      "get": {
+        "description": "One count per list tab of the supplier's page at the session site, enrolled or not: the items the site lists, the quotations it reads and its invoices.",
+        "operationId": "SiteSuppliersGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierEnrollmentCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier's items, quotations and invoices at the site",
+        "tags": [
+          "Commerce - Site Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/site-items/{itemId}/counts": {
+      "get": {
+        "description": "One count per list tab of the supplier item's page at the session site: the price rows it reads, its own and the legal entity's.",
+        "operationId": "SiteSuppliersGatewayController_findSiteItemCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "description": "Supplier item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierItemCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier item's prices the site reads",
+        "tags": [
+          "Commerce - Site Suppliers"
+        ]
+      }
+    },
     "/commerce-api/site/suppliers/{id}/quotations": {
       "post": {
         "operationId": "SiteSupplierQuotationsGatewayController_create",
@@ -31728,6 +32739,56 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Site Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/site/suppliers/{id}/quotations/{quotationId}/counts": {
+      "get": {
+        "description": "One count per list tab of the quotation's page at the session site.",
+        "operationId": "SiteSupplierQuotationsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "description": "Supplier quotation ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierQuotationCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quotation not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a quotation's lines and the sites it is posted to",
         "tags": [
           "Commerce - Site Supplier Quotations"
         ]
@@ -32094,6 +33155,54 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Supplier Quotations"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/quotations/{quotationId}/counts": {
+      "get": {
+        "description": "One count per list tab of the quotation's page, so each tab can show how many rows it lists.",
+        "operationId": "SupplierQuotationsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "quotationId",
+            "required": true,
+            "in": "path",
+            "description": "Supplier quotation ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierQuotationCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Quotation not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a quotation's lines and the sites it is posted to",
         "tags": [
           "Commerce - Supplier Quotations"
         ]
@@ -32717,6 +33826,47 @@
           }
         ],
         "summary": "List a supplier's receipts still to invoice at a site",
+        "tags": [
+          "Commerce - Supplier Invoices"
+        ]
+      }
+    },
+    "/commerce-api/le/supplier-invoices/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the invoice's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SupplierInvoicesGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier invoice ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierInvoiceCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier invoice not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier invoice's lines and holds",
         "tags": [
           "Commerce - Supplier Invoices"
         ]
@@ -33827,6 +34977,47 @@
           }
         ],
         "summary": "Summarize a purchase order's invoices",
+        "tags": [
+          "Commerce - Purchase Orders"
+        ]
+      }
+    },
+    "/commerce-api/le/purchase-orders/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the order's detail page — its lines and the inbound deliveries, goods receipts and supplier invoices with a line on it — so each tab can show how many rows it lists.",
+        "operationId": "LePurchaseOrdersGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Purchase order ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOrderCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Purchase order not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a purchase order's lines, deliveries, receipts and invoices",
         "tags": [
           "Commerce - Purchase Orders"
         ]
@@ -37950,6 +39141,47 @@
         ]
       }
     },
+    "/commerce-api/le/goods-receipts/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the receipt's detail page — its breakdown and its items cost both list its items — so each tab can show how many rows it lists.",
+        "operationId": "LeGoodsReceiptsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Goods receipt ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoodsReceiptCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Goods receipt not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a goods receipt's items",
+        "tags": [
+          "Commerce - Goods Receipts"
+        ]
+      }
+    },
     "/commerce-api/le/goods-receipts/{id}/items/{itemId}/lines/{lineId}/items/{subItemId}": {
       "delete": {
         "description": "Removes a serial from a line of a draft receipt.",
@@ -38123,6 +39355,47 @@
           }
         ],
         "summary": "List inbound delivery lines",
+        "tags": [
+          "Commerce - Inbound Deliveries"
+        ]
+      }
+    },
+    "/commerce-api/le/inbound-deliveries/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the delivery's detail page, so each tab can show how many rows it lists.",
+        "operationId": "LeInboundDeliveriesGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inbound delivery ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Counts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboundDeliveryCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inbound delivery not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an inbound delivery's lines",
         "tags": [
           "Commerce - Inbound Deliveries"
         ]
@@ -39650,6 +40923,143 @@
         ]
       }
     },
+    "/commerce-api/le/suppliers/{id}/counts": {
+      "get": {
+        "description": "One count per list tab of the supplier's detail page, so each tab can show how many rows it lists. The enrollment count is every site of the legal entity, since the Enrollments tab lists each with the supplier's enrollment there or none.",
+        "operationId": "SuppliersGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier's items, site enrollments, quotations and people",
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/items/{itemId}/counts": {
+      "get": {
+        "description": "One count per list tab of the supplier item's detail page, so each tab can show how many rows it lists.",
+        "operationId": "SuppliersGatewayController_findItemCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "description": "Supplier item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierItemCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier item's sites and prices",
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
+    "/commerce-api/le/suppliers/{id}/enrollments/{siteId}/counts": {
+      "get": {
+        "description": "One count per list tab of the supplier's enrollment page, enrolled or not: the items the site lists and the quotations posted to it.",
+        "operationId": "SuppliersGatewayController_findEnrollmentCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Supplier ID",
+            "schema": {}
+          },
+          {
+            "name": "siteId",
+            "required": true,
+            "in": "path",
+            "description": "Site ID",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierEnrollmentCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Supplier not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a supplier's items, quotations and invoices at one of the legal entity's sites",
+        "tags": [
+          "Commerce - Suppliers"
+        ]
+      }
+    },
     "/commerce-api/org/inventory-items": {
       "post": {
         "operationId": "InventoryItemsGatewayController_create",
@@ -40344,6 +41754,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Org Inventory Items"
+        ]
+      }
+    },
+    "/commerce-api/org/inventory-items/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the item's detail page, so each tab can show how many rows it lists.",
+        "operationId": "InventoryItemsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Inventory item ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgInventoryItemCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Inventory item not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count an inventory item's UOM conversions, MRPs and suppliers",
         "tags": [
           "Commerce - Org Inventory Items"
         ]
@@ -41536,6 +42987,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - People"
+        ]
+      }
+    },
+    "/commerce-api/org/people/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the person's detail page (addresses, communications, social profiles, companies, tax registrations, licenses, bank accounts, wishlist, identifiers), so each tab can show how many rows it lists.",
+        "operationId": "PeopleGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Person ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Person not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a person's tab rows",
         "tags": [
           "Commerce - People"
         ]
@@ -42945,6 +44437,47 @@
         ]
       }
     },
+    "/commerce-api/org/companies/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the company's detail page (addresses, communications, social profiles, people, tax registrations, licenses, bank accounts, identifiers), so each tab can show how many rows it lists.",
+        "operationId": "CompaniesGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Company ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a company's tab rows",
+        "tags": [
+          "Commerce - Companies"
+        ]
+      }
+    },
     "/commerce-api/org/companies/{id}/identifiers/{identifierId}": {
       "delete": {
         "operationId": "CompaniesGatewayController_removeIdentifier",
@@ -43414,6 +44947,47 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Commerce - Payment Terms"
+        ]
+      }
+    },
+    "/commerce-api/org/payment-terms/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the payment term's detail page, so each tab can show how many rows it lists.",
+        "operationId": "PaymentTermsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Payment term ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentTermCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Payment term not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a payment term's rules",
         "tags": [
           "Commerce - Payment Terms"
         ]
@@ -43990,6 +45564,47 @@
           }
         ],
         "summary": "Tax groups a tax class is mapped to",
+        "tags": [
+          "Commerce - Tax Classes"
+        ]
+      }
+    },
+    "/commerce-api/org/tax-classes/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the class's detail page, so each tab can show how many rows it lists. Group mappings are counted in every country, not only the table context's.",
+        "operationId": "TaxClassesGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Tax class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxClassCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tax class not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a tax class's group mappings",
         "tags": [
           "Commerce - Tax Classes"
         ]
@@ -44794,6 +46409,47 @@
           }
         ],
         "summary": "Tax classes mapped to a tax group",
+        "tags": [
+          "Commerce - Tax Groups"
+        ]
+      }
+    },
+    "/commerce-api/org/tax-groups/{id}/counts": {
+      "get": {
+        "description": "One count per tab of the group's detail page, so each tab can show how many rows it lists.",
+        "operationId": "TaxGroupsGatewayController_findCounts",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Tax group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxGroupCountsResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tax group not found."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Count a tax group's rates and class mappings",
         "tags": [
           "Commerce - Tax Groups"
         ]
@@ -64570,6 +66226,44 @@
           "isOwn"
         ]
       },
+      "OfferingCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "dimensionCount": {
+            "type": "number",
+            "description": "Dimensions the offering varies on",
+            "example": 2
+          },
+          "attributeCount": {
+            "type": "number",
+            "description": "Attributes defined on the offering",
+            "example": 3
+          },
+          "variantCount": {
+            "type": "number",
+            "description": "Variants of the offering, active and inactive",
+            "example": 12
+          }
+        },
+        "required": [
+          "dimensionCount",
+          "attributeCount",
+          "variantCount"
+        ]
+      },
+      "OfferingVariantCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "bomLineCount": {
+            "type": "number",
+            "description": "Components on the variant's bill of materials",
+            "example": 2
+          }
+        },
+        "required": [
+          "bomLineCount"
+        ]
+      },
       "CreateCategoryDto": {
         "type": "object",
         "properties": {
@@ -65658,6 +67352,31 @@
           "state"
         ]
       },
+      "LegalEntityInventoryItemCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "supplierCount": {
+            "type": "number",
+            "description": "The legal entity's suppliers carrying the item, one per supplier item",
+            "example": 4
+          },
+          "siteCount": {
+            "type": "number",
+            "description": "The legal entity's sites, whether or not each carries the item",
+            "example": 3
+          },
+          "mrpCount": {
+            "type": "number",
+            "description": "MRPs recorded for the item",
+            "example": 2
+          }
+        },
+        "required": [
+          "supplierCount",
+          "siteCount",
+          "mrpCount"
+        ]
+      },
       "ItemSupplierPriceComparisonResponseDto": {
         "type": "object",
         "properties": {
@@ -65856,6 +67575,19 @@
         "required": [
           "partyId",
           "quantity"
+        ]
+      },
+      "CartCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "Lines in the cart",
+            "example": 3
+          }
+        },
+        "required": [
+          "itemCount"
         ]
       },
       "CreateCustomerDto": {
@@ -66987,6 +68719,19 @@
           "rows"
         ]
       },
+      "GoodsReceiptCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "Items counted on the receipt, listed by both its breakdown and its items cost",
+            "example": 4
+          }
+        },
+        "required": [
+          "itemCount"
+        ]
+      },
       "CreateInboundDeliveryDto": {
         "type": "object",
         "properties": {
@@ -67498,6 +69243,19 @@
           "state"
         ]
       },
+      "InboundDeliveryCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "lineCount": {
+            "type": "number",
+            "description": "Purchase order lines on the delivery",
+            "example": 5
+          }
+        },
+        "required": [
+          "lineCount"
+        ]
+      },
       "CreateInventoryItemLocationDto": {
         "type": "object",
         "properties": {
@@ -67865,6 +69623,55 @@
           "result",
           "count",
           "state"
+        ]
+      },
+      "SiteInventoryItemCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "stockLevelCount": {
+            "type": "number",
+            "description": "Locations at the site holding stock of the item or set up for it",
+            "example": 3
+          },
+          "lotCount": {
+            "type": "number",
+            "description": "Lots of the item",
+            "example": 5
+          },
+          "locationCount": {
+            "type": "number",
+            "description": "Locations set up for the item at the site",
+            "example": 2
+          },
+          "supplierCount": {
+            "type": "number",
+            "description": "Supplier items carrying the item",
+            "example": 4
+          },
+          "priceCount": {
+            "type": "number",
+            "description": "Price rows for the item at the site, the legal entity's included",
+            "example": 12
+          },
+          "movementCount": {
+            "type": "number",
+            "description": "Stock movements of the item at the site",
+            "example": 40
+          },
+          "quantCount": {
+            "type": "number",
+            "description": "Quants of the item at the site",
+            "example": 6
+          }
+        },
+        "required": [
+          "stockLevelCount",
+          "lotCount",
+          "locationCount",
+          "supplierCount",
+          "priceCount",
+          "movementCount",
+          "quantCount"
         ]
       },
       "CreateLocationDto": {
@@ -68636,6 +70443,25 @@
           "type"
         ]
       },
+      "CatalogChannelCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "listingCount": {
+            "type": "number",
+            "description": "Listings in the channel's catalog whose variant and offering are active",
+            "example": 48
+          },
+          "currencyCount": {
+            "type": "number",
+            "description": "Currencies the channel's catalog is priced in",
+            "example": 2
+          }
+        },
+        "required": [
+          "listingCount",
+          "currencyCount"
+        ]
+      },
       "CreateCatalogDto": {
         "type": "object",
         "properties": {
@@ -69158,6 +70984,31 @@
           "listingCount"
         ]
       },
+      "CatalogCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "channelCount": {
+            "type": "number",
+            "description": "Channels carrying the catalog",
+            "example": 2
+          },
+          "listingCount": {
+            "type": "number",
+            "description": "Listings in the catalog whose variant is in reach",
+            "example": 48
+          },
+          "currencyCount": {
+            "type": "number",
+            "description": "Currencies the catalog is priced in",
+            "example": 2
+          }
+        },
+        "required": [
+          "channelCount",
+          "listingCount",
+          "currencyCount"
+        ]
+      },
       "BulkRemoveCatalogListingsDto": {
         "type": "object",
         "properties": {
@@ -69289,6 +71140,25 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "OrderCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "Items on the order",
+            "example": 4
+          },
+          "paymentCount": {
+            "type": "number",
+            "description": "Payments of the order's checkout, including any second payment being refunded",
+            "example": 1
+          }
+        },
+        "required": [
+          "itemCount",
+          "paymentCount"
         ]
       },
       "CreatePosTerminalDto": {
@@ -70720,6 +72590,37 @@
           "invoicedPrimaryQty",
           "duePrimaryQty",
           "invoicedPercent"
+        ]
+      },
+      "PurchaseOrderCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "Lines on the order",
+            "example": 8
+          },
+          "inboundDeliveryCount": {
+            "type": "number",
+            "description": "Inbound deliveries carrying a line of the order",
+            "example": 2
+          },
+          "goodsReceiptCount": {
+            "type": "number",
+            "description": "Goods receipts counting a line of the order, drafts included",
+            "example": 2
+          },
+          "invoiceCount": {
+            "type": "number",
+            "description": "Supplier invoices with a line on the order, cancelled ones included",
+            "example": 1
+          }
+        },
+        "required": [
+          "itemCount",
+          "inboundDeliveryCount",
+          "goodsReceiptCount",
+          "invoiceCount"
         ]
       },
       "CreatePurchaseDto": {
@@ -75410,6 +77311,25 @@
           "isBalanced"
         ]
       },
+      "StockAdjustmentCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "lineCount": {
+            "type": "number",
+            "description": "Lines on the adjustment, those under a draft lot included",
+            "example": 6
+          },
+          "lotCount": {
+            "type": "number",
+            "description": "Draft lots the adjustment opens; only opening stock of a lot-tracked item has them",
+            "example": 2
+          }
+        },
+        "required": [
+          "lineCount",
+          "lotCount"
+        ]
+      },
       "CreateStockTransferDto": {
         "type": "object",
         "properties": {
@@ -76490,6 +78410,69 @@
           "display"
         ]
       },
+      "SupplierInvoiceCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "lineCount": {
+            "type": "number",
+            "description": "Item and charge lines on the invoice",
+            "example": 6
+          },
+          "holdCount": {
+            "type": "number",
+            "description": "Holds on the invoice, released ones included",
+            "example": 1
+          }
+        },
+        "required": [
+          "lineCount",
+          "holdCount"
+        ]
+      },
+      "SupplierEnrollmentCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "siteItemCount": {
+            "type": "number",
+            "description": "Supplier items the site lists: those it carries once the supplier is enrolled there, the supplier's whole catalog before",
+            "example": 12
+          },
+          "quotationCount": {
+            "type": "number",
+            "description": "The supplier's quotations at the site: those posted to it from the legal entity, those the site reads in a site workspace",
+            "example": 2
+          },
+          "invoiceCount": {
+            "type": "number",
+            "description": "The supplier's invoices entered at the site",
+            "example": 4
+          }
+        },
+        "required": [
+          "siteItemCount",
+          "quotationCount",
+          "invoiceCount"
+        ]
+      },
+      "SupplierItemCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "siteItemCount": {
+            "type": "number",
+            "description": "Sites the supplier item is set up at, as far as the workspace reads them",
+            "example": 3
+          },
+          "priceCount": {
+            "type": "number",
+            "description": "Price rows on the supplier item's timeline, as far as the workspace reads them",
+            "example": 8
+          }
+        },
+        "required": [
+          "siteItemCount",
+          "priceCount"
+        ]
+      },
       "CreateSupplierQuotationDto": {
         "type": "object",
         "properties": {
@@ -76666,6 +78649,25 @@
         },
         "required": [
           "unitPrice"
+        ]
+      },
+      "SupplierQuotationCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "The quotation's lines",
+            "example": 6
+          },
+          "siteCount": {
+            "type": "number",
+            "description": "Sites the quotation is posted to, the whole legal entity counting as one",
+            "example": 2
+          }
+        },
+        "required": [
+          "itemCount",
+          "siteCount"
         ]
       },
       "PostSupplierQuotationSiteDto": {
@@ -78427,6 +80429,37 @@
           "isPreferred"
         ]
       },
+      "SupplierCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "itemCount": {
+            "type": "number",
+            "description": "Inventory items the supplier sells, one row per item and unit",
+            "example": 24
+          },
+          "enrollmentCount": {
+            "type": "number",
+            "description": "The legal entity's sites, each listed with the supplier's enrollment there or none",
+            "example": 3
+          },
+          "quotationCount": {
+            "type": "number",
+            "description": "The supplier's quotations of the legal entity and its sites",
+            "example": 5
+          },
+          "personCount": {
+            "type": "number",
+            "description": "People linked to the supplier's party (company suppliers only)",
+            "example": 2
+          }
+        },
+        "required": [
+          "itemCount",
+          "enrollmentCount",
+          "quotationCount",
+          "personCount"
+        ]
+      },
       "CreateInventoryItemDto": {
         "type": "object",
         "properties": {
@@ -78797,6 +80830,31 @@
           "maxQuantity",
           "uomId",
           "uomSymbol"
+        ]
+      },
+      "OrgInventoryItemCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversionCount": {
+            "type": "number",
+            "description": "Per-item UOM conversions of the item",
+            "example": 2
+          },
+          "mrpCount": {
+            "type": "number",
+            "description": "MRPs recorded for the item, across units and currencies",
+            "example": 3
+          },
+          "supplierCount": {
+            "type": "number",
+            "description": "Supplier items carrying the item, across every supplier",
+            "example": 4
+          }
+        },
+        "required": [
+          "conversionCount",
+          "mrpCount",
+          "supplierCount"
         ]
       },
       "PersonAddressInputDto": {
@@ -79496,6 +81554,67 @@
         },
         "required": [
           "isActive"
+        ]
+      },
+      "PersonCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "addressCount": {
+            "type": "number",
+            "description": "Addresses recorded for the person",
+            "example": 1
+          },
+          "communicationCount": {
+            "type": "number",
+            "description": "Contactable communications (email, phone and the like) of the person",
+            "example": 2
+          },
+          "socialProfileCount": {
+            "type": "number",
+            "description": "Social and web profiles of the person",
+            "example": 1
+          },
+          "companyCount": {
+            "type": "number",
+            "description": "Companies the person is linked to",
+            "example": 1
+          },
+          "registrationCount": {
+            "type": "number",
+            "description": "Tax registrations of the person, inactive ones included",
+            "example": 0
+          },
+          "licenseCount": {
+            "type": "number",
+            "description": "Regulatory licenses of the person",
+            "example": 0
+          },
+          "bankAccountCount": {
+            "type": "number",
+            "description": "Bank accounts of the person",
+            "example": 1
+          },
+          "wishlistCount": {
+            "type": "number",
+            "description": "Products the person saved for later on a storefront",
+            "example": 5
+          },
+          "identifierCount": {
+            "type": "number",
+            "description": "Identity documents of the person",
+            "example": 1
+          }
+        },
+        "required": [
+          "addressCount",
+          "communicationCount",
+          "socialProfileCount",
+          "companyCount",
+          "registrationCount",
+          "licenseCount",
+          "bankAccountCount",
+          "wishlistCount",
+          "identifierCount"
         ]
       },
       "CreatePersonAppDto": {
@@ -80237,6 +82356,61 @@
           }
         }
       },
+      "CompanyCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "addressCount": {
+            "type": "number",
+            "description": "Addresses recorded for the company",
+            "example": 2
+          },
+          "communicationCount": {
+            "type": "number",
+            "description": "Contactable communications (email, phone and the like) of the company",
+            "example": 3
+          },
+          "socialProfileCount": {
+            "type": "number",
+            "description": "Social and web profiles of the company",
+            "example": 1
+          },
+          "personCount": {
+            "type": "number",
+            "description": "People linked to the company",
+            "example": 4
+          },
+          "registrationCount": {
+            "type": "number",
+            "description": "Tax registrations of the company, inactive ones included",
+            "example": 2
+          },
+          "licenseCount": {
+            "type": "number",
+            "description": "Regulatory licenses of the company",
+            "example": 1
+          },
+          "bankAccountCount": {
+            "type": "number",
+            "description": "Bank accounts of the company",
+            "example": 1
+          },
+          "identifierCount": {
+            "type": "number",
+            "description": "Identifiers (CIN, LEI, DUNS and the like) of the company",
+            "example": 2
+          }
+        },
+        "required": [
+          "addressCount",
+          "communicationCount",
+          "socialProfileCount",
+          "personCount",
+          "registrationCount",
+          "licenseCount",
+          "bankAccountCount",
+          "identifierCount"
+        ]
+      },
       "CreatePaymentTermDto": {
         "type": "object",
         "properties": {
@@ -80325,6 +82499,19 @@
         },
         "required": [
           "baseline"
+        ]
+      },
+      "PaymentTermCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "ruleCount": {
+            "type": "number",
+            "description": "Rules of the payment term",
+            "example": 3
+          }
+        },
+        "required": [
+          "ruleCount"
         ]
       },
       "CreateStorageTypeDto": {
@@ -80931,6 +83118,19 @@
           "result",
           "count",
           "state"
+        ]
+      },
+      "TaxClassCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "groupCount": {
+            "type": "number",
+            "description": "Tax group mappings of the class in every country, past and future included",
+            "example": 4
+          }
+        },
+        "required": [
+          "groupCount"
         ]
       },
       "CreateTaxComponentDto": {
@@ -81620,6 +83820,25 @@
           "result",
           "count",
           "state"
+        ]
+      },
+      "TaxGroupCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "rateCount": {
+            "type": "number",
+            "description": "Rates in the group",
+            "example": 12
+          },
+          "classCount": {
+            "type": "number",
+            "description": "Tax classes mapped to the group, past and future mappings included",
+            "example": 3
+          }
+        },
+        "required": [
+          "rateCount",
+          "classCount"
         ]
       },
       "CreateAttributeTemplateDto": {

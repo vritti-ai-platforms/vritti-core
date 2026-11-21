@@ -1,3 +1,4 @@
+import type { CartCountsResponseDto } from '@commerce/carts/dto/response/cart-counts-response.dto';
 import {
   type PayableGateway,
   PayoutChannelDomainService,
@@ -206,6 +207,12 @@ export class CartsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Counts a cart's lines, for its Items tab
+  findCounts(id: string): Promise<CartCountsResponseDto> {
+    this.logger.log(`site.carts.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.carts.findCounts', { id });
   }
 
   // Returns a cart's lines, priced through this site's channel

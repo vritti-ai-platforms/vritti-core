@@ -8,6 +8,7 @@ import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/resp
 import { type SelectOptionsQueryDto, type SelectQueryResult, selectPageOptions } from '@vritti/api-sdk/select';
 import { parties, type Supplier, supplierItems, suppliers } from '@/db/schema';
 import { SupplierDetailDto, SupplierDto } from '../dto/entity/supplier.dto';
+import { SupplierCountsDto } from '../dto/entity/supplier-counts.dto';
 import type { ChangeSupplierCurrencyDto } from '../dto/request/change-supplier-currency.dto';
 import type { CreateSupplierDto } from '../dto/request/create-supplier.dto';
 import type { UpdateSupplierDto } from '../dto/request/update-supplier.dto';
@@ -181,6 +182,11 @@ export class SuppliersDomainService {
     });
 
     return { result: rows.map((row) => SupplierDto.from(row)), count };
+  }
+
+  // Counts a supplier's items, quotations and party people, one per tab of its detail page
+  async findCounts(id: string): Promise<SupplierCountsDto> {
+    return SupplierCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // Returns paginated supplier options; activeOnly drops inactive suppliers, inventoryItemId keeps those supplying the

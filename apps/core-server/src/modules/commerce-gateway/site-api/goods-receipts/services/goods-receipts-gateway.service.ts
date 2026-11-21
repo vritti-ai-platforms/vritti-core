@@ -6,6 +6,7 @@ import type { UpdateGoodsReceiptDto } from '@commerce/goods-receipts/dto/request
 import type { UpdateGoodsReceiptItemDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-item.dto';
 import type { UpdateGoodsReceiptLineDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-line.dto';
 import type { UpdateGoodsReceiptLotDto } from '@commerce/goods-receipts/dto/request/update-goods-receipt-lot.dto';
+import type { GoodsReceiptCountsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-counts-response.dto';
 import type { GoodsReceiptItemQuantsResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-quants-response.dto';
 import type { GoodsReceiptItemResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-response.dto';
 import type { GoodsReceiptItemTableResponseDto } from '@commerce/goods-receipts/dto/response/goods-receipt-item-table-response.dto';
@@ -266,6 +267,12 @@ export class GoodsReceiptsGatewayService {
   findLots(goodsReceiptId: string, itemId: string): Promise<GoodsReceiptLotResponseDto[]> {
     this.logger.log(`site.goodsReceipts.lots — itemId: ${itemId}`);
     return this.nats.send('commerce', 'site.goodsReceipts.lots', { goodsReceiptId, itemId });
+  }
+
+  // Counts a goods receipt's items, one per tab of its detail page
+  findCounts(id: string): Promise<GoodsReceiptCountsResponseDto> {
+    this.logger.log(`site.goodsReceipts.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'site.goodsReceipts.findCounts', { id });
   }
 
   // Deletes a draft goods receipt

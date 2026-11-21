@@ -15,6 +15,7 @@ import {
   DEFAULT_SLOT,
   type ResolvedChannelsDto,
 } from '../dto/entity/catalog-channel.dto';
+import { CatalogChannelCountsDto } from '../dto/entity/catalog-channel-counts.dto';
 import { ListingFilterDto, ListingFilterKindValues } from '../dto/entity/listing-filter.dto';
 import { StorefrontListingDto, type StorefrontListingsDto } from '../dto/entity/storefront-listing.dto';
 import { buildVariantAxes, type CatalogListingDetailDto } from '../dto/entity/variant-axis.dto';
@@ -145,6 +146,11 @@ export class CatalogChannelsDomainService {
   async findCurrencies(channelId: string): Promise<string[]> {
     const channel = await this.requireChannel(channelId);
     return this.repository.findCatalogCurrencies(channel.catalogId);
+  }
+
+  // Counts a channel's listings and currencies, one per tab of its detail page
+  async findCounts(channelId: string): Promise<CatalogChannelCountsDto> {
+    return CatalogChannelCountsDto.from(await this.repository.findCountsOrThrow(channelId));
   }
 
   // Which catalog every configured slot resolves to, keyed for lookup

@@ -8,6 +8,7 @@ import {
   ApiChannelItems,
   ApiChannelPrices,
   ApiDeleteChannel,
+  ApiFindChannelCounts,
   ApiListCatalogChannels,
   ApiSetChannelItemVisibility,
 } from '@commerce/catalog-channels/docs/catalog-channels-gateway.docs';
@@ -17,6 +18,7 @@ import {
   UpsertPosChannelDto,
 } from '@commerce/catalog-channels/dto/request/app-channel.dto';
 import { SetItemVisibilityDto } from '@commerce/catalog-channels/dto/request/set-item-visibility.dto';
+import type { CatalogChannelCountsResponseDto } from '@commerce/catalog-channels/dto/response/catalog-channel-counts-response.dto';
 import type {
   CatalogChannelResponseDto,
   ChannelEntryResponseDto,
@@ -122,6 +124,15 @@ export class LeCatalogChannelsGatewayController {
   findCurrencies(@Param('channelId') channelId: string): Promise<string[]> {
     this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/currencies`);
     return this.service.findCurrencies(channelId);
+  }
+
+  // Counts a channel's listings and currencies, one per tab of its detail page
+  @Get(':channelId/counts')
+  @RequirePermission(LE_CATALOG_CHANNELS.view)
+  @ApiFindChannelCounts()
+  findCounts(@Param('channelId') channelId: string): Promise<CatalogChannelCountsResponseDto> {
+    this.logger.log(`GET /commerce-api/le/catalog-channels/${channelId}/counts`);
+    return this.service.findCounts(channelId);
   }
 
   @Delete(':channelId')

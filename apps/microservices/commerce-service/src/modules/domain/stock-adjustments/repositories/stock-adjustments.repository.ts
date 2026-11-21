@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { desc, eq, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type DisplayUnitRatios,
   displayUnitRatios,
@@ -24,6 +25,11 @@ export type StockAdjustmentWithRefs = StockAdjustment & {
   totalQuantity: number;
   isPublishable?: boolean;
   displayUnitRatios: DisplayUnitRatios;
+};
+
+export type StockAdjustmentCounts = {
+  lineCount: number;
+  lotCount: number;
 };
 
 export type StockAdjustmentWithItem = StockAdjustment & {
@@ -167,6 +173,13 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
     return { ...row, totalQuantity: Number(row.totalQuantity ?? 0) };
   }
 
+  // Counts an adjustment's lines and draft lots, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<StockAdjustmentCounts> {
+    const counts = await this.findById<StockAdjustmentCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Stock adjustment not found.');
+    return counts;
+  }
+
   async updateStatus(id: string, status: StockAdjustmentStatus, publishedAt?: Date): Promise<void> {
     await this.db
       .update(stockAdjustments)
@@ -190,5 +203,13 @@ export class StockAdjustmentsDomainRepository extends PrimaryBaseRepository<type
 
   async deleteById(id: string): Promise<void> {
     await this.db.delete(stockAdjustments).where(eq(stockAdjustments.id, id));
+  }
+
+  // Counts the rows an adjustment's Breakdown tab lists: its lines, and the draft lots opening stock groups them under
+  private counts() {
+    return {
+      lineCount: this.db.$count(stockAdjustmentLines, eq(stockAdjustmentLines.stockAdjustmentId, stockAdjustments.id)),
+      lotCount: this.db.$count(stockAdjustmentLots, eq(stockAdjustmentLots.stockAdjustmentId, stockAdjustments.id)),
+    };
   }
 }

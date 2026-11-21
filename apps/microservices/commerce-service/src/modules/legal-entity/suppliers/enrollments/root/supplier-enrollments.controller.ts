@@ -1,4 +1,5 @@
 import type { SupplierEnrollmentDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment.dto';
+import type { SupplierEnrollmentCountsDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-counts.dto';
 import type { SupplierEnrollmentPurchasingDetailDto } from '@domain/supplier-enrollments/dto/entity/supplier-enrollment-purchasing-detail.dto';
 import { SupplierEnrolledSitesQueryDto } from '@domain/supplier-enrollments/dto/request/supplier-enrolled-sites-query.dto';
 import { UpdateEnrollmentPurchasingDto } from '@domain/supplier-enrollments/dto/request/update-enrollment-purchasing.dto';
@@ -87,6 +88,16 @@ export class SupplierEnrollmentsController {
       `le.suppliers.enrollments.siteIds — supplierId: ${query.supplierId}, inventoryItemId: ${query.inventoryItemId}, isActive: ${query.isActive}`,
     );
     return this.service.findEnrolledSiteIds(query);
+  }
+
+  // Counts a supplier's items and quotations at one of the LE's sites, one per tab of its enrollment page
+  @MessagePattern({ cmd: 'le.suppliers.enrollments.findCounts' })
+  findCounts(
+    @Payload() data: { supplierId: string; siteId: string },
+    @RpcNatsHeaders() headers: NatsHeaders,
+  ): Promise<SupplierEnrollmentCountsDto> {
+    this.logger.log(`le.suppliers.enrollments.findCounts — supplierId: ${data.supplierId}, siteId: ${data.siteId}`);
+    return this.service.findCounts(headers.legalEntityId, data.supplierId, data.siteId);
   }
 
   // Removes a supplier's enrollment at one of the LE's sites

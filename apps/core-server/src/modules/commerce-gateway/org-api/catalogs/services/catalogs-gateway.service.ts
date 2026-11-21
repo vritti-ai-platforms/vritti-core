@@ -10,6 +10,7 @@ import type {
 import type { CreateCatalogDto } from '@commerce/catalogs/dto/request/create-catalog.dto';
 import type { SetCatalogListingPriceDto } from '@commerce/catalogs/dto/request/set-catalog-listing-price.dto';
 import type { UpdateCatalogDto } from '@commerce/catalogs/dto/request/update-catalog.dto';
+import type { CatalogCountsResponseDto } from '@commerce/catalogs/dto/response/catalog-counts-response.dto';
 import type { CatalogCurrencyResponseDto } from '@commerce/catalogs/dto/response/catalog-currency-response.dto';
 import type { CatalogListingResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-response.dto';
 import type { CatalogListingTableResponseDto } from '@commerce/catalogs/dto/response/catalog-listing-table-response.dto';
@@ -190,6 +191,12 @@ export class CatalogsGatewayService {
   async findChannels(catalogId: string): Promise<CatalogChannelResponseDto[]> {
     this.logger.log(`org.catalogs.channels — catalogId: ${catalogId}`);
     return this.nats.send('commerce', 'org.catalogs.channels', { catalogId });
+  }
+
+  // Counts a catalog's channels, listings and currencies, one per tab of its detail page
+  findCounts(id: string): Promise<CatalogCountsResponseDto> {
+    this.logger.log(`org.catalogs.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'org.catalogs.findCounts', { id });
   }
 
   async delete(id: string): Promise<SuccessResponseDto> {

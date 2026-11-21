@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { SearchState } from '@vritti/api-sdk/conditions';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
 import { and, asc, eq, exists, getColumns, gt, ilike, ne, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   GoodsReceiptStatusValues,
   goodsReceiptItems,
@@ -15,6 +16,7 @@ import {
   purchases,
   type SupplierInvoice,
   SupplierInvoiceStatusValues,
+  supplierInvoiceHolds,
   supplierInvoiceLines,
   supplierInvoices,
   suppliers,
@@ -33,6 +35,11 @@ export type SupplierInvoiceRow = SupplierInvoice & {
   purchases: SupplierInvoicePurchaseRef[];
   isReceiveWithInvoice: boolean;
   lineCount: number;
+};
+
+export type SupplierInvoiceCounts = {
+  lineCount: number;
+  holdCount: number;
 };
 
 export type SupplierInvoiceScope = {
@@ -75,6 +82,16 @@ export class SupplierInvoicesDomainRepository extends PrimaryBaseRepository<type
       leftJoins: this.joins(),
       where: this.scopeWhere(scope),
     });
+  }
+
+  // Counts an invoice's lines and holds, throwing when it is out of the scope or of reach
+  async findCountsOrThrow(id: string, scope: SupplierInvoiceScope = {}): Promise<SupplierInvoiceCounts> {
+    const counts = await this.findById<SupplierInvoiceCounts>(id, {
+      select: this.counts(),
+      where: this.scopeWhere(scope),
+    });
+    if (!counts) throw new NotFoundException('Supplier invoice not found.');
+    return counts;
   }
 
   // Returns the invoices with a line on a PO a purchase created, oldest first
@@ -209,6 +226,14 @@ export class SupplierInvoicesDomainRepository extends PrimaryBaseRepository<type
       purchases: sql<SupplierInvoicePurchaseRef[]>`coalesce((${purchaseRefs}), '[]'::jsonb)`,
       isReceiveWithInvoice: sql<boolean>`${exists(receiveWithInvoiceLine)}`,
       lineCount: this.db.$count(supplierInvoiceLines, eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoices.id)),
+    };
+  }
+
+  // Counts the rows each of an invoice's tabs lists: its lines and every hold on it, released ones included
+  private counts() {
+    return {
+      lineCount: this.db.$count(supplierInvoiceLines, eq(supplierInvoiceLines.supplierInvoiceId, supplierInvoices.id)),
+      holdCount: this.db.$count(supplierInvoiceHolds, eq(supplierInvoiceHolds.supplierInvoiceId, supplierInvoices.id)),
     };
   }
 

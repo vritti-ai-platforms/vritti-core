@@ -9,6 +9,7 @@ import { pluralize } from '@vritti/api-sdk/pluralize';
 import type { CreateResponseDto, SuccessResponseDto } from '@vritti/api-sdk/responses';
 import { cartItems, carts, offerings, offeringVariants, parties } from '@/db/schema';
 import { CartDetailDto, CartDto, CartItemDto, type CartItemRow, StaffCartItemDto } from '../dto/entity/cart.dto';
+import { CartCountsDto } from '../dto/entity/cart-counts.dto';
 import type { CartSiteScopeDto } from '../dto/request/cart-request.dto';
 import { CartItemsDomainRepository } from '../repositories/cart-items.repository';
 import { CartsDomainRepository } from '../repositories/carts.repository';
@@ -209,6 +210,11 @@ export class CartsDomainService {
       appId,
     );
     return { result: result.map((row) => CartItemDto.from(row)), count };
+  }
+
+  // Counts a cart's lines, for its Items tab
+  async findCounts(id: string): Promise<CartCountsDto> {
+    return CartCountsDto.from(await this.repository.findCountsOrThrow(id));
   }
 
   // How many of each product the party holds in their cart at this workspace

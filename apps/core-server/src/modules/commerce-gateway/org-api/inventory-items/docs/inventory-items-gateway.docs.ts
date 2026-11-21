@@ -1,6 +1,7 @@
 import { CreateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/create-inventory-item-storage-type.dto';
 import { UpdateInventoryItemStorageTypeDto } from '@commerce/inventory-items/dto/request/update-inventory-item-storage-type.dto';
 import { InventoryItemStorageTypeResponseDto } from '@commerce/inventory-items/dto/response/inventory-item-storage-type-response.dto';
+import { OrgInventoryItemCountsResponseDto } from '@commerce/inventory-items/dto/response/org-inventory-item-counts-response.dto';
 import { applyDecorators } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '@vritti/api-sdk/responses';
@@ -17,6 +18,18 @@ export function ApiFindInventoryItemStorageTypes() {
     }),
     ApiParam(INVENTORY_ITEM_ID),
     ApiResponse({ status: 200, type: [InventoryItemStorageTypeResponseDto] }),
+    ApiResponse({ status: 404, description: 'Inventory item not found.' }),
+  );
+}
+
+export function ApiFindInventoryItemCounts() {
+  return applyDecorators(
+    ApiOperation({
+      summary: "Count an inventory item's UOM conversions, MRPs and suppliers",
+      description: "One count per tab of the item's detail page, so each tab can show how many rows it lists.",
+    }),
+    ApiParam(INVENTORY_ITEM_ID),
+    ApiResponse({ status: 200, type: OrgInventoryItemCountsResponseDto }),
     ApiResponse({ status: 404, description: 'Inventory item not found.' }),
   );
 }

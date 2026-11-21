@@ -1,3 +1,4 @@
+import type { CartCountsResponseDto } from '@commerce/carts/dto/response/cart-counts-response.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { TableStateService } from '@vritti/api-sdk/data-table';
 import { NatsClientService } from '@vritti/api-sdk/nats';
@@ -122,6 +123,12 @@ export class LeCartsGatewayService {
     );
 
     return { result, count, state, activeViewId };
+  }
+
+  // Counts a cart's lines, for its Items tab
+  findCounts(id: string): Promise<CartCountsResponseDto> {
+    this.logger.log(`le.carts.findCounts — id: ${id}`);
+    return this.nats.send('commerce', 'le.carts.findCounts', { id });
   }
 
   // Returns a cart's lines, priced through this site's channel

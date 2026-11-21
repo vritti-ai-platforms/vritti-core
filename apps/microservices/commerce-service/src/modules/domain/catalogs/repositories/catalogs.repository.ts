@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrimaryBaseRepository, PrimaryDatabaseService } from '@vritti/api-sdk/database';
-import { asc, eq, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { and, asc, eq, exists, getColumns, type SQL, sql } from '@vritti/api-sdk/drizzle-orm';
+import { NotFoundException } from '@vritti/api-sdk/exceptions';
 import {
   type Catalog,
   catalogChannels,
+  catalogCurrencies,
   catalogListings,
   catalogs,
+  offeringVariants,
   ownedByWorkspaceExpression,
   posTerminals,
 } from '@/db/schema';
@@ -13,6 +16,12 @@ import {
 import type { CatalogChannelDto } from '../dto/entity/catalog-channel.dto';
 
 export type CatalogWithCounts = Catalog & { items: number; channels: number; isOwned: boolean };
+
+export type CatalogCounts = {
+  channelCount: number;
+  listingCount: number;
+  currencyCount: number;
+};
 
 @Injectable()
 export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catalogs> {
@@ -27,6 +36,26 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
       items: this.db.$count(catalogListings, eq(catalogListings.catalogId, catalogs.id)),
       channels: this.db.$count(catalogChannels, eq(catalogChannels.catalogId, catalogs.id)),
       isOwned: ownedByWorkspaceExpression(catalogs),
+    };
+  }
+
+  // Counts the rows each of a catalog's tabs lists, a listing only while its variant is in reach as its table joins it
+  private counts() {
+    return {
+      channelCount: this.db.$count(catalogChannels, eq(catalogChannels.catalogId, catalogs.id)),
+      listingCount: this.db.$count(
+        catalogListings,
+        and(
+          eq(catalogListings.catalogId, catalogs.id),
+          exists(
+            this.db
+              .select({ one: sql`1` })
+              .from(offeringVariants)
+              .where(eq(offeringVariants.id, catalogListings.offeringVariantId)),
+          ),
+        ),
+      ),
+      currencyCount: this.db.$count(catalogCurrencies, eq(catalogCurrencies.catalogId, catalogs.id)),
     };
   }
 
@@ -66,6 +95,13 @@ export class CatalogsDomainRepository extends PrimaryBaseRepository<typeof catal
 
   async findByIdWithCounts(id: string): Promise<CatalogWithCounts | undefined> {
     return this.findById<CatalogWithCounts>(id, { select: this.selection() });
+  }
+
+  // Counts a catalog's channels, listings and currencies, throwing when it is out of reach
+  async findCountsOrThrow(id: string): Promise<CatalogCounts> {
+    const counts = await this.findById<CatalogCounts>(id, { select: this.counts() });
+    if (!counts) throw new NotFoundException('Catalog not found.');
+    return counts;
   }
 
   // Scoped to this workspace, mirroring uq_catalogs_owner_name — an LE may reuse a name an org catalog already has, and
