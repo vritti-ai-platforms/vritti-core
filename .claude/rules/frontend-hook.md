@@ -61,6 +61,38 @@ mutationFn: async (sessionId) => {
 },
 ```
 
+## Mutations — invalidate through the registry, by the tables written (commerce-mf)
+
+A mutation names the DB tables its backend command writes; `invalidateWrites` refreshes every reader of them — in
+org, LE and site, and every picker label cache. Never hand-pick query keys: the same data is read from other pages and
+other workspaces (an item added to a site in the site workspace shows on the LE inventory item's Sites tab).
+
+```typescript
+import { invalidateWrites, Tables } from '@/hooks/shared/invalidation';
+
+export function useAddToSite(options?: …) {
+  const queryClient = useQueryClient();
+  return useMutation<…>({
+    ...options,
+    mutationFn: …,
+    onSuccess: (...args) => {
+      invalidateWrites(queryClient, [Tables.inventoryItemSites]);
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+```
+
+- **List every table the command writes, transitively** — side effects included: stock landing (quants, lots, ledger,
+  costs), PO line counters and status, purchase progress (`purchaseSuppliers`, `purchases`), Info Update supplier items
+  (`supplierItems`, `supplierSiteItems`, `supplierItemPrices`), FK cascades on delete. Trace the NATS command down to
+  the repositories; a write under a setting still counts (invalidating unchanged data only marks it stale).
+- **A new query root, or a query that reads a new table** → add its root key to that table's `READERS` entry in
+  `hooks/shared/invalidation.ts` (a new picker endpoint → `PICKERS`). Readers are root keys; prefixes collapse, and only
+  on-screen queries refetch.
+- Keep beside it only what the registry can't express: `setQueryData` with the response, `removeQueries`, optimistic
+  updates. No `queryClient.invalidateQueries` for commerce keys in a mutation.
+
 ## Options type pattern
 
 ```typescript

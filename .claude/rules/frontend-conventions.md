@@ -272,6 +272,29 @@ async function handleDelete(id: string, name: string) {
 
 Pass the resource name (and relevant context) into `handleDelete` so the description is specific, not generic.
 
+## Tab counts — `count` / `countLoading` from a dedicated counts API
+Every detail-page tab that lists rows shows how many it holds. quantum-ui's `TabItem` takes `count` (drawn as a pill
+beside the label, in the locale's digits) and `countLoading` (a skeleton in its place). Overview, settings, chart and
+history tabs get no count.
+
+- The numbers come from ONE counts endpoint per entity — `GET <scope>/<entities>/:id/counts` → NATS
+  `<scope>.<entities>.findCounts` → `findCountsOrThrow(id)` selecting a `$count` per tab (see
+  `gateway-conventions.md` → "Detail-page counts"). Never derive a count from the loaded record (`items.length`,
+  `x.lineCount`) and never write it into the label.
+- Hook `use<Entity>Counts(id)` (`useQuery`, not suspense — the tabs render at once and the count lands later) keyed
+  `<ENTITY>_COUNTS_KEY(id) = [...<ENTITY>_KEY(id), 'counts']`, UNDER the detail key, so whatever refreshes the entity
+  refreshes its counts. Shared components take it through the binding (`binding.use<Entity>Counts`).
+- The component that renders the tabs calls the hook — not the page that happens to own the header.
+
+```tsx
+// WRONG — count from the record, hand-written into the label
+{ value: 'lines', label: `Lines (${invoice.lines.length})`, content: … }
+
+// CORRECT
+const { data: counts, isLoading: countsLoading } = useSupplierInvoiceCounts(invoice.id);
+{ value: 'lines', label: 'Lines', count: counts?.lineCount, countLoading: countsLoading, content: … }
+```
+
 ## Slug-based Routes — use `buildSlug` + `useSlugParams`
 - For detail page URLs that should show a readable name, use `buildSlug(name, id)` from `@vritti/quantum-ui/slug`
 - The slug format is `name-slug~uuid` — the Breadcrumb auto-humanizes the name part

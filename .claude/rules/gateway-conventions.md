@@ -210,6 +210,26 @@ Mirror the commerce-service request DTOs with Swagger decorators added:
 - `dto/request/update-{entity}.dto.ts`
 - `dto/request/{entity}-{action}-query.dto.ts` — for query params
 
+## Detail-page counts — one `GET :id/counts` per entity
+
+A detail page's listing tabs show how many rows each holds (`frontend-conventions.md` → "Tab counts"). They come from
+one endpoint per entity, in every scope that renders the page — reference: tax groups
+(`org-api/tax-groups`, `modules/organization/tax-groups`, `modules/domain/tax-groups`).
+
+1. **Repository**: `findCountsOrThrow(id)` — `findById(id, { select: this.counts() })` with a private `counts()` of
+   `this.db.$count(table, condition)` per tab, throwing `NotFoundException('<Entity> not found.')`. ONE query. Each
+   condition is the same base condition the tab's table query uses (parent FK, scope/RLS narrowing, the same
+   "contactable only" / "active" filters), with no user filters. A repository may `$count` other domains' schema
+   tables; a count that needs another domain's service is orchestrated in the API-layer service.
+2. **Domain**: `<Entity>CountsDto` (`static from(row)`) in `dto/entity/`, service `findCounts(id)`.
+3. **commerce-service handler**: `@MessagePattern({ cmd: '<scope>.<entities>.findCounts' })`, placed after the table
+   handlers and before delete (`method-order.md`).
+4. **Gateway**: `@Get(':id/counts')` gated on the entity's **view** permission (the same as `GET :id`), `ParseUUIDPipe`
+   like its neighbours, an `ApiFind<Entity>Counts` docs decorator and `<entity>-counts-response.dto.ts` with an
+   `@ApiProperty` per count. The service method mirrors the controller order.
+5. Keep any count fields the record DTO already carries (`rateCount`, `canDelete` inputs) — other screens read them;
+   the counts endpoint does not replace them.
+
 ## canDelete pattern
 
 When an entity has FK references that prevent deletion:
